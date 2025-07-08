@@ -39,6 +39,7 @@ import org.koin.androidx.compose.koinViewModel
 fun HomeScreen(navController : NavHostController) {
     val viewModel: PokemonViewModel = koinViewModel()
     val pokemonListState by viewModel.pokemonList.collectAsState()
+
 //    val brush = Brush.linearGradient(
 //        colors = listOf(Color(0xFFE3350D), Color(0xFFFFFFFF)),
 //        start = Offset(0f, 0f),
