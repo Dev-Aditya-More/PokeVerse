@@ -41,7 +41,7 @@ A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuri
 
 ### Prerequisites
 
-- Android Studio Hedgehog or newer
+- Android Studio Meerkat or newer
 - Kotlin 1.9+
 - Gradle 8+
 
