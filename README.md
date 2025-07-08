@@ -1,4 +1,4 @@
-# PokéVerse 🧭
+# PokéVerse
 
 A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuring dynamic theming, glassmorphic UI, and modern Android design principles.
 
