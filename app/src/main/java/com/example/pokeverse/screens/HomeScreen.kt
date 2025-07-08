@@ -19,6 +19,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -72,8 +73,15 @@ fun HomeScreen(navController : NavHostController) {
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
-                TopAppBar(title = { Text("PokeVerse") })
-            },
+                TopAppBar(
+                    title = { Text("PokeVerse") },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Black,
+                        navigationIconContentColor = Color.White,
+                        titleContentColor = Color.White
+                    )
+                )
+            }
         ) { paddingValues ->
             Box(
                 modifier = Modifier
@@ -98,12 +106,16 @@ fun HomeScreen(navController : NavHostController) {
                                         .clickable {
                                             navController.navigate("pokemon_detail/${pokemon.name}")
                                         },
-                                    elevation = CardDefaults.cardElevation(4.dp)
+                                    elevation = CardDefaults.cardElevation(4.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color.Black
+                                    )
                                 ) {
                                     Text(
                                         text = pokemon.name.replaceFirstChar { it.uppercase() },
                                         modifier = Modifier.padding(16.dp),
-                                        style = MaterialTheme.typography.titleMedium
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = Color.White
                                     )
                                 }
                             }
