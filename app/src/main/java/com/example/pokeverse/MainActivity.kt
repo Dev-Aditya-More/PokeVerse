@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -85,7 +86,7 @@ class MainActivity : ComponentActivity() {
 fun SplashScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
-        delay(2000)
+        delay(3000)
         navController.navigate("home") {
             popUpTo("splash") { inclusive = true } // removes splash from backstack
         }
