@@ -40,23 +40,6 @@ fun HomeScreen(navController : NavHostController) {
     val viewModel: PokemonViewModel = koinViewModel()
     val pokemonListState by viewModel.pokemonList.collectAsState()
 
-//    val brush = Brush.linearGradient(
-//        colors = listOf(Color(0xFFE3350D), Color(0xFFFFFFFF)),
-//        start = Offset(0f, 0f),
-//        end = Offset(0f, 1000f) // vertical gradient
-//    )
-
-//    val pokeballGradient = Brush.verticalGradient(
-//        colorStops = arrayOf(
-//            0.0f to Color(0xFFEF5350),      // Pokéball red
-//            0.45f to Color(0xFFEF5350),     // Continue red
-//            0.46f to Color(0xFF212121),     // Black band starts
-//            0.54f to Color(0xFF212121),     // Black band ends
-//            0.55f to Color(0xFFEEEEEE),     // Light gray (bottom)
-//            1.0f to Color(0xFFF5F5F5)        // Slight white fade
-//        )
-//    )
-
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFFEDE574), Color(0xFFE1F5C4))
     )

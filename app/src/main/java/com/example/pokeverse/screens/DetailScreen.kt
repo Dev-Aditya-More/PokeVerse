@@ -1,5 +1,8 @@
 package com.example.pokeverse.screens
 
+import android.media.MediaPlayer
+import android.speech.tts.TextToSpeech
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,7 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,11 +34,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,15 +53,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
-import com.example.pokeverse.data.remote.RetrofitInstance
-import kotlinx.coroutines.launch
+import com.example.pokeverse.R
+import com.example.pokeverse.ui.viewmodel.PokemonViewModel
+import org.koin.androidx.compose.koinViewModel
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
-    val scope = rememberCoroutineScope()
-    var isLoading by remember { mutableStateOf(true) }
-    var pokemon by remember { mutableStateOf<com.example.pokeverse.data.remote.model.PokemonResponse?>(null) }
+
     val typeGradientMap: Map<String, List<Color>> = mapOf(
         "fire" to listOf(Color(0xFFEC5343), Color(0xFFE17050)),
         "water" to listOf(Color(0xFF30A2BE), Color(0xFF61A2B6)),
@@ -78,20 +82,44 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
         "normal" to listOf(Color(0xFFEDE574), Color(0xFFE1F5C4)),
         "flying" to listOf(Color(0xFF89F7FE), Color(0xFF66A6FF))
     )
+
+    val viewModel: PokemonViewModel = koinViewModel()
+
+    val uiState by viewModel.uiState.collectAsState()
+
+    val pokemon = uiState.pokemon
+    val description = uiState.description
+    val isLoading = uiState.isLoading
+    val cleanText = description
+        .replace(Regex("[^\\x00-\\x7F]"), " ")  // remove non-ASCII
+        .replace("\n", " ")
+        .replace("\u000c", " ")
+        .trim()
+
     val primaryType = pokemon?.types?.firstOrNull()?.type?.name ?: "normal"
     val gradientColors = typeGradientMap[primaryType] ?: listOf(Color.Gray, Color.LightGray)
+    
+    val context = LocalContext.current
+    var isTtsReady by remember { mutableStateOf(false) }
+    val mediaPlayer = MediaPlayer.create(context, R.raw.beepeffect)
 
+    val tts = remember {
+        TextToSpeech(context) { status ->
 
-    LaunchedEffect(Unit) {
-        scope.launch {
-            try {
-                val result = RetrofitInstance.api.getPokemonByName(pokemonName)
-                pokemon = result
-                isLoading = false
-            } catch (e: Exception) {
-                isLoading = false
-            }
+            isTtsReady = status == TextToSpeech.SUCCESS
         }
+    }.apply {
+        language = Locale.US
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            tts.stop()
+            tts.shutdown()
+        }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.fetchPokemonData(pokemonName.lowercase())
     }
 
     Box(
@@ -112,15 +140,48 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
-                                imageVector = Icons.Default.ArrowBack,
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back"
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            val name = pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "This Pokémon"
+                            val type = pokemon?.types?.firstOrNull()?.type?.name ?: "unknown type"
+
+                            val speechText = buildString {
+                                append("$name. ")
+                                append("A $type type Pokémon. ")
+                                append(cleanText)
+                            }
+
+                            if (isTtsReady) {
+                                tts.language = Locale.US
+                                tts.setPitch(0.8f)          // Deeper voice
+                                tts.setSpeechRate(0.85f)    // Slightly slower
+
+                                mediaPlayer.start()
+                                mediaPlayer.setOnCompletionListener {
+                                    tts.speak(speechText, TextToSpeech.QUEUE_FLUSH, null, null)
+                                }
+                            } else {
+                                Toast.makeText(context, "Voice engine not ready", Toast.LENGTH_SHORT).show()
+                            }
+
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Info,
+                                contentDescription = "Speak Description",
+                                tint = Color.White
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Black,
                         navigationIconContentColor = Color.White,
-                        titleContentColor = Color.White
+                        titleContentColor = Color.White,
+                        actionIconContentColor = Color.White
                     )
                 )
             }
@@ -149,8 +210,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                             ) {
                                 Image(
                                     painter = rememberAsyncImagePainter(
-                                        model = data.sprites.other?.officialArtwork?.frontDefault
-                                            ?: data.sprites.front_default
+                                        model = data.sprites.other?.officialArtwork?.frontDefault ?: data.sprites.front_default
                                     ),
                                     contentDescription = data.name,
                                     modifier = Modifier.size(220.dp),
@@ -213,7 +273,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                         }
                     }
                 } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Failed to load data.")
+                    Text("Failed to load data. ")
                 }
             }
         }

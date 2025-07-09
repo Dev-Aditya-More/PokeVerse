@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.converter.moshi)
     implementation(libs.moshi.kotlin)
+    implementation(libs.androidx.material.icons.extended)
     // Koin Core
     implementation(libs.koin.core)
 
