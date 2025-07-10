@@ -19,13 +19,23 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("C:/Users/adity/AndroidStudioProjects/PokeVerse/app/my-release-key.jks")
+            storePassword = "aditya1875" // <- Replace this
+            keyAlias = "my-key-alias"
+            keyPassword = "aditya1875"     // <- Replace this
+        }
+    }
+
     buildTypes {
-        release {
-            isMinifyEnabled = false
+        getByName("release") {
+            isMinifyEnabled = true // enables shrinking
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

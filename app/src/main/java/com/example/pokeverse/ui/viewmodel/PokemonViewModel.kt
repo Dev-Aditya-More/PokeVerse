@@ -1,9 +1,13 @@
 package com.example.pokeverse.ui.viewmodel
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokeverse.data.remote.model.PokemonListResponse
 import com.example.pokeverse.data.remote.model.PokemonResponse
+import com.example.pokeverse.data.remote.model.PokemonResult
 import com.example.pokeverse.domain.repository.PokemonRepo
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,18 +27,47 @@ class PokemonViewModel(
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
-    private val _pokemonList = MutableStateFlow<PokemonListResponse?>(null)
-    val pokemonList: StateFlow<PokemonListResponse?> = _pokemonList
+    private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
 
-    fun loadPokemonList(limit: Int = 50, offset: Int = 0) {
+    val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
+
+
+    var isLoading by mutableStateOf(false)
+    var endReached by mutableStateOf(false)
+
+    private var currentOffset = 0
+    private val limit = 20
+
+    fun loadPokemonList() {
+        if (isLoading || endReached) return
+
+        isLoading = true
         viewModelScope.launch {
             try {
-                val result = repository.getPokemonList(limit, offset)
-                _pokemonList.value = result
+                val result = repository.getPokemonList(limit = limit, offset = currentOffset)
+                val newList = result.results
+                currentOffset += limit
+
+                // If fetched less than requested, assume end reached
+                if (newList.isEmpty() || newList.size < limit) {
+                    endReached = true
+                }
+
+                // Append new results to the list
+                _pokemonList.value = _pokemonList.value + newList
             } catch (e: Exception) {
-                _pokemonList.value = null
+                // handle error or emit error state if needed
+            } finally {
+                isLoading = false
             }
         }
+    }
+
+    fun refreshPokemonList() {
+        currentOffset = 0
+        endReached = false
+        _pokemonList.value = emptyList()
+        loadPokemonList()
     }
 
     fun fetchPokemonData(name: String) {
