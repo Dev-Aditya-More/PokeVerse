@@ -3,7 +3,7 @@
 A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuring dynamic theming, glassmorphic UI, and modern Android design principles.
 
 <p align="start">
-  <img src="screenshots/ic_launcher_foreground.webp" alt="PokéVerse Logo" width="15%" />
+  <img src="screenshots/pokeball.png" alt="PokéVerse Logo" width="10%" />
 </p>
 
 ---
@@ -15,6 +15,11 @@ A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuri
   &nbsp;&nbsp;&nbsp;
   <img src="screenshots/Screenshot_20250708_171404.png" alt="Detail Screen" width="300"/>
 </p>
+
+<hr>
+<center>
+  <img src="screenshots/PokeVerse.png" alt="Home Screen" width="1000"/> 
+</center>
 
 ---
 
