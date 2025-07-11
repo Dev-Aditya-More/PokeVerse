@@ -86,11 +86,10 @@ install this version from github release by downloading the unsigned apk
 
 📦 API Source
 
-Data is fetched from ![PokéAPI](pokeapi.co)
+Data is fetched from ![PokeAPI](pokeapi.co)
 
 --- 
 
 💡 Credits
 
-Made with ❤️ by Aditya More
-Designed for learning, fun, and sharing the joy of Pokémon.
+Made with ❤️ by Aditya More.
