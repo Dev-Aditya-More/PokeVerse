@@ -36,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,6 +50,8 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
+import com.example.pokeverse.utils.ScreenStateManager
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,6 +62,8 @@ fun HomeScreen(navController: NavHostController) {
     val isLoading = viewModel.isLoading
     val endReached = viewModel.endReached
     var query by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFFEDE574), Color(0xFFE1F5C4))
@@ -101,6 +106,10 @@ fun HomeScreen(navController: NavHostController) {
                                     viewModel.loadPokemonList()
                                     viewModel.fetchPokemonData(query.lowercase())
                                     navController.navigate("pokemon_detail/${query.lowercase()}")
+                                    coroutineScope.launch {
+                                        ScreenStateManager.saveCurrentRoute(context, "pokemon_detail/${query.lowercase()}")
+                                    }
+
                                 }
 
                             }
@@ -147,6 +156,9 @@ fun HomeScreen(navController: NavHostController) {
                                     .fillMaxWidth()
                                     .clickable {
                                         navController.navigate("pokemon_detail/${pokemon.name}")
+                                        coroutineScope.launch {
+                                            ScreenStateManager.saveCurrentRoute(context, "pokemon_detail/${pokemon.name}")
+                                        }
                                     },
                                 elevation = CardDefaults.cardElevation(4.dp),
                                 colors = CardDefaults.cardColors(containerColor = Color.Black)

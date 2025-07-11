@@ -13,6 +13,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -35,6 +37,7 @@ import com.example.pokeverse.di.appModule
 import com.example.pokeverse.screens.HomeScreen
 import com.example.pokeverse.screens.PokemonDetailScreen
 import com.example.pokeverse.ui.theme.PokeVerseTheme
+import com.example.pokeverse.utils.ScreenStateManager
 import kotlinx.coroutines.delay
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
@@ -54,9 +57,30 @@ class MainActivity : ComponentActivity() {
             PokeVerseTheme {
 
                 val navController = rememberNavController()
+                val context = LocalContext.current
+                val startDestination = remember { mutableStateOf("splash") }
+
+                LaunchedEffect(Unit) {
+                    val savedRoute = ScreenStateManager.getLastRoute(context)
+
+                    if (!savedRoute.isNullOrBlank()) {
+                        if (savedRoute.startsWith("pokemon_detail/")) {
+                            // Clear all backstack and go home first
+                            navController.navigate("home") {
+                                popUpTo(0) { inclusive = true }
+                            }
+
+                            // Then navigate to detail so backstack is home -> detail
+                            navController.navigate(savedRoute)
+                        } else {
+                            startDestination.value = savedRoute
+                        }
+                    }
+                }
+
                 NavHost(
                     navController = navController,
-                    startDestination = "splash"
+                    startDestination = startDestination.value
                 ) {
                     composable("splash") {
                         SplashScreen(navController = navController)
@@ -72,8 +96,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         } else {
-                            // Handle error: pokemonName is null
-                            Text("Error: Pokemon not found")
+                            Text("Error: Pokémon not found")
                         }
                     }
                 }
