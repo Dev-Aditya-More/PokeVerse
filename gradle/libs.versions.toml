@@ -1,7 +1,9 @@
 [versions]
+accompanistNavigationAnimation = "0.36.0"
 agp = "8.11.0"
 coilCompose = "2.7.0"
 converterGson = "3.0.0"
+datastorePreferences = "1.1.7"
 gson = "2.13.1"
 kotlin = "2.1.21"
 coreKtx = "1.16.0"
@@ -26,7 +28,9 @@ moshi = "1.15.2"
 turbine = "1.2.1"
 
 [libraries]
+accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }

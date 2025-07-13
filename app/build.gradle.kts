@@ -1,3 +1,5 @@
+import kotlinx.coroutines.launch
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -74,6 +76,8 @@ dependencies {
     implementation(libs.converter.moshi)
     implementation(libs.moshi.kotlin)
     implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.accompanist.navigation.animation)
     // Koin Core
     implementation(libs.koin.core)
 
