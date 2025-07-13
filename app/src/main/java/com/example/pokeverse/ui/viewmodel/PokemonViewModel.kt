@@ -5,16 +5,27 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pokeverse.data.remote.model.PokemonListResponse
+import com.example.pokeverse.data.local.dao.TeamDao
+import com.example.pokeverse.data.local.entity.TeamMemberEntity
 import com.example.pokeverse.data.remote.model.PokemonResponse
 import com.example.pokeverse.data.remote.model.PokemonResult
 import com.example.pokeverse.domain.repository.PokemonRepo
+import com.example.pokeverse.utils.TeamMapper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class PokemonViewModel(
-    private val repository: PokemonRepo
+    private val repository: PokemonRepo,
+    private val teamDao: TeamDao,
+    private val mapper: TeamMapper
 ) : ViewModel() {
 
     data class PokemonDetailUiState(
@@ -63,13 +74,6 @@ class PokemonViewModel(
         }
     }
 
-    fun refreshPokemonList() {
-        currentOffset = 0
-        endReached = false
-        _pokemonList.value = emptyList()
-        loadPokemonList()
-    }
-
     fun fetchPokemonData(name: String) {
         viewModelScope.launch {
             try {
@@ -86,11 +90,43 @@ class PokemonViewModel(
                     isLoading = false
                 )
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = e.localizedMessage ?: "Unknown error"
-                )
+                _uiState.update {
+                    it.copy(isLoading = false, error = "Failed to load Pokémon")
+                }
             }
         }
     }
+    suspend fun fetchPokemonDataAndWait(name: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            try {
+                fetchPokemonData(name)
+                delay(500) // Adjust if needed; wait for state to be updated
+                uiState.value.pokemon != null
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
+
+
+    fun addToTeam(pokemonResult: PokemonResult) = viewModelScope.launch {
+        val pokemonResponse = repository.getPokemonByName(pokemonResult.name) // Fetch full data
+        val entity = pokemonResponse.toEntity() // Use extension on PokemonResponse
+        teamDao.addToTeam(entity)
+    }
+
+    fun PokemonResponse.toEntity(): TeamMemberEntity {
+        return TeamMemberEntity(
+            name = this.name,
+            imageUrl = this.sprites.front_default ?: "" // Use the actual image URL
+        )
+    }
+
+    fun removeFromTeam(pokemon: TeamMemberEntity) = viewModelScope.launch {
+        teamDao.removeFromTeam(pokemon)
+    }
+    fun isInTeam(name: String): Flow<Boolean> = teamDao.isInTeam(name)
+
+    val team: StateFlow<List<TeamMemberEntity>> = teamDao.getTeam()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 }
