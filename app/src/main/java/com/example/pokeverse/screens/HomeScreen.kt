@@ -1,9 +1,11 @@
 package com.example.pokeverse.screens
 
-import android.R.attr.text
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,7 +20,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -27,11 +28,11 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -55,6 +56,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,16 +65,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.example.pokeverse.R
 import com.example.pokeverse.data.local.entity.TeamMemberEntity
 import com.example.pokeverse.data.remote.model.PokemonResponse
-import com.example.pokeverse.data.remote.model.PokemonResult
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.TeamMapper.toEntity
 import kotlinx.coroutines.Dispatchers
@@ -88,7 +87,7 @@ fun HomeScreen(navController: NavHostController) {
     val pokemonList by viewModel.pokemonList.collectAsState()
     val isLoading = viewModel.isLoading
     val endReached = viewModel.endReached
-    var query by remember { mutableStateOf("") }
+    var query by rememberSaveable { mutableStateOf("") } // Persistent search query
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -103,22 +102,27 @@ fun HomeScreen(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = pokeballGradient
-            )
+            .background(brush = pokeballGradient)
     ) {
         Scaffold(
             containerColor = Color.Transparent,
             modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 TopAppBar(
-                    title = { Text("PokeVerse", style = MaterialTheme.typography.headlineSmall, color = Color.White, modifier = Modifier.padding(bottom = 13.dp))},
+                    title = {
+                        Text(
+                            "PokeVerse",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White,
+                            modifier = Modifier.padding(bottom = 4.dp) // Adjusted padding for alignment
+                        )
+                    },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Black,
                         navigationIconContentColor = Color.White,
                         titleContentColor = Color.White
-                    ),
-                    expandedHeight = 45.dp
+                    )
+                    // Uncomment if you want a custom height: modifier = Modifier.height(45.dp)
                 )
             },
             floatingActionButton = {
@@ -129,83 +133,95 @@ fun HomeScreen(navController: NavHostController) {
                     label = "FAB rotation"
                 )
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.BottomEnd
-                ) {
-                    Box {
-                        FloatingActionButton(
-                            onClick = { expanded = !expanded },
-                            containerColor = Color(0xFF802525),
-                            contentColor = Color.White,
-                            elevation = FloatingActionButtonDefaults.elevation(8.dp),
-                            modifier = Modifier.graphicsLayer {
-                                rotationZ = rotation
+                Box {
+                    // Floating Action Button with Explosion Animation
+                    AnimatedVisibility(
+                        visible = true, // Always visible until replaced by DreamTeam
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {// floating action button
+                        Box {
+                            FloatingActionButton(
+                                onClick = { expanded = !expanded },
+                                containerColor = Color(0xFF802525),
+                                contentColor = Color.White,
+                                elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                                modifier = Modifier.graphicsLayer {
+                                    rotationZ = rotation
+                                }
+                            ) {
+                                Icon(Icons.Filled.MoreVert, contentDescription = "Features")
                             }
-                        ) {
-                            Icon(Icons.Filled.MoreVert, contentDescription = "Features")
-                        }
 
-                        DropdownMenu(
-                            expanded = expanded,
-                            onDismissRequest = { expanded = false },
-                            modifier = Modifier
-                                .background(Color(0xFF1C1C1C))
-                                .border(1.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text("Team Rating", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium) },
-                                onClick = {
-                                    navController.navigate("dream_team")
-                                    expanded = false
-                                },
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
                                 modifier = Modifier
-                                    .background(Color(0xFF2E2E2E))
-                                    .padding(vertical = 4.dp)
-                                    .width(220.dp)
-                                    .height(60.dp)
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Win Predictor", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Medium) },
-                                onClick = {
-                                    // Add logic here
-                                    expanded = false
-                                },
-                                modifier = Modifier
-                                    .background(Color(0xFF2E2E2E))
-                                    .padding(vertical = 4.dp)
-                            )
+                                    .background(Color(0xFF1C1C1C))
+                                    .border(1.dp, Color.DarkGray, RoundedCornerShape(8.dp))
+                            ) {
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            "Team Rating",
+                                            color = Color.White,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    },
+                                    onClick = {
+                                        navController.navigate("dream_team")
+                                        expanded = false
+                                    },
+                                    modifier = Modifier
+                                        .background(Color(0xFF2E2E2E))
+                                        .padding(vertical = 4.dp)
+                                        .width(220.dp)
+                                        .height(60.dp)
+                                )
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            "Win Predictor",
+                                            color = Color.White,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    },
+                                    onClick = {
+                                        // Add logic here
+                                        expanded = false
+                                    },
+                                    modifier = Modifier
+                                        .background(Color(0xFF2E2E2E))
+                                        .padding(vertical = 4.dp)
+                                )
+                            }
                         }
                     }
                 }
-
             }
-        ){ paddingValues ->
-
+        ) { paddingValues ->
             val focusManager = LocalFocusManager.current
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .background(pokeballGradient)
-            ) {
+            ) { // Removed inner background to let Scaffold handle it
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .clickable(
                             indication = null,
-                            interactionSource = remember { MutableInteractionSource() }) { focusManager.clearFocus() }
-
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { focusManager.clearFocus() }
+                        .background(pokeballGradient) // Moved background here for full coverage
                 ) {
                     OutlinedTextField(
                         value = query,
-                        onValueChange = {
-                            query = it
-                        },
-                        label = { Text("Search a Pokémon") },
+                        onValueChange = { query = it },
+                        label = { Text("Search a Pokémon", color = Color.White) },
                         trailingIcon = {
                             IconButton(
                                 onClick = {
@@ -219,16 +235,15 @@ fun HomeScreen(navController: NavHostController) {
                                             }
                                         }
                                     }
-
                                 }
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = "Search"
+                                    contentDescription = "Search",
+                                    tint = Color.White
                                 )
                             }
                         },
-
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp),
@@ -261,10 +276,9 @@ fun HomeScreen(navController: NavHostController) {
                         LazyColumn(
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp),
-                            modifier = Modifier.weight(1f) // Takes remaining height
+                            modifier = Modifier.weight(1f)
                         ) {
                             itemsIndexed(pokemonList) { index, pokemon ->
-
                                 if (index >= pokemonList.size - 5 && !isLoading && !endReached) {
                                     viewModel.loadPokemonList()
                                 }
@@ -296,7 +310,6 @@ fun HomeScreen(navController: NavHostController) {
                                     elevation = CardDefaults.cardElevation(4.dp),
                                     colors = CardDefaults.cardColors(containerColor = Color.Black)
                                 ) {
-
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -304,28 +317,38 @@ fun HomeScreen(navController: NavHostController) {
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-
                                         val isInTeam by viewModel.isInTeam(pokemon.name).collectAsState(initial = false)
+                                        val team = viewModel.team.collectAsState()
 
                                         Text(
                                             text = pokemon.name.replaceFirstChar { it.uppercase() },
                                             modifier = Modifier.padding(16.dp),
                                             style = MaterialTheme.typography.titleMedium,
                                             color = Color.White
-
                                         )
 
                                         IconButton(onClick = {
+                                            val team = viewModel.team.value // Safe here outside composition
                                             if (isInTeam) {
                                                 viewModel.removeFromTeam(pokemon.toEntity())
                                             } else {
-                                                viewModel.addToTeam(pokemon)
+                                                if (team.size >= 6) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Team already has 6 Pokémon!",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                } else {
+                                                    viewModel.addToTeam(pokemon)
+                                                }
                                             }
-                                        }) {
+                                        },
+                                            enabled = isInTeam || team.value.size < 6
+                                        ) {
                                             Icon(
-                                                imageVector = if (isInTeam) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                                imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
                                                 contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
-                                                tint = Color.White
+                                                tint = if (isInTeam) Color.Yellow else Color.White.copy(alpha = if (team.value.size >= 6) 0.4f else 1f)
                                             )
                                         }
                                     }
