@@ -1,9 +1,10 @@
 [versions]
 accompanistNavigationAnimation = "0.36.0"
-agp = "8.11.0"
+agp = "8.11.1"
 coilCompose = "2.7.0"
 converterGson = "3.0.0"
 datastorePreferences = "1.1.7"
+foundation = "1.8.3"
 gson = "2.13.1"
 kotlin = "2.1.21"
 coreKtx = "1.16.0"
@@ -31,11 +32,13 @@ turbine = "1.2.1"
 
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
+accompanist-pager = { module = "com.google.accompanist:accompanist-pager" }
+accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
-androidx-navigation-compose-v260 = { module = "androidx.navigation:navigation-compose", version.ref = "navigationComposeVersion" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomRuntime" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomRuntime" }

@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.pokeverse.di.appModule
 import com.example.pokeverse.screens.DreamTeam
 import com.example.pokeverse.screens.HomeScreen
+import com.example.pokeverse.screens.IntroScreen
 import com.example.pokeverse.screens.PokemonDetailScreen
 import com.example.pokeverse.ui.theme.PokeVerseTheme
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
@@ -70,10 +71,15 @@ class MainActivity : ComponentActivity() {
 
                 // Restore saved screen on launch
                 LaunchedEffect(Unit) {
+                    val isIntroSeen = ScreenStateManager.isIntroSeen(context)
                     val savedRoute = ScreenStateManager.getLastRoute(context)
-                    if (!savedRoute.isNullOrBlank()) {
-                        startDestination.value = savedRoute
+
+                    startDestination.value = when {
+                        !isIntroSeen -> "intro"
+                        !savedRoute.isNullOrBlank() -> savedRoute
+                        else -> "home"
                     }
+
                 }
 
                 NavHost(
@@ -82,6 +88,11 @@ class MainActivity : ComponentActivity() {
                 ) {
                     composable("splash") {
                         SplashScreen(navController)
+                    }
+                    composable("intro") {
+                        IntroScreen(
+                            navController = navController,
+                            )
                     }
                     composable("home") {
                         HomeScreen(navController)
@@ -129,15 +140,30 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun SplashScreen(navController: NavController) {
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-
         delay(2000)
-        navController.navigate("home") {
-            popUpTo("splash") { inclusive = true } // removes splash from backstack
+
+        val introSeen = ScreenStateManager.isIntroSeen(context)
+        val savedRoute = ScreenStateManager.getLastRoute(context)
+
+        if (introSeen) {
+            if (!savedRoute.isNullOrBlank()) {
+                navController.navigate(savedRoute) {
+                    popUpTo("splash") { inclusive = true }
+                }
+            } else {
+                navController.navigate("home") {
+                    popUpTo("splash") { inclusive = true }
+                }
+            }
+        } else {
+            navController.navigate("intro") {
+                popUpTo("splash") { inclusive = true }
+            }
         }
     }
-
 
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
@@ -147,19 +173,17 @@ fun SplashScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .background(brush = pokeballGradient)
-//            .scale(scale)
-//            .alpha(alpha)
             .padding(16.dp),
         contentAlignment = Alignment.Center
     ) {
         Image(
-
             painterResource(id = R.drawable.mysplash2),
             contentDescription = "Logo",
             modifier = Modifier.size(450.dp)
         )
     }
 }
+
 
 @Preview(showSystemUi = true)
 @Composable

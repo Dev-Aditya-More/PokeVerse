@@ -80,6 +80,8 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.accompanist.navigation.animation)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.foundation)
+
     // Koin Core
     implementation(libs.koin.core)
 
