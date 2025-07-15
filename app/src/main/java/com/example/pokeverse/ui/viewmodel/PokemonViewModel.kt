@@ -1,5 +1,6 @@
 package com.example.pokeverse.ui.viewmodel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,6 +10,7 @@ import com.example.pokeverse.data.local.dao.TeamDao
 import com.example.pokeverse.data.local.entity.TeamMemberEntity
 import com.example.pokeverse.data.remote.model.PokemonResponse
 import com.example.pokeverse.data.remote.model.PokemonResult
+import com.example.pokeverse.data.remote.model.PokemonVariety
 import com.example.pokeverse.domain.repository.PokemonRepo
 import com.example.pokeverse.utils.TeamMapper
 import kotlinx.coroutines.Dispatchers
@@ -28,20 +30,14 @@ class PokemonViewModel(
     private val mapper: TeamMapper
 ) : ViewModel() {
 
-    data class PokemonDetailUiState(
-        val pokemon: PokemonResponse? = null,
-        val description: String = "",
-        val isLoading: Boolean = true,
-        val error: String? = null
-    )
-
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
+    val megaForms: List<PokemonVariety>
+        get() = _uiState.value.varieties.filter { !it.isDefault }
+
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
-
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
-
 
     var isLoading by mutableStateOf(false)
     var endReached by mutableStateOf(false)
@@ -59,48 +55,79 @@ class PokemonViewModel(
                 val newList = result.results
                 currentOffset += limit
 
-                // If fetched less than requested, assume end reached
                 if (newList.isEmpty() || newList.size < limit) {
                     endReached = true
                 }
 
-                // Append new results to the list
                 _pokemonList.value = _pokemonList.value + newList
             } catch (e: Exception) {
-                // handle error or emit error state if needed
+                // Handle error if needed
             } finally {
                 isLoading = false
             }
         }
     }
 
+    /** Main entry to fetch full Pokémon info + species */
     fun fetchPokemonData(name: String) {
         viewModelScope.launch {
-            try {
-                val pokemon = repository.getPokemonByName(name)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            fetchPokemonInternal(name, includeSpecies = true)
+        }
+    }
+
+    /** Called when a variety like 'charizard-mega-x' is selected */
+    fun fetchVarietyPokemon(name: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            fetchPokemonInternal(name, includeSpecies = false)
+        }
+    }
+
+    private suspend fun fetchPokemonInternal(name: String, includeSpecies: Boolean) {
+        try {
+            val pokemon = repository.getPokemonByName(name)
+
+            val description = if (includeSpecies) {
                 val species = repository.getPokemonSpeciesByName(name)
-                val desc = species.flavorTextEntries.firstOrNull {
+                species.flavorTextEntries.firstOrNull {
                     it.language.name == "en"
                 }?.flavorText?.replace("\n", " ")?.replace("\u000c", " ")
                     ?: "Description not available."
-
-                _uiState.value = PokemonDetailUiState(
-                    pokemon = pokemon,
-                    description = desc,
-                    isLoading = false
-                )
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, error = "Failed to load Pokémon")
-                }
+            } else {
+                "Variety form of ${pokemon.name.capitalize()}"
             }
+
+            val varieties = if (includeSpecies) {
+                repository.getPokemonSpeciesByName(name).varieties
+            } else {
+                _uiState.value.varieties // retain existing
+            }
+
+            _uiState.value = PokemonDetailUiState(
+                pokemon = pokemon,
+                description = description,
+                varieties = varieties,
+                isLoading = false,
+                error = null
+            )
+
+            Log.d("PokeVM", "Loaded $name successfully")
+
+        } catch (e: Exception) {
+            Log.e("PokeVM", "Failed to load $name", e)
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                error = "Failed to load Pokémon"
+            )
         }
     }
+
     suspend fun fetchPokemonDataAndWait(name: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
                 fetchPokemonData(name)
-                delay(500) // Adjust if needed; wait for state to be updated
+                delay(500)
                 uiState.value.pokemon != null
             } catch (e: Exception) {
                 false
@@ -108,25 +135,33 @@ class PokemonViewModel(
         }
     }
 
-
     fun addToTeam(pokemonResult: PokemonResult) = viewModelScope.launch {
-        val pokemonResponse = repository.getPokemonByName(pokemonResult.name) // Fetch full data
-        val entity = pokemonResponse.toEntity() // Use extension on PokemonResponse
+        val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
+        val entity = pokemonResponse.toEntity()
         teamDao.addToTeam(entity)
     }
 
-    fun PokemonResponse.toEntity(): TeamMemberEntity {
+    private fun PokemonResponse.toEntity(): TeamMemberEntity {
         return TeamMemberEntity(
             name = this.name,
-            imageUrl = this.sprites.front_default ?: "" // Use the actual image URL
+            imageUrl = this.sprites.front_default ?: ""
         )
     }
 
     fun removeFromTeam(pokemon: TeamMemberEntity) = viewModelScope.launch {
         teamDao.removeFromTeam(pokemon)
     }
+
     fun isInTeam(name: String): Flow<Boolean> = teamDao.isInTeam(name)
 
     val team: StateFlow<List<TeamMemberEntity>> = teamDao.getTeam()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 }
+
+data class PokemonDetailUiState(
+    val pokemon: PokemonResponse? = null,
+    val description: String = "",
+    val isLoading: Boolean = true,
+    val error: String? = null,
+    val varieties: List<PokemonVariety> = emptyList()
+)

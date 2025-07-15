@@ -4,7 +4,10 @@ import com.google.gson.annotations.SerializedName
 
 data class PokemonSpeciesResponse(
     @SerializedName("flavor_text_entries")
-    val flavorTextEntries: List<FlavorTextEntry>
+    val flavorTextEntries: List<FlavorTextEntry>,
+
+    @SerializedName("varieties")
+    val varieties: List<PokemonVariety> = emptyList()
 )
 
 data class FlavorTextEntry(
@@ -14,4 +17,14 @@ data class FlavorTextEntry(
 
 data class Language(
     val name: String
+)
+
+data class PokemonVariety(
+    @SerializedName("is_default") val isDefault: Boolean,
+    val pokemon: VarietyPokemon
+)
+
+data class VarietyPokemon(
+    val name: String,
+    val url: String
 )
