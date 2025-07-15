@@ -1,10 +1,13 @@
 package com.example.pokeverse.screens
 
+import android.R.attr.name
 import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -25,7 +28,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -35,12 +39,11 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -52,11 +55,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -80,8 +83,13 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
 
     val viewModel: PokemonViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsState()
-
     val pokemon = uiState.pokemon
+
+    LaunchedEffect(pokemonName) {
+        viewModel.fetchPokemonData(pokemonName)
+        viewModel.fetchVarietyPokemon(pokemonName)
+    }
+
     val description = uiState.description
     val isLoading = uiState.isLoading
     val cleanText = description
@@ -104,14 +112,12 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
         language = Locale.US
     }
 
+
     DisposableEffect(Unit) {
         onDispose {
             tts.stop()
             tts.shutdown()
         }
-    }
-    LaunchedEffect(pokemonName) {
-        viewModel.fetchPokemonData(pokemonName.lowercase())
     }
 
     Box(
@@ -174,7 +180,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
 
             LaunchedEffect(Unit) {
                 imageAlpha.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
-                imageScale.animateTo(1f, tween(600, easing = FastOutSlowInEasing))
+                imageScale.animateTo(1.0f, tween(600, easing = FastOutSlowInEasing))
             }
 
             AsyncImage(
@@ -306,7 +312,24 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                             }
                         }
 
-                        // Stats
+                        // Description
+                        item {
+                            GlossyCard(modifier = Modifier.fillMaxWidth()) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text("About", fontWeight = FontWeight.Bold, color = Color.White)
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = cleanText.uppercase(),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color.White,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+                        }
+
+
+                        // stats
                         item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
@@ -318,8 +341,16 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                                     )
                                     Spacer(modifier = Modifier.height(12.dp))
 
-                                    pokemon.stats.forEach { stat ->
-                                        val progress = stat.base_stat / 255f
+                                    // This must be a Composable block!
+                                    pokemon.stats.forEachIndexed { index, stat ->
+                                        val animatedProgress = animateFloatAsState(
+                                            targetValue = stat.base_stat / 255f,
+                                            animationSpec = tween(
+                                                durationMillis = 1000,
+                                                delayMillis = index * 100,
+                                                easing = FastOutSlowInEasing
+                                            ), label = "statAnimation"
+                                        )
 
                                         Column(
                                             modifier = Modifier
@@ -330,7 +361,8 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Text(
-                                                    text = stat.stat.name.replace("-", " ").replaceFirstChar { it.uppercase() },
+                                                    text = stat.stat.name.replace("-", " ")
+                                                        .replaceFirstChar { it.uppercase() },
                                                     color = Color.White,
                                                     fontWeight = FontWeight.Medium,
                                                     modifier = Modifier.weight(1f)
@@ -352,7 +384,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                                             ) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxWidth(progress)
+                                                        .fillMaxWidth(animatedProgress.value)
                                                         .fillMaxHeight()
                                                         .clip(RoundedCornerShape(50))
                                                         .background(
@@ -366,24 +398,59 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                                                 )
                                             }
                                         }
+
+                                    }
+
+                                }
+                            }
+                        }
+
+                        // Mega Evolutions / Other Forms
+                        if (uiState.varieties.isNotEmpty()) {
+                            item {
+                                GlossyCard(modifier = Modifier.fillMaxWidth()) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text(
+                                            text = "Other Forms",
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            items(uiState.varieties) { variety ->
+                                                ElevatedAssistChip(
+                                                    onClick = {
+
+                                                        val formName = variety.pokemon.name
+                                                        viewModel.fetchVarietyPokemon(formName)
+                                                        navController.navigate("pokemon_detail/$formName")
+                                                    },
+                                                    label = {
+                                                        Text(
+                                                            text = variety.pokemon.name.replace(
+                                                                "-",
+                                                                " "
+                                                            )
+                                                                .replaceFirstChar { it.uppercase() },
+                                                            color = Color.White
+                                                        )
+                                                    },
+                                                    colors = AssistChipDefaults.assistChipColors(
+                                                        containerColor = typeColor.copy(alpha = 0.3f),
+                                                        labelColor = Color.White
+                                                    )
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
 
-                        // Description
-                        item {
-                            GlossyCard(modifier = Modifier.fillMaxWidth()) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("About", fontWeight = FontWeight.Bold, color = Color.White)
-                                    Text(
-                                        text = cleanText,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.White
-                                    )
-                                }
-                            }
-                        }
+
+
                     }
                 }
 

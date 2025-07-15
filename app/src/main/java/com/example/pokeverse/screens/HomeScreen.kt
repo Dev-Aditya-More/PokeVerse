@@ -348,7 +348,7 @@ fun HomeScreen(navController: NavHostController) {
                                             Icon(
                                                 imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
                                                 contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
-                                                tint = if (isInTeam) Color.Yellow else Color.White.copy(alpha = if (team.value.size >= 6) 0.4f else 1f)
+                                                tint = if (isInTeam) Color.Yellow else Color.White.copy(alpha = if (team.value.size >= 6) 0.2f else 1f)
                                             )
                                         }
                                     }
