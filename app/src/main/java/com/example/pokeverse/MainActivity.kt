@@ -14,10 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -64,23 +62,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             PokeVerseTheme {
                 navController = rememberNavController()  // Store in field
-                val context = LocalContext.current
                 val viewModel: PokemonViewModel = koinViewModel()
 
                 val startDestination = remember { mutableStateOf("splash") }
 
                 // Restore saved screen on launch
                 LaunchedEffect(Unit) {
-                    val isIntroSeen = ScreenStateManager.isIntroSeen(context)
-                    val savedRoute = ScreenStateManager.getLastRoute(context)
-
-                    startDestination.value = when {
-                        !isIntroSeen -> "intro"
-                        !savedRoute.isNullOrBlank() -> savedRoute
-                        else -> "home"
-                    }
-
+                    startDestination.value = "intro"
                 }
+
 
                 NavHost(
                     navController = navController,
@@ -90,9 +80,7 @@ class MainActivity : ComponentActivity() {
                         SplashScreen(navController)
                     }
                     composable("intro") {
-                        IntroScreen(
-                            navController = navController,
-                            )
+                        IntroScreen(navController = navController)
                     }
                     composable("home") {
                         HomeScreen(navController)
@@ -140,30 +128,14 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun SplashScreen(navController: NavController) {
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        delay(2000)
-
-        val introSeen = ScreenStateManager.isIntroSeen(context)
-        val savedRoute = ScreenStateManager.getLastRoute(context)
-
-        if (introSeen) {
-            if (!savedRoute.isNullOrBlank()) {
-                navController.navigate(savedRoute) {
-                    popUpTo("splash") { inclusive = true }
-                }
-            } else {
-                navController.navigate("home") {
-                    popUpTo("splash") { inclusive = true }
-                }
-            }
-        } else {
-            navController.navigate("intro") {
-                popUpTo("splash") { inclusive = true }
-            }
+        delay(3000)
+        navController.navigate("intro") {
+            popUpTo("splash") { inclusive = true }
         }
     }
+
 
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))

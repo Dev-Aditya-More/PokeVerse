@@ -14,12 +14,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -53,8 +56,9 @@ fun IntroScreen(
     )
 
     val pageCount = imageList.size
-    var currentPage by remember { mutableStateOf(0) }
+    var currentPage by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
+
 
     // Auto-slide every 3 seconds
     LaunchedEffect(Unit) {
@@ -85,35 +89,38 @@ fun IntroScreen(
         }
 
         // Dot indicators
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+        Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 64.dp)
+                .background(Color.Black.copy(alpha = 0.0f), shape = RoundedCornerShape(16.dp))
+                .padding(horizontal = 16.dp, vertical = 8.dp) // inner padding for dots
         ) {
-            repeat(pageCount) { index ->
-                val isSelected = currentPage == index
-                Box(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .size(if (isSelected) 10.dp else 6.dp)
-                        .background(
-                            color = if (isSelected) Color.White else Color.Gray,
-                            shape = CircleShape
-                        )
-                )
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 64.dp)
+            ) {
+                repeat(pageCount) { index ->
+                    val isSelected = currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .size(if (isSelected) 10.dp else 6.dp)
+                            .background(
+                                color = if (isSelected) Color.White else Color.Gray,
+                                shape = CircleShape
+                            )
+                    )
+                }
             }
         }
 
         Button(
             onClick = {
                 scope.launch {
-                    // Save intro seen and route
-                    context.dataStore.edit { prefs ->
-                        prefs[ScreenStateManager.INTRO_SEEN] = true
-                        prefs[ScreenStateManager.LAST_ROUTE] = "home"
-                    }
 
                     navController.navigate("home") {
                         popUpTo("intro") { inclusive = true }
