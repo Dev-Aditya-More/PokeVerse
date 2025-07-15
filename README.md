@@ -11,6 +11,7 @@ A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuri
 ## 📱 Screenshots
 
 - ### v1.0.0
+  <br>
 <p align="center">
   <img src="screenshots/Screenshot_20250708_171327.png" alt="Home Screen" width="300"/>
   &nbsp;&nbsp;&nbsp;
@@ -22,12 +23,15 @@ A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuri
 <br>
 
 - ### v1.0.1
+  <br>
 <p align="center">
   <img src="screenshots/home_screen.png" alt="Home Screen" width="300"/>
   &nbsp;&nbsp;&nbsp;
   <img src="screenshots/mewtwo.png" alt="Detail Screen" width="300"/>
   &nbsp;&nbsp;&nbsp;
   <img src="screenshots/mewtwoy.png" alt="Detail Screen" width="300"/>
+  &nbsp;&nbsp;&nbsp;
+  <img src="screenshots/mewtwox.png" alt="Detail Screen" width="300"/>
 </p>
 
 <br>
