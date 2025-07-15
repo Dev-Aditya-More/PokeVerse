@@ -46,7 +46,7 @@ A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuri
 
 ### Install
 
-install this version from github release by downloading the unsigned apk
+install this version from github release by downloading the apk file
 
 ---
 
