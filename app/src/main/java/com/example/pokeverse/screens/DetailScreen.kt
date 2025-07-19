@@ -67,6 +67,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -98,7 +99,28 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
         .replace("\u000c", " ")
         .trim()
 
-    val primaryType = pokemon?.types?.firstOrNull()?.type?.name ?: "normal"
+    val gmaxPokemonColors = mapOf(
+        "Charizard-gmax" to Color(0xFFDA4453),   // Fiery red-orange with magma vibes
+        "Venusaur-gmax" to Color(0xFF88B04B),    // Lush green from the massive flower
+        "Blastoise-gmax" to Color(0xFF2980B9),   // Deep blue for the heavy water cannons
+        "Pikachu-gmax" to Color(0xFFFFD700),     // Electric gold for retro fat Pikachu
+        "Eevee-gmax" to Color(0xFFF5CBA7),       // Soft beige for fluffy Gmax Eevee
+        "Meowth-gmax" to Color(0xFFFFE082),      // Pale gold from long coin body
+        "Inteleon-gmax" to Color(0xFF00BFFF),    // Ice blue sniper tower
+        "Cinderace-gmax" to Color(0xFFFF4500),   // Fiery soccer aura
+        "Rillaboom-gmax" to Color(0xFF2ECC71),   // Bright jungle green drum
+        "Gengar-gmax" to Color(0xFF6A1B9A),       // Haunting purple
+        "Lapras-gmax" to Color(0xFF81D4FA),       // Musical icy glow
+        "Snorlax-gmax" to Color(0xFF4CAF50),      // Nature green forest belly
+        "Machamp-gmax" to Color(0xFFD84315),      // Bold orange, power stance
+        "Butterfree-gmax" to Color(0xFFBA68C8),   // Magical violet aura
+        "Toxtricity-gmax" to Color(0xFF8E24AA),   // Electric neon purple-pink
+    )
+
+    val typeList = pokemon?.types?.map { it.type.name } ?: emptyList()
+    val formKey = "$gmaxPokemonColors"
+
+    val bgColor = if(formKey.isNotEmpty()) gmaxPokemonColors[formKey] ?: getPokemonBackgroundColor(pokemonName, typeList) else getPokemonBackgroundColor(pokemonName, typeList)
 
     val context = LocalContext.current
     var isTtsReady by remember { mutableStateOf(false) }
@@ -111,8 +133,6 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
     }.apply {
         language = Locale.US
     }
-
-
     DisposableEffect(Unit) {
         onDispose {
             tts.stop()
@@ -125,27 +145,6 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
             .fillMaxSize()
             .background(Color.Black) // Dark background
     ) {
-        val pokemonTypeColors = mapOf(
-            "fire" to Color(0xFFEC5343),       // Red from Fire gradient
-            "water" to Color(0xFF30A2BE),      // Blue from Water gradient
-            "grass" to Color(0xFF56ab2f),      // Green from Grass gradient
-            "electric" to Color(0xFFFFE000),   // Yellow from Electric gradient
-            "psychic" to Color(0xFFFC5C7D),    // Pink from Psychic gradient
-            "ice" to Color(0xFF83a4d4),        // Light blue from Ice gradient
-            "dragon" to Color(0xFF1e3c72),     // Dark blue from Dragon gradient
-            "dark" to Color(0xFF434343),       // Gray from Dark gradient
-            "fairy" to Color(0xFFF78CA0),      // Light pink from Fairy gradient
-            "fighting" to Color(0xFFC31432),   // Red from Fighting gradient
-            "rock" to Color(0xFF3C3B3F),       // Dark gray from Rock gradient
-            "ground" to Color(0xFFD1913C),     // Orange from Ground gradient
-            "bug" to Color(0xFFa8e063),        // Light green from Bug gradient
-            "ghost" to Color(0xFF606c88),      // Purple-gray from Ghost gradient
-            "steel" to Color(0xFFbdc3c7),      // Light gray from Steel gradient
-            "poison" to Color(0xFF9D50BB),     // Purple from Poison gradient
-            "normal" to Color(0xFFC4C3A5),     // Yellow from Normal gradient
-            "flying" to Color(0xFF89F7FE)      // Light blue from Flying gradient
-        )
-        val typeColor = pokemonTypeColors[primaryType] ?: Color.Gray
 
         // Gradient behind Pokémon image
         Box(
@@ -160,8 +159,8 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val gradientBrush = Brush.radialGradient(
                     colors = listOf(
-                        typeColor.copy(alpha = 0.6f),  // Core glow
-                        typeColor.copy(alpha = 0.15f),  // Fade out
+                        bgColor.copy(alpha = 0.6f),  // Core glow
+                        bgColor.copy(alpha = 0.15f),  // Fade out
                         Color.Transparent              // Smooth outer edge
                     ),
                     center = center,
@@ -390,8 +389,8 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                                                         .background(
                                                             Brush.horizontalGradient(
                                                                 listOf(
-                                                                    typeColor.copy(alpha = 0.7f),
-                                                                    typeColor
+                                                                    bgColor.copy(alpha = 0.7f),
+                                                                    bgColor
                                                                 )
                                                             )
                                                         )
@@ -438,7 +437,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                                                         )
                                                     },
                                                     colors = AssistChipDefaults.assistChipColors(
-                                                        containerColor = typeColor.copy(alpha = 0.3f),
+                                                        containerColor = bgColor.copy(alpha = 0.3f),
                                                         labelColor = Color.White
                                                     )
                                                 )
@@ -518,6 +517,61 @@ fun GlossyCard(
         content = content
     )
 }
+
+fun getPokemonBackgroundColor(name: String, types: List<String>): Color {
+    val pokemonVariantColors = mapOf(
+        "charizard-mega-x" to Color(0xFF1e3c72),  // Custom blue flame color
+        "charizard-mega-y" to Color(0xFFE08503),  // Red like fire type
+        // Mega Mewtwo
+        "mewtwo-mega-x" to Color(0xFF4F1026),   // Amethyst purple for Mega Mewtwo X
+        "mewtwo-mega-y" to Color(0xFF4C1156),   // Deep sky blue for Mega Mewtwo Y
+
+        // Mega Rayquaza
+        "rayquaza-mega"   to Color(0xFF19501C),   // Light Sea Green for a fresh look
+
+        // Mega Gengar
+        "gengar-mega"     to Color(0xFF800080),   // Classic purple for Mega Gengar
+
+        // Mega Venusaur
+        "venusaur-mega"   to Color(0xFF2E8B57),   // Sea Green gives a grounded, earthy tone
+
+        // Mega Blastoise
+        "blastoise-mega"  to Color(0xFF008DF1),    // Steel Blue for a cool, resolute vibe
+
+        "fire" to Color(0xFFEC5343),
+        "water" to Color(0xFF30A2BE),
+        "grass" to Color(0xFF56ab2f),
+        "electric" to Color(0xFFFFE000),
+        "psychic" to Color(0xFFFC5C7D),
+        "ice" to Color(0xFF83a4d4),
+        "dragon" to Color(0xFF1e3c72),
+        "dark" to Color(0xFF434343),
+        "fairy" to Color(0xFFF78CA0),
+        "fighting" to Color(0xFFC31432),
+        "rock" to Color(0xFF3C3B3F),
+        "ground" to Color(0xFFD1913C),
+        "bug" to Color(0xFFa8e063),
+        "ghost" to Color(0xFF606c88),
+        "steel" to Color(0xFFbdc3c7),
+        "poison" to Color(0xFF9D50BB),
+        "normal" to Color(0xFFC4C3A5),
+        "flying" to Color(0xFF89F7FE)
+    )
+
+    // Try variant-specific color first
+    val formColor = pokemonVariantColors[name.lowercase()]
+    if (formColor != null) return formColor
+
+    // Fallback to type-based color
+    for (type in types) {
+        val typeColor = pokemonVariantColors[type.lowercase()]
+        if (typeColor != null) return typeColor
+    }
+
+    // Final fallback
+    return Color.LightGray
+}
+
 
 @Preview(showSystemUi = true)
 @Composable

@@ -1,6 +1,5 @@
 package com.example.pokeverse.di
 
-import androidx.appcompat.widget.AppCompatDrawableManager.get
 import androidx.room.Room
 import com.example.pokeverse.data.local.AppDatabase
 import org.koin.androidx.viewmodel.dsl.viewModel
