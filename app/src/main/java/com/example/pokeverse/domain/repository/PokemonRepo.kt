@@ -1,5 +1,6 @@
 package com.example.pokeverse.domain.repository
 
+import com.example.pokeverse.data.remote.PokeApi
 import com.example.pokeverse.data.remote.model.PokemonListResponse
 import com.example.pokeverse.data.remote.model.PokemonResponse
 import com.example.pokeverse.data.remote.model.PokemonSpeciesResponse

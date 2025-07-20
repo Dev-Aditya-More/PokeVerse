@@ -15,14 +15,15 @@ kotlinxCoroutinesAndroid = "1.10.2"
 kotlinxCoroutinesCore = "1.10.2"
 kotlinxCoroutinesTest = "1.10.2"
 kotlinxSerializationJson = "1.9.0"
-lifecycleRuntimeKtx = "2.9.1"
+lifecycleRuntimeKtx = "2.9.2"
 activityCompose = "1.10.1"
-composeBom = "2025.06.01"
+composeBom = "2025.07.00"
 lottieCompose = "6.6.7"
 materialIconsExtended = "1.7.8"
-navigationCompose = "2.9.1"
+navigationCompose = "2.9.2"
 navigationComposeVersion = "2.9.1"
 retrofit = "3.0.0"
+retrofitVersion = "2.9.0"
 roomRuntime = "2.7.2"
 koin-core = "4.1.0"
 koin-android = "4.1.0"
@@ -32,8 +33,6 @@ turbine = "1.2.1"
 
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
-accompanist-pager = { module = "com.google.accompanist:accompanist-pager" }
-accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }

@@ -5,34 +5,45 @@ import com.example.pokeverse.data.local.AppDatabase
 import org.koin.androidx.viewmodel.dsl.viewModel
 import com.example.pokeverse.data.remote.PokeApi
 import com.example.pokeverse.data.repository.PokemonRepoImpl
+import com.example.pokeverse.domain.repository.DescriptionRepo
 import com.example.pokeverse.domain.repository.PokemonRepo
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.TeamMapper
 import org.koin.android.ext.koin.androidContext
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val appModule = module {
 
-    // Retrofit instance
-    single {
+    // Retrofit for PokéAPI
+    single(named("pokeapi")) {
         Retrofit.Builder()
             .baseUrl("https://pokeapi.co/api/v2/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
-    // API Service
-    single<PokeApi> {
-        get<Retrofit>().create(PokeApi::class.java)
+    // Retrofit for OpenAI
+    single(named("openai")) {
+        Retrofit.Builder()
+            .baseUrl("https://api.openai.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
     }
 
-    // Repository
+    // API Services
+    single<PokeApi> {
+        get<Retrofit>(named("pokeapi")).create(PokeApi::class.java)
+    }
+
+    // Repos
     single<PokemonRepo> {
         PokemonRepoImpl(get())
     }
 
+    // Room, Dao, Mapper
     single {
         Room.databaseBuilder(
             androidContext(),
@@ -41,11 +52,13 @@ val appModule = module {
         ).build()
     }
 
-    single { TeamMapper } // Use the object directly
-
     single { get<AppDatabase>().teamDao() }
+    single { TeamMapper }
 
+    // ViewModels
     viewModel {
-        PokemonViewModel(get(), get(), get())
+        PokemonViewModel(get(), get(), get(), get())
     }
+
+    single { DescriptionRepo(androidContext()) }
 }

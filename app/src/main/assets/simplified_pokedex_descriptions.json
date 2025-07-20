@@ -1,0 +1,4492 @@
+[
+  {
+    "id": 1,
+    "name": "bulbasaur",
+    "description": "Bulbasaur can be seen napping in bright sunlight. There is a seed on its back. By soaking up the sun\u2019s rays, the seed grows progressively larger."
+  },
+  {
+    "id": 2,
+    "name": "ivysaur",
+    "description": "There is a bud on this Pok\u00e9mon\u2019s back. To support its weight, Ivysaur\u2019s legs and trunk grow thick and strong. If it starts spending more time lying in the sunlight, it\u2019s a sign that the bud will bloom into a large flower soon."
+  },
+  {
+    "id": 3,
+    "name": "venusaur",
+    "description": "There is a large flower on Venusaur\u2019s back. The flower is said to take on vivid colors if it gets plenty of nutrition and sunlight. The flower\u2019s aroma soothes the emotions of people."
+  },
+  {
+    "id": 4,
+    "name": "charmander",
+    "description": "The flame that burns at the tip of its tail is an indication of its emotions. The flame wavers when Charmander is enjoying itself. If the Pok\u00e9mon becomes enraged, the flame burns fiercely."
+  },
+  {
+    "id": 5,
+    "name": "charmeleon",
+    "description": "Charmeleon mercilessly destroys its foes using its sharp claws. If it encounters a strong foe, it turns aggressive. In this excited state, the flame at the tip of its tail flares with a bluish white color."
+  },
+  {
+    "id": 6,
+    "name": "charizard",
+    "description": "Charizard flies around the sky in search of powerful opponents. It breathes fire of such great heat that it melts anything. However, it never turns its fiery breath on any opponent weaker than itself."
+  },
+  {
+    "id": 7,
+    "name": "squirtle",
+    "description": "Squirtle\u2019s shell is not merely used for protection. The shell\u2019s rounded shape and the grooves on its surface help minimize resistance in water, enabling this Pok\u00e9mon to swim at high speeds."
+  },
+  {
+    "id": 8,
+    "name": "wartortle",
+    "description": "Its tail is large and covered with a rich, thick fur. The tail becomes increasingly deeper in color as Wartortle ages. The scratches on its shell are evidence of this Pok\u00e9mon\u2019s toughness as a battler."
+  },
+  {
+    "id": 9,
+    "name": "blastoise",
+    "description": "Blastoise has water spouts that protrude from its shell. The water spouts are very accurate. They can shoot bullets of water with enough accuracy to strike empty cans from a distance of over 160 feet."
+  },
+  {
+    "id": 10,
+    "name": "caterpie",
+    "description": "Its body is soft and weak. In nature, its perpetual fate is to be seen by others as food."
+  },
+  {
+    "id": 11,
+    "name": "metapod",
+    "description": "Its hard shell doesn\u2019t crack a bit even if Pikipek pecks at it, but it will tip over, spilling out its insides."
+  },
+  {
+    "id": 12,
+    "name": "butterfree",
+    "description": "Nectar from pretty flowers is its favorite food. In fields of flowers, it has heated battles with Cutiefly for territory."
+  },
+  {
+    "id": 13,
+    "name": "weedle",
+    "description": "Weedle has an extremely acute sense of smell. It is capable of distinguishing its favorite kinds of leaves from those it dislikes just by sniffing with its big red proboscis (nose)."
+  },
+  {
+    "id": 14,
+    "name": "kakuna",
+    "description": "Kakuna remains virtually immobile as it clings to a tree. However, on the inside, it is extremely busy as it prepares for its coming evolution. This is evident from how hot the shell becomes to the touch."
+  },
+  {
+    "id": 15,
+    "name": "beedrill",
+    "description": "Beedrill is extremely territorial. No one should ever approach its nest\u2014this is for their own safety. If angered, they will attack in a furious swarm."
+  },
+  {
+    "id": 16,
+    "name": "pidgey",
+    "description": "Pidgey has an extremely sharp sense of direction. It is capable of unerringly returning home to its nest, however far it may be removed from its familiar surroundings."
+  },
+  {
+    "id": 17,
+    "name": "pidgeotto",
+    "description": "Pidgeotto claims a large area as its own territory. This Pok\u00e9mon flies around, patrolling its living space. If its territory is violated, it shows no mercy in thoroughly punishing the foe with its sharp claws."
+  },
+  {
+    "id": 18,
+    "name": "pidgeot",
+    "description": "This Pok\u00e9mon has a dazzling plumage of beautifully glossy feathers. Many Trainers are captivated by the striking beauty of the feathers on its head, compelling them to choose Pidgeot as their Pok\u00e9mon."
+  },
+  {
+    "id": 19,
+    "name": "rattata",
+    "description": "This Pok\u00e9mon is common but hazardous. Its sharp incisors can easily cut right through hard wood."
+  },
+  {
+    "id": 20,
+    "name": "raticate",
+    "description": "Its whiskers are essential for maintaining its balance. No matter how friendly you are, it will get angry and bite you if you touch its whiskers."
+  },
+  {
+    "id": 21,
+    "name": "spearow",
+    "description": "Due to its short wings, it can\u2019t fly long distances. It wanders about restlessly and pecks at bug Pok\u00e9mon."
+  },
+  {
+    "id": 22,
+    "name": "fearow",
+    "description": "In Alola, fish Pok\u00e9mon are its prey. It can be seen circling above the ocean searching for food."
+  },
+  {
+    "id": 23,
+    "name": "ekans",
+    "description": "The eggs of bird Pok\u00e9mon are its favorite food. It swallows eggs whole, so sometimes an egg gets stuck, and Ekans faints."
+  },
+  {
+    "id": 24,
+    "name": "arbok",
+    "description": "After stunning its opponents with the pattern on its stomach, it quickly wraps them up in its body and waits for them to stop moving."
+  },
+  {
+    "id": 25,
+    "name": "pikachu",
+    "description": "While sleeping, it generates electricity in the sacs in its cheeks. If it\u2019s not getting enough sleep, it will be able to use only weak electricity."
+  },
+  {
+    "id": 26,
+    "name": "raichu",
+    "description": "Because so many Trainers like the way Pikachu looks, you don\u2019t see this Pok\u00e9mon very often."
+  },
+  {
+    "id": 27,
+    "name": "sandshrew",
+    "description": "When its skin gets wrinkled from moisture, it heads for a volcano. It lies flat on a spot with a lot of geothermal heat and dries itself out."
+  },
+  {
+    "id": 28,
+    "name": "sandslash",
+    "description": "Thanks to its thick claws, it\u2019s good at climbing trees. There are plenty of Sandslash that park themselves in trees and go right to sleep."
+  },
+  {
+    "id": 29,
+    "name": "nidoran\u2640",
+    "description": "Nidoran\u2640 has barbs that secrete a powerful poison. They are thought to have developed as protection for this small-bodied Pok\u00e9mon. When enraged, it releases a horrible toxin from its horn."
+  },
+  {
+    "id": 30,
+    "name": "nidorina",
+    "description": "When Nidorina are with their friends or family, they keep their barbs tucked away to prevent hurting each other. This Pok\u00e9mon appears to become nervous if separated from the others."
+  },
+  {
+    "id": 31,
+    "name": "nidoqueen",
+    "description": "Nidoqueen\u2019s body is encased in extremely hard scales. It is adept at sending foes flying with harsh tackles. This Pok\u00e9mon is at its strongest when it is defending its young."
+  },
+  {
+    "id": 32,
+    "name": "nidoran\u2642",
+    "description": "Nidoran\u2642 has developed muscles for moving its ears. Thanks to them, the ears can be freely moved in any direction. Even the slightest sound does not escape this Pok\u00e9mon\u2019s notice."
+  },
+  {
+    "id": 33,
+    "name": "nidorino",
+    "description": "Nidorino has a horn that is harder than a diamond. If it senses a hostile presence, all the barbs on its back bristle up at once, and it challenges the foe with all its might."
+  },
+  {
+    "id": 34,
+    "name": "nidoking",
+    "description": "Nidoking\u2019s thick tail packs enormously destructive power. With one swing, it can topple a metal transmission tower. Once this Pok\u00e9mon goes on a rampage, there is no stopping it."
+  },
+  {
+    "id": 35,
+    "name": "clefairy",
+    "description": "Bathed in moonlight, its wings glow faintly. Without even flapping, Clefairy rises into the air, where it dances around."
+  },
+  {
+    "id": 36,
+    "name": "clefable",
+    "description": "Some scientists believe that it gazes intently at the sky on nights with a full moon because it\u2019s homesick."
+  },
+  {
+    "id": 37,
+    "name": "vulpix",
+    "description": "It manipulates balls of fire to catch its prey. If you raise one from when it\u2019s young, it will grow close to you like a puppy Pok\u00e9mon."
+  },
+  {
+    "id": 38,
+    "name": "ninetales",
+    "description": "The flickering flames it spews from its mouth leave its opponents hypnotized. Then, this extremely intelligent Pok\u00e9mon attacks."
+  },
+  {
+    "id": 39,
+    "name": "jigglypuff",
+    "description": "The songs they sing are totally different depending on the region they live in. Some even sound like they\u2019re shouting!"
+  },
+  {
+    "id": 40,
+    "name": "wigglytuff",
+    "description": "When it gets angry, it inhales with all its might, and its body gradually inflates. Sometimes they can grow 20 times larger!"
+  },
+  {
+    "id": 41,
+    "name": "zubat",
+    "description": "Their skin is so thin that they\u2019ll be burned if sunlight hits them. When it gets cold out, they gather together to warm one another\u2019s bodies."
+  },
+  {
+    "id": 42,
+    "name": "golbat",
+    "description": "They can suck down over 10 ounces of blood in one go. They have been known to drink so much blood that they can no longer fly."
+  },
+  {
+    "id": 43,
+    "name": "oddish",
+    "description": "Oddish searches for fertile, nutrient-rich soil, then plants itself. During the daytime, while it is planted, this Pok\u00e9mon\u2019s feet are thought to change shape and become similar to the roots of trees."
+  },
+  {
+    "id": 44,
+    "name": "gloom",
+    "description": "From its mouth Gloom drips honey that smells absolutely horrible. Apparently, it loves the horrid stench. It sniffs the noxious fumes and then drools even more of its honey."
+  },
+  {
+    "id": 45,
+    "name": "vileplume",
+    "description": "Vileplume has the world\u2019s largest petals. They are used to attract prey that are then doused with toxic spores. Once the prey are immobilized, this Pok\u00e9mon catches and devours them."
+  },
+  {
+    "id": 46,
+    "name": "paras",
+    "description": "The mushrooms, known as tochukaso, are controlling the bug. Even if the bug bugs the mushrooms, they tell it to bug off."
+  },
+  {
+    "id": 47,
+    "name": "parasect",
+    "description": "Its poisonous spores are also used in traditional medicine. Apparently, spores produced in Alola are not of very good quality."
+  },
+  {
+    "id": 48,
+    "name": "venonat",
+    "description": "Venonat is said to have evolved with a coat of thin, stiff hair that covers its entire body for protection. It possesses large eyes that never fail to spot even minuscule prey."
+  },
+  {
+    "id": 49,
+    "name": "venomoth",
+    "description": "Venomoth is nocturnal\u2014it is a Pok\u00e9mon that only becomes active at night. Its favorite prey are small insects that gather around streetlights, attracted by the light in the darkness."
+  },
+  {
+    "id": 50,
+    "name": "diglett",
+    "description": "Around their crops, farmers plant the kind of tree that Diglett like to eat as a way of getting Diglett to plow the fields for them."
+  },
+  {
+    "id": 51,
+    "name": "dugtrio",
+    "description": "Dugtrio\u2019s heads are sleek and smooth and incredibly hard. It can dig through any soil with its headbutts."
+  },
+  {
+    "id": 52,
+    "name": "meowth",
+    "description": "It loves coins, so if you give it one, you can make friends with Meowth easily. But it\u2019s fickle, so you can\u2019t count on that friendship lasting."
+  },
+  {
+    "id": 53,
+    "name": "persian",
+    "description": "This Pok\u00e9mon is popular with rich people. It\u2019s also targeted by hunters who are after the jewel in its forehead."
+  },
+  {
+    "id": 54,
+    "name": "psyduck",
+    "description": "It has been found that its brain cells are 10 times more active when Psyduck is experiencing a headache."
+  },
+  {
+    "id": 55,
+    "name": "golduck",
+    "description": "A professional swimmer, it can continue swimming for two days straight by waving its long tail skillfully."
+  },
+  {
+    "id": 56,
+    "name": "mankey",
+    "description": "If one gets angry, all the others around it will get angry, so silence is a rare visitor in a troop of Mankey."
+  },
+  {
+    "id": 57,
+    "name": "primeape",
+    "description": "The blood vessels in its brain are sturdier than those of other Pok\u00e9mon, so it can stay healthy despite its constant raging."
+  },
+  {
+    "id": 58,
+    "name": "growlithe",
+    "description": "It has lived alongside humans since ages ago. Its bones have been found in excavations of ruins from the Stone Age."
+  },
+  {
+    "id": 59,
+    "name": "arcanine",
+    "description": "There are so many old tales about them that they\u2019re called legendary Pok\u00e9mon, but there are way more of them around than you\u2019d expect."
+  },
+  {
+    "id": 60,
+    "name": "poliwag",
+    "description": "The direction of the swirl on their stomachs differs depending on where they live. Poliwag aficionados can tell them apart at a glance."
+  },
+  {
+    "id": 61,
+    "name": "poliwhirl",
+    "description": "Its health suffers when its skin dries out, so be sure to moisturize it diligently."
+  },
+  {
+    "id": 62,
+    "name": "poliwrath",
+    "description": "The muscles it has developed through swimming are thick and powerful. When it lands a square punch, it can turn huge boulders to dust."
+  },
+  {
+    "id": 63,
+    "name": "abra",
+    "description": "It can read others\u2019 minds and will teleport away when danger approaches. You must clear your mind if you want to catch it."
+  },
+  {
+    "id": 64,
+    "name": "kadabra",
+    "description": "It possesses strong mental capabilities, but its psychic powers are halved when it\u2019s not holding a silver spoon."
+  },
+  {
+    "id": 65,
+    "name": "alakazam",
+    "description": "If it trusts someone deeply, it will let them have one of its spoons. Anything you eat with that spoon is apparently delicious."
+  },
+  {
+    "id": 66,
+    "name": "machop",
+    "description": "It likes food that\u2019s highly nutritious because its instincts drive it to build muscle efficiently."
+  },
+  {
+    "id": 67,
+    "name": "machoke",
+    "description": "A popular motif for sculptures, its incredibly well-developed muscles have captured the imagination of many an artist."
+  },
+  {
+    "id": 68,
+    "name": "machamp",
+    "description": "With four arms, it can attack and defend simultaneously. It\u2019s said to have mastered every martial art in the world."
+  },
+  {
+    "id": 69,
+    "name": "bellsprout",
+    "description": "Bellsprout\u2019s thin and flexible body lets it bend and sway to avoid any attack, however strong it may be. From its mouth, this Pok\u00e9mon spits a corrosive fluid that melts even iron."
+  },
+  {
+    "id": 70,
+    "name": "weepinbell",
+    "description": "Weepinbell has a large hook on its rear end. At night, the Pok\u00e9mon hooks on to a tree branch and goes to sleep. If it moves around in its sleep, it may wake up to find itself on the ground."
+  },
+  {
+    "id": 71,
+    "name": "victreebel",
+    "description": "Victreebel has a long vine that extends from its head. This vine is waved and flicked about as if it were an animal to attract prey. When an unsuspecting prey draws near, this Pok\u00e9mon swallows it whole."
+  },
+  {
+    "id": 72,
+    "name": "tentacool",
+    "description": "Its body is 99% water. The remaining 1% contains the organ that makes its poison."
+  },
+  {
+    "id": 73,
+    "name": "tentacruel",
+    "description": "It communicates with others of its kind by lighting up the red orbs on its head. When the orbs are blinking, it\u2019s a warning sign."
+  },
+  {
+    "id": 74,
+    "name": "geodude",
+    "description": "It uses both hands to climb precipitous cliffs. People who see it in action have been known to take up bouldering."
+  },
+  {
+    "id": 75,
+    "name": "graveler",
+    "description": "It travels by rolling down cliffs. If it falls into a river, it will explode with its last gasp."
+  },
+  {
+    "id": 76,
+    "name": "golem",
+    "description": "It detonates its own body. The power from that explosion can propel it up steep mountain paths with amazing speed."
+  },
+  {
+    "id": 77,
+    "name": "ponyta",
+    "description": "Ponyta is very weak at birth. It can barely stand up. This Pok\u00e9mon becomes stronger by stumbling and falling to keep up with its parent."
+  },
+  {
+    "id": 78,
+    "name": "rapidash",
+    "description": "Rapidash usually can be seen casually cantering in the fields and plains. However, when this Pok\u00e9mon turns serious, its fiery manes flare and blaze as it gallops its way up to 150 mph."
+  },
+  {
+    "id": 79,
+    "name": "slowpoke",
+    "description": "Although their tails, which fall off naturally, can easily be found lying around, they\u2019re a precious ingredient for cooking."
+  },
+  {
+    "id": 80,
+    "name": "slowbro",
+    "description": "Shellder, in its greed to suck out more and more sweetness from Slowbro\u2019s tail, has metamorphosed into a spiral-shaped shell."
+  },
+  {
+    "id": 81,
+    "name": "magnemite",
+    "description": "Perhaps because electrical lines are often buried these days, the number of Magnemite attacks on power plants has increased."
+  },
+  {
+    "id": 82,
+    "name": "magneton",
+    "description": "When rain clouds form, many Magneton gather in high places to wait for lightning to strike."
+  },
+  {
+    "id": 83,
+    "name": "farfetch'd",
+    "description": "Farfetch\u2019d is always seen with a stalk from a plant of some sort. Apparently, there are good stalks and bad stalks. This Pok\u00e9mon has been known to fight with others over stalks."
+  },
+  {
+    "id": 84,
+    "name": "doduo",
+    "description": "Doduo\u2019s two heads contain completely identical brains. A scientific study reported that on rare occasions, there will be examples of this Pok\u00e9mon possessing different sets of brains."
+  },
+  {
+    "id": 85,
+    "name": "dodrio",
+    "description": "Apparently, the heads aren\u2019t the only parts of the body that Dodrio has three of. It has three sets of hearts and lungs as well, so it is capable of running long distances without rest."
+  },
+  {
+    "id": 86,
+    "name": "seel",
+    "description": "Thanks to its thick fat, cold seas don\u2019t bother it at all, but it gets tired pretty easily in warm waters."
+  },
+  {
+    "id": 87,
+    "name": "dewgong",
+    "description": "It sunbathes on the beach after meals. The rise in its body temperature helps its digestion."
+  },
+  {
+    "id": 88,
+    "name": "grimer",
+    "description": "The wastewater coming from factories is clean these days, so Grimer have nothing to eat. They\u2019re said to be on the verge of extinction."
+  },
+  {
+    "id": 89,
+    "name": "muk",
+    "description": "Because they scatter germs everywhere, they\u2019ve long been targeted for extermination, leading to a steep decline in their population."
+  },
+  {
+    "id": 90,
+    "name": "shellder",
+    "description": "Even when its shell is closed, its tongue still hangs out. If you give its tongue a good yank, the shock will cause Shellder to open its shell."
+  },
+  {
+    "id": 91,
+    "name": "cloyster",
+    "description": "Slowpoke tails are its favorite food. It has even been known to come up on land to look for Slowpoke from time to time."
+  },
+  {
+    "id": 92,
+    "name": "gastly",
+    "description": "Poisonous gas comprises 95% of its body. It\u2019s said that the remaining 5% is made up of the souls of those who died from the gas."
+  },
+  {
+    "id": 93,
+    "name": "haunter",
+    "description": "It\u2019s dangerous to go outside alone on nights when you\u2019re feeling sad. Haunter will catch you, and you won\u2019t be able to go back home."
+  },
+  {
+    "id": 94,
+    "name": "gengar",
+    "description": "Even your home isn\u2019t safe. Gengar will lurk in whatever dark corner of a room it can find and wait for its chance to catch its prey."
+  },
+  {
+    "id": 95,
+    "name": "onix",
+    "description": "Onix has a magnet in its brain. It acts as a compass so that this Pok\u00e9mon does not lose direction while it is tunneling. As it grows older, its body becomes increasingly rounder and smoother."
+  },
+  {
+    "id": 96,
+    "name": "drowzee",
+    "description": "It puts its prey to sleep and devours their dreams. It seems that bad dreams taste sour, so Drowzee doesn\u2019t particularly like eating them."
+  },
+  {
+    "id": 97,
+    "name": "hypno",
+    "description": "There are some Hypno that assist doctors with patients who can\u2019t sleep at night in hospitals."
+  },
+  {
+    "id": 98,
+    "name": "krabby",
+    "description": "Krabby live on beaches, burrowed inside holes dug into the sand. On sandy beaches with little in the way of food, these Pok\u00e9mon can be seen squabbling with each other over territory."
+  },
+  {
+    "id": 99,
+    "name": "kingler",
+    "description": "Kingler has an enormous, oversized claw. It waves this huge claw in the air to communicate with others. However, because the claw is so heavy, the Pok\u00e9mon quickly tires."
+  },
+  {
+    "id": 100,
+    "name": "voltorb",
+    "description": "Voltorb is extremely sensitive\u2014it explodes at the slightest of shocks. It is rumored that it was first created when a Pok\u00e9 Ball was exposed to a powerful pulse of energy."
+  },
+  {
+    "id": 101,
+    "name": "electrode",
+    "description": "One of Electrode\u2019s characteristics is its attraction to electricity. It is a problematical Pok\u00e9mon that congregates mostly at electrical power plants to feed on electricity that has just been generated."
+  },
+  {
+    "id": 102,
+    "name": "exeggcute",
+    "description": "Although they are the same size as other Exeggcute, the ones produced in Alola are quite heavy. Their shells are packed full."
+  },
+  {
+    "id": 103,
+    "name": "exeggutor",
+    "description": "Each of its three heads has its own thoughts. When they want to go in different directions, Exeggutor becomes unable to move."
+  },
+  {
+    "id": 104,
+    "name": "cubone",
+    "description": "It wears its mother\u2019s skull on its head, so no one knows what its bare face looks like. However, it\u2019s clear that it\u2019s always crying."
+  },
+  {
+    "id": 105,
+    "name": "marowak",
+    "description": "They thump their bones rhythmically to communicate among themselves. There are nearly 50 different rhythmic patterns."
+  },
+  {
+    "id": 106,
+    "name": "hitmonlee",
+    "description": "Hitmonlee\u2019s legs freely contract and stretch. Using these springlike legs, it bowls over foes with devastating kicks. After battle, it rubs down its legs and loosens the muscles to overcome fatigue."
+  },
+  {
+    "id": 107,
+    "name": "hitmonchan",
+    "description": "Hitmonchan is said to possess the spirit of a boxer who had been working toward a world championship. This Pok\u00e9mon has an indomitable spirit and will never give up in the face of adversity."
+  },
+  {
+    "id": 108,
+    "name": "lickitung",
+    "description": "It licks filth clean with its tongue. Whatever it licks always stinks afterward, so whether it\u2019s really clean is...questionable."
+  },
+  {
+    "id": 109,
+    "name": "koffing",
+    "description": "Koffing embodies toxic substances. It mixes the toxins with raw garbage to set off a chemical reaction that results in a terribly powerful poison gas. The higher the temperature, the more gas is concocted by this Pok\u00e9mon."
+  },
+  {
+    "id": 110,
+    "name": "weezing",
+    "description": "Weezing alternately shrinks and inflates its twin bodies to mix together toxic gases inside. The more the gases are mixed, the more powerful the toxins become. The Pok\u00e9mon also becomes more putrid."
+  },
+  {
+    "id": 111,
+    "name": "rhyhorn",
+    "description": "Rhyhorn\u2019s brain is very small. It is so dense, while on a run it forgets why it started running in the first place. It apparently remembers sometimes if it demolishes something."
+  },
+  {
+    "id": 112,
+    "name": "rhydon",
+    "description": "Rhydon has a horn that serves as a drill. It is used for destroying rocks and boulders. This Pok\u00e9mon occasionally rams into streams of magma, but the armor-like hide prevents it from feeling the heat."
+  },
+  {
+    "id": 113,
+    "name": "chansey",
+    "description": "Because the eggs on their bellies have been overharvested by people in the past, the Chansey population remains very small."
+  },
+  {
+    "id": 114,
+    "name": "tangela",
+    "description": "Tangela\u2019s vines snap off easily if they are grabbed. This happens without pain, allowing it to make a quick getaway. The lost vines are replaced by newly grown vines the very next day."
+  },
+  {
+    "id": 115,
+    "name": "kangaskhan",
+    "description": "You shouldn\u2019t get close to the child when it\u2019s playing outside its mother\u2019s pouch. Its mother is always nearby watching over it."
+  },
+  {
+    "id": 116,
+    "name": "horsea",
+    "description": "If Horsea senses danger, it will reflexively spray a dense black ink from its mouth and try to escape. This Pok\u00e9mon swims by cleverly flapping the fin on its back."
+  },
+  {
+    "id": 117,
+    "name": "seadra",
+    "description": "Seadra generates whirlpools by spinning its body. The whirlpools are strong enough to swallow even fishing boats. This Pok\u00e9mon weakens prey with these currents, then swallows it whole."
+  },
+  {
+    "id": 118,
+    "name": "goldeen",
+    "description": "The way it swims along fluttering its dress-like fins has earned it the name \u201cprincess of the water.\u201d"
+  },
+  {
+    "id": 119,
+    "name": "seaking",
+    "description": "To attract females, males dance on the river\u2019s floor. The females gather around the male that dances most gracefully."
+  },
+  {
+    "id": 120,
+    "name": "staryu",
+    "description": "No number of injuries can bother Staryu. Its amazing regenerative powers return it to its previous state in half a day!"
+  },
+  {
+    "id": 121,
+    "name": "starmie",
+    "description": "It rotates its geometrically shaped body to swim through the water. It always seems to be sending out mysterious radio waves."
+  },
+  {
+    "id": 122,
+    "name": "mr. mime",
+    "description": "It creates invisible walls with its pantomiming. If you don\u2019t act impressed, it will attack you with a double slap!"
+  },
+  {
+    "id": 123,
+    "name": "scyther",
+    "description": "Some call it a ninja. Its movements\u2014 imperceptibly quick\u2014are sufficient to cleave the air in two. It\u2019s very popular in Alola."
+  },
+  {
+    "id": 124,
+    "name": "jynx",
+    "description": "Its strange cries sound like human language. There are some musicians who compose songs for Jynx to sing."
+  },
+  {
+    "id": 125,
+    "name": "electabuzz",
+    "description": "While it\u2019s often blamed for power outages, the truth is the cause of outages is more often an error on the part of the electric company."
+  },
+  {
+    "id": 126,
+    "name": "magmar",
+    "description": "The hotter the place, the better they feel. Magmar in Alola are said to be hardier than those in other areas."
+  },
+  {
+    "id": 127,
+    "name": "pinsir",
+    "description": "Although it\u2019s tough, it can\u2019t handle cold well. When night falls, it buries itself in leafage and sleeps."
+  },
+  {
+    "id": 128,
+    "name": "tauros",
+    "description": "The climate seems to be related to the reason Tauros in Alola are a little calmer than those in other regions."
+  },
+  {
+    "id": 129,
+    "name": "magikarp",
+    "description": "Thanks to their strong hold on life, dirty water doesn\u2019t bother them at all. They live in waters all over the world!"
+  },
+  {
+    "id": 130,
+    "name": "gyarados",
+    "description": "The energy from evolution stimulated its brain cells strongly, causing it to become very ferocious."
+  },
+  {
+    "id": 131,
+    "name": "lapras",
+    "description": "They\u2019ve been so cherished that there\u2019s now an overabundance. The fish Pok\u00e9mon population has declined in waters with too many Lapras."
+  },
+  {
+    "id": 132,
+    "name": "ditto",
+    "description": "It transforms into whatever it sees. If the thing it\u2019s transforming into isn\u2019t right in front of it, Ditto relies on its memory\u2014so sometimes it fails."
+  },
+  {
+    "id": 133,
+    "name": "eevee",
+    "description": "Its genes are easily influenced by its surroundings. Even its face starts to look like that of its Trainer."
+  },
+  {
+    "id": 134,
+    "name": "vaporeon",
+    "description": "It detects nearby moisture with its fin. When its fin begins trembling rapidly, that means rain will fall in a few hours."
+  },
+  {
+    "id": 135,
+    "name": "jolteon",
+    "description": "Its fur stands on end, becoming like needles it fires at enemies. Once they\u2019re weakened, it finishes them off with a 10,000 volt shock."
+  },
+  {
+    "id": 136,
+    "name": "flareon",
+    "description": "The flame chamber inside its body ignites when Flareon gets agitated, reaching temperatures of up to 1,650 degrees Fahrenheit."
+  },
+  {
+    "id": 137,
+    "name": "porygon",
+    "description": "It was built 20 years ago by scientists who dreamed of exploring space. Their dreams have yet to come true."
+  },
+  {
+    "id": 138,
+    "name": "omanyte",
+    "description": "It was restored from an ancient fossil. Those Helix Fossils are excavated from areas that were once oceans long, long ago."
+  },
+  {
+    "id": 139,
+    "name": "omastar",
+    "description": "It wraps its prey in its tentacles to immobilize them and then finishes them off with its sharp fangs."
+  },
+  {
+    "id": 140,
+    "name": "kabuto",
+    "description": "This Pok\u00e9mon became extinct everywhere, except in a few areas. It protects itself with its hard shell."
+  },
+  {
+    "id": 141,
+    "name": "kabutops",
+    "description": "It swims at speeds of roughly 29 knots, quickly closing in on its prey and slashing into them with its scythes to finish them off."
+  },
+  {
+    "id": 142,
+    "name": "aerodactyl",
+    "description": "It flew through the open skies over the ancient continent as if they were its own. When it touched ground, its walk was weak and slow."
+  },
+  {
+    "id": 143,
+    "name": "snorlax",
+    "description": "It has no interest in anything other than eating. Even if you climb up on its stomach while it\u2019s napping, it doesn\u2019t seem to mind at all!"
+  },
+  {
+    "id": 144,
+    "name": "articuno",
+    "description": "Articuno is a legendary bird Pok\u00e9mon that can control ice. The flapping of its wings chills the air. As a result, it is said that when this Pok\u00e9mon flies, snow will fall."
+  },
+  {
+    "id": 145,
+    "name": "zapdos",
+    "description": "Zapdos is a legendary bird Pok\u00e9mon that has the ability to control electricity. It usually lives in thunderclouds. The Pok\u00e9mon gains power if it is stricken by lightning bolts."
+  },
+  {
+    "id": 146,
+    "name": "moltres",
+    "description": "Moltres is a legendary bird Pok\u00e9mon that has the ability to control fire. If this Pok\u00e9mon is injured, it is said to dip its body in the molten magma of a volcano to burn and heal itself."
+  },
+  {
+    "id": 147,
+    "name": "dratini",
+    "description": "It sheds its skin\u2014almost on a daily basis\u2014and grows larger. Its skin is soft just after it\u2019s been shed."
+  },
+  {
+    "id": 148,
+    "name": "dragonair",
+    "description": "Some say that if you see it at the start of the year, flying through the sky and twisting its body, you\u2019ll be healthy all year long."
+  },
+  {
+    "id": 149,
+    "name": "dragonite",
+    "description": "You\u2019ll often hear tales of this kindhearted Pok\u00e9mon rescuing people or Pok\u00e9mon that are drowning."
+  },
+  {
+    "id": 150,
+    "name": "mewtwo",
+    "description": "Mewtwo is a Pok\u00e9mon that was created by genetic manipulation. However, even though the scientific power of humans created this Pok\u00e9mon\u2019s body, they failed to endow Mewtwo with a compassionate heart."
+  },
+  {
+    "id": 151,
+    "name": "mew",
+    "description": "Mew is said to possess the genetic composition of all Pok\u00e9mon. It is capable of making itself invisible at will, so it entirely avoids notice even if it approaches people."
+  },
+  {
+    "id": 152,
+    "name": "chikorita",
+    "description": "In battle, Chikorita waves its leaf around to keep the foe at bay. However, a sweet fragrance also wafts from the leaf, becalming the battling Pok\u00e9mon and creating a cozy, friendly atmosphere all around."
+  },
+  {
+    "id": 153,
+    "name": "bayleef",
+    "description": "Bayleef\u2019s neck is ringed by curled-up leaves. Inside each tubular leaf is a small shoot of a tree. The fragrance of this shoot makes people peppy."
+  },
+  {
+    "id": 154,
+    "name": "meganium",
+    "description": "The fragrance of Meganium\u2019s flower soothes and calms emotions. In battle, this Pok\u00e9mon gives off more of its becalming scent to blunt the foe\u2019s fighting spirit."
+  },
+  {
+    "id": 155,
+    "name": "cyndaquil",
+    "description": "Cyndaquil protects itself by flaring up the flames on its back. The flames are vigorous if the Pok\u00e9mon is angry. However, if it is tired, the flames splutter fitfully with incomplete combustion."
+  },
+  {
+    "id": 156,
+    "name": "quilava",
+    "description": "Quilava keeps its foes at bay with the intensity of its flames and gusts of superheated air. This Pok\u00e9mon applies its outstanding nimbleness to dodge attacks even while scorching the foe with flames."
+  },
+  {
+    "id": 157,
+    "name": "typhlosion",
+    "description": "Typhlosion obscures itself behind a shimmering heat haze that it creates using its intensely hot flames. This Pok\u00e9mon creates blazing explosive blasts that burn everything to cinders."
+  },
+  {
+    "id": 158,
+    "name": "totodile",
+    "description": "Despite the smallness of its body, Totodile\u2019s jaws are very powerful. While the Pok\u00e9mon may think it is just playfully nipping, its bite has enough power to cause serious injury."
+  },
+  {
+    "id": 159,
+    "name": "croconaw",
+    "description": "Once Croconaw has clamped its jaws on its foe, it will absolutely not let go. Because the tips of its fangs are forked back like barbed fishhooks, they become impossible to remove when they have sunk in."
+  },
+  {
+    "id": 160,
+    "name": "feraligatr",
+    "description": "Feraligatr intimidates its foes by opening its huge mouth. In battle, it will kick the ground hard with its thick and powerful hind legs to charge at the foe at an incredible speed."
+  },
+  {
+    "id": 161,
+    "name": "sentret",
+    "description": "When Sentret sleeps, it does so while another stands guard. The sentry wakes the others at the first sign of danger. When this Pok\u00e9mon becomes separated from its pack, it becomes incapable of sleep due to fear."
+  },
+  {
+    "id": 162,
+    "name": "furret",
+    "description": "Furret has a very slim build. When under attack, it can slickly squirm through narrow spaces and get away. In spite of its short limbs, this Pok\u00e9mon is very nimble and fleet."
+  },
+  {
+    "id": 163,
+    "name": "hoothoot",
+    "description": "It cries out at the same time every day. A long time ago, people cherished it and considered it a divine messenger sent to tell the time."
+  },
+  {
+    "id": 164,
+    "name": "noctowl",
+    "description": "When it turns its head entirely upside down, you know it\u2019s troubled by something. If you don\u2019t leave it be, it will peck you."
+  },
+  {
+    "id": 165,
+    "name": "ledyba",
+    "description": "These very cowardly Pok\u00e9mon join together and use Reflect to protect their nest."
+  },
+  {
+    "id": 166,
+    "name": "ledian",
+    "description": "It flies through the night sky, sprinkling sparkly dust. According to some, if that dust sticks to you, good things will happen to you."
+  },
+  {
+    "id": 167,
+    "name": "spinarak",
+    "description": "Although the poison from its fangs isn\u2019t that strong, it\u2019s potent enough to weaken prey that gets caught in its web."
+  },
+  {
+    "id": 168,
+    "name": "ariados",
+    "description": "It spews threads from its mouth to catch its prey. When night falls, it leaves its web to go hunt aggressively."
+  },
+  {
+    "id": 169,
+    "name": "crobat",
+    "description": "It feeds on the blood of living people and Pok\u00e9mon. If it can\u2019t drink any blood for even a short while, it becomes weak and unable to fly."
+  },
+  {
+    "id": 170,
+    "name": "chinchou",
+    "description": "Chinchou blink their shining antennae at one another to claim their respective turf."
+  },
+  {
+    "id": 171,
+    "name": "lanturn",
+    "description": "It lives far down in the depths of the ocean. It blinds its prey with light, using the moment they\u2019re dazzled to swallow them whole."
+  },
+  {
+    "id": 172,
+    "name": "pichu",
+    "description": "It has electric sacs in its cheeks. When they\u2019re fully charged, Pichu plays very energetically."
+  },
+  {
+    "id": 173,
+    "name": "cleffa",
+    "description": "Said to have ridden here on a shooting star, Cleffa seem to appear in places where meteorites have struck in the past."
+  },
+  {
+    "id": 174,
+    "name": "igglybuff",
+    "description": "Left to its own devices, it will constantly practice singing. You should make it take a break so it doesn\u2019t hurt its throat."
+  },
+  {
+    "id": 175,
+    "name": "togepi",
+    "description": "As its energy, Togepi uses the positive emotions of compassion and pleasure exuded by people and Pok\u00e9mon. This Pok\u00e9mon stores up feelings of happiness inside its shell, then shares them with others."
+  },
+  {
+    "id": 176,
+    "name": "togetic",
+    "description": "Togetic is said to be a Pok\u00e9mon that brings good fortune. When the Pok\u00e9mon spots someone who is pure of heart, it is said to appear and share its happiness with that person."
+  },
+  {
+    "id": 177,
+    "name": "natu",
+    "description": "The look in its eyes gives the impression that it\u2019s carefully observing you. If you approach it, Natu will hop away."
+  },
+  {
+    "id": 178,
+    "name": "xatu",
+    "description": "While it can see the future, it has no desire to change it, which is probably why it remains motionless at all times."
+  },
+  {
+    "id": 179,
+    "name": "mareep",
+    "description": "Rubbing its fleece generates electricity. You\u2019ll want to pet it because it\u2019s cute, but if you use your bare hand, you\u2019ll get a painful shock."
+  },
+  {
+    "id": 180,
+    "name": "flaaffy",
+    "description": "It stores electricity in its fluffy fleece. If it stores up too much, it will start to go bald in those patches."
+  },
+  {
+    "id": 181,
+    "name": "ampharos",
+    "description": "Its tail shines bright and strong. It has been prized since long ago as a beacon for sailors."
+  },
+  {
+    "id": 182,
+    "name": "bellossom",
+    "description": "A Bellossom grows flowers more beautifully if it has evolved from a smelly Gloom\u2014the more stinky the better. At night, this Pok\u00e9mon closes its petals and goes to sleep."
+  },
+  {
+    "id": 183,
+    "name": "marill",
+    "description": "When fishing for food at the edge of a fast-running stream, Marill wraps its tail around the trunk of a tree. This Pok\u00e9mon\u2019s tail is flexible and configured to stretch."
+  },
+  {
+    "id": 184,
+    "name": "azumarill",
+    "description": "Azumarill can make balloons out of air. It makes these air balloons if it spots a drowning Pok\u00e9mon. The air balloons enable the Pok\u00e9mon in trouble to breathe."
+  },
+  {
+    "id": 185,
+    "name": "sudowoodo",
+    "description": "The result of its holding the same pose all the time is arms that have become supple yet strong."
+  },
+  {
+    "id": 186,
+    "name": "politoed",
+    "description": "The longer and more luxurious the curled hair on its head, the greater the number of Poliwag and Poliwhirl that will obey it."
+  },
+  {
+    "id": 187,
+    "name": "hoppip",
+    "description": "This Pok\u00e9mon drifts and floats with the wind. If it senses the approach of strong winds, Hoppip links its leaves with other Hoppip to prepare against being blown away."
+  },
+  {
+    "id": 188,
+    "name": "skiploom",
+    "description": "Skiploom\u2019s flower blossoms when the temperature rises above 64 degrees Fahrenheit. How much the flower opens depends on the temperature. For that reason, this Pok\u00e9mon is sometimes used as a thermometer."
+  },
+  {
+    "id": 189,
+    "name": "jumpluff",
+    "description": "Jumpluff rides warm southern winds to cross the sea and fly to foreign lands. The Pok\u00e9mon descends to the ground when it encounters cold air while it is floating."
+  },
+  {
+    "id": 190,
+    "name": "aipom",
+    "description": "It searches for prey from the tops of trees. When it spots its favorite food, Bounsweet, Aipom gets excited and pounces."
+  },
+  {
+    "id": 191,
+    "name": "sunkern",
+    "description": "Sunkern tries to move as little as it possibly can. It does so because it tries to conserve all the nutrients it has stored in its body for its evolution. It will not eat a thing, subsisting only on morning dew."
+  },
+  {
+    "id": 192,
+    "name": "sunflora",
+    "description": "Sunflora converts solar energy into nutrition. It moves around actively in the daytime when it is warm. It stops moving as soon as the sun goes down for the night."
+  },
+  {
+    "id": 193,
+    "name": "yanma",
+    "description": "Yanma is capable of seeing 360 degrees without having to move its eyes. It is a great flier that is adept at making sudden stops and turning midair. This Pok\u00e9mon uses its flying ability to quickly chase down targeted prey."
+  },
+  {
+    "id": 194,
+    "name": "wooper",
+    "description": "Wooper usually lives in water. However, it occasionally comes out onto land in search of food. On land, it coats its body with a gooey, toxic film."
+  },
+  {
+    "id": 195,
+    "name": "quagsire",
+    "description": "Quagsire hunts for food by leaving its mouth wide open in water and waiting for its prey to blunder in unaware. Because the Pok\u00e9mon does not move, it does not get very hungry."
+  },
+  {
+    "id": 196,
+    "name": "espeon",
+    "description": "Psychic power builds up in the orb on its forehead as it bathes in the sunshine. Espeon is not good at battling at night."
+  },
+  {
+    "id": 197,
+    "name": "umbreon",
+    "description": "It lurks in the dark of night looking for prey. At the moment it pounces, the rings on its body glow dimly but ominously."
+  },
+  {
+    "id": 198,
+    "name": "murkrow",
+    "description": "It searches for shiny things for its boss. Murkrow\u2019s presence is said to be unlucky, so many people detest it."
+  },
+  {
+    "id": 199,
+    "name": "slowking",
+    "description": "It\u2019s called \u201cthe sage of the sea.\u201d It engages in battles of wits with Oranguru, but the result is usually a draw."
+  },
+  {
+    "id": 200,
+    "name": "misdreavus",
+    "description": "What makes it happy is imitating the voices of weeping people and scaring everyone. It doesn\u2019t deal well with folks who aren\u2019t easily frightened."
+  },
+  {
+    "id": 201,
+    "name": "unown",
+    "description": "This Pok\u00e9mon is shaped like ancient writing. It is a mystery as to which came first, the ancient writings or the various Unown. Research into this topic is ongoing but nothing is known."
+  },
+  {
+    "id": 202,
+    "name": "wobbuffet",
+    "description": "Wobbuffet does nothing but endure attacks\u2014it won\u2019t attack on its own. However, it won\u2019t endure an attack on its tail. When that happens, the Pok\u00e9mon will try to take the foe with it using Destiny Bond."
+  },
+  {
+    "id": 203,
+    "name": "girafarig",
+    "description": "Girafarig\u2019s rear head contains a tiny brain that is too small for thinking. However, the rear head doesn\u2019t need to sleep, so it can keep watch over its surroundings 24 hours a day."
+  },
+  {
+    "id": 204,
+    "name": "pineco",
+    "description": "It sticks tree bark to itself with its saliva, making itself thicker and larger. Elderly Pineco are ridiculously huge."
+  },
+  {
+    "id": 205,
+    "name": "forretress",
+    "description": "In the moment that it gulps down its prey, the inside of its shell is exposed, but to this day, no one has ever seen that sight."
+  },
+  {
+    "id": 206,
+    "name": "dunsparce",
+    "description": "When it sees a person, it digs a hole with its tail to make its escape. If you happen to find one, consider yourself lucky."
+  },
+  {
+    "id": 207,
+    "name": "gligar",
+    "description": "Gligar glides through the air without a sound as if it were sliding. This Pok\u00e9mon hangs on to the face of its foe using its clawed hind legs and the large pincers on its forelegs, then injects the prey with its poison barb."
+  },
+  {
+    "id": 208,
+    "name": "steelix",
+    "description": "Steelix lives even further underground than Onix. This Pok\u00e9mon is known to dig toward the earth\u2019s core. There are records of this Pok\u00e9mon reaching a depth of over six-tenths of a mile underground."
+  },
+  {
+    "id": 209,
+    "name": "snubbull",
+    "description": "In contrast to its appearance, it\u2019s quite timid. When playing with other puppy Pok\u00e9mon, it sometimes gets bullied."
+  },
+  {
+    "id": 210,
+    "name": "granbull",
+    "description": "Although it\u2019s popular with young people, Granbull is timid and sensitive, so it\u2019s totally incompetent as a watchdog."
+  },
+  {
+    "id": 211,
+    "name": "qwilfish",
+    "description": "Qwilfish sucks in water, inflating itself. This Pok\u00e9mon uses the pressure of the water it swallowed to shoot toxic quills all at once from all over its body. It finds swimming somewhat challenging."
+  },
+  {
+    "id": 212,
+    "name": "scizor",
+    "description": "Once it has identified something as an enemy, it will continue beating them with its steel-hard pincers until there\u2019s nothing left but scraps."
+  },
+  {
+    "id": 213,
+    "name": "shuckle",
+    "description": "Shuckle quietly hides itself under rocks, keeping its body concealed inside its hard shell while eating berries it has stored away. The berries mix with its body fluids to become a juice."
+  },
+  {
+    "id": 214,
+    "name": "heracross",
+    "description": "It roams through forests searching for sweet nectar. Although it boasts fantastic physical strength, it\u2019s not that good at flying."
+  },
+  {
+    "id": 215,
+    "name": "sneasel",
+    "description": "It blends into the dark of night to ambush its prey. Sneasel will attack Sandshrew, but its hard skin can cause Sneasel\u2019s claws to snap off."
+  },
+  {
+    "id": 216,
+    "name": "teddiursa",
+    "description": "This Pok\u00e9mon likes to lick its palms that are sweetened by being soaked in honey. Teddiursa concocts its own honey by blending fruits and pollen collected by Beedrill."
+  },
+  {
+    "id": 217,
+    "name": "ursaring",
+    "description": "In the forests inhabited by Ursaring, it is said that there are many streams and towering trees where they gather food. This Pok\u00e9mon walks through its forest gathering food every day."
+  },
+  {
+    "id": 218,
+    "name": "slugma",
+    "description": "Slugma does not have any blood in its body. Instead, intensely hot magma circulates throughout this Pok\u00e9mon\u2019s body, carrying essential nutrients and oxygen to its organs."
+  },
+  {
+    "id": 219,
+    "name": "magcargo",
+    "description": "Magcargo\u2019s body temperature is approximately 18,000 degrees Fahrenheit. Water is vaporized on contact. If this Pok\u00e9mon is caught in the rain, the raindrops instantly turn into steam, cloaking the area in a thick fog."
+  },
+  {
+    "id": 220,
+    "name": "swinub",
+    "description": "Swinub roots for food by rubbing its snout against the ground. Its favorite food is a mushroom that grows under the cover of dead grass. This Pok\u00e9mon occasionally roots out hot springs."
+  },
+  {
+    "id": 221,
+    "name": "piloswine",
+    "description": "Piloswine is covered by a thick coat of long hair that enables it to endure the freezing cold. This Pok\u00e9mon uses its tusks to dig up food that has been buried under ice."
+  },
+  {
+    "id": 222,
+    "name": "corsola",
+    "description": "In Alola, where their natural enemies Mareanie are plentiful, many Corsola have stubby branches on their heads."
+  },
+  {
+    "id": 223,
+    "name": "remoraid",
+    "description": "Also known as the \u201csniper of the seas,\u201d its water gun can hit prey without fail from over 300 feet away."
+  },
+  {
+    "id": 224,
+    "name": "octillery",
+    "description": "It usually sleeps in caves. The pitch-black ink that Octillery spits is also used for cooking."
+  },
+  {
+    "id": 225,
+    "name": "delibird",
+    "description": "It wraps food in its tail to carry it around. The Delibird with the biggest tail is the boss of the flock!"
+  },
+  {
+    "id": 226,
+    "name": "mantine",
+    "description": "Many people have taken up surfing because they admire how magnificently Mantine swims."
+  },
+  {
+    "id": 227,
+    "name": "skarmory",
+    "description": "Its body is draped in steel armor. It looks heavy, but it can fly at speeds of up to 185 miles an hour!"
+  },
+  {
+    "id": 228,
+    "name": "houndour",
+    "description": "They make repeated eerie howls before dawn to call attention to their pack."
+  },
+  {
+    "id": 229,
+    "name": "houndoom",
+    "description": "Identifiable by its eerie howls, people a long time ago thought it was the grim reaper and feared it."
+  },
+  {
+    "id": 230,
+    "name": "kingdra",
+    "description": "Kingdra sleeps on the seafloor where it is otherwise devoid of life. When a storm arrives, the Pok\u00e9mon is said to awaken and wander about in search of prey."
+  },
+  {
+    "id": 231,
+    "name": "phanpy",
+    "description": "Phanpy uses its long nose to shower itself. When others gather around, they thoroughly douse each other with water. These Pok\u00e9mon can be seen drying their soaking-wet bodies at the edge of water."
+  },
+  {
+    "id": 232,
+    "name": "donphan",
+    "description": "If Donphan were to tackle with its hard body, even a house could be destroyed. Using its massive strength, the Pok\u00e9mon helps clear rock and mud slides that block mountain trails."
+  },
+  {
+    "id": 233,
+    "name": "porygon2",
+    "description": "Even though it doesn\u2019t die in the vacuum of space, it can\u2019t move around very well in zero gravity."
+  },
+  {
+    "id": 234,
+    "name": "stantler",
+    "description": "Stantler\u2019s magnificent antlers were traded at high prices as works of art. As a result, this Pok\u00e9mon was hunted close to extinction by those who were after the priceless antlers."
+  },
+  {
+    "id": 235,
+    "name": "smeargle",
+    "description": "It draws symbols with the fluid that oozes from the tip of its tail. Depending on the symbol, Smeargle fanatics will pay big money for them."
+  },
+  {
+    "id": 236,
+    "name": "tyrogue",
+    "description": "Tyrogue becomes stressed out if it does not get to train every day. When raising this Pok\u00e9mon, the Trainer must establish and uphold various training methods."
+  },
+  {
+    "id": 237,
+    "name": "hitmontop",
+    "description": "Hitmontop spins on its head at high speed, all the while delivering kicks. This technique is a remarkable mix of both offense and defense at the same time. The Pok\u00e9mon travels faster spinning than it does walking."
+  },
+  {
+    "id": 238,
+    "name": "smoochum",
+    "description": "Highly perceptive sensors, Smoochum\u2019s lips are kept moist by its daily application of tree sap."
+  },
+  {
+    "id": 239,
+    "name": "elekid",
+    "description": "When its horns shine a bluish white, that\u2019s the sign it\u2019s fully charged. You\u2019ll get a shocking jolt if you touch it!"
+  },
+  {
+    "id": 240,
+    "name": "magby",
+    "description": "Its body temperature is always around 1,100 degrees Fahrenheit. If Magby falls into a small- enough pond, the whole thing will dry up."
+  },
+  {
+    "id": 241,
+    "name": "miltank",
+    "description": "Its milk is delicious and chock-full of nutrients. However, if you drink too much, it could make your stomach hurt, so be careful."
+  },
+  {
+    "id": 242,
+    "name": "blissey",
+    "description": "This Pok\u00e9mon is overflowing with love. Only Chansey that share a strong bond with their Trainer can evolve, so people say."
+  },
+  {
+    "id": 243,
+    "name": "raikou",
+    "description": "Raikou embodies the speed of lightning. The roars of this Pok\u00e9mon send shock waves shuddering through the air and shake the ground as if lightning bolts had come crashing down."
+  },
+  {
+    "id": 244,
+    "name": "entei",
+    "description": "Entei embodies the passion of magma. This Pok\u00e9mon is thought to have been born in the eruption of a volcano. It sends up massive bursts of fire that utterly consume all that they touch."
+  },
+  {
+    "id": 245,
+    "name": "suicune",
+    "description": "Suicune embodies the compassion of a pure spring of water. It runs across the land with gracefulness. This Pok\u00e9mon has the power to purify dirty water."
+  },
+  {
+    "id": 246,
+    "name": "larvitar",
+    "description": "Raised on nutrients it finds in the dirt, it eats roughly a mountain\u2019s worth of dirt before it becomes a pupa."
+  },
+  {
+    "id": 247,
+    "name": "pupitar",
+    "description": "This dangerous pupa thrashes about. Its shell is as hard as bedrock, containing its gradually forming new body within."
+  },
+  {
+    "id": 248,
+    "name": "tyranitar",
+    "description": "This Pok\u00e9mon is a mobile disaster, leaving mountains crumbled and houses destroyed in its wake."
+  },
+  {
+    "id": 249,
+    "name": "lugia",
+    "description": "Lugia\u2019s wings pack devastating power\u2014a light fluttering of its wings can blow apart regular houses. As a result, this Pok\u00e9mon chooses to live out of sight deep under the sea."
+  },
+  {
+    "id": 250,
+    "name": "ho-oh",
+    "description": "Ho-Oh\u2019s feathers glow in seven colors depending on the angle at which they are struck by light. These feathers are said to bring happiness to the bearers. This Pok\u00e9mon is said to live at the foot of a rainbow."
+  },
+  {
+    "id": 251,
+    "name": "celebi",
+    "description": "This Pok\u00e9mon came from the future by crossing over time. It is thought that so long as Celebi appears, a bright and shining future awaits us."
+  },
+  {
+    "id": 252,
+    "name": "treecko",
+    "description": "Treecko is cool, calm, and collected\u2014it never panics under any situation. If a bigger foe were to glare at this Pok\u00e9mon, it would glare right back without conceding an inch of ground."
+  },
+  {
+    "id": 253,
+    "name": "grovyle",
+    "description": "This Pok\u00e9mon adeptly flies from branch to branch in trees. In a forest, no Pok\u00e9mon can ever hope to catch a fleeing Grovyle however fast they may be."
+  },
+  {
+    "id": 254,
+    "name": "sceptile",
+    "description": "Sceptile has seeds growing on its back. They are said to be bursting with nutrients that revitalize trees. This Pok\u00e9mon raises the trees in a forest with loving care."
+  },
+  {
+    "id": 255,
+    "name": "torchic",
+    "description": "Torchic has a place inside its body where it keeps its flame. Give it a hug\u2014it will be glowing with warmth. This Pok\u00e9mon is covered all over by a fluffy coat of down."
+  },
+  {
+    "id": 256,
+    "name": "combusken",
+    "description": "Combusken battles with the intensely hot flames it spews from its beak and with outstandingly destructive kicks. This Pok\u00e9mon\u2019s cry is very loud and distracting."
+  },
+  {
+    "id": 257,
+    "name": "blaziken",
+    "description": "Blaziken has incredibly strong legs\u2014it can easily clear a 30-story building in one leap. This Pok\u00e9mon\u2019s blazing punches leave its foes scorched and blackened."
+  },
+  {
+    "id": 258,
+    "name": "mudkip",
+    "description": "In water, Mudkip breathes using the gills on its cheeks. If it is faced with a tight situation in battle, this Pok\u00e9mon will unleash its amazing power\u2014it can crush rocks bigger than itself."
+  },
+  {
+    "id": 259,
+    "name": "marshtomp",
+    "description": "Marshtomp is much faster at traveling through mud than it is at swimming. This Pok\u00e9mon\u2019s hindquarters exhibit obvious development, giving it the ability to walk on just its hind legs."
+  },
+  {
+    "id": 260,
+    "name": "swampert",
+    "description": "Swampert predicts storms by sensing subtle differences in the sounds of waves and tidal winds with its fins. If a storm is approaching, it piles up boulders to protect itself."
+  },
+  {
+    "id": 261,
+    "name": "poochyena",
+    "description": "Poochyena is an omnivore\u2014it will eat anything. A distinguishing feature is how large its fangs are compared to its body. This Pok\u00e9mon tries to intimidate its foes by making the hair on its tail bristle out."
+  },
+  {
+    "id": 262,
+    "name": "mightyena",
+    "description": "Mightyena travel and act as a pack in the wild. The memory of its life in the wild compels the Pok\u00e9mon to obey only those Trainers that it recognizes to possess superior skill."
+  },
+  {
+    "id": 263,
+    "name": "zigzagoon",
+    "description": "The hair on Zigzagoon\u2019s back is bristly. It rubs the hard back hair against trees to leave its territorial markings. This Pok\u00e9mon may play dead to fool foes in battle."
+  },
+  {
+    "id": 264,
+    "name": "linoone",
+    "description": "When hunting, Linoone will make a beeline straight for the prey at a full run. While this Pok\u00e9mon is capable of topping 60 mph, it has to come to a screeching halt before it can turn."
+  },
+  {
+    "id": 265,
+    "name": "wurmple",
+    "description": "Wurmple is targeted by Swellow as prey. This Pok\u00e9mon will try to resist by pointing the spikes on its rear at the attacking predator. It will weaken the foe by leaking poison from the spikes."
+  },
+  {
+    "id": 266,
+    "name": "silcoon",
+    "description": "Silcoon was thought to endure hunger and not consume anything before its evolution. However, it is now thought that this Pok\u00e9mon slakes its thirst by drinking rainwater that collects on its silk."
+  },
+  {
+    "id": 267,
+    "name": "beautifly",
+    "description": "Beautifly has a long mouth like a coiled needle, which is very convenient for collecting pollen from flowers. This Pok\u00e9mon rides the spring winds as it flits around gathering pollen."
+  },
+  {
+    "id": 268,
+    "name": "cascoon",
+    "description": "If it is attacked, Cascoon remains motionless however badly it may be hurt. It does so because if it were to move, its body would be weak upon evolution. This Pok\u00e9mon will also not forget the pain it endured."
+  },
+  {
+    "id": 269,
+    "name": "dustox",
+    "description": "When Dustox flaps its wings, a fine dust is scattered all over. This dust is actually a powerful poison that will even make a pro wrestler sick. This Pok\u00e9mon searches for food using its antennae like radar."
+  },
+  {
+    "id": 270,
+    "name": "lotad",
+    "description": "Lotad is said to have dwelled on land before. However, this Pok\u00e9mon is thought to have returned to water because the leaf on its head grew large and heavy. It now lives by floating atop the water."
+  },
+  {
+    "id": 271,
+    "name": "lombre",
+    "description": "Lombre\u2019s entire body is covered by a slippery, slimy film. It feels horribly unpleasant to be touched by this Pok\u00e9mon\u2019s hands. Lombre is often mistaken for a human child."
+  },
+  {
+    "id": 272,
+    "name": "ludicolo",
+    "description": "Upon hearing an upbeat and cheerful rhythm, the cells in Ludicolo\u2019s body become very energetic and active. Even in battle, this Pok\u00e9mon will exhibit an amazing amount of power."
+  },
+  {
+    "id": 273,
+    "name": "seedot",
+    "description": "Seedot looks exactly like an acorn when it is dangling from a tree branch. It startles other Pok\u00e9mon by suddenly moving. This Pok\u00e9mon polishes its body once a day using leaves."
+  },
+  {
+    "id": 274,
+    "name": "nuzleaf",
+    "description": "This Pok\u00e9mon pulls out the leaf on its head and makes a flute with it. The sound of Nuzleaf\u2019s flute strikes fear and uncertainty in the hearts of people lost in a forest."
+  },
+  {
+    "id": 275,
+    "name": "shiftry",
+    "description": "Shiftry\u2019s large fans generate awesome gusts of wind at a speed close to 100 feet per second. The whipped-up wind blows anything away. This Pok\u00e9mon chooses to live quietly deep in forests."
+  },
+  {
+    "id": 276,
+    "name": "taillow",
+    "description": "Taillow is young\u2014it has only just left its nest. As a result, it sometimes becomes lonesome and cries at night. This Pok\u00e9mon feeds on Wurmple that live in forests."
+  },
+  {
+    "id": 277,
+    "name": "swellow",
+    "description": "Swellow is very conscientious about the upkeep of its glossy wings. Once two Swellow are gathered, they diligently take care of cleaning each other\u2019s wings."
+  },
+  {
+    "id": 278,
+    "name": "wingull",
+    "description": "It builds nests in cliffs by the sea. It circles the skies above the ocean looking for its favorite food\u2014Wishiwashi."
+  },
+  {
+    "id": 279,
+    "name": "pelipper",
+    "description": "It scoops up Wishiwashi in its huge beak and swallows them whole. It can devour more than 30 at one go!"
+  },
+  {
+    "id": 280,
+    "name": "ralts",
+    "description": "Ralts has the ability to sense the emotions of people. If its Trainer is in a cheerful mood, this Pok\u00e9mon grows cheerful and joyous in the same way."
+  },
+  {
+    "id": 281,
+    "name": "kirlia",
+    "description": "Kirlia uses the horns on its head to amplify its psychokinetic power. When the Pok\u00e9mon uses its power, the air around it becomes distorted, creating mirages of nonexistent scenery."
+  },
+  {
+    "id": 282,
+    "name": "gardevoir",
+    "description": "Gardevoir has the psychokinetic power to distort the dimensions and create a small black hole. This Pok\u00e9mon will try to protect its Trainer even at the risk of its own life."
+  },
+  {
+    "id": 283,
+    "name": "surskit",
+    "description": "It lives in ponds and marshes that feature lots of plant life. It often fights with Dewpider, whose habitat and diet are similar."
+  },
+  {
+    "id": 284,
+    "name": "masquerain",
+    "description": "Its thin, winglike antennae are highly absorbent. It waits out rainy days in tree hollows."
+  },
+  {
+    "id": 285,
+    "name": "shroomish",
+    "description": "If Shroomish senses danger, it shakes its body and scatters spores from the top of its head. This Pok\u00e9mon\u2019s spores are so toxic, they make trees and weeds wilt."
+  },
+  {
+    "id": 286,
+    "name": "breloom",
+    "description": "The seeds ringing Breloom\u2019s tail are made of hardened toxic spores. It is horrible to eat the seeds. Just taking a bite of this Pok\u00e9mon\u2019s seed will cause your stomach to rumble."
+  },
+  {
+    "id": 287,
+    "name": "slakoth",
+    "description": "Slakoth\u2019s heart beats just once a minute. Whatever happens, it is content to loaf around motionless. It is rare to see this Pok\u00e9mon in motion."
+  },
+  {
+    "id": 288,
+    "name": "vigoroth",
+    "description": "Vigoroth is simply incapable of remaining still. Even when it tries to sleep, the blood in its veins grows agitated, compelling this Pok\u00e9mon to run wild throughout the jungle before it can settle down."
+  },
+  {
+    "id": 289,
+    "name": "slaking",
+    "description": "Wherever Slaking live, rings of over a yard in diameter appear in grassy fields. They are made by the Pok\u00e9mon as it eats all the grass within reach while lying prone on the ground."
+  },
+  {
+    "id": 290,
+    "name": "nincada",
+    "description": "Nincada lives underground. It uses its sharp claws to carve the roots of trees and absorb moisture and nutrients. This Pok\u00e9mon can\u2019t withstand bright sunlight so avoids it."
+  },
+  {
+    "id": 291,
+    "name": "ninjask",
+    "description": "If Ninjask is not trained properly, it will refuse to obey the Trainer and cry loudly continuously. Because of this quality, this Pok\u00e9mon is said to be one that puts the Trainer\u2019s abilities to the test."
+  },
+  {
+    "id": 292,
+    "name": "shedinja",
+    "description": "Shedinja is a peculiar Pok\u00e9mon. It seems to appear unsought in a Pok\u00e9 Ball after a Nincada evolves. This bizarre Pok\u00e9mon is entirely immobile\u2014it doesn\u2019t even breathe."
+  },
+  {
+    "id": 293,
+    "name": "whismur",
+    "description": "Whismur is very timid. If it starts to cry loudly, it becomes startled by its own crying and cries even harder. When it finally stops crying, the Pok\u00e9mon goes to sleep, all tired out."
+  },
+  {
+    "id": 294,
+    "name": "loudred",
+    "description": "Loudred shouts while stamping its feet. After it finishes shouting, this Pok\u00e9mon becomes incapable of hearing anything for a while. This is considered to be a weak point."
+  },
+  {
+    "id": 295,
+    "name": "exploud",
+    "description": "Exploud communicates its feelings to the others by emitting whistle-like sounds from the tubes on its body. This Pok\u00e9mon only raises its voice when it is in battle."
+  },
+  {
+    "id": 296,
+    "name": "makuhita",
+    "description": "There\u2019s a rumor of a traditional recipe for stew that Trainers can use to raise strong Makuhita."
+  },
+  {
+    "id": 297,
+    "name": "hariyama",
+    "description": "Hariyama that are big and fat aren\u2019t necessarily strong. There are some small ones that move nimbly and use moves skillfully."
+  },
+  {
+    "id": 298,
+    "name": "azurill",
+    "description": "Azurill\u2019s tail is large and bouncy. It is packed full of the nutrients this Pok\u00e9mon needs to grow. Azurill can be seen bouncing and playing on its big, rubbery tail."
+  },
+  {
+    "id": 299,
+    "name": "nosepass",
+    "description": "It hunts without twitching a muscle by pulling in its prey with powerful magnetism. But sometimes it pulls natural enemies in close."
+  },
+  {
+    "id": 300,
+    "name": "skitty",
+    "description": "Skitty is known to chase around playfully after its own tail. In the wild, this Pok\u00e9mon lives in holes in the trees of forests. It is very popular as a pet because of its adorable looks."
+  },
+  {
+    "id": 301,
+    "name": "delcatty",
+    "description": "Delcatty sleeps anywhere it wants without keeping a permanent nest. If other Pok\u00e9mon approach it as it sleeps, this Pok\u00e9mon will never fight\u2014it will just move away somewhere else."
+  },
+  {
+    "id": 302,
+    "name": "sableye",
+    "description": "Materials from gems it has eaten float to the surface of its body and can form an infinite number of patterns among individuals."
+  },
+  {
+    "id": 303,
+    "name": "mawile",
+    "description": "It has two mouths. The big jaws on the back of its head can\u2019t taste anything, so that\u2019s the mouth it uses to eat foods it doesn\u2019t like."
+  },
+  {
+    "id": 304,
+    "name": "aron",
+    "description": "Aron has a body of steel. With one all-out charge, this Pok\u00e9mon can demolish even a heavy dump truck. The destroyed dump truck then becomes a handy meal for the Pok\u00e9mon."
+  },
+  {
+    "id": 305,
+    "name": "lairon",
+    "description": "Lairon feeds on iron contained in rocks and water. It makes its nest on mountains where iron ore is buried. As a result, the Pok\u00e9mon often clashes with humans mining the iron ore."
+  },
+  {
+    "id": 306,
+    "name": "aggron",
+    "description": "Aggron is protective of its environment. If its mountain is ravaged by a landslide or a fire, this Pok\u00e9mon will haul topsoil to the area, plant trees, and beautifully restore its own territory."
+  },
+  {
+    "id": 307,
+    "name": "meditite",
+    "description": "Meditite heightens its inner energy through meditation. It survives on just one berry a day. Minimal eating is another aspect of this Pok\u00e9mon\u2019s training."
+  },
+  {
+    "id": 308,
+    "name": "medicham",
+    "description": "Through the power of meditation, Medicham developed its sixth sense. It gained the ability to use psychokinetic powers. This Pok\u00e9mon is known to meditate for a whole month without eating."
+  },
+  {
+    "id": 309,
+    "name": "electrike",
+    "description": "Static electricity builds up all over its body as strands of its long fur rub together. This Pok\u00e9mon boasts incredible speed."
+  },
+  {
+    "id": 310,
+    "name": "manectric",
+    "description": "It stimulates its own muscles with electricity, so it can move quickly. It eases its soreness with electricity, too, so it can recover quickly as well."
+  },
+  {
+    "id": 311,
+    "name": "plusle",
+    "description": "When Plusle is cheering on its partner, it flashes with electric sparks from all over its body. If its partner loses, this Pok\u00e9mon cries loudly."
+  },
+  {
+    "id": 312,
+    "name": "minun",
+    "description": "Minun loves to cheer on its partner in battle. It gives off sparks from its body while it is doing so. If its partner is in trouble, this Pok\u00e9mon gives off increasing amounts of sparks."
+  },
+  {
+    "id": 313,
+    "name": "volbeat",
+    "description": "Volbeat\u2019s tail glows like a lightbulb. With other Volbeat, it uses its tail to draw geometric shapes in the night sky. This Pok\u00e9mon loves the sweet aroma given off by Illumise."
+  },
+  {
+    "id": 314,
+    "name": "illumise",
+    "description": "Illumise leads a flight of illuminated Volbeat to draw signs in the night sky. This Pok\u00e9mon is said to earn greater respect from its peers by composing more complex designs in the sky."
+  },
+  {
+    "id": 315,
+    "name": "roselia",
+    "description": "On extremely rare occasions, a Roselia is said to appear with its flowers in unusual colors. The thorns on this Pok\u00e9mon\u2019s head contain a vicious poison."
+  },
+  {
+    "id": 316,
+    "name": "gulpin",
+    "description": "Most of Gulpin\u2019s body is made up of its stomach\u2014its heart and brain are very small in comparison. This Pok\u00e9mon\u2019s stomach contains special enzymes that dissolve anything."
+  },
+  {
+    "id": 317,
+    "name": "swalot",
+    "description": "Swalot has no teeth, so what it eats, it swallows whole, no matter what. Its cavernous mouth yawns widely. An automobile tire could easily fit inside this Pok\u00e9mon\u2019s mouth."
+  },
+  {
+    "id": 318,
+    "name": "carvanha",
+    "description": "With its sturdy jaws and fangs, it can easily chomp wooden boats to splinters. It fights with Basculin over food."
+  },
+  {
+    "id": 319,
+    "name": "sharpedo",
+    "description": "It drinks in seawater and jets it from its rear to propel itself. It\u2019s very sensitive to the scent of blood."
+  },
+  {
+    "id": 320,
+    "name": "wailmer",
+    "description": "Due to their memories of when they once lived on land, pods of them will, very rarely, wash up on shore."
+  },
+  {
+    "id": 321,
+    "name": "wailord",
+    "description": "When a small Wailmer is attacked by Sharpedo or Dhelmise, its whole pod works together to protect it."
+  },
+  {
+    "id": 322,
+    "name": "numel",
+    "description": "Numel stores magma of almost 2,200 degrees Fahrenheit within its body. If it gets wet, the magma cools and hardens. In that event, the Pok\u00e9mon\u2019s body grows heavy and its movements become sluggish."
+  },
+  {
+    "id": 323,
+    "name": "camerupt",
+    "description": "The humps on Camerupt\u2019s back are formed by a transformation of its bones. They sometimes blast out molten magma. This Pok\u00e9mon apparently erupts often when it is enraged."
+  },
+  {
+    "id": 324,
+    "name": "torkoal",
+    "description": "It burns coal to produce energy. When it has burned through all of its coal, it becomes unable to move."
+  },
+  {
+    "id": 325,
+    "name": "spoink",
+    "description": "Spoink keeps a pearl on top of its head. The pearl functions to amplify this Pok\u00e9mon\u2019s psychokinetic powers. It is therefore on a constant search for a bigger pearl."
+  },
+  {
+    "id": 326,
+    "name": "grumpig",
+    "description": "Grumpig uses the black pearls on its body to wield its fantastic powers. When it is doing so, it dances bizarrely. This Pok\u00e9mon\u2019s black pearls are valuable as works of art."
+  },
+  {
+    "id": 327,
+    "name": "spinda",
+    "description": "Each Spinda\u2019s spot pattern is different. With its stumbling movements, it evades opponents\u2019 attacks brilliantly!"
+  },
+  {
+    "id": 328,
+    "name": "trapinch",
+    "description": "It builds nests that double as traps, lying in wait for its prey to get caught. When night falls, it digs itself a spot beneath the sand to sleep."
+  },
+  {
+    "id": 329,
+    "name": "vibrava",
+    "description": "It vibrates its wings to send out odd sound waves. Trainers who are with it need earplugs."
+  },
+  {
+    "id": 330,
+    "name": "flygon",
+    "description": "People continue to have their hearts stolen by its enchanting songs and find themselves stranded in the desert."
+  },
+  {
+    "id": 331,
+    "name": "cacnea",
+    "description": "The more arid and harsh the environment, the more pretty and fragrant a flower Cacnea grows. This Pok\u00e9mon battles by wildly swinging its thorny arms."
+  },
+  {
+    "id": 332,
+    "name": "cacturne",
+    "description": "If a traveler is going through a desert in the thick of night, Cacturne will follow in a ragtag group. The Pok\u00e9mon are biding their time, waiting for the traveler to tire and become incapable of moving."
+  },
+  {
+    "id": 333,
+    "name": "swablu",
+    "description": "Swablu loves to make things clean. If it spots something dirty, it will wipe and polish it with its cottony wings. If its wings become dirty, this Pok\u00e9mon finds a stream and showers itself."
+  },
+  {
+    "id": 334,
+    "name": "altaria",
+    "description": "Altaria sings in a gorgeous soprano. Its wings are like cotton clouds. This Pok\u00e9mon catches updrafts with its buoyant wings and soars way up into the wild blue yonder."
+  },
+  {
+    "id": 335,
+    "name": "zangoose",
+    "description": "Zangoose usually stays on all fours, but when angered, it gets up on its hind legs and extends its claws. This Pok\u00e9mon shares a bitter rivalry with Seviper that dates back over generations."
+  },
+  {
+    "id": 336,
+    "name": "seviper",
+    "description": "Seviper\u2019s swordlike tail serves two purposes\u2014it slashes foes and douses them with secreted poison. This Pok\u00e9mon will not give up its long-running blood feud with Zangoose."
+  },
+  {
+    "id": 337,
+    "name": "lunatone",
+    "description": "Lunatone becomes active around the time of the full moon. Instead of walking, it moves by floating in midair. The Pok\u00e9mon\u2019s intimidating red eyes cause all those who see it to become transfixed with fear."
+  },
+  {
+    "id": 338,
+    "name": "solrock",
+    "description": "Sunlight is the source of Solrock\u2019s power. It is said to possess the ability to read the emotions of others. This Pok\u00e9mon gives off intense heat while rotating its body."
+  },
+  {
+    "id": 339,
+    "name": "barboach",
+    "description": "Its whiskers are filled with nerves. They can sense smells and flavors just as a person\u2019s nose or tongue would."
+  },
+  {
+    "id": 340,
+    "name": "whiscash",
+    "description": "Its vision is not that good. It senses vibrations in the water with its whiskers to determine the location of its prey."
+  },
+  {
+    "id": 341,
+    "name": "corphish",
+    "description": "It can adapt very well to its environment. Feebas and Corphish are about the only Pok\u00e9mon to live in stagnant ditches."
+  },
+  {
+    "id": 342,
+    "name": "crawdaunt",
+    "description": "Its pincers often fall off. Unlike with Crabrawler or Clauncher, the meat in its claws is utterly nasty and stinking."
+  },
+  {
+    "id": 343,
+    "name": "baltoy",
+    "description": "When they find others of their kind, they cry out loudly and gather together. Large numbers of them can be found in old graveyards."
+  },
+  {
+    "id": 344,
+    "name": "claydol",
+    "description": "The ancient people who made it apparently modeled it after something that descended from the sky. It fires beams from both arms."
+  },
+  {
+    "id": 345,
+    "name": "lileep",
+    "description": "It sticks to rocks with its powerful suckers and can\u2019t be washed away no matter how rough the surf gets."
+  },
+  {
+    "id": 346,
+    "name": "cradily",
+    "description": "This carnivorous Pok\u00e9mon lived in primordial seas. It catches prey in its eight tentacles and dissolves them with digestive fluid as it eats."
+  },
+  {
+    "id": 347,
+    "name": "anorith",
+    "description": "This is one kind of primeval bug Pok\u00e9mon. With eight wings, it could apparently swim a lot faster than you\u2019d expect."
+  },
+  {
+    "id": 348,
+    "name": "armaldo",
+    "description": "Armaldo adapted from living in water to living on land. It has been determined that it is the ancestor of some bug Pok\u00e9mon."
+  },
+  {
+    "id": 349,
+    "name": "feebas",
+    "description": "Because of its wretched appearance, most people pay it no attention, but there are some who collect Feebas\u2014and Feebas alone!"
+  },
+  {
+    "id": 350,
+    "name": "milotic",
+    "description": "Its dwelling place is the bottom of big lakes. Those who behold its loveliness are said to have their hearts purified."
+  },
+  {
+    "id": 351,
+    "name": "castform",
+    "description": "Its form changes depending on the weather. The rougher conditions get, the rougher Castform\u2019s disposition!"
+  },
+  {
+    "id": 352,
+    "name": "kecleon",
+    "description": "Its color changes for concealment and also when its mood or health changes. The darker the color, the healthier it is."
+  },
+  {
+    "id": 353,
+    "name": "shuppet",
+    "description": "There\u2019s a proverb that says, \u201cShun the house where Shuppet gather in the growing dusk.\u201d"
+  },
+  {
+    "id": 354,
+    "name": "banette",
+    "description": "Resentment at being cast off made it spring into being. Some say that treating it well will satisfy it, and it will once more become a stuffed toy."
+  },
+  {
+    "id": 355,
+    "name": "duskull",
+    "description": "Duskull wanders lost among the deep darkness of midnight. There is an oft-told admonishment given to misbehaving children that this Pok\u00e9mon will spirit away bad children who earn scoldings from their mothers."
+  },
+  {
+    "id": 356,
+    "name": "dusclops",
+    "description": "Dusclops absorbs anything, however large the object may be. This Pok\u00e9mon hypnotizes its foe by waving its hands in a macabre manner and by bringing its single eye to bear. The hypnotized foe is made to do Dusclops\u2019s bidding."
+  },
+  {
+    "id": 357,
+    "name": "tropius",
+    "description": "Bunches of delicious fruit grow around its neck. In warm areas, many ranches raise Tropius."
+  },
+  {
+    "id": 358,
+    "name": "chimecho",
+    "description": "In high winds, Chimecho cries as it hangs from a tree branch or the eaves of a building using a suction cup on its head. This Pok\u00e9mon plucks berries with its long tail and eats them."
+  },
+  {
+    "id": 359,
+    "name": "absol",
+    "description": "The elderly call it the disaster Pok\u00e9mon and detest it, but interest in its power to predict disasters is on the rise."
+  },
+  {
+    "id": 360,
+    "name": "wynaut",
+    "description": "Wynaut gather on moonlit nights to play by squeezing up against each other. By being squeezed, this Pok\u00e9mon gains endurance and is trained to dole out powerful counterattacks."
+  },
+  {
+    "id": 361,
+    "name": "snorunt",
+    "description": "Rich people from cold areas all share childhood memories of playing with Snorunt."
+  },
+  {
+    "id": 362,
+    "name": "glalie",
+    "description": "Its actual body is a rock that isn\u2019t particularly hard. Glalie absorbs moisture from the air and drapes itself in an armor of ice."
+  },
+  {
+    "id": 363,
+    "name": "spheal",
+    "description": "Spheal always travels by rolling around on its ball-like body. When the season for ice floes arrives, this Pok\u00e9mon can be seen rolling about on ice and crossing the sea."
+  },
+  {
+    "id": 364,
+    "name": "sealeo",
+    "description": "Sealeo often balances and rolls things on the tip of its nose. While the Pok\u00e9mon is rolling something, it checks the object\u2019s aroma and texture to determine whether it likes the object or not."
+  },
+  {
+    "id": 365,
+    "name": "walrein",
+    "description": "Walrein swims all over in frigid seawater while crushing icebergs with its grand, imposing tusks. Its thick layer of blubber makes enemy attacks bounce off harmlessly."
+  },
+  {
+    "id": 366,
+    "name": "clamperl",
+    "description": "Clamperl\u2019s pearls are exceedingly precious. They can be more than 10 times as costly as Shellder\u2019s pearls."
+  },
+  {
+    "id": 367,
+    "name": "huntail",
+    "description": "Deep seas are their habitat. According to tradition, when Huntail wash up onshore, something unfortunate will happen."
+  },
+  {
+    "id": 368,
+    "name": "gorebyss",
+    "description": "It sucks bodily fluids out of its prey. The leftover meat sinks to the seafloor, where it becomes food for other Pok\u00e9mon."
+  },
+  {
+    "id": 369,
+    "name": "relicanth",
+    "description": "The reason it hasn\u2019t changed at all in a hundred million years is that it\u2019s apparently already a perfect life-form."
+  },
+  {
+    "id": 370,
+    "name": "luvdisc",
+    "description": "Luvdisc makes its home in coral reefs in warm seas. It especially likes sleeping in the space between Corsola\u2019s branches."
+  },
+  {
+    "id": 371,
+    "name": "bagon",
+    "description": "Some theories suggest that its behavior of forcefully bashing its head into things stimulates cells that affect its evolution."
+  },
+  {
+    "id": 372,
+    "name": "shelgon",
+    "description": "Shelgon lives deep within caves. It stays shut up in its hard shell, dreaming of the day it will be able to fly."
+  },
+  {
+    "id": 373,
+    "name": "salamence",
+    "description": "Thanks to its fervent wishes, the cells in its body finally mutated, and at last it has its heart\u2019s desire\u2014wings."
+  },
+  {
+    "id": 374,
+    "name": "beldum",
+    "description": "If you anger it, it will do more than rampage. It will also burst out strong magnetism, causing nearby machines to break."
+  },
+  {
+    "id": 375,
+    "name": "metang",
+    "description": "It flies at high speeds around the skies. When it finds its prey, Metang takes a firm grip with its sharp claws and never lets go."
+  },
+  {
+    "id": 376,
+    "name": "metagross",
+    "description": "It analyzes its opponents with more accuracy than a supercomputer, which enables it to calmly back them into a corner."
+  },
+  {
+    "id": 377,
+    "name": "regirock",
+    "description": "Regirock\u2019s body is composed entirely of rocks. Recently, a study made the startling discovery that the rocks were all unearthed from different locations."
+  },
+  {
+    "id": 378,
+    "name": "regice",
+    "description": "Regice cloaks itself with frigid air of -328 degrees Fahrenheit. Things will freeze solid just by going near this Pok\u00e9mon. Its icy body is so cold, it will not melt even if it is immersed in magma."
+  },
+  {
+    "id": 379,
+    "name": "registeel",
+    "description": "Registeel was imprisoned by people in ancient times. The metal composing its body is thought to be a curious substance that is not of this earth."
+  },
+  {
+    "id": 380,
+    "name": "latias",
+    "description": "Latias is highly intelligent and capable of understanding human speech. It is covered with a glass-like down. The Pok\u00e9mon enfolds its body with its down and refracts light to alter its appearance."
+  },
+  {
+    "id": 381,
+    "name": "latios",
+    "description": "Latios will only open its heart to a Trainer with a compassionate spirit. This Pok\u00e9mon can fly faster than a jet plane by folding its forelegs to minimize air resistance."
+  },
+  {
+    "id": 382,
+    "name": "kyogre",
+    "description": "Kyogre is said to be the personification of the sea itself. Legends tell of its many clashes against Groudon, as each sought to gain the power of nature."
+  },
+  {
+    "id": 383,
+    "name": "groudon",
+    "description": "Through Primal Reversion and with nature\u2019s full power, it will take back its true form. It can cause magma to erupt and expand the landmass of the world."
+  },
+  {
+    "id": 384,
+    "name": "rayquaza",
+    "description": "It flies forever through the ozone layer, consuming meteoroids for sustenance. The many meteoroids in its body provide the energy it needs to Mega Evolve."
+  },
+  {
+    "id": 385,
+    "name": "jirachi",
+    "description": "Jirachi will awaken from its sleep of a thousand years if you sing to it in a voice of purity. It is said to make true any wish that people desire."
+  },
+  {
+    "id": 386,
+    "name": "deoxys",
+    "description": "Deoxys emerged from a virus that came from space. It is highly intelligent and wields psychokinetic powers. This Pok\u00e9mon shoots lasers from the crystalline organ on its chest."
+  },
+  {
+    "id": 387,
+    "name": "turtwig",
+    "description": "It undertakes photosynthesis with its body, making oxygen. The leaf on its head wilts if it is thirsty."
+  },
+  {
+    "id": 388,
+    "name": "grotle",
+    "description": "It knows where pure water wells up. It carries fellow Pok\u00e9mon there on its back."
+  },
+  {
+    "id": 389,
+    "name": "torterra",
+    "description": "Small Pok\u00e9mon occasionally gather on its unmoving back to begin building their nests."
+  },
+  {
+    "id": 390,
+    "name": "chimchar",
+    "description": "The gas made in its belly burns from its rear end. The fire burns weakly when it feels sick."
+  },
+  {
+    "id": 391,
+    "name": "monferno",
+    "description": "It uses ceilings and walls to launch aerial attacks. Its fiery tail is but one weapon."
+  },
+  {
+    "id": 392,
+    "name": "infernape",
+    "description": "It tosses its enemies around with agility. It uses all its limbs to fight in its own unique style."
+  },
+  {
+    "id": 393,
+    "name": "piplup",
+    "description": "Because it is very proud, it hates accepting food from people. Its thick down guards it from cold."
+  },
+  {
+    "id": 394,
+    "name": "prinplup",
+    "description": "It lives a solitary life. Its wings deliver wicked blows that can snap even the thickest of trees."
+  },
+  {
+    "id": 395,
+    "name": "empoleon",
+    "description": "The three horns that extend from its beak attest to its power. The leader has the biggest horns."
+  },
+  {
+    "id": 396,
+    "name": "starly",
+    "description": "They flock around mountains and fields, chasing after bug Pok\u00e9mon. Their singing is noisy and annoying."
+  },
+  {
+    "id": 397,
+    "name": "staravia",
+    "description": "It lives in forests and fields. Squabbles over territory occur when flocks collide."
+  },
+  {
+    "id": 398,
+    "name": "staraptor",
+    "description": "When Staravia evolve into Staraptor, they leave the flock to live alone. They have sturdy wings."
+  },
+  {
+    "id": 399,
+    "name": "bidoof",
+    "description": "It constantly gnaws on logs and rocks to whittle down its front teeth. It nests alongside water."
+  },
+  {
+    "id": 400,
+    "name": "bibarel",
+    "description": "It makes its nest by damming streams with bark and mud. It is known as an industrious worker."
+  },
+  {
+    "id": 401,
+    "name": "kricketot",
+    "description": "When its antennae hit each other, it sounds like the music of a xylophone."
+  },
+  {
+    "id": 402,
+    "name": "kricketune",
+    "description": "It signals its emotions with its melodies. Scientists are studying these melodic patterns."
+  },
+  {
+    "id": 403,
+    "name": "shinx",
+    "description": "All of its fur dazzles if danger is sensed. It flees while the foe is momentarily blinded."
+  },
+  {
+    "id": 404,
+    "name": "luxio",
+    "description": "Strong electricity courses through the tips of its sharp claws. A light scratch causes fainting in foes."
+  },
+  {
+    "id": 405,
+    "name": "luxray",
+    "description": "Luxray\u2019s ability to see through objects comes in handy when it\u2019s scouting for danger."
+  },
+  {
+    "id": 406,
+    "name": "budew",
+    "description": "Over the winter, it closes its bud and endures the cold. In spring, the bud opens and releases pollen."
+  },
+  {
+    "id": 407,
+    "name": "roserade",
+    "description": "With the movements of a dancer, it strikes with whips that are densely lined with poison thorns."
+  },
+  {
+    "id": 408,
+    "name": "cranidos",
+    "description": "Its hard skull is its distinguishing feature. It snapped trees by headbutting them, and then it fed on their ripe berries."
+  },
+  {
+    "id": 409,
+    "name": "rampardos",
+    "description": "This ancient Pok\u00e9mon used headbutts skillfully. Its brain was really small, so some theories suggest that its stupidity led to its extinction."
+  },
+  {
+    "id": 410,
+    "name": "shieldon",
+    "description": "Although its fossils can be found in layers of primeval rock, nothing but its face has ever been discovered."
+  },
+  {
+    "id": 411,
+    "name": "bastiodon",
+    "description": "This Pok\u00e9mon is from roughly 100 million years ago. Its terrifyingly tough face is harder than steel."
+  },
+  {
+    "id": 412,
+    "name": "burmy",
+    "description": "If its cloak is broken in battle, it quickly remakes the cloak with materials nearby."
+  },
+  {
+    "id": 413,
+    "name": "wormadam",
+    "description": "When Burmy evolved, its cloak became a part of this Pok\u00e9mon\u2019s body. The cloak is never shed."
+  },
+  {
+    "id": 414,
+    "name": "mothim",
+    "description": "It flutters around at night and steals honey from the Combee hive."
+  },
+  {
+    "id": 415,
+    "name": "combee",
+    "description": "It collects and delivers honey to its colony. At night, they cluster to form a beehive and sleep."
+  },
+  {
+    "id": 416,
+    "name": "vespiquen",
+    "description": "Its abdomen is a honeycomb for grubs. It raises its grubs on honey collected by Combee."
+  },
+  {
+    "id": 417,
+    "name": "pachirisu",
+    "description": "A pair may be seen rubbing their cheek pouches together in an effort to share stored electricity."
+  },
+  {
+    "id": 418,
+    "name": "buizel",
+    "description": "It inflates the flotation sac around its neck and pokes its head out of the water to see what is going on."
+  },
+  {
+    "id": 419,
+    "name": "floatzel",
+    "description": "Its flotation sac developed as a result of pursuing aquatic prey. It can double as a rubber raft."
+  },
+  {
+    "id": 420,
+    "name": "cherubi",
+    "description": "It evolves by sucking the energy out of the small ball where it had been storing nutrients."
+  },
+  {
+    "id": 421,
+    "name": "cherrim",
+    "description": "If it senses strong sunlight, it opens its folded petals to absorb the sun\u2019s rays with its whole body."
+  },
+  {
+    "id": 422,
+    "name": "shellos",
+    "description": "When it senses danger, a purple liquid oozes out of it. The liquid is thought to be something like greasy sweat."
+  },
+  {
+    "id": 423,
+    "name": "gastrodon",
+    "description": "Their shape and color change, depending on their environment and diet. There are many of them at beaches where the waves are calm."
+  },
+  {
+    "id": 424,
+    "name": "ambipom",
+    "description": "It uses its tails for everything. If it wraps both of its tails around you and gives you a squeeze, that\u2019s proof it really likes you."
+  },
+  {
+    "id": 425,
+    "name": "drifloon",
+    "description": "Wandering souls gathered together to form this Pok\u00e9mon. When trying to make friends with children, Drifloon grabs them by the hand."
+  },
+  {
+    "id": 426,
+    "name": "drifblim",
+    "description": "The raw material for the gas inside its body is souls. When its body starts to deflate, it\u2019s thought to carry away people and Pok\u00e9mon."
+  },
+  {
+    "id": 427,
+    "name": "buneary",
+    "description": "The reason it keeps one ear rolled up is so it can launch a swift counterattack if it\u2019s attacked by an enemy."
+  },
+  {
+    "id": 428,
+    "name": "lopunny",
+    "description": "It\u2019s notably wary and has a dislike of fighting, but at the same time, it can deliver powerful kicks with its lithe legs."
+  },
+  {
+    "id": 429,
+    "name": "mismagius",
+    "description": "Its muttered curses can cause awful headaches or terrifying visions that torment others."
+  },
+  {
+    "id": 430,
+    "name": "honchkrow",
+    "description": "Its goons take care of most of the fighting for it. The only time it dirties its own hands is in delivering a final blow to finish off an opponent."
+  },
+  {
+    "id": 431,
+    "name": "glameow",
+    "description": "When it\u2019s happy, Glameow demonstrates beautiful movements of its tail, like a dancing ribbon."
+  },
+  {
+    "id": 432,
+    "name": "purugly",
+    "description": "To make itself appear intimidatingly beefy, it tightly cinches its waist with its twin tails."
+  },
+  {
+    "id": 433,
+    "name": "chingling",
+    "description": "There is an orb inside its mouth. When it hops, the orb bounces all over and makes a ringing sound."
+  },
+  {
+    "id": 434,
+    "name": "stunky",
+    "description": "It protects itself by spraying a noxious fluid from its rear. The stench lingers for 24 hours."
+  },
+  {
+    "id": 435,
+    "name": "skuntank",
+    "description": "It sprays a stinky fluid from its tail. The fluid smells worse the longer it is allowed to fester."
+  },
+  {
+    "id": 436,
+    "name": "bronzor",
+    "description": "Implements shaped like it were discovered in ancient tombs. It is unknown if they are related."
+  },
+  {
+    "id": 437,
+    "name": "bronzong",
+    "description": "Ancient people believed that petitioning Bronzong for rain was the way to make crops grow."
+  },
+  {
+    "id": 438,
+    "name": "bonsly",
+    "description": "If its body gets too damp, it will die. So, in a process reminiscent of sweating, its eyes expel moisture."
+  },
+  {
+    "id": 439,
+    "name": "mime jr.",
+    "description": "When this gifted mimic surprises an opponent, Mime Jr. feels so happy that it ends up forgetting it was imitating something."
+  },
+  {
+    "id": 440,
+    "name": "happiny",
+    "description": "When it sees something round and white, Happiny puts it into the pouch on its stomach. It sometimes becomes overloaded and can\u2019t move."
+  },
+  {
+    "id": 441,
+    "name": "chatot",
+    "description": "It can learn and speak human words. If they gather, they all learn the same saying."
+  },
+  {
+    "id": 442,
+    "name": "spiritomb",
+    "description": "It was bound to a fissure in an odd keystone as punishment for misdeeds 500 years ago."
+  },
+  {
+    "id": 443,
+    "name": "gible",
+    "description": "Its original home is an area much hotter than Alola. If you\u2019re planning to live with one, your heating bill will soar."
+  },
+  {
+    "id": 444,
+    "name": "gabite",
+    "description": "It sheds its skin and gradually grows larger. Its scales can be ground into a powder and used as raw materials for traditional medicine."
+  },
+  {
+    "id": 445,
+    "name": "garchomp",
+    "description": "Its fine scales don\u2019t just reduce wind resistance\u2014their sharp edges also cause injury to any opponent who attacks it."
+  },
+  {
+    "id": 446,
+    "name": "munchlax",
+    "description": "Anything that looks edible, Munchlax will go on and swallow whole. Its stomach is tough enough to handle it even if the food has gone rotten."
+  },
+  {
+    "id": 447,
+    "name": "riolu",
+    "description": "It uses waves called auras to communicate with others of its kind. It doesn\u2019t make any noise during this time, so its enemies can\u2019t detect it."
+  },
+  {
+    "id": 448,
+    "name": "lucario",
+    "description": "Lucario reads its opponent\u2019s feelings with its aura waves. It finds out things it would rather not know, so it gets stressed out easily."
+  },
+  {
+    "id": 449,
+    "name": "hippopotas",
+    "description": "It enshrouds itself with sand to protect itself from germs. It does not enjoy getting wet."
+  },
+  {
+    "id": 450,
+    "name": "hippowdon",
+    "description": "It blasts internally stored sand from ports on its body to create a towering twister for attack."
+  },
+  {
+    "id": 451,
+    "name": "skorupi",
+    "description": "It burrows under the sand to lie in wait for prey. Its tail claws can inject its prey with a savage poison."
+  },
+  {
+    "id": 452,
+    "name": "drapion",
+    "description": "It has the power in its clawed arms to make scrap of a car. The tips of its claws release poison."
+  },
+  {
+    "id": 453,
+    "name": "croagunk",
+    "description": "Inflating its poison sacs, it fills the area with an odd sound and hits flinching opponents with a poison jab."
+  },
+  {
+    "id": 454,
+    "name": "toxicroak",
+    "description": "Its knuckle claws secrete a toxin so vile that even a scratch could prove fatal."
+  },
+  {
+    "id": 455,
+    "name": "carnivine",
+    "description": "It binds itself to trees in marshes. It attracts prey with its sweet-smelling drool and gulps them down."
+  },
+  {
+    "id": 456,
+    "name": "finneon",
+    "description": "It lures in prey with its shining tail fins. It stays near the surface during the day and moves to the depths when night falls."
+  },
+  {
+    "id": 457,
+    "name": "lumineon",
+    "description": "They traverse the deep waters as if crawling over the seafloor. The fantastic lights of its fins shine like stars in the night sky."
+  },
+  {
+    "id": 458,
+    "name": "mantyke",
+    "description": "Mantyke are friendly toward people and will approach boats closely. The patterns on their backs differ depending on their habitat."
+  },
+  {
+    "id": 459,
+    "name": "snover",
+    "description": "In the spring, it grows berries with the texture of frozen treats around its belly."
+  },
+  {
+    "id": 460,
+    "name": "abomasnow",
+    "description": "It lives a quiet life on mountains that are perpetually covered in snow. It hides itself by whipping up blizzards."
+  },
+  {
+    "id": 461,
+    "name": "weavile",
+    "description": "Thanks to its increased intelligence, scrapping over food is a thing of the past. A scratch from its claws will give you a case of frostbite!"
+  },
+  {
+    "id": 462,
+    "name": "magnezone",
+    "description": "There are still people who believe that this Pok\u00e9mon came from outer space. It emanates a powerful magnetic field."
+  },
+  {
+    "id": 463,
+    "name": "lickilicky",
+    "description": "It uses its tongue much more skillfully than its hands or its feet. It can deftly pick up a single small bean with its tongue."
+  },
+  {
+    "id": 464,
+    "name": "rhyperior",
+    "description": "It puts rocks in holes in its palms and uses its muscles to shoot them. Geodude are shot at rare times."
+  },
+  {
+    "id": 465,
+    "name": "tangrowth",
+    "description": "Its vines grow so profusely that, in the warm season, you can\u2019t even see its eyes."
+  },
+  {
+    "id": 466,
+    "name": "electivire",
+    "description": "A single Electivire can provide enough electricity for all the buildings in a big city for a year."
+  },
+  {
+    "id": 467,
+    "name": "magmortar",
+    "description": "Magmortar takes down its enemies by shooting fireballs, which burn them to a blackened crisp. It avoids this method when hunting prey."
+  },
+  {
+    "id": 468,
+    "name": "togekiss",
+    "description": "It shares many blessings with people who respect one another\u2019s rights and avoid needless strife."
+  },
+  {
+    "id": 469,
+    "name": "yanmega",
+    "description": "This six-legged Pok\u00e9mon is easily capable of transporting an adult in flight. The wings on its tail help it stay balanced."
+  },
+  {
+    "id": 470,
+    "name": "leafeon",
+    "description": "It gets its nutrition from photosynthesis. It lives a quiet life deep in forests where clean rivers flow."
+  },
+  {
+    "id": 471,
+    "name": "glaceon",
+    "description": "It can instantaneously freeze any moisture that\u2019s around it, creating ice pellets to shoot at its prey."
+  },
+  {
+    "id": 472,
+    "name": "gliscor",
+    "description": "Its flight is soundless. It uses its lengthy tail to carry off its prey... Then its elongated fangs do the rest."
+  },
+  {
+    "id": 473,
+    "name": "mamoswine",
+    "description": "Its impressive tusks are made of ice. The population thinned when it turned warm after the ice age."
+  },
+  {
+    "id": 474,
+    "name": "porygon-z",
+    "description": "A faulty update was added to its programming. Its behavior is noticeably strange, so the experiment may have been a failure."
+  },
+  {
+    "id": 475,
+    "name": "gallade",
+    "description": "A master of courtesy and swordsmanship, it fights using extending swords on its elbows."
+  },
+  {
+    "id": 476,
+    "name": "probopass",
+    "description": "It uses three small units to catch prey and battle enemies. The main body mostly just gives orders."
+  },
+  {
+    "id": 477,
+    "name": "dusknoir",
+    "description": "The antenna on its head captures radio waves from the world of spirits that command it to take people there."
+  },
+  {
+    "id": 478,
+    "name": "froslass",
+    "description": "It\u2019s said that on nights of terrible blizzards, it comes down to human settlements. If you hear it knocking at your door, do not open it!"
+  },
+  {
+    "id": 479,
+    "name": "rotom",
+    "description": "Its body is composed of plasma. It is known to infiltrate electronic devices and wreak havoc."
+  },
+  {
+    "id": 480,
+    "name": "uxie",
+    "description": "It is said that its emergence gave humans the intelligence to improve their quality of life."
+  },
+  {
+    "id": 481,
+    "name": "mesprit",
+    "description": "It sleeps at the bottom of a lake. Its spirit is said to leave its body to fly on the lake\u2019s surface."
+  },
+  {
+    "id": 482,
+    "name": "azelf",
+    "description": "It is thought that Uxie, Mesprit, and Azelf all came from the same egg."
+  },
+  {
+    "id": 483,
+    "name": "dialga",
+    "description": "It has the power to control time. It appears in Sinnoh-region myths as an ancient deity."
+  },
+  {
+    "id": 484,
+    "name": "palkia",
+    "description": "It has the ability to distort space. It is described as a deity in Sinnoh-region mythology."
+  },
+  {
+    "id": 485,
+    "name": "heatran",
+    "description": "Boiling blood, like magma, circulates through its body. It makes its dwelling place in volcanic caves."
+  },
+  {
+    "id": 486,
+    "name": "regigigas",
+    "description": "There is an enduring legend that states this Pok\u00e9mon towed continents with ropes."
+  },
+  {
+    "id": 487,
+    "name": "giratina",
+    "description": "It was banished for its violence. It silently gazed upon the old world from the Distortion World."
+  },
+  {
+    "id": 488,
+    "name": "cresselia",
+    "description": "Those who sleep holding Cresselia\u2019s feather are assured of joyful dreams. It is said to represent the crescent moon."
+  },
+  {
+    "id": 489,
+    "name": "phione",
+    "description": "It drifts in warm seas. It always returns to where it was born, no matter how far it may have drifted."
+  },
+  {
+    "id": 490,
+    "name": "manaphy",
+    "description": "It starts its life with a wondrous power that permits it to bond with any kind of Pok\u00e9mon."
+  },
+  {
+    "id": 491,
+    "name": "darkrai",
+    "description": "It can lull people to sleep and make them dream. It is active during nights of the new moon."
+  },
+  {
+    "id": 492,
+    "name": "shaymin",
+    "description": "The blooming of Gracidea flowers confers the power of flight upon it. Feelings of gratitude are the message it delivers."
+  },
+  {
+    "id": 493,
+    "name": "arceus",
+    "description": "It is told in mythology that this Pok\u00e9mon was born before the universe even existed."
+  },
+  {
+    "id": 494,
+    "name": "victini",
+    "description": "When it shares the infinite energy it creates, that being\u2019s entire body will be overflowing with power."
+  },
+  {
+    "id": 495,
+    "name": "snivy",
+    "description": "They photosynthesize by bathing their tails in sunlight. When they are not feeling well, their tails droop."
+  },
+  {
+    "id": 496,
+    "name": "servine",
+    "description": "When it gets dirty, its leaves can\u2019t be used in photosynthesis, so it always keeps itself clean."
+  },
+  {
+    "id": 497,
+    "name": "serperior",
+    "description": "It can stop its opponents\u2019 movements with just a glare. It takes in solar energy and boosts it internally."
+  },
+  {
+    "id": 498,
+    "name": "tepig",
+    "description": "It loves to eat roasted berries, but sometimes it gets too excited and burns them to a crisp."
+  },
+  {
+    "id": 499,
+    "name": "pignite",
+    "description": "When its internal fire flares up, its movements grow sharper and faster. When in trouble, it emits smoke."
+  },
+  {
+    "id": 500,
+    "name": "emboar",
+    "description": "It has mastered fast and powerful fighting moves. It grows a beard of fire."
+  },
+  {
+    "id": 501,
+    "name": "oshawott",
+    "description": "It fights using the scalchop on its stomach. In response to an attack, it retaliates immediately by slashing."
+  },
+  {
+    "id": 502,
+    "name": "dewott",
+    "description": "As a result of strict training, each Dewott learns different forms for using the scalchops."
+  },
+  {
+    "id": 503,
+    "name": "samurott",
+    "description": "One swing of the sword incorporated in its armor can fell an opponent. A simple glare from one of them quiets everybody."
+  },
+  {
+    "id": 504,
+    "name": "patrat",
+    "description": "Extremely cautious, one of them will always be on the lookout, but it won\u2019t notice a foe coming from behind."
+  },
+  {
+    "id": 505,
+    "name": "watchog",
+    "description": "When they see an enemy, their tails stand high, and they spit the seeds of berries stored in their cheek pouches."
+  },
+  {
+    "id": 506,
+    "name": "lillipup",
+    "description": "This Pok\u00e9mon is popular with beginners because it\u2019s intelligent, obedient to its Trainer\u2019s commands, and easy to raise."
+  },
+  {
+    "id": 507,
+    "name": "herdier",
+    "description": "It has been living with people for so long that portrayals of it can be found on the walls of caves from long, long ago."
+  },
+  {
+    "id": 508,
+    "name": "stoutland",
+    "description": "Its fur is long and thick. A long time ago in cold regions, every household kept a Stoutland."
+  },
+  {
+    "id": 509,
+    "name": "purrloin",
+    "description": "They steal from people for fun, but their victims can\u2019t help but forgive them. Their deceptively cute act is perfect."
+  },
+  {
+    "id": 510,
+    "name": "liepard",
+    "description": "Stealthily, it sneaks up on its target, striking from behind before its victim has a chance to react."
+  },
+  {
+    "id": 511,
+    "name": "pansage",
+    "description": "It\u2019s good at finding berries and gathers them from all over. It\u2019s kind enough to share them with friends."
+  },
+  {
+    "id": 512,
+    "name": "simisage",
+    "description": "Ill tempered, it fights by swinging its barbed tail around wildly. The leaf growing on its head is very bitter."
+  },
+  {
+    "id": 513,
+    "name": "pansear",
+    "description": "This Pok\u00e9mon lives in caves in volcanoes. The fire within the tuft on its head can reach 600 degrees Fahrenheit."
+  },
+  {
+    "id": 514,
+    "name": "simisear",
+    "description": "When it gets excited, embers rise from its head and tail and it gets hot. For some reason, it loves sweets."
+  },
+  {
+    "id": 515,
+    "name": "panpour",
+    "description": "The water stored inside the tuft on its head is full of nutrients. Plants that receive its water grow large."
+  },
+  {
+    "id": 516,
+    "name": "simipour",
+    "description": "It prefers places with clean water. When its tuft runs low, it replenishes it by siphoning up water with its tail."
+  },
+  {
+    "id": 517,
+    "name": "munna",
+    "description": "It eats the dreams of people and Pok\u00e9mon. When it eats a pleasant dream, it expels pink-colored mist."
+  },
+  {
+    "id": 518,
+    "name": "musharna",
+    "description": "The dream mist coming from its forehead changes into many different colors depending on the dream that was eaten."
+  },
+  {
+    "id": 519,
+    "name": "pidove",
+    "description": "These Pok\u00e9mon live in cities. They are accustomed to people. Flocks often gather in parks and plazas."
+  },
+  {
+    "id": 520,
+    "name": "tranquill",
+    "description": "No matter where in the world it goes, it knows where its nest is, so it never gets separated from its Trainer."
+  },
+  {
+    "id": 521,
+    "name": "unfezant",
+    "description": "Males have plumage on their heads. They will never let themselves feel close to anyone other than their Trainers."
+  },
+  {
+    "id": 522,
+    "name": "blitzle",
+    "description": "Its mane shines when it discharges electricity. They use the frequency and rhythm of these flashes to communicate."
+  },
+  {
+    "id": 523,
+    "name": "zebstrika",
+    "description": "They have lightning-like movements. When Zebstrika run at full speed, the sound of thunder reverberates."
+  },
+  {
+    "id": 524,
+    "name": "roggenrola",
+    "description": "It was found in a fissure in a layer of exposed rock. The material that makes up its body is dirt from several hundred years ago."
+  },
+  {
+    "id": 525,
+    "name": "boldore",
+    "description": "Its orange crystals are lumps of powerful energy. They\u2019re valuable, so Boldore is sometimes targeted for them."
+  },
+  {
+    "id": 526,
+    "name": "gigalith",
+    "description": "It absorbs rays of sunlight and shoots out energy. It\u2019s usually lurking deep beneath the surface."
+  },
+  {
+    "id": 527,
+    "name": "woobat",
+    "description": "The heart-shaped mark left on a body after a Woobat has been attached to it is said to bring good fortune."
+  },
+  {
+    "id": 528,
+    "name": "swoobat",
+    "description": "Anyone who comes into contact with the ultrasonic waves emitted by a courting male experiences a positive mood shift."
+  },
+  {
+    "id": 529,
+    "name": "drilbur",
+    "description": "By spinning its body, it can dig straight through the ground at a speed of 30 mph."
+  },
+  {
+    "id": 530,
+    "name": "excadrill",
+    "description": "More than 300 feet below the surface, they build mazelike nests. Their activity can be destructive to subway tunnels."
+  },
+  {
+    "id": 531,
+    "name": "audino",
+    "description": "It touches others with the feelers on its ears, using the sound of their heartbeats to tell how they are feeling."
+  },
+  {
+    "id": 532,
+    "name": "timburr",
+    "description": "Always carrying squared logs, they help out with construction. As they grow, they carry bigger logs."
+  },
+  {
+    "id": 533,
+    "name": "gurdurr",
+    "description": "This Pok\u00e9mon is so muscular and strongly built that even a group of wrestlers could not make it budge an inch."
+  },
+  {
+    "id": 534,
+    "name": "conkeldurr",
+    "description": "Rather than rely on force, they master moves that utilize the centrifugal force of spinning concrete."
+  },
+  {
+    "id": 535,
+    "name": "tympole",
+    "description": "By vibrating its cheeks, it emits sound waves imperceptible to humans. It uses the rhythm of these sounds to talk."
+  },
+  {
+    "id": 536,
+    "name": "palpitoad",
+    "description": "It lives in the water and on land. It uses its long, sticky tongue to immobilize its opponents."
+  },
+  {
+    "id": 537,
+    "name": "seismitoad",
+    "description": "They shoot paralyzing liquid from their head bumps. They use vibration to hurt their opponents."
+  },
+  {
+    "id": 538,
+    "name": "throh",
+    "description": "When it encounters a foe bigger than itself, it wants to throw it. It changes belts as it gets stronger."
+  },
+  {
+    "id": 539,
+    "name": "sawk",
+    "description": "Tying their belts gets them pumped and makes their punches more destructive. Disturbing their training angers them."
+  },
+  {
+    "id": 540,
+    "name": "sewaddle",
+    "description": "Since this Pok\u00e9mon makes its own clothes out of leaves, it is a popular mascot for fashion designers."
+  },
+  {
+    "id": 541,
+    "name": "swadloon",
+    "description": "It protects itself from the cold by wrapping up in leaves. It stays on the move, eating leaves in forests."
+  },
+  {
+    "id": 542,
+    "name": "leavanny",
+    "description": "It keeps its eggs warm with heat from fermenting leaves. It also uses leaves to make warm wrappings for Sewaddle."
+  },
+  {
+    "id": 543,
+    "name": "venipede",
+    "description": "Its bite injects a potent poison, enough to paralyze large bird Pok\u00e9mon that try to prey on it."
+  },
+  {
+    "id": 544,
+    "name": "whirlipede",
+    "description": "It is usually motionless, but when attacked, it rotates at high speed and then crashes into its opponent."
+  },
+  {
+    "id": 545,
+    "name": "scolipede",
+    "description": "With quick movements, it chases down its foes, attacking relentlessly with its horns until it prevails."
+  },
+  {
+    "id": 546,
+    "name": "cottonee",
+    "description": "When attacked, it expels cotton from its body to create a diversion. The cotton it loses grows back in quickly."
+  },
+  {
+    "id": 547,
+    "name": "whimsicott",
+    "description": "Whimsicott doesn\u2019t live in a fixed location. It floats around on whirling winds, appearing all over the place to perform its mischief."
+  },
+  {
+    "id": 548,
+    "name": "petilil",
+    "description": "They prefer clean water and soil. When the environment they live in turns bad, the whole bunch will up and move to a new area."
+  },
+  {
+    "id": 549,
+    "name": "lilligant",
+    "description": "It\u2019s well liked by other Pok\u00e9mon because of its beauty. The flower on its head needs constant care, or it will soon wither and rot."
+  },
+  {
+    "id": 550,
+    "name": "basculin",
+    "description": "When a school of Basculin appears in a lake, everything else disappears, except for Corphish and Crawdaunt. That\u2019s how violent Basculin are."
+  },
+  {
+    "id": 551,
+    "name": "sandile",
+    "description": "Sandile\u2019s still not good at hunting, so it mostly eats things that have collapsed in the desert. It\u2019s called \u201cthe cleaner of the desert.\u201d"
+  },
+  {
+    "id": 552,
+    "name": "krokorok",
+    "description": "It buries some of its prey in the sand to use as emergency meals when its hunts are unsuccessful."
+  },
+  {
+    "id": 553,
+    "name": "krookodile",
+    "description": "It conceals itself in sandstorms that Flygon whip up and waits patiently for prey to appear."
+  },
+  {
+    "id": 554,
+    "name": "darumaka",
+    "description": "When it sleeps, it pulls its limbs into its body and its internal fire goes down to 1,100 degrees Fahrenheit."
+  },
+  {
+    "id": 555,
+    "name": "darmanitan",
+    "description": "Its internal fire burns at 2,500 degrees Fahrenheit, making enough power that it can destroy a dump truck with one punch."
+  },
+  {
+    "id": 556,
+    "name": "maractus",
+    "description": "Arid regions are their habitat. They move rhythmically, making a sound similar to maracas."
+  },
+  {
+    "id": 557,
+    "name": "dwebble",
+    "description": "When it finds a stone of a suitable size, it secretes a liquid from its mouth to open up a hole to crawl into."
+  },
+  {
+    "id": 558,
+    "name": "crustle",
+    "description": "Competing for territory, Crustle fight viciously. The one whose boulder is broken is the loser of the battle."
+  },
+  {
+    "id": 559,
+    "name": "scraggy",
+    "description": "It stretches its saggy skin up to its neck to protect itself. The saggier their skin, the more respect they garner."
+  },
+  {
+    "id": 560,
+    "name": "scrafty",
+    "description": "It taunts its opponents by spitting. It has a certain territory that it never leaves its whole life long."
+  },
+  {
+    "id": 561,
+    "name": "sigilyph",
+    "description": "The guardians of an ancient city, they always fly the same route while keeping watch for invaders."
+  },
+  {
+    "id": 562,
+    "name": "yamask",
+    "description": "Each of them carries a mask that used to be its face when it was human. Sometimes they look at it and cry."
+  },
+  {
+    "id": 563,
+    "name": "cofagrigus",
+    "description": "Grave robbers who mistake them for real coffins and get too close end up trapped inside their bodies."
+  },
+  {
+    "id": 564,
+    "name": "tirtouga",
+    "description": "Its hunting grounds encompassed a broad area, from the land to more than half a mile deep in the ocean."
+  },
+  {
+    "id": 565,
+    "name": "carracosta",
+    "description": "Carracosta eats every last bit of the prey it catches, even the shells and bones, to further strengthen its sturdy shell."
+  },
+  {
+    "id": 566,
+    "name": "archen",
+    "description": "Restored from a fossil, this ancient bird Pok\u00e9mon has wings but can\u2019t yet fly."
+  },
+  {
+    "id": 567,
+    "name": "archeops",
+    "description": "Said to be an ancestor of bird Pok\u00e9mon, the muscles it uses to flap its wings are still weak, so it needs a long runway in order to take off."
+  },
+  {
+    "id": 568,
+    "name": "trubbish",
+    "description": "If a young Pok\u00e9mon or child breathes in the toxic gas that Trubbish belches out, it could be a life-threatening situation."
+  },
+  {
+    "id": 569,
+    "name": "garbodor",
+    "description": "Some say the reason Garbodor in Alola are a little stronger than their counterparts elsewhere is the presence of Muk, their natural enemy."
+  },
+  {
+    "id": 570,
+    "name": "zorua",
+    "description": "If a normally talkative child suddenly stops talking, it may have been replaced by Zorua."
+  },
+  {
+    "id": 571,
+    "name": "zoroark",
+    "description": "If it thinks humans are going to discover its den, Zoroark shows them visions that make them wander around in the woods."
+  },
+  {
+    "id": 572,
+    "name": "minccino",
+    "description": "When its tail has gotten dirty from self-cleaning or from cleaning its nest, Minccino spends a whole day washing its tail in clean spring water."
+  },
+  {
+    "id": 573,
+    "name": "cinccino",
+    "description": "The oil that seeps from its body is really smooth. For people troubled by bad skin, this oil is an effective treatment."
+  },
+  {
+    "id": 574,
+    "name": "gothita",
+    "description": "They intently observe both Trainers and Pok\u00e9mon. Apparently, they are looking at something that only Gothita can see."
+  },
+  {
+    "id": 575,
+    "name": "gothorita",
+    "description": "According to many old tales, it creates friends for itself by controlling sleeping children on starry nights."
+  },
+  {
+    "id": 576,
+    "name": "gothitelle",
+    "description": "They can predict the future from the placement and movement of the stars. They can see Trainers\u2019 life spans."
+  },
+  {
+    "id": 577,
+    "name": "solosis",
+    "description": "They drive away attackers by unleashing psychic power. They can use telepathy to talk with others."
+  },
+  {
+    "id": 578,
+    "name": "duosion",
+    "description": "When their two divided brains think the same thoughts, their psychic power is maximized."
+  },
+  {
+    "id": 579,
+    "name": "reuniclus",
+    "description": "When Reuniclus shake hands, a network forms between their brains, increasing their psychic power."
+  },
+  {
+    "id": 580,
+    "name": "ducklett",
+    "description": "They are better at swimming than flying, and they happily eat their favorite food, peat moss, as they dive underwater."
+  },
+  {
+    "id": 581,
+    "name": "swanna",
+    "description": "Swanna start to dance at dusk. The one dancing in the middle is the leader of the flock."
+  },
+  {
+    "id": 582,
+    "name": "vanillite",
+    "description": "When the morning sun hit an icicle, it wished not to melt, and thus Vanillite was born. At night, it buries itself in snow to sleep."
+  },
+  {
+    "id": 583,
+    "name": "vanillish",
+    "description": "This hearty Pok\u00e9mon survived the Ice Age. It\u2019s incredibly popular in very hot regions."
+  },
+  {
+    "id": 584,
+    "name": "vanilluxe",
+    "description": "Vanilluxe is born when two Vanillish, half-melted by the day\u2019s light, stick to each other and freeze together in the cold return of night."
+  },
+  {
+    "id": 585,
+    "name": "deerling",
+    "description": "The turning of the seasons changes the color and scent of this Pok\u00e9mon\u2019s fur. People use it to mark the seasons."
+  },
+  {
+    "id": 586,
+    "name": "sawsbuck",
+    "description": "They migrate according to the seasons, so some people call Sawsbuck the harbingers of spring."
+  },
+  {
+    "id": 587,
+    "name": "emolga",
+    "description": "As it flies, it scatters electricity around, so bird Pok\u00e9mon keep their distance. That\u2019s why Emolga can keep all its food to itself."
+  },
+  {
+    "id": 588,
+    "name": "karrablast",
+    "description": "For some reason they evolve when they receive electrical energy while they are attacking Shelmet."
+  },
+  {
+    "id": 589,
+    "name": "escavalier",
+    "description": "These Pok\u00e9mon evolve by wearing the shell covering of a Shelmet. The steel armor protects their whole body."
+  },
+  {
+    "id": 590,
+    "name": "foongus",
+    "description": "It lures Pok\u00e9mon with its pattern that looks just like a Pok\u00e9 Ball, then releases poison spores."
+  },
+  {
+    "id": 591,
+    "name": "amoonguss",
+    "description": "It lures prey close by dancing and waving its arm caps, which resemble Pok\u00e9 Balls, in a swaying motion."
+  },
+  {
+    "id": 592,
+    "name": "frillish",
+    "description": "Using the invisible poison spikes on its veillike arms and legs, it paralyzes its enemies and causes them to drown."
+  },
+  {
+    "id": 593,
+    "name": "jellicent",
+    "description": "Fishermen are terrified of Jellicent. It\u2019s rumored to drag them into the sea and steal their lives away."
+  },
+  {
+    "id": 594,
+    "name": "alomomola",
+    "description": "The reason it helps Pok\u00e9mon in a weakened condition is that any Pok\u00e9mon coming after them may also attack Alomomola."
+  },
+  {
+    "id": 595,
+    "name": "joltik",
+    "description": "They attach themselves to large-bodied Pok\u00e9mon and absorb static electricity, which they store in an electric pouch."
+  },
+  {
+    "id": 596,
+    "name": "galvantula",
+    "description": "When attacked, they create an electric barrier by spitting out many electrically charged threads."
+  },
+  {
+    "id": 597,
+    "name": "ferroseed",
+    "description": "It absorbs the iron it finds in the rock while clinging to the ceiling. It shoots spikes when in danger."
+  },
+  {
+    "id": 598,
+    "name": "ferrothorn",
+    "description": "They attach themselves to cave ceilings, firing steel spikes at targets passing beneath them."
+  },
+  {
+    "id": 599,
+    "name": "klink",
+    "description": "The two minigears that mesh together are predetermined. Each will rebound from other minigears without meshing."
+  },
+  {
+    "id": 600,
+    "name": "klang",
+    "description": "A minigear and big gear comprise its body. If the minigear it launches at a foe doesn\u2019t return, it will die."
+  },
+  {
+    "id": 601,
+    "name": "klinklang",
+    "description": "Its red core functions as an energy tank. It fires the charged energy through its spikes into an area."
+  },
+  {
+    "id": 602,
+    "name": "tynamo",
+    "description": "One alone can emit only a trickle of electricity, so a group of them gathers to unleash a powerful electric shock."
+  },
+  {
+    "id": 603,
+    "name": "eelektrik",
+    "description": "These Pok\u00e9mon have a big appetite. When they spot their prey, they attack it and paralyze it with electricity."
+  },
+  {
+    "id": 604,
+    "name": "eelektross",
+    "description": "They crawl out of the ocean using their arms. They will attack prey on shore and immediately drag it into the ocean."
+  },
+  {
+    "id": 605,
+    "name": "elgyem",
+    "description": "This Pok\u00e9mon is shrouded in mystery. It\u2019s said to have appeared from a UFO that fell from the sky about 50 years ago."
+  },
+  {
+    "id": 606,
+    "name": "beheeyem",
+    "description": "It has strong psychic powers. Using its fingers that flash three different colors, it controls its opponents and rewrites their memories."
+  },
+  {
+    "id": 607,
+    "name": "litwick",
+    "description": "Litwick shines a light that absorbs the life energy of people and Pok\u00e9mon, which becomes the fuel that it burns."
+  },
+  {
+    "id": 608,
+    "name": "lampent",
+    "description": "It arrives near the moment of death and steals spirit from the body."
+  },
+  {
+    "id": 609,
+    "name": "chandelure",
+    "description": "The spirits burned up in its ominous flame lose their way and wander this world forever."
+  },
+  {
+    "id": 610,
+    "name": "axew",
+    "description": "They mark their territory by leaving gashes in trees with their tusks. If a tusk breaks, a new one grows in quickly."
+  },
+  {
+    "id": 611,
+    "name": "fraxure",
+    "description": "A broken tusk will not grow back, so it diligently sharpens its tusks on river rocks after the end of a battle."
+  },
+  {
+    "id": 612,
+    "name": "haxorus",
+    "description": "Their sturdy tusks will stay sharp even if used to cut steel beams. These Pok\u00e9mon are covered in hard armor."
+  },
+  {
+    "id": 613,
+    "name": "cubchoo",
+    "description": "Their snot is a barometer of health. When healthy, their snot is sticky and the power of their ice moves increases."
+  },
+  {
+    "id": 614,
+    "name": "beartic",
+    "description": "It freezes its breath to create fangs and claws of ice to fight with. Cold northern areas are its habitat."
+  },
+  {
+    "id": 615,
+    "name": "cryogonal",
+    "description": "They are composed of ice crystals. They capture prey with chains of ice, freezing the prey at -148 degrees Fahrenheit."
+  },
+  {
+    "id": 616,
+    "name": "shelmet",
+    "description": "It evolves when bathed in an electric-like energy along with Karrablast. The reason is still unknown."
+  },
+  {
+    "id": 617,
+    "name": "accelgor",
+    "description": "When its body dries out, it weakens. So, to prevent dehydration, it wraps itself in many layers of thin membrane."
+  },
+  {
+    "id": 618,
+    "name": "stunfisk",
+    "description": "It conceals itself in the mud of the seashore. Then it waits. When prey touch it, it delivers a jolt of electricity."
+  },
+  {
+    "id": 619,
+    "name": "mienfoo",
+    "description": "They seclude themselves in the mountains and devote themselves to training. The form of their kicks and chops differs from pack to pack."
+  },
+  {
+    "id": 620,
+    "name": "mienshao",
+    "description": "When Mienshao lets out a bizarre wail, you\u2019re in danger. A flurry of kicks and chops too fast to see is about to be unleashed!"
+  },
+  {
+    "id": 621,
+    "name": "druddigon",
+    "description": "It infiltrates tunnels that Pok\u00e9mon like Diglett and Dugtrio have dug and quietly waits for prey to pass through."
+  },
+  {
+    "id": 622,
+    "name": "golett",
+    "description": "Although ancient people apparently built it by working with clay, the source of its energy is unclear."
+  },
+  {
+    "id": 623,
+    "name": "golurk",
+    "description": "When the seal on its chest is removed, it rages indiscriminately, turning the whole town around it into a mountain of rubble."
+  },
+  {
+    "id": 624,
+    "name": "pawniard",
+    "description": "It follows Bisharp\u2019s orders to a tee when it attacks enemies. After slashing an opponent, Pawniard clangs both of its blades together."
+  },
+  {
+    "id": 625,
+    "name": "bisharp",
+    "description": "It leads a group of Pawniard. Bisharp doesn\u2019t even change its expression when it deals the finishing blow to an opponent."
+  },
+  {
+    "id": 626,
+    "name": "bouffalant",
+    "description": "Their fluffy fur absorbs damage, even if they strike foes with a fierce headbutt."
+  },
+  {
+    "id": 627,
+    "name": "rufflet",
+    "description": "Known as a natural-born warrior, soon after its hatching, it will challenge its parent to a fight in order to gain their acceptance."
+  },
+  {
+    "id": 628,
+    "name": "braviary",
+    "description": "Known as \u201cthe hero of the skies,\u201d this Pok\u00e9mon is so proud and so brave that it will never retreat, even when it\u2019s injured."
+  },
+  {
+    "id": 629,
+    "name": "vullaby",
+    "description": "Its healthy appetite leads to visible growth spurts. It often has to replace the bones it wears as its size increases."
+  },
+  {
+    "id": 630,
+    "name": "mandibuzz",
+    "description": "It\u2019s always searching for food for Vullaby. When it finds a weak Pok\u00e9mon, Mandibuzz swoops it right off to its nest."
+  },
+  {
+    "id": 631,
+    "name": "heatmor",
+    "description": "It draws in air through its tail, transforms it into fire, and uses it like a tongue. It melts Durant and eats them."
+  },
+  {
+    "id": 632,
+    "name": "durant",
+    "description": "They attack in groups, covering themselves in steel armor to protect themselves from Heatmor."
+  },
+  {
+    "id": 633,
+    "name": "deino",
+    "description": "Lacking sight, it\u2019s unaware of its surroundings, so it bumps into things and eats anything that moves."
+  },
+  {
+    "id": 634,
+    "name": "zweilous",
+    "description": "After it has eaten up all the food in its territory, it moves to another area. Its two heads do not get along."
+  },
+  {
+    "id": 635,
+    "name": "hydreigon",
+    "description": "It responds to movement by attacking. This scary, three-headed Pok\u00e9mon devours everything in its path!"
+  },
+  {
+    "id": 636,
+    "name": "larvesta",
+    "description": "It protects itself with flame. Long years ago, people believed Larvesta had a nest on the sun."
+  },
+  {
+    "id": 637,
+    "name": "volcarona",
+    "description": "According to legends, it was hatched from a flaming cocoon to save people and Pok\u00e9mon that were suffering from the cold."
+  },
+  {
+    "id": 638,
+    "name": "cobalion",
+    "description": "It has a body and heart of steel. It worked with its allies to punish people when they hurt Pok\u00e9mon."
+  },
+  {
+    "id": 639,
+    "name": "terrakion",
+    "description": "Spoken of in legend, this Pok\u00e9mon used its phenomenal power to destroy a castle in its effort to protect Pok\u00e9mon."
+  },
+  {
+    "id": 640,
+    "name": "virizion",
+    "description": "Legends say this Pok\u00e9mon confounded opponents with its swift movements."
+  },
+  {
+    "id": 641,
+    "name": "tornadus",
+    "description": "Tornadus expels massive energy from its tail, causing severe storms. Its power is great enough to blow houses away."
+  },
+  {
+    "id": 642,
+    "name": "thundurus",
+    "description": "As it flies around, it shoots lightning all over the place and causes forest fires. It is therefore disliked."
+  },
+  {
+    "id": 643,
+    "name": "reshiram",
+    "description": "When Reshiram\u2019s tail flares, the heat energy moves the atmosphere and changes the world\u2019s weather."
+  },
+  {
+    "id": 644,
+    "name": "zekrom",
+    "description": "Concealing itself in lightning clouds, it flies throughout the Unova region. It creates electricity in its tail."
+  },
+  {
+    "id": 645,
+    "name": "landorus",
+    "description": "From the forces of lightning and wind, it creates energy to give nutrients to the soil and make the land abundant."
+  },
+  {
+    "id": 646,
+    "name": "kyurem",
+    "description": "It generates a powerful, freezing energy inside itself, but its body became frozen when the energy leaked out."
+  },
+  {
+    "id": 647,
+    "name": "keldeo",
+    "description": "When it is resolute, its body fills with power and it becomes swifter. Its jumps are then too fast to follow."
+  },
+  {
+    "id": 648,
+    "name": "meloetta",
+    "description": "Its melodies are sung with a special vocalization method that can control the feelings of those who hear it."
+  },
+  {
+    "id": 649,
+    "name": "genesect",
+    "description": "This Pok\u00e9mon existed 300 million years ago. Team Plasma altered it and attached a cannon to its back."
+  },
+  {
+    "id": 650,
+    "name": "chespin",
+    "description": "Such a thick shell of wood covers its head and back that even a direct hit from a truck wouldn\u2019t faze it."
+  },
+  {
+    "id": 651,
+    "name": "quilladin",
+    "description": "They strengthen their lower bodies by running into one another. They are very kind and won\u2019t start fights."
+  },
+  {
+    "id": 652,
+    "name": "chesnaught",
+    "description": "When it takes a defensive posture with its fists guarding its face, it could withstand a bomb blast."
+  },
+  {
+    "id": 653,
+    "name": "fennekin",
+    "description": "As it walks, it munches on a twig in place of a snack. It intimidates opponents by puffing hot air out of its ears."
+  },
+  {
+    "id": 654,
+    "name": "braixen",
+    "description": "When the twig is plucked from its tail, friction sets the twig alight. The flame is used to send signals to its allies."
+  },
+  {
+    "id": 655,
+    "name": "delphox",
+    "description": "Using psychic power, it generates a fiery vortex of 5,400 degrees Fahrenheit, incinerating foes swept into this whirl of flame."
+  },
+  {
+    "id": 656,
+    "name": "froakie",
+    "description": "It protects its skin by covering its body in delicate bubbles. Beneath its happy-go-lucky air, it keeps a watchful eye on its surroundings."
+  },
+  {
+    "id": 657,
+    "name": "frogadier",
+    "description": "Its swiftness is unparalleled. It can scale a tower of more than 2,000 feet in a minute\u2019s time."
+  },
+  {
+    "id": 658,
+    "name": "greninja",
+    "description": "It appears and vanishes with a ninja\u2019s grace. It toys with its enemies using swift movements, while slicing them with throwing stars of sharpest water."
+  },
+  {
+    "id": 659,
+    "name": "bunnelby",
+    "description": "It has ears like shovels. Digging holes strengthens its ears so much that they can sever thick roots effortlessly."
+  },
+  {
+    "id": 660,
+    "name": "diggersby",
+    "description": "As powerful as an excavator, its ears can reduce dense bedrock to rubble. When it\u2019s finished digging, it lounges lazily."
+  },
+  {
+    "id": 661,
+    "name": "fletchling",
+    "description": "Its body is always warm. Trainers who live in cold areas apparently sleep with it in their bed."
+  },
+  {
+    "id": 662,
+    "name": "fletchinder",
+    "description": "Its speed right after takeoff already puts it in the top speed class of all bird Pok\u00e9mon."
+  },
+  {
+    "id": 663,
+    "name": "talonflame",
+    "description": "Bird Pok\u00e9mon make up most of its diet. It approaches at high speeds and smacks them down to the ground with its powerful kick."
+  },
+  {
+    "id": 664,
+    "name": "scatterbug",
+    "description": "The powder that covers its body regulates its temperature, so it can live in any region or climate."
+  },
+  {
+    "id": 665,
+    "name": "spewpa",
+    "description": "The beaks of bird Pok\u00e9mon can\u2019t begin to scratch its stalwart body. To defend itself, it spews powder."
+  },
+  {
+    "id": 666,
+    "name": "vivillon",
+    "description": "The patterns on this Pok\u00e9mon\u2019s wings depend on the climate and topography of its habitat. It scatters colorful scales."
+  },
+  {
+    "id": 667,
+    "name": "litleo",
+    "description": "This hot-blooded Pok\u00e9mon is filled with curiosity. When it gets angry or starts fighting, its short mane gets hot."
+  },
+  {
+    "id": 668,
+    "name": "pyroar",
+    "description": "The temperature of its breath is over 10,000 degrees Fahrenheit, but Pyroar doesn\u2019t use it on its prey. This Pok\u00e9mon prefers to eat raw meat."
+  },
+  {
+    "id": 669,
+    "name": "flab\u00e9b\u00e9",
+    "description": "Flab\u00e9b\u00e9 wears a crown made from pollen it\u2019s collected from its flower. The crown has hidden healing properties."
+  },
+  {
+    "id": 670,
+    "name": "floette",
+    "description": "It gives its own power to flowers, pouring its heart into caring for them. Floette never forgives anyone who messes up a flower bed."
+  },
+  {
+    "id": 671,
+    "name": "florges",
+    "description": "Its life can span several hundred years. It\u2019s said to devote its entire life to protecting gardens."
+  },
+  {
+    "id": 672,
+    "name": "skiddo",
+    "description": "If it has sunshine and water, it doesn\u2019t need to eat, because it can generate energy from the leaves on its back."
+  },
+  {
+    "id": 673,
+    "name": "gogoat",
+    "description": "They inhabit mountainous regions. The leader of the herd is decided by a battle of clashing horns."
+  },
+  {
+    "id": 674,
+    "name": "pancham",
+    "description": "It\u2019s desperate to intimidate its opponents. Be nice and pretend to be scared if you catch it glaring at you intensely."
+  },
+  {
+    "id": 675,
+    "name": "pangoro",
+    "description": "Pangoro is the type to talk with its fists. It doesn\u2019t say much as it pummels opponents with enough force to send a dump truck flying."
+  },
+  {
+    "id": 676,
+    "name": "furfrou",
+    "description": "Left alone, its fur will grow longer and longer, but it will only allow someone it trusts to cut it."
+  },
+  {
+    "id": 677,
+    "name": "espurr",
+    "description": "It has enough psychic energy to blast everything within 300 feet of itself, but it has no control over its power."
+  },
+  {
+    "id": 678,
+    "name": "meowstic",
+    "description": "The eyeball patterns on the interior of its ears emit psychic energy. It keeps the patterns tightly covered because that power is too immense."
+  },
+  {
+    "id": 679,
+    "name": "honedge",
+    "description": "If anyone dares to grab its hilt, it wraps a blue cloth around that person\u2019s arm and drains that person\u2019s life energy completely."
+  },
+  {
+    "id": 680,
+    "name": "doublade",
+    "description": "The complex attack patterns of its two swords are unstoppable, even for an opponent greatly accomplished at swordplay."
+  },
+  {
+    "id": 681,
+    "name": "aegislash",
+    "description": "Apparently, it can detect the innate qualities of leadership. According to legend, whoever it recognizes is destined to become king."
+  },
+  {
+    "id": 682,
+    "name": "spritzee",
+    "description": "In the past, rather than using perfume, royal ladies carried a Spritzee that would waft a fragrance they liked."
+  },
+  {
+    "id": 683,
+    "name": "aromatisse",
+    "description": "Its scent is so overpowering that, unless a Trainer happens to really enjoy the smell, he or she will have a hard time walking alongside it."
+  },
+  {
+    "id": 684,
+    "name": "swirlix",
+    "description": "Because it eats nothing but sweets, its fur is as sticky sweet as cotton candy."
+  },
+  {
+    "id": 685,
+    "name": "slurpuff",
+    "description": "Its sense of smell is 100 million times better than a human\u2019s, so even the faintest scent tells it about everything in the area. It\u2019s like it can see with its nose!"
+  },
+  {
+    "id": 686,
+    "name": "inkay",
+    "description": "When exchanging information with others of its kind, it flashes the light-emitting spots on its body in a complex rhythm."
+  },
+  {
+    "id": 687,
+    "name": "malamar",
+    "description": "It flashes the pattern on its torso to control its prey and draw them in. The edges of its fins are supremely sharp."
+  },
+  {
+    "id": 688,
+    "name": "binacle",
+    "description": "They stretch and then contract, yanking their rocks along with them in bold hops. They eat seaweed that washes up on the shoreline."
+  },
+  {
+    "id": 689,
+    "name": "barbaracle",
+    "description": "Barbaracle\u2019s legs and hands have minds of their own, and they will move independently. But they usually follow the head\u2019s orders."
+  },
+  {
+    "id": 690,
+    "name": "skrelp",
+    "description": "It\u2019s not good at swimming, so it clings to the seaweed. In the Alola region, it\u2019s often found near Dhelmise."
+  },
+  {
+    "id": 691,
+    "name": "dragalge",
+    "description": "It blends in with seaweed to ambush its prey and then takes them down with a poisonous liquid strong enough to melt metal."
+  },
+  {
+    "id": 692,
+    "name": "clauncher",
+    "description": "It moves around by jetting water from its right pincer. It has a poor sense of balance, so it\u2019s terrible at swimming straight."
+  },
+  {
+    "id": 693,
+    "name": "clawitzer",
+    "description": "Its right arm is packed with meat. When its pincer falls off, it\u2019s exported to be used as a cooking ingredient."
+  },
+  {
+    "id": 694,
+    "name": "helioptile",
+    "description": "The frills on either side of its head have cells that generate electricity when exposed to sunlight."
+  },
+  {
+    "id": 695,
+    "name": "heliolisk",
+    "description": "It stimulates its muscles with electricity, boosting the strength in its legs and enabling it to run 100 yards in five seconds."
+  },
+  {
+    "id": 696,
+    "name": "tyrunt",
+    "description": "Tyrunt is spoiled and selfish. It may just be trying to frolic, but sometimes the ones it\u2019s trying to frolic with are gravely injured."
+  },
+  {
+    "id": 697,
+    "name": "tyrantrum",
+    "description": "The king of the ancient world, it can easily crunch a car with the devastating strength of its enormous jaws."
+  },
+  {
+    "id": 698,
+    "name": "amaura",
+    "description": "Amaura was restored successfully, but it\u2019s not expected to live long because of the heat of the current environment."
+  },
+  {
+    "id": 699,
+    "name": "aurorus",
+    "description": "This usually quiet and kindly Pok\u00e9mon has a surface temperature of around \u2013240 degrees Fahrenheit."
+  },
+  {
+    "id": 700,
+    "name": "sylveon",
+    "description": "Sylveon wraps its ribbonlike feelers around its Trainer\u2019s arm because this touch enables it to read its Trainer\u2019s feelings."
+  },
+  {
+    "id": 701,
+    "name": "hawlucha",
+    "description": "In combat, Hawlucha leaps nimbly about, taking advantage of its opponents\u2019 blind spots. It\u2019s also skilled at using superb submission holds."
+  },
+  {
+    "id": 702,
+    "name": "dedenne",
+    "description": "Its upper whiskers are sensors that survey its surroundings. Its lower whiskers are organs that shoot electricity."
+  },
+  {
+    "id": 703,
+    "name": "carbink",
+    "description": "To keep the jewels on their bodies free of tarnish, packs of Carbink use their soft manes to polish one another\u2019s jewels."
+  },
+  {
+    "id": 704,
+    "name": "goomy",
+    "description": "Its body is mostly water. If it dries out, it will die, so it\u2019s always sitting with perfect stillness in the shade."
+  },
+  {
+    "id": 705,
+    "name": "sliggoo",
+    "description": "Its entire body is covered with gooey mucus that can dissolve anything. Be sure to put gloves on if you\u2019re going to touch it."
+  },
+  {
+    "id": 706,
+    "name": "goodra",
+    "description": "Underneath its slimy skin is a thick layer of fat, and the combination of the two makes enemies\u2019 attacks slide right off."
+  },
+  {
+    "id": 707,
+    "name": "klefki",
+    "description": "Long ago it lived in mines, but once the minerals that make up its diet became scarcer, Klefki began appearing in human settlements."
+  },
+  {
+    "id": 708,
+    "name": "phantump",
+    "description": "An unknown spirit came to lodge in a tree stump, creating this Pok\u00e9mon. A cure-all can be made from an infusion of its green leaves."
+  },
+  {
+    "id": 709,
+    "name": "trevenant",
+    "description": "This Pok\u00e9mon controls trees via roots stretching from its feet, and it will attack anyone that dares to ravage the forest."
+  },
+  {
+    "id": 710,
+    "name": "pumpkaboo",
+    "description": "It is said to carry wandering spirits to the place where they belong so they can move on."
+  },
+  {
+    "id": 711,
+    "name": "gourgeist",
+    "description": "It enwraps its prey in its hairlike arms. It sings joyfully as it observes the suffering of its prey."
+  },
+  {
+    "id": 712,
+    "name": "bergmite",
+    "description": "Using air of -150 degrees Fahrenheit, they freeze opponents solid. They live in herds above the snow line on mountains."
+  },
+  {
+    "id": 713,
+    "name": "avalugg",
+    "description": "The way several Bergmite huddle on its back makes it look like an aircraft carrier made of ice."
+  },
+  {
+    "id": 714,
+    "name": "noibat",
+    "description": "It flies around in search of fruit to eat. It uses ultrasonic waves to detect which fruits are ripe."
+  },
+  {
+    "id": 715,
+    "name": "noivern",
+    "description": "This hot-blooded Pok\u00e9mon attacks anything it sees with ultrasonic waves that can crush boulders."
+  },
+  {
+    "id": 716,
+    "name": "xerneas",
+    "description": "When the horns on its head shine in seven colors, it is said to be sharing everlasting life."
+  },
+  {
+    "id": 717,
+    "name": "yveltal",
+    "description": "When its life comes to an end, it absorbs the life energy of every living thing and turns into a cocoon once more."
+  },
+  {
+    "id": 718,
+    "name": "zygarde",
+    "description": "Some say it can change to an even more powerful form when battling those who threaten the ecosystem."
+  },
+  {
+    "id": 719,
+    "name": "diancie",
+    "description": "It can instantly create many diamonds by compressing the carbon in the air between its hands."
+  },
+  {
+    "id": 720,
+    "name": "hoopa",
+    "description": "It is said to be able to seize anything it desires with its six rings and six huge arms. With its power sealed, it is transformed into a much smaller form."
+  },
+  {
+    "id": 721,
+    "name": "volcanion",
+    "description": "It expels its internal steam from the arms on its back. It has enough power to blow away a mountain."
+  },
+  {
+    "id": 722,
+    "name": "rowlet",
+    "description": "It feels relaxed in tight, dark places and has been known to use its Trainer\u2019s pocket or bag as a nest."
+  },
+  {
+    "id": 723,
+    "name": "dartrix",
+    "description": "Supremely sensitive to the presence of others, it can detect opponents standing behind it, flinging its sharp feathers to take them out."
+  },
+  {
+    "id": 724,
+    "name": "decidueye",
+    "description": "Decidueye can nock and fire an arrow at an enemy in a tenth of a second, so its battles are decided in the blink of an eye."
+  },
+  {
+    "id": 725,
+    "name": "litten",
+    "description": "Its coat regrows twice a year. When the time comes, Litten sets its own body on fire and burns away the old fur."
+  },
+  {
+    "id": 726,
+    "name": "torracat",
+    "description": "When its mane is standing on end, you can tell it\u2019s feeling good. When it isn\u2019t feeling well, its fur will lie down flat."
+  },
+  {
+    "id": 727,
+    "name": "incineroar",
+    "description": "When its fighting spirit is set alight, the flames around its waist become especially intense."
+  },
+  {
+    "id": 728,
+    "name": "popplio",
+    "description": "Popplio gets on top of its bouncy water balloons to jump higher. It\u2019s quite the acrobatic fighter!"
+  },
+  {
+    "id": 729,
+    "name": "brionne",
+    "description": "It attacks by smacking its enemies with the exploding water balloons that it creates."
+  },
+  {
+    "id": 730,
+    "name": "primarina",
+    "description": "Also known as a songstress, it has a fantastical look on moonlit nights when it leads its colony in song."
+  },
+  {
+    "id": 731,
+    "name": "pikipek",
+    "description": "It may look spindly, but its neck muscles are heavy-duty. It can peck at a tree 16 times per second!"
+  },
+  {
+    "id": 732,
+    "name": "trumbeak",
+    "description": "From its mouth, it fires the seeds of berries it has eaten. The scattered seeds give rise to new plants."
+  },
+  {
+    "id": 733,
+    "name": "toucannon",
+    "description": "Known for forming harmonious couples, this Pok\u00e9mon is brought to wedding ceremonies as a good luck charm."
+  },
+  {
+    "id": 734,
+    "name": "yungoos",
+    "description": "Although it will eat anything, it prefers fresh living things, so it marches down streets in search of prey."
+  },
+  {
+    "id": 735,
+    "name": "gumshoos",
+    "description": "Patient by nature, this Pok\u00e9mon loses control of itself and pounces when it spots its favorite meal\u2014Rattata!"
+  },
+  {
+    "id": 736,
+    "name": "grubbin",
+    "description": "It spits a sticky thread to stop opponents in their tracks, and then it grabs them in its sharp, sturdy mandibles to take them down."
+  },
+  {
+    "id": 737,
+    "name": "charjabug",
+    "description": "Its stout shell provides excellent defense from attacks. It uses electricity on persistent opponents."
+  },
+  {
+    "id": 738,
+    "name": "vikavolt",
+    "description": "Vikavolt flusters opponents with acrobatic flying maneuvers. This creates an opening for it to deliver an electric beam attack."
+  },
+  {
+    "id": 739,
+    "name": "crabrawler",
+    "description": "Crabrawler has been known to mistake Exeggutor for a coconut tree and climb it. The enraged Exeggutor shakes it off and stomps it."
+  },
+  {
+    "id": 740,
+    "name": "crabominable",
+    "description": "Before it stops to think, it just starts pummeling. There are records of its turning back avalanches with a flurry of punches."
+  },
+  {
+    "id": 741,
+    "name": "oricorio",
+    "description": "This Oricorio has drunk red nectar. If its Trainer gives the wrong order, this passionate Pok\u00e9mon becomes fiercely angry."
+  },
+  {
+    "id": 742,
+    "name": "cutiefly",
+    "description": "Cutiefly can pick up the auras of living things. It skillfully reads those auras to predict its foes\u2019 movements and make fools of them."
+  },
+  {
+    "id": 743,
+    "name": "ribombee",
+    "description": "It can predict the weather from moisture levels and wind direction. Ribombee only reveals itself when there are a few clear days in a row."
+  },
+  {
+    "id": 744,
+    "name": "rockruff",
+    "description": "When it rubs the rocks on its neck against you, that\u2019s proof of its love for you. However, the rocks are sharp, so the gesture is quite painful!"
+  },
+  {
+    "id": 745,
+    "name": "lycanroc",
+    "description": "The rocks in its mane are sharper than a knife. Fragments that break off are treasured as good luck charms."
+  },
+  {
+    "id": 746,
+    "name": "wishiwashi",
+    "description": "When it\u2019s in a jam, its shining eyes attract others of its kind. The light from its eyes is visible almost 25 miles away."
+  },
+  {
+    "id": 747,
+    "name": "mareanie",
+    "description": "Aside from its head, its body parts regenerate quickly if they\u2019re cut off. After a good night\u2019s sleep, Mareanie is back to normal."
+  },
+  {
+    "id": 748,
+    "name": "toxapex",
+    "description": "With its 12 legs, it creates a dome to shelter within. The flow of the tides doesn\u2019t affect Toxapex in there, so it\u2019s very comfortable."
+  },
+  {
+    "id": 749,
+    "name": "mudbray",
+    "description": "Possessing mighty power, Mudbray can be loaded with 50 times its own body weight and will be totally fine."
+  },
+  {
+    "id": 750,
+    "name": "mudsdale",
+    "description": "It can trudge mountain roads without rest for three days and three nights, all the while dragging a 10-ton load."
+  },
+  {
+    "id": 751,
+    "name": "dewpider",
+    "description": "It can only breathe oxygen that has dissolved in water, so it wears a water bubble on its head when it walks around on land."
+  },
+  {
+    "id": 752,
+    "name": "araquanid",
+    "description": "It has a habit of storing things it values in its water bubble. If its Trainer doesn\u2019t watch out, Araquanid will try to put them in its bubble!"
+  },
+  {
+    "id": 753,
+    "name": "fomantis",
+    "description": "It loves the sunshine. When it basks in the sunlight regularly, it grows up with vivid coloration."
+  },
+  {
+    "id": 754,
+    "name": "lurantis",
+    "description": "As it slashes into its enemies, it looks like it\u2019s dancing. Its elegant appearance has led some to call it the most glamorous Grass Pok\u00e9mon."
+  },
+  {
+    "id": 755,
+    "name": "morelull",
+    "description": "It likes damp dark places. When night falls, the spores filling the caps of its mushrooms glow."
+  },
+  {
+    "id": 756,
+    "name": "shiinotic",
+    "description": "When it starts fighting for territory with Parasect, the entire area gets completely coated in spores!"
+  },
+  {
+    "id": 757,
+    "name": "salandit",
+    "description": "It weakens opponents and sends them reeling with its poisonous gas. Salandit doesn\u2019t deal well with Spinda, since it\u2019s always reeling."
+  },
+  {
+    "id": 758,
+    "name": "salazzle",
+    "description": "It punishes Salandit that couldn\u2019t bring it food with a fierce slap of its flame-spewing palm."
+  },
+  {
+    "id": 759,
+    "name": "stufful",
+    "description": "Stufful hates to be hugged or touched in any way. It will squirm, thrash, and resist with amazing power."
+  },
+  {
+    "id": 760,
+    "name": "bewear",
+    "description": "It boasts tremendous physical strength. Many people call it the most dangerous Pok\u00e9mon in the Alola region."
+  },
+  {
+    "id": 761,
+    "name": "bounsweet",
+    "description": "It tries to resist being swallowed by a bird Pok\u00e9mon by spinning the sepals on its head. It\u2019s usually a fruitless attempt."
+  },
+  {
+    "id": 762,
+    "name": "steenee",
+    "description": "It bounces around, swinging the sepals on its head with abandon. They\u2019re quite painful when they smack you!"
+  },
+  {
+    "id": 763,
+    "name": "tsareena",
+    "description": "A Pok\u00e9mon with an aggressive personality and a mastery of kicking, it cackles every time it kicks an opponent."
+  },
+  {
+    "id": 764,
+    "name": "comfey",
+    "description": "It picks flowers and sticks them to its body with fluids it produces. The aroma that wafts from its petals has a healing effect."
+  },
+  {
+    "id": 765,
+    "name": "oranguru",
+    "description": "Oranguru don\u2019t get along with each other, so they\u2019re always engaging in battles of wits to decide which one is superior."
+  },
+  {
+    "id": 766,
+    "name": "passimian",
+    "description": "Berries are its weapons as well as the staple of its diet. The one that can throw a berry the farthest is the boss of the troop."
+  },
+  {
+    "id": 767,
+    "name": "wimpod",
+    "description": "An astonishingly cowardly Pok\u00e9mon, Wimpod will whir its legs at high speeds to run away if anything comes near it."
+  },
+  {
+    "id": 768,
+    "name": "golisopod",
+    "description": "Its claws, which it can extend and retract at will, are its greatest weapons. Golisopod is sometimes accompanied by Wimpod."
+  },
+  {
+    "id": 769,
+    "name": "sandygast",
+    "description": "If you build sand mounds when you\u2019re playing, destroy them before you go home, or they may get possessed and become Sandygast."
+  },
+  {
+    "id": 770,
+    "name": "palossand",
+    "description": "Once it has whipped up a sandstorm to halt its opponents in their tracks, this terrifying Pok\u00e9mon snatches away their vitality."
+  },
+  {
+    "id": 771,
+    "name": "pyukumuku",
+    "description": "Its entire body is covered in its own slime. If you accidentally step on one, you\u2019ll slip, and it will get mad and smack you!"
+  },
+  {
+    "id": 772,
+    "name": "type: null",
+    "description": "There\u2019s danger of its going on a rampage, so its true power is sealed away beneath its control mask."
+  },
+  {
+    "id": 773,
+    "name": "silvally",
+    "description": "Through the bond it formed with its Trainer, its will was strengthened, and it was able to destroy its control mask."
+  },
+  {
+    "id": 774,
+    "name": "minior",
+    "description": "Although its outer shell is uncommonly durable, the shock of falling to the ground smashes the shell to smithereens."
+  },
+  {
+    "id": 775,
+    "name": "komala",
+    "description": "It remains asleep from birth to death as a result of the sedative properties of the leaves that form its diet."
+  },
+  {
+    "id": 776,
+    "name": "turtonator",
+    "description": "Its exploding shell poses a real danger but is sensitive to moisture. On rainy days, Turtonator takes silent refuge in caves."
+  },
+  {
+    "id": 777,
+    "name": "togedemaru",
+    "description": "Its capacity to produce electricity is somewhat limited, so it gets charged up by letting lightning strike it!"
+  },
+  {
+    "id": 778,
+    "name": "mimikyu",
+    "description": "A gust of wind revealed what hides under this Pok\u00e9mon\u2019s rag to a passing Trainer, who went home and died painfully that very night."
+  },
+  {
+    "id": 779,
+    "name": "bruxish",
+    "description": "Its skin is thick enough to fend off Mareanie\u2019s spikes. With its robust teeth, Bruxish crunches up the spikes and eats them."
+  },
+  {
+    "id": 780,
+    "name": "drampa",
+    "description": "It appears in towns and plays with the children. Drampa will protect kids when they\u2019re in danger, so their moms don\u2019t have to worry."
+  },
+  {
+    "id": 781,
+    "name": "dhelmise",
+    "description": "Its chain-like green seaweed can stretch outward for hundreds of yards. For some reason, it gets along well with Skrelp."
+  },
+  {
+    "id": 782,
+    "name": "jangmo-o",
+    "description": "It will never show an enemy its back in battle. Ancient warriors liked Jangmo-o for its valiant disposition and made it one of their own."
+  },
+  {
+    "id": 783,
+    "name": "hakamo-o",
+    "description": "The scales it sheds can be molded and processed to make pots and pans. They conduct heat well, so they\u2019re a popular item."
+  },
+  {
+    "id": 784,
+    "name": "kommo-o",
+    "description": "It battles valiantly with its fists, which are armored in steel scales. Kommo-o specializes in uppercuts."
+  },
+  {
+    "id": 785,
+    "name": "tapu koko",
+    "description": "The lightning-wielding guardian deity of Melemele, Tapu Koko is brimming with curiosity and appears before people from time to time."
+  },
+  {
+    "id": 786,
+    "name": "tapu lele",
+    "description": "Although called a guardian deity, Tapu Lele is devoid of guilt about its cruel disposition and can be described as nature incarnate."
+  },
+  {
+    "id": 787,
+    "name": "tapu bulu",
+    "description": "It makes ringing sounds with its tail to let others know where it is, avoiding unneeded conflicts. This guardian deity of Ula\u2019ula controls plants."
+  },
+  {
+    "id": 788,
+    "name": "tapu fini",
+    "description": "Although it\u2019s called a guardian deity, terrible calamities sometimes befall those who recklessly approach Tapu Fini."
+  },
+  {
+    "id": 789,
+    "name": "cosmog",
+    "description": "Whether or not it\u2019s a Pok\u00e9mon from this world is a mystery. When it\u2019s in a jam, it warps away to a safe place to hide."
+  },
+  {
+    "id": 790,
+    "name": "cosmoem",
+    "description": "As it absorbs light, Cosmoem continues to grow. Its golden shell is surprisingly solid."
+  },
+  {
+    "id": 791,
+    "name": "solgaleo",
+    "description": "In writings from the distant past, it\u2019s called by the name \u201cthe beast that devours the sun.\u201d"
+  },
+  {
+    "id": 792,
+    "name": "lunala",
+    "description": "It sometimes summons unknown powers and life-forms here to this world from holes that lead to other worlds."
+  },
+  {
+    "id": 793,
+    "name": "nihilego",
+    "description": "It appeared in this world from an Ultra Wormhole. Nihilego appears to be a parasite that lives by feeding on people and Pok\u00e9mon."
+  },
+  {
+    "id": 794,
+    "name": "buzzwole",
+    "description": "Buzzwole goes around showing off its abnormally swollen muscles. It is one kind of Ultra Beast."
+  },
+  {
+    "id": 795,
+    "name": "pheromosa",
+    "description": "Although it\u2019s alien to this world and a danger here, it\u2019s apparently a common organism in the world where it normally lives."
+  },
+  {
+    "id": 796,
+    "name": "xurkitree",
+    "description": "They\u2019ve been dubbed Ultra Beasts. Some of them stand unmoving, like trees, with their arms and legs stuck into the ground."
+  },
+  {
+    "id": 797,
+    "name": "celesteela",
+    "description": "Although it\u2019s alien to this world and a danger here, it\u2019s apparently a common organism in the world where it normally lives."
+  },
+  {
+    "id": 798,
+    "name": "kartana",
+    "description": "Although it\u2019s alien to this world and a danger here, it\u2019s apparently a common organism in the world where it normally lives."
+  },
+  {
+    "id": 799,
+    "name": "guzzlord",
+    "description": "An unknown life-form called a UB. It may be constantly hungry\u2014it is certainly always devouring something."
+  },
+  {
+    "id": 800,
+    "name": "necrozma",
+    "description": "Light is the source of its energy. If it isn\u2019t devouring light, impurities build up in it and on it, and Necrozma darkens and stops moving."
+  },
+  {
+    "id": 801,
+    "name": "magearna",
+    "description": "Built roughly 500 years ago by a scientist, the part called the Soul-Heart is the actual life-form."
+  },
+  {
+    "id": 802,
+    "name": "marshadow",
+    "description": "It sinks into the shadows of people and Pok\u00e9mon, where it can understand their feelings and copy their capabilities."
+  },
+  {
+    "id": 803,
+    "name": "poipole",
+    "description": "An Ultra Beast that lives in a different world, it cackles wildly as it sprays its opponents with poison from the needles on its head."
+  },
+  {
+    "id": 804,
+    "name": "naganadel",
+    "description": "One kind of Ultra Beast, it fires a glowing, venomous liquid from its needles. This liquid is also immensely adhesive."
+  },
+  {
+    "id": 805,
+    "name": "stakataka",
+    "description": "When stone walls started moving and attacking, the brute\u2019s true identity was this mysterious life-form, which brings to mind an Ultra Beast."
+  },
+  {
+    "id": 806,
+    "name": "blacephalon",
+    "description": "A UB that appeared from an Ultra Wormhole, it causes explosions, then takes advantage of opponents\u2019 surprise to rob them of their vitality."
+  },
+  {
+    "id": 807,
+    "name": "zeraora",
+    "description": "It approaches its enemies at the speed of lightning, then tears them limb from limb with its sharp claws."
+  },
+  {
+    "id": 808,
+    "name": "meltan",
+    "description": "They live as a group, but when the time comes, one strong Meltan will absorb all the others and evolve."
+  },
+  {
+    "id": 809,
+    "name": "melmetal",
+    "description": "Centrifugal force is behind the punches of Melmetal's heavy hex-nut arms. Melmetal is said to deliver the strongest punches of all Pok\u00e9mon."
+  },
+  {
+    "id": 810,
+    "name": "grookey",
+    "description": "It attacks with rapid beats of its stick. As it strikes with amazing speed, it gets more and more pumped."
+  },
+  {
+    "id": 811,
+    "name": "thwackey",
+    "description": "When it\u2019s drumming out rapid beats in battle, it gets so caught up in the rhythm that it won\u2019t even notice that it\u2019s already knocked out its opponent."
+  },
+  {
+    "id": 812,
+    "name": "rillaboom",
+    "description": "The one with the best drumming techniques becomes the boss of the troop. It has a gentle disposition and values harmony among its group."
+  },
+  {
+    "id": 813,
+    "name": "scorbunny",
+    "description": "It has special pads on the backs of its feet, and one on its nose. Once it\u2019s raring to fight, these pads radiate tremendous heat."
+  },
+  {
+    "id": 814,
+    "name": "raboot",
+    "description": "It kicks berries right off the branches of trees and then juggles them with its feet, practicing its footwork."
+  },
+  {
+    "id": 815,
+    "name": "cinderace",
+    "description": "It\u2019s skilled at both offense and defense, and it gets pumped up when cheered on. But if it starts showboating, it could put itself in a tough spot."
+  },
+  {
+    "id": 816,
+    "name": "sobble",
+    "description": "When it gets wet, its skin changes color, and this Pok\u00e9mon becomes invisible as if it were camouflaged."
+  },
+  {
+    "id": 817,
+    "name": "drizzile",
+    "description": "Highly intelligent but also very lazy, it keeps enemies out of its territory by laying traps everywhere."
+  },
+  {
+    "id": 818,
+    "name": "inteleon",
+    "description": "Its nictitating membranes let it pick out foes\u2019 weak points so it can precisely blast them with water that shoots from its fingertips at Mach 3."
+  },
+  {
+    "id": 819,
+    "name": "skwovet",
+    "description": "It eats berries nonstop\u2014a habit that has made it more resilient than it looks. It\u2019ll show up on farms, searching for yet more berries."
+  },
+  {
+    "id": 820,
+    "name": "greedent",
+    "description": "Common throughout the Galar region, this Pok\u00e9mon has strong teeth and can chew through the toughest of berry shells."
+  },
+  {
+    "id": 821,
+    "name": "rookidee",
+    "description": "Jumping nimbly about, this small-bodied Pok\u00e9mon takes advantage of even the slightest opportunity to disorient larger opponents."
+  },
+  {
+    "id": 822,
+    "name": "corvisquire",
+    "description": "The lessons of many harsh battles have taught it how to accurately judge an opponent\u2019s strength."
+  },
+  {
+    "id": 823,
+    "name": "corviknight",
+    "description": "With their great intellect and flying skills, these Pok\u00e9mon very successfully act as the Galar region\u2019s airborne taxi service."
+  },
+  {
+    "id": 824,
+    "name": "blipbug",
+    "description": "Often found in gardens, this Pok\u00e9mon has hairs on its body that it uses to assess its surroundings."
+  },
+  {
+    "id": 825,
+    "name": "dottler",
+    "description": "As it grows inside its shell, it uses its psychic abilities to monitor the outside world and prepare for evolution."
+  },
+  {
+    "id": 826,
+    "name": "orbeetle",
+    "description": "It emits psychic energy to observe and study what\u2019s around it\u2014and what\u2019s around it can include things over six miles away."
+  },
+  {
+    "id": 827,
+    "name": "nickit",
+    "description": "Cunning and cautious, this Pok\u00e9mon survives by stealing food from others. It erases its tracks with swipes of its tail as it makes off with its plunder."
+  },
+  {
+    "id": 828,
+    "name": "thievul",
+    "description": "With a lithe body and sharp claws, it goes around stealing food and eggs. Boltund is its natural enemy."
+  },
+  {
+    "id": 829,
+    "name": "gossifleur",
+    "description": "It whirls around in the wind while singing a joyous song. This delightful display has charmed many into raising this Pok\u00e9mon."
+  },
+  {
+    "id": 830,
+    "name": "eldegoss",
+    "description": "The cotton on the head of this Pok\u00e9mon can be spun into a glossy, gorgeous yarn\u2014a Galar regional specialty."
+  },
+  {
+    "id": 831,
+    "name": "wooloo",
+    "description": "If its fleece grows too long, Wooloo won\u2019t be able to move. Cloth made with the wool of this Pok\u00e9mon is surprisingly strong."
+  },
+  {
+    "id": 832,
+    "name": "dubwool",
+    "description": "Its majestic horns are meant only to impress the opposite gender. They never see use in battle."
+  },
+  {
+    "id": 833,
+    "name": "chewtle",
+    "description": "It starts off battles by attacking with its rock-hard horn, but as soon as the opponent flinches, this Pok\u00e9mon bites down and never lets go."
+  },
+  {
+    "id": 834,
+    "name": "drednaw",
+    "description": "This Pok\u00e9mon rapidly extends its retractable neck to sink its sharp fangs into distant enemies and take them down."
+  },
+  {
+    "id": 835,
+    "name": "yamper",
+    "description": "This gluttonous Pok\u00e9mon only assists people with their work because it wants treats. As it runs, it crackles with electricity."
+  },
+  {
+    "id": 836,
+    "name": "boltund",
+    "description": "It sends electricity through its legs to boost their strength. Running at top speed, it easily breaks 50 mph."
+  },
+  {
+    "id": 837,
+    "name": "rolycoly",
+    "description": "It can race around like a unicycle, even on rough, rocky terrain. Burning coal sustains it."
+  },
+  {
+    "id": 838,
+    "name": "carkol",
+    "description": "By rapidly rolling its legs, it can travel at over 18 mph. The temperature of the flames it breathes exceeds 1,800 degrees Fahrenheit."
+  },
+  {
+    "id": 839,
+    "name": "coalossal",
+    "description": "While it\u2019s engaged in battle, its mountain of coal will burn bright red, sending off sparks that scorch the surrounding area."
+  },
+  {
+    "id": 840,
+    "name": "applin",
+    "description": "As soon as it\u2019s born, it burrows into an apple. Not only does the apple serve as its food source, but the flavor of the fruit determines its evolution."
+  },
+  {
+    "id": 841,
+    "name": "flapple",
+    "description": "It flies on wings of apple skin and spits a powerful acid. It can also change its shape into that of an apple."
+  },
+  {
+    "id": 842,
+    "name": "appletun",
+    "description": "Its body is covered in sweet nectar, and the skin on its back is especially yummy. Children used to have it as a snack."
+  },
+  {
+    "id": 843,
+    "name": "silicobra",
+    "description": "It spews sand from its nostrils. While the enemy is blinded, it burrows into the ground to hide."
+  },
+  {
+    "id": 844,
+    "name": "sandaconda",
+    "description": "Its unique style of coiling allows it to blast sand out of its sand sac more efficiently."
+  },
+  {
+    "id": 845,
+    "name": "cramorant",
+    "description": "This hungry Pok\u00e9mon swallows Arrokuda whole. Occasionally, it makes a mistake and tries to swallow a Pok\u00e9mon other than its preferred prey."
+  },
+  {
+    "id": 846,
+    "name": "arrokuda",
+    "description": "After it\u2019s eaten its fill, its movements become extremely sluggish. That\u2019s when Cramorant swallows it up."
+  },
+  {
+    "id": 847,
+    "name": "barraskewda",
+    "description": "It spins its tail fins to propel itself, surging forward at speeds of over 100 knots before ramming prey and spearing into them."
+  },
+  {
+    "id": 848,
+    "name": "toxel",
+    "description": "It manipulates the chemical makeup of its poison to produce electricity. The voltage is weak, but it can cause a tingling paralysis."
+  },
+  {
+    "id": 849,
+    "name": "toxtricity",
+    "description": "This short-tempered and aggressive Pok\u00e9mon chugs stagnant water to absorb any toxins it might contain."
+  },
+  {
+    "id": 850,
+    "name": "sizzlipede",
+    "description": "It wraps prey up with its heated body, cooking them in its coils. Once they\u2019re well-done, it will voraciously nibble them down to the last morsel."
+  },
+  {
+    "id": 851,
+    "name": "centiskorch",
+    "description": "While its burning body is already dangerous on its own, this excessively hostile Pok\u00e9mon also has large and very sharp fangs."
+  },
+  {
+    "id": 852,
+    "name": "clobbopus",
+    "description": "Its tentacles tear off easily, but it isn\u2019t alarmed when that happens\u2014it knows they\u2019ll grow back. It\u2019s about as smart as a three-year-old."
+  },
+  {
+    "id": 853,
+    "name": "grapploct",
+    "description": "Searching for an opponent to test its skills against, it emerges onto land. Once the battle is over, it returns to the sea."
+  },
+  {
+    "id": 854,
+    "name": "sinistea",
+    "description": "The teacup in which this Pok\u00e9mon makes its home is a famous piece of antique tableware. Many forgeries are in circulation."
+  },
+  {
+    "id": 855,
+    "name": "polteageist",
+    "description": "Leaving leftover black tea unattended is asking for this Pok\u00e9mon to come along and pour itself into it, turning the tea into a new Polteageist."
+  },
+  {
+    "id": 856,
+    "name": "hatenna",
+    "description": "If this Pok\u00e9mon senses a strong emotion, it will run away as fast as it can. It prefers areas without people."
+  },
+  {
+    "id": 857,
+    "name": "hattrem",
+    "description": "Using the braids on its head, it pummels foes to get them to quiet down. One blow from those braids would knock out a professional boxer."
+  },
+  {
+    "id": 858,
+    "name": "hatterene",
+    "description": "If you\u2019re too loud around it, you risk being torn apart by the claws on its tentacle. This Pok\u00e9mon is also known as the Forest Witch."
+  },
+  {
+    "id": 859,
+    "name": "impidimp",
+    "description": "It sneaks into people\u2019s homes, stealing things and feasting on the negative energy of the frustrated occupants."
+  },
+  {
+    "id": 860,
+    "name": "morgrem",
+    "description": "With sly cunning, it tries to lure people into the woods. Some believe it to have the power to make crops grow."
+  },
+  {
+    "id": 861,
+    "name": "grimmsnarl",
+    "description": "Its hairs work like muscle fibers. When its hairs unfurl, they latch on to opponents, ensnaring them as tentacles would."
+  },
+  {
+    "id": 862,
+    "name": "obstagoon",
+    "description": "It evolved after experiencing numerous fights. While crossing its arms, it lets out a shout that would make any opponent flinch."
+  },
+  {
+    "id": 863,
+    "name": "perrserker",
+    "description": "After many battles, it evolved dangerous claws that come together to form daggers when extended."
+  },
+  {
+    "id": 864,
+    "name": "cursola",
+    "description": "Be cautious of the ectoplasmic body surrounding its soul. You\u2019ll become stiff as stone if you touch it."
+  },
+  {
+    "id": 865,
+    "name": "sirfetch'd",
+    "description": "After deflecting attacks with its hard leaf shield, it strikes back with its sharp leek stalk. The leek stalk is both weapon and food."
+  },
+  {
+    "id": 866,
+    "name": "mr. rime",
+    "description": "Its amusing movements make it very popular. It releases its psychic power from the pattern on its belly."
+  },
+  {
+    "id": 867,
+    "name": "runerigus",
+    "description": "Never touch its shadowlike body, or you\u2019ll be shown the horrific memories behind the picture carved into it."
+  },
+  {
+    "id": 868,
+    "name": "milcery",
+    "description": "They say that any patisserie visited by Milcery is guaranteed success and good fortune."
+  },
+  {
+    "id": 869,
+    "name": "alcremie",
+    "description": "When Alcremie is content, the cream it secretes from its hands becomes sweeter and richer."
+  },
+  {
+    "id": 870,
+    "name": "falinks",
+    "description": "The six of them work together as one Pok\u00e9mon. Teamwork is also their battle strategy, and they constantly change their formation as they fight."
+  },
+  {
+    "id": 871,
+    "name": "pincurchin",
+    "description": "It stores electricity in each spine. Even if one gets broken off, it still continues to emit electricity for at least three hours."
+  },
+  {
+    "id": 872,
+    "name": "snom",
+    "description": "It eats snow that piles up on the ground. The more snow it eats, the bigger and more impressive the spikes on its back grow."
+  },
+  {
+    "id": 873,
+    "name": "frosmoth",
+    "description": "It shows no mercy to any who desecrate fields and mountains. It will fly around on its icy wings, causing a blizzard to chase offenders away."
+  },
+  {
+    "id": 874,
+    "name": "stonjourner",
+    "description": "Once a year, on a specific date and at a specific time, they gather out of nowhere and form up in a circle."
+  },
+  {
+    "id": 875,
+    "name": "eiscue",
+    "description": "This Pok\u00e9mon keeps its heat-sensitive head cool with ice. It fishes for its food, dangling its single hair into the sea to lure in prey."
+  },
+  {
+    "id": 876,
+    "name": "indeedee",
+    "description": "Through its horns, it can pick up on the emotions of creatures around it. Positive emotions are the source of its strength."
+  },
+  {
+    "id": 877,
+    "name": "morpeko",
+    "description": "It carries electrically roasted seeds with it as if they\u2019re precious treasures. No matter how much it eats, it always gets hungry again in short order."
+  },
+  {
+    "id": 878,
+    "name": "cufant",
+    "description": "If a job requires serious strength, this Pok\u00e9mon will excel at it. Its copper body tarnishes in the rain, turning a vibrant green color."
+  },
+  {
+    "id": 879,
+    "name": "copperajah",
+    "description": "These Pok\u00e9mon live in herds. Their trunks have incredible grip strength, strong enough to crush giant rocks into powder."
+  },
+  {
+    "id": 880,
+    "name": "dracozolt",
+    "description": "The powerful muscles in its tail generate its electricity. Compared to its lower body, its upper half is entirely too small."
+  },
+  {
+    "id": 881,
+    "name": "arctozolt",
+    "description": "This Pok\u00e9mon lived on prehistoric seashores and was able to preserve food with the ice on its body. It went extinct because it moved so slowly."
+  },
+  {
+    "id": 882,
+    "name": "dracovish",
+    "description": "Its mighty legs are capable of running at speeds exceeding 40 mph, but this Pok\u00e9mon can\u2019t breathe unless it\u2019s underwater."
+  },
+  {
+    "id": 883,
+    "name": "arctovish",
+    "description": "The skin on its face is impervious to attack, but breathing difficulties made this Pok\u00e9mon go extinct anyway."
+  },
+  {
+    "id": 884,
+    "name": "duraludon",
+    "description": "The special metal that composes its body is very light, so this Pok\u00e9mon has considerable agility. It lives in caves because it dislikes the rain."
+  },
+  {
+    "id": 885,
+    "name": "dreepy",
+    "description": "If this weak Pok\u00e9mon is by itself, a mere child could defeat it. But if Dreepy has friends to help it train, it can evolve and become much stronger."
+  },
+  {
+    "id": 886,
+    "name": "drakloak",
+    "description": "Without a Dreepy to place on its head and care for, it gets so uneasy it\u2019ll try to substitute any Pok\u00e9mon it finds for the missing Dreepy."
+  },
+  {
+    "id": 887,
+    "name": "dragapult",
+    "description": "Apparently the Dreepy inside Dragapult\u2019s horns eagerly look forward to being launched out at Mach speeds."
+  },
+  {
+    "id": 888,
+    "name": "zacian",
+    "description": "This Pok\u00e9mon has slumbered for many years. Some say it\u2019s Zamazenta\u2019s elder sister\u2014others say the two Pok\u00e9mon are rivals."
+  },
+  {
+    "id": 889,
+    "name": "zamazenta",
+    "description": "This Pok\u00e9mon slept for aeons while in the form of a statue. It was asleep for so long, people forgot that it ever existed."
+  },
+  {
+    "id": 890,
+    "name": "eternatus",
+    "description": "It was inside a meteorite that fell 20,000 years ago. There seems to be a connection between this Pok\u00e9mon and the Dynamax phenomenon."
+  },
+  {
+    "id": 891,
+    "name": "kubfu",
+    "description": "If Kubfu pulls the long white hair on its head, its fighting spirit heightens and power wells up from the depths of its belly."
+  },
+  {
+    "id": 892,
+    "name": "urshifu",
+    "description": "Inhabiting the mountains of a distant region, this Pok\u00e9mon races across sheer cliffs, training its legs and refining its moves."
+  },
+  {
+    "id": 893,
+    "name": "zarude",
+    "description": "Once the vines on Zarude\u2019s body tear off, they become nutrients in the soil. This helps the plants of the forest grow."
+  },
+  {
+    "id": 894,
+    "name": "regieleki",
+    "description": "Its entire body is made up of a single organ that generates electrical energy. Regieleki is capable of creating all Galar\u2019s electricity."
+  },
+  {
+    "id": 895,
+    "name": "regidrago",
+    "description": "Its body is composed of crystallized dragon energy. Regidrago is said to have the powers of every dragon Pok\u00e9mon."
+  },
+  {
+    "id": 896,
+    "name": "glastrier",
+    "description": "Glastrier has tremendous physical strength, and the mask of ice covering its face is 100 times harder than diamond."
+  },
+  {
+    "id": 897,
+    "name": "spectrier",
+    "description": "As it dashes through the night, Spectrier absorbs the life-force of sleeping creatures. It craves silence and solitude."
+  },
+  {
+    "id": 898,
+    "name": "calyrex",
+    "description": "Calyrex is known in legend as a king that ruled over Galar in ancient times. It has the power to cause hearts to mend and plants to spring forth."
+  }
+]
