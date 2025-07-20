@@ -1,13 +1,9 @@
 package com.example.pokeverse.screens
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -17,35 +13,27 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -55,7 +43,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,14 +56,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.example.pokeverse.data.local.entity.TeamMemberEntity
-import com.example.pokeverse.data.remote.model.PokemonResponse
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.TeamMapper.toEntity
 import kotlinx.coroutines.Dispatchers
@@ -97,10 +80,6 @@ fun HomeScreen(navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
 
-    // Used for animated visibility
-    val showButton by remember {
-        derivedStateOf { listState.firstVisibleItemIndex > 5 }
-    }
 
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
@@ -117,12 +96,11 @@ fun HomeScreen(navController: NavHostController) {
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
-                            "PokeVerse",
+                            "Pokéverse",
                             style = MaterialTheme.typography.headlineSmall,
                             color = Color.White,
                             modifier = Modifier.padding(bottom = 4.dp) // Adjusted padding for alignment
@@ -133,85 +111,50 @@ fun HomeScreen(navController: NavHostController) {
                         navigationIconContentColor = Color.White,
                         titleContentColor = Color.White
                     )
-                    // Uncomment if you want a custom height: modifier = Modifier.height(45.dp)
                 )
             },
-            floatingActionButton = {
-                var expanded by remember { mutableStateOf(false) }
-                val rotation by animateFloatAsState(
-                    targetValue = if (expanded) 45f else 0f,
-                    animationSpec = tween(durationMillis = 250),
-                    label = "FAB rotation"
-                )
+            bottomBar = {
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentDestination = navBackStackEntry?.destination?.route
 
-                Box {
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        Box {
-                            FloatingActionButton(
-                                onClick = { expanded = !expanded },
-                                containerColor = Color(0xFF802525),
-                                contentColor = Color.White,
-                                elevation = FloatingActionButtonDefaults.elevation(8.dp),
-                                modifier = Modifier.graphicsLayer {
-                                    rotationZ = rotation
-                                }
-                            ) {
-                                Icon(Icons.Filled.MoreVert, contentDescription = "Features")
-                            }
+                BottomAppBar(
+                    containerColor = Color.Black,
+                    contentColor = Color.White,
+                ) {
+                    NavigationBarItem(
+                        selected = currentDestination == "home",
+                        onClick = { navController.navigate("home") },
+                        icon = {
+                            Icon(Icons.Default.Home, contentDescription = "Home")
+                        },
+                        label = { Text("Home") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF802525),
+                            selectedTextColor = Color.White,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray,
+                            indicatorColor = Color(0xFF1A1A1A)
+                        )
+                    )
 
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false },
-                                modifier = Modifier
-                                    .background(Color(0xFF1C1C1C))
-                                    .border(1.dp, Color.DarkGray, RoundedCornerShape(8.dp))
-                            ) {
-
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            "Team Rating",
-                                            color = Color.White,
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                    },
-                                    onClick = {
-                                        navController.navigate("dream_team")
-                                        expanded = false
-                                    },
-                                    modifier = Modifier
-                                        .background(Color(0xFF2E2E2E))
-                                        .padding(vertical = 4.dp)
-                                        .width(220.dp)
-                                        .height(60.dp)
-                                )
-                                DropdownMenuItem(
-                                    text = {
-                                        Text(
-                                            "Win Predictor",
-                                            color = Color.White,
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.Medium
-                                        )
-                                    },
-                                    onClick = {
-                                        // Add logic here
-                                        expanded = false
-                                    },
-                                    modifier = Modifier
-                                        .background(Color(0xFF2E2E2E))
-                                        .padding(vertical = 4.dp)
-                                )
-                            }
-                        }
-                    }
+                    NavigationBarItem(
+                        selected = currentDestination == "dream_team",
+                        onClick = { navController.navigate("dream_team") },
+                        icon = {
+                            Icon(Icons.Default.Star, contentDescription = "Team")
+                        },
+                        label = { Text("Team") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF802525),
+                            selectedTextColor = Color.White,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray,
+                            indicatorColor = Color(0xFF1A1A1A)
+                        )
+                    )
                 }
             }
+
         ) { paddingValues ->
             val focusManager = LocalFocusManager.current
 

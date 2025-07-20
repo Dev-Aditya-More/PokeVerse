@@ -8,9 +8,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pokeverse.data.local.dao.TeamDao
 import com.example.pokeverse.data.local.entity.TeamMemberEntity
+import com.example.pokeverse.data.remote.model.PokemonFilter
 import com.example.pokeverse.data.remote.model.PokemonResponse
 import com.example.pokeverse.data.remote.model.PokemonResult
 import com.example.pokeverse.data.remote.model.PokemonVariety
+import com.example.pokeverse.data.remote.model.Region
+import com.example.pokeverse.domain.repository.DescriptionRepo
 import com.example.pokeverse.domain.repository.PokemonRepo
 import com.example.pokeverse.utils.TeamMapper
 import kotlinx.coroutines.Dispatchers
@@ -23,50 +26,70 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
+import kotlin.collections.filter
 
 class PokemonViewModel(
     private val repository: PokemonRepo,
     private val teamDao: TeamDao,
-    private val mapper: TeamMapper
+    private val mapper: TeamMapper,
+    private val descriptionLocalRepository: DescriptionRepo
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
-    val megaForms: List<PokemonVariety>
-        get() = _uiState.value.varieties.filter { !it.isDefault }
-
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
-
     var isLoading by mutableStateOf(false)
     var endReached by mutableStateOf(false)
 
     private var currentOffset = 0
     private val limit = 20
 
-    fun loadPokemonList() {
+    fun getLocalDescription(pokemonId: Int): String {
+        return descriptionLocalRepository.getDescriptionById(pokemonId)
+    }
+    fun loadPokemonList(isNewRegion: Boolean = false) {
         if (isLoading || endReached) return
+
+        val selectedRegion = filters.value.selectedRegion
+        val regionRange = selectedRegion?.range
+
+        val regionStart = selectedRegion?.offset ?: 0
+        val regionEnd = regionStart + (selectedRegion?.limit ?: Int.MAX_VALUE)
 
         isLoading = true
         viewModelScope.launch {
             try {
                 val result = repository.getPokemonList(limit = limit, offset = currentOffset)
                 val newList = result.results
+
+                val filteredList = newList
+                    .map { it to extractIdFromUrl(it.url) }
+                    .filter { (_, id) -> regionRange?.contains(id) ?: true }
+                    .map { it.first }
+
+                if (isNewRegion) {
+                    _pokemonList.value = filteredList
+                } else {
+                    _pokemonList.value += filteredList
+                }
+
                 currentOffset += limit
 
-                if (newList.isEmpty() || newList.size < limit) {
+                if (newList.isEmpty() || newList.size < limit || currentOffset >= regionEnd) {
                     endReached = true
                 }
 
-                _pokemonList.value = _pokemonList.value + newList
             } catch (e: Exception) {
-                // Handle error if needed
+                Log.e("PokemonViewModel", "Pagination failed: ${e.message}")
             } finally {
                 isLoading = false
             }
         }
     }
+
 
     /** Main entry to fetch full Pokémon info + species */
     fun fetchPokemonData(name: String) {
@@ -95,7 +118,7 @@ class PokemonViewModel(
                 }?.flavorText?.replace("\n", " ")?.replace("\u000c", " ")
                     ?: "Description not available."
             } else {
-                "Variety form of ${pokemon.name.capitalize()}"
+                "Variety form of ${pokemon.name.capitalize(Locale.ROOT)}"
             }
 
             val varieties = if (includeSpecies) {
@@ -156,6 +179,27 @@ class PokemonViewModel(
 
     val team: StateFlow<List<TeamMemberEntity>> = teamDao.getTeam()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+
+    private val _filters = MutableStateFlow(PokemonFilter())
+    val filters: StateFlow<PokemonFilter> = _filters
+
+    fun setRegionFilter(region: Region?) {
+        _filters.update { it.copy(selectedRegion = region) }
+
+        currentOffset = region?.offset ?: 0
+        endReached = false
+        _pokemonList.value = emptyList()
+
+        loadPokemonList(isNewRegion = true)
+    }
+
+    fun extractIdFromUrl(url: String): Int {
+        return url.trimEnd('/')
+            .split("/")
+            .last()
+            .toIntOrNull() ?: -1
+    }
+
 }
 
 data class PokemonDetailUiState(
