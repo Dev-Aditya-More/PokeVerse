@@ -49,7 +49,7 @@ fun IntroScreen(
     val scope = rememberCoroutineScope()
 
 
-    // Auto-slide every 3 seconds
+    // Auto-slide
     LaunchedEffect(Unit) {
         while (true) {
             delay(3000)
@@ -60,7 +60,7 @@ fun IntroScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(Color.Black).padding(bottom = 8.dp)
     ) {
 
         // Crossfade image transition
@@ -85,7 +85,7 @@ fun IntroScreen(
                     "Your favourite pokemons at one place",
                     "Build a team and we'll analyze it for you"
                 ),
-                modifier = Modifier.align(Alignment.BottomCenter)
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
             )
         }
 
