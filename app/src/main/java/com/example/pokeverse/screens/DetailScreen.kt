@@ -1,9 +1,7 @@
 package com.example.pokeverse.screens
 
-import android.R.attr.name
 import android.media.MediaPlayer
 import android.speech.tts.TextToSpeech
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -33,7 +31,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -55,7 +53,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,7 +64,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -91,7 +87,9 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
         viewModel.fetchVarietyPokemon(pokemonName)
     }
 
-    val description = uiState.description
+    val description = pokemon?.id?.let { viewModel.getLocalDescription(it) } ?: ""
+
+
     val isLoading = uiState.isLoading
     val cleanText = description
         .replace(Regex("[^\\x00-\\x7F]"), " ")
@@ -129,9 +127,11 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
     val tts = remember {
         TextToSpeech(context) { status ->
             isTtsReady = status == TextToSpeech.SUCCESS
+        }.apply {
+            language = Locale.US
+            setPitch(1.3f)       // Higher pitch = softer and more cheerful
+            setSpeechRate(0.9f)  // Slightly slower = clearer and more expressive
         }
-    }.apply {
-        language = Locale.US
     }
     DisposableEffect(Unit) {
         onDispose {
@@ -242,7 +242,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                             }
                         }) {
                             Icon(
-                                imageVector = Icons.Filled.Info,
+                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = "Speak Description",
                                 tint = Color.White
                             )
@@ -310,23 +310,6 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                                 }
                             }
                         }
-
-                        // Description
-                        item {
-                            GlossyCard(modifier = Modifier.fillMaxWidth()) {
-                                Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("About", fontWeight = FontWeight.Bold, color = Color.White)
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                    Text(
-                                        text = cleanText.uppercase(),
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color.White,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                            }
-                        }
-
 
                         // stats
                         item {
