@@ -24,7 +24,7 @@ fun FilterBar(
     onRegionChange: (Region?) -> Unit,
 ) {
 
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 5.dp).padding(top = 8.dp)) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 8.dp).padding(top = 8.dp)) {
         item {
             FilterChip(
                 selected = currentFilter.selectedRegion == null,
