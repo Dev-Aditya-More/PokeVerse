@@ -1,12 +1,8 @@
 package com.example.pokeverse.screens
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,24 +12,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -48,7 +37,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,10 +47,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.pokeverse.R
@@ -83,73 +69,25 @@ fun DreamTeam(
         listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
     )
 
-    var showAnalysis by remember { mutableStateOf(false) }
     val teamDetailsState = remember { mutableStateOf<List<PokemonResponse>>(emptyList()) }
 
-    LaunchedEffect(key1 = team) {
+    LaunchedEffect(team) {
         val fetched = mutableListOf<PokemonResponse>()
-
         for (member in team) {
-            val success = viewModel.fetchPokemonData(member.name)
-            val result = viewModel.uiState.value.pokemon
-            if (result != null) {
-                fetched.add(result)
-            }
+            viewModel.fetchPokemonData(member.name)
+            viewModel.uiState.value.pokemon?.let { fetched.add(it) }
         }
-
         teamDetailsState.value = fetched
     }
 
     val teamDetails = teamDetailsState.value
 
-    // Comprehensive team rating logic
-    fun rateTeam(pokemonList: List<PokemonResponse>): Triple<Double, Map<String, Double>, List<Pair<String, Double>>> {
-        if (pokemonList.isEmpty()) return Triple(0.0, emptyMap(), emptyList())
-
-        // Base stat calculation
-        val totalBaseStats = pokemonList.sumOf { it.stats.sumOf { s -> s.base_stat } }
-        val avgBaseStat =
-            totalBaseStats / (pokemonList.size * 6.0) // Normalize to 6 stats per Pokémon
-        val statRating = (avgBaseStat / 150.0) * 100 // Max stat per category is ~150
-
-        // Type coverage and synergy
-        val allTypes = pokemonList.flatMap { it.types.map { type -> type.type.name } }
-        val uniqueTypes = allTypes.toSet()
-        val typeDiversity = (uniqueTypes.size.toDouble() / 18.0) * 100 // 18 types in Pokémon
-        val typeOverlapPenalty = allTypes.groupingBy { it }.eachCount()
-            .count { it.value > 1 } * 5.0 // Penalty for duplicates
-
-        // Individual contributions
-        val contributions = pokemonList.map { pokemon ->
-            val pokemonStatContribution =
-                pokemon.stats.sumOf { it.base_stat } / 600.0 * 100 // Per Pokémon contribution
-            val typeContribution =
-                if (uniqueTypes.contains(pokemon.types.firstOrNull()?.type?.name)) 10.0 else 0.0 // Bonus for unique type
-            pokemon.name to (pokemonStatContribution + typeContribution)
-        }
-
-        // Final team score
-        val finalScore =
-            (statRating * 0.5 + typeDiversity * 0.4 - typeOverlapPenalty).coerceIn(0.0, 100.0)
-        val typeBreakdown = mapOf(
-            "Diversity" to typeDiversity,
-            "Overlap Penalty" to -typeOverlapPenalty
-        )
-
-        return Triple(finalScore, typeBreakdown, contributions)
-    }
-
     Scaffold(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        "Dream Team",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White
-                    )
+                    Text("Dream Team", style = MaterialTheme.typography.headlineSmall, color = Color.White)
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Black,
@@ -169,9 +107,7 @@ fun DreamTeam(
                 NavigationBarItem(
                     selected = currentDestination == "home",
                     onClick = { navController.navigate("home") },
-                    icon = {
-                        Icon(Icons.Default.Home, contentDescription = "Home")
-                    },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
                     label = { Text("Home") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF802525),
@@ -185,9 +121,7 @@ fun DreamTeam(
                 NavigationBarItem(
                     selected = currentDestination == "dream_team",
                     onClick = { navController.navigate("dream_team") },
-                    icon = {
-                        Icon(Icons.Default.Star, contentDescription = "Team")
-                    },
+                    icon = { Icon(Icons.Default.Star, contentDescription = "Team") },
                     label = { Text("Team") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF802525),
@@ -199,7 +133,6 @@ fun DreamTeam(
                 )
             }
         }
-
     ) { padding ->
         val isLoading = viewModel.isLoading
 
@@ -211,31 +144,21 @@ fun DreamTeam(
         ) {
             when {
                 isLoading -> {
-
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CustomProgressIndicator()
                     }
                 }
 
                 team.isEmpty() -> {
-                    // empty state
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Image(
                                 painter = painterResource(id = R.drawable.pikachu),
                                 contentDescription = "Pikachu",
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .size(350.dp)
+                                modifier = Modifier.padding(16.dp).size(350.dp)
                             )
                             Text(
-                                text = "Your team is empty!",
+                                "Your team is empty!",
                                 color = Color.Gray,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -311,187 +234,6 @@ fun DreamTeam(
                                                 tint = Color(0xFFFF4444)
                                             )
                                         }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Analysis section
-                        val (teamRating, typeBreakdown, contributions) = rateTeam(teamDetails)
-
-                        val dominantType = teamDetails
-                            .flatMap { it.types.map { type -> type.type.name } }
-                            .groupBy { it }
-                            .maxByOrNull { it.value.size }?.key ?: "None"
-
-                        val weaknessFeedback = when (dominantType.lowercase()) {
-                            "fire" -> "Weak to Water and Rock"
-                            "water" -> "Weak to Grass and Electric"
-                            "grass" -> "Weak to Fire and Flying"
-                            else -> "Balanced type coverage"
-                        }
-
-                        if (team.size == 6) {
-                            val buttonVisible by animateFloatAsState(
-                                targetValue = if (team.size == 6) 1f else 0f,
-                                animationSpec = tween(
-                                    durationMillis = 300,
-                                    easing = FastOutSlowInEasing
-                                ),
-                                label = "buttonFade"
-                            )
-
-                            Column {
-
-                                AnimatedVisibility(
-                                    visible = team.size == 6,
-                                    enter = fadeIn(animationSpec = tween(300)) + scaleIn(
-                                        animationSpec = tween(300)
-                                    ),
-                                    exit = fadeOut()
-                                ) {
-                                    Button(
-                                        onClick = { showAnalysis = true },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 32.dp, vertical = 16.dp)
-                                            .graphicsLayer { alpha = buttonVisible },
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(
-                                                0xFFFFCB05
-                                            )
-                                        ),
-                                        elevation = ButtonDefaults.buttonElevation(4.dp)
-                                    ) {
-                                        Text(
-                                            "Analyze Team",
-                                            color = Color.Black,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                }
-                            }
-                        } else {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.dp),
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = "Add ${6 - team.size} more Pokémon to analyze your team!",
-                                    color = Color(0xFFB0B0B0),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontStyle = FontStyle.Italic
-                                )
-                            }
-                        }
-
-                        // Full-screen analysis screen
-                        if (showAnalysis) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.9f))
-                                    .clickable(
-                                        onClick = { showAnalysis = false },
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    )
-                            ) {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(16.dp)
-                                        .verticalScroll(rememberScrollState())
-                                ) {
-                                    Text(
-                                        text = "Team Analysis",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.headlineMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(bottom = 16.dp)
-                                    )
-                                    Text(
-                                        text = "Overall Rating: %.1f/100".format(teamRating),
-                                        color = Color(0xFFFFCB05),
-                                        style = MaterialTheme.typography.titleLarge,
-                                        modifier = Modifier.padding(bottom = 8.dp)
-                                    )
-                                    Text(
-                                        text = "Type Breakdown:",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(bottom = 4.dp)
-                                    )
-                                    typeBreakdown.forEach { (key, value) ->
-                                        Text(
-                                            text = "$key: %.1f%%".format(value),
-                                            color = if (key == "Overlap Penalty") Color(0xFFFF4444) else Color(
-                                                0xFFB0B0B0
-                                            ),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            modifier = Modifier.padding(
-                                                start = 16.dp,
-                                                bottom = 2.dp
-                                            )
-                                        )
-                                    }
-                                    Text(
-                                        text = "Pokémon Contributions:",
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
-                                    )
-                                    contributions.forEach { (name, contribution) ->
-                                        Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 4.dp),
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = Color(
-                                                    0xFF2E2E2E
-                                                )
-                                            ),
-                                            elevation = CardDefaults.cardElevation(4.dp)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .padding(12.dp)
-                                                    .fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.SpaceBetween
-                                            ) {
-                                                Text(
-                                                    text = name.replaceFirstChar { it.uppercase() },
-                                                    color = Color.White,
-                                                    style = MaterialTheme.typography.bodyMedium
-                                                )
-                                                Text(
-                                                    text = "%.1f%%".format(contribution),
-                                                    color = Color(0xFFFFCB05),
-                                                    style = MaterialTheme.typography.bodyMedium
-                                                )
-                                            }
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Button(
-                                        onClick = { showAnalysis = false },
-                                        modifier = Modifier
-                                            .align(Alignment.CenterHorizontally)
-                                            .padding(top = 16.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(
-                                                0xFFFFCB05
-                                            )
-                                        )
-                                    ) {
-                                        Text(
-                                            "Back",
-                                            color = Color.Black,
-                                            fontWeight = FontWeight.Bold
-                                        )
                                     }
                                 }
                             }

@@ -1,9 +1,23 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.pokeverse
 
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOut
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -39,6 +53,9 @@ import com.example.pokeverse.screens.PokemonDetailScreen
 import com.example.pokeverse.ui.theme.PokeVerseTheme
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.ScreenStateManager
+import com.example.pokeverse.utils.ScreenStateManager.markIntroSeen
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
@@ -46,9 +63,10 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.context.GlobalContext.startKoin
 
 class MainActivity : ComponentActivity() {
-
     private lateinit var navController: NavHostController
 
+    @OptIn(ExperimentalAnimationApi::class)
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -66,15 +84,24 @@ class MainActivity : ComponentActivity() {
 
                 val startDestination = remember { mutableStateOf("splash") }
 
-                // Restore saved screen on launch
                 LaunchedEffect(Unit) {
-                    startDestination.value = "intro"
+                    val introSeen = ScreenStateManager.isIntroSeen(this@MainActivity)
+                    val lastRoute = ScreenStateManager.getLastRoute(this@MainActivity)
+
+                    startDestination.value = when {
+                        !introSeen -> "intro"
+                        !lastRoute.isNullOrBlank() -> lastRoute
+                        else -> "home"
+                    }
                 }
 
-
-                NavHost(
+                AnimatedNavHost(
                     navController = navController,
-                    startDestination = startDestination.value
+                    startDestination = startDestination.value,
+                    enterTransition = { fadeIn(animationSpec = tween(500)) + scaleIn(tween(300))},
+                    exitTransition = { fadeOut(animationSpec = tween(300)) },
+                    popEnterTransition = { fadeIn(animationSpec = tween(500)) + scaleIn(tween(300)) },
+                    popExitTransition = { fadeOut(animationSpec = tween(300)) }
                 ) {
                     composable("splash") {
                         SplashScreen(navController)
@@ -82,17 +109,35 @@ class MainActivity : ComponentActivity() {
                     composable("intro") {
                         IntroScreen(navController = navController)
                     }
-                    composable("home") {
+                    composable(
+                        "home",
+                        exitTransition = {
+                            slideOutHorizontally(
+                                animationSpec = tween(300),
+                                targetOffsetX = { -it / 2 }
+                            )
+                        }
+                    ) {
                         HomeScreen(navController)
                     }
-                    composable("dream_team") { backStackEntry ->
+                    composable(
+                        "dream_team",
+                        enterTransition = {
+                            slideInHorizontally(
+                            animationSpec = tween(300),
+                            initialOffsetX = { it / 2 }
+                        )
+                        }
+                    ) { backStackEntry ->
                         DreamTeam(
                             navController = navController,
                             team = viewModel.team.collectAsState().value,
                             onRemove = { viewModel.removeFromTeam(it) }
                         )
                     }
-                    composable("pokemon_detail/{pokemonName}") { backStackEntry ->
+                    composable(
+                        "pokemon_detail/{pokemonName}"
+                    ){ backStackEntry ->
                         val pokemonName = backStackEntry.arguments?.getString("pokemonName")
                         if (pokemonName != null) {
                             PokemonDetailScreen(pokemonName, navController)
@@ -120,6 +165,7 @@ class MainActivity : ComponentActivity() {
         if (!route.isNullOrBlank()) {
             lifecycleScope.launch {
                 ScreenStateManager.saveCurrentRoute(this@MainActivity, route)
+                markIntroSeen(this@MainActivity)
             }
         }
     }

@@ -2,6 +2,7 @@ package com.example.pokeverse.di
 
 import androidx.room.Room
 import com.example.pokeverse.data.local.AppDatabase
+import com.example.pokeverse.data.local.entity.PokemonDatabase
 import org.koin.androidx.viewmodel.dsl.viewModel
 import com.example.pokeverse.data.remote.PokeApi
 import com.example.pokeverse.data.repository.PokemonRepoImpl
@@ -9,6 +10,7 @@ import com.example.pokeverse.domain.repository.DescriptionRepo
 import com.example.pokeverse.domain.repository.PokemonRepo
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.TeamMapper
+import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -61,4 +63,16 @@ val appModule = module {
     }
 
     single { DescriptionRepo(androidContext()) }
+
+    single {
+        Room.databaseBuilder(
+            get(),
+            PokemonDatabase::class.java,
+            "pokemon.db"
+        ).build()
+    }
+
+    single { get<PokemonDatabase>().pokemonDao() }
+
+    single { Gson() }
 }

@@ -81,15 +81,23 @@ dependencies {
     implementation(libs.accompanist.navigation.animation)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.foundation)
-
     // Koin Core
     implementation(libs.koin.core)
+    implementation(libs.material3.window.size.class1)
 
     // Koin for Android
     implementation(libs.koin.android)
 
     // Koin for Jetpack Compose
     implementation(libs.koin.androidx.compose)
+
+    implementation(libs.androidx.material3.window.size.class1)
+    implementation(libs.material3)
+    implementation(libs.ui)
+// Optional for shared element transitions
+    implementation(libs.accompanist.navigation.material)
+    implementation(libs.accompanist.placeholder.material)
+    implementation(libs.accompanist.systemuicontroller)
 
     // ui tests
     testImplementation(libs.junit)

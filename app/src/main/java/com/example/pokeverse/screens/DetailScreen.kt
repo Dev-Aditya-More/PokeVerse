@@ -89,7 +89,6 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
 
     val description = pokemon?.id?.let { viewModel.getLocalDescription(it) } ?: ""
 
-
     val isLoading = uiState.isLoading
     val cleanText = description
         .replace(Regex("[^\\x00-\\x7F]"), " ")
@@ -155,6 +154,11 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                 .align(Alignment.TopCenter)
                 .zIndex(-1f)
         ) {
+
+            AnimatedEmberBackground(
+                types = typeList
+            )
+
             // Actual radial background
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val gradientBrush = Brush.radialGradient(
