@@ -165,7 +165,6 @@ class MainActivity : ComponentActivity() {
         if (!route.isNullOrBlank()) {
             lifecycleScope.launch {
                 ScreenStateManager.saveCurrentRoute(this@MainActivity, route)
-                markIntroSeen(this@MainActivity)
             }
         }
     }

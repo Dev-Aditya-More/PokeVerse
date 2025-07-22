@@ -26,7 +26,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.pokeverse.R
+import com.example.pokeverse.utils.ScreenStateManager
 import com.example.pokeverse.utils.ScreenStateManager.markIntroSeen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -44,7 +47,7 @@ fun IntroScreen(
     val pageCount = imageList.size
     var currentPage by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
-
+    val context = LocalContext.current
 
     // Auto-slide
     LaunchedEffect(Unit) {
@@ -95,6 +98,9 @@ fun IntroScreen(
                 .height(56.dp)
         ) {
             scope.launch {
+                CoroutineScope(Dispatchers.IO).launch {
+                    markIntroSeen(context)
+                }
                 navController.navigate("home") {
                     popUpTo("intro") { inclusive = true }
                 }
