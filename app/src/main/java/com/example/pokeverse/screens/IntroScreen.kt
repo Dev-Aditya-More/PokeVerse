@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,59 +59,71 @@ fun IntroScreen(
         }
     }
 
-    Box(
+    Scaffold(
+        containerColor = Color.Transparent,
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black).padding(bottom = 8.dp)
-    ) {
+            .background(Color.Black)
+            .navigationBarsPadding()
+    ) { padding ->
 
-        // Crossfade image transition
-        Crossfade(
-            targetState = currentPage,
-            animationSpec = tween(durationMillis = 600),
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-            Image(
-                painter = imageList[page],
-                contentDescription = "Intro Image $page",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-
-        Box(modifier = Modifier.fillMaxSize()) {
-
-            QuoteCarousel(
-                quotesGenerate = listOf(
-                    "a whole new world of pokemons",
-                    "Your favourite pokemons at one place",
-                    "Discover the legends behind the stats"
-                ),
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
-            )
-        }
-
-        NeumorphicButton(
-            text = "Continue",
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 24.dp, start = 32.dp, end = 32.dp)
-                .fillMaxWidth()
-                .height(56.dp)
+                .fillMaxSize()
+                .padding(padding)
+                .padding(bottom = 8.dp)
         ) {
-            scope.launch {
-                CoroutineScope(Dispatchers.IO).launch {
-                    markIntroSeen(context)
-                }
-                navController.navigate("home") {
-                    popUpTo("intro") { inclusive = true }
+
+            // Crossfade image transition
+            Crossfade(
+                targetState = currentPage,
+                animationSpec = tween(durationMillis = 600),
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                Image(
+                    painter = imageList[page],
+                    contentDescription = "Intro Image $page",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+
+            // Quote text at bottom
+            Box(modifier = Modifier.fillMaxSize()) {
+                QuoteCarousel(
+                    quotesGenerate = listOf(
+                        "a whole new world of pokemons",
+                        "Your favourite pokemons at one place",
+                        "Discover the legends behind the stats"
+                    ),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 24.dp)
+                )
+            }
+
+            // Continue button at bottom
+            NeumorphicButton(
+                text = "Continue",
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 24.dp, start = 32.dp, end = 32.dp)
+                    .fillMaxWidth()
+                    .height(56.dp)
+            ) {
+                scope.launch {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        markIntroSeen(context)
+                    }
+                    navController.navigate("home") {
+                        popUpTo("intro") { inclusive = true }
+                    }
                 }
             }
         }
-
     }
-
 }
+
 
 @Preview
 @Composable

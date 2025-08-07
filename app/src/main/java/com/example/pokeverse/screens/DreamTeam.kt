@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
@@ -80,8 +81,6 @@ fun DreamTeam(
         teamDetailsState.value = fetched
     }
 
-    val teamDetails = teamDetailsState.value
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -107,7 +106,9 @@ fun DreamTeam(
                 NavigationBarItem(
                     selected = currentDestination == "home",
                     onClick = { navController.navigate("home") },
-                    icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                    icon = {
+                        Icon(Icons.Default.Home, contentDescription = "Home")
+                    },
                     label = { Text("Home") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF802525),
@@ -121,8 +122,26 @@ fun DreamTeam(
                 NavigationBarItem(
                     selected = currentDestination == "dream_team",
                     onClick = { navController.navigate("dream_team") },
-                    icon = { Icon(Icons.Default.Star, contentDescription = "Team") },
+                    icon = {
+                        Icon(Icons.Default.Star, contentDescription = "Team")
+                    },
                     label = { Text("Team") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Color(0xFF802525),
+                        selectedTextColor = Color.White,
+                        unselectedIconColor = Color.Gray,
+                        unselectedTextColor = Color.Gray,
+                        indicatorColor = Color(0xFF1A1A1A)
+                    )
+                )
+
+                NavigationBarItem(
+                    selected = currentDestination == "settings",
+                    onClick = { navController.navigate("settings") },
+                    icon = {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    },
+                    label = { Text("Settings") },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF802525),
                         selectedTextColor = Color.White,

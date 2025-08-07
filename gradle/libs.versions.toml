@@ -1,7 +1,7 @@
 [versions]
 accompanistNavigationAnimation = "0.36.0"
 accompanistNavigationAnimationVersion = "0.32.0"
-agp = "8.11.1"
+agp = "8.12.0"
 coilCompose = "2.7.0"
 converterGson = "3.0.0"
 datastorePreferences = "1.1.7"
@@ -32,6 +32,7 @@ koin-android = "4.1.0"
 koin-compose = "4.1.0"
 moshi = "1.15.2"
 turbine = "1.2.1"
+uiTextGoogleFonts = "1.8.3"
 
 [libraries]
 accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }

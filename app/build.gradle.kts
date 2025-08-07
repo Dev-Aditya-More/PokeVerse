@@ -94,6 +94,8 @@ dependencies {
     implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.material3)
     implementation(libs.ui)
+    implementation("androidx.compose.ui:ui-text-google-fonts:1.6.1")
+
 // Optional for shared element transitions
     implementation(libs.accompanist.navigation.material)
     implementation(libs.accompanist.placeholder.material)

@@ -1,5 +1,6 @@
 package com.example.pokeverse.di
 
+import android.content.Context
 import androidx.room.Room
 import com.example.pokeverse.data.local.AppDatabase
 import com.example.pokeverse.data.local.entity.PokemonDatabase
@@ -9,6 +10,7 @@ import com.example.pokeverse.data.repository.PokemonRepoImpl
 import com.example.pokeverse.domain.repository.DescriptionRepo
 import com.example.pokeverse.domain.repository.PokemonRepo
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
+import com.example.pokeverse.utils.ScreenStateManager
 import com.example.pokeverse.utils.TeamMapper
 import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
@@ -23,14 +25,6 @@ val appModule = module {
     single(named("pokeapi")) {
         Retrofit.Builder()
             .baseUrl("https://pokeapi.co/api/v2/")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
-
-    // Retrofit for OpenAI
-    single(named("openai")) {
-        Retrofit.Builder()
-            .baseUrl("https://api.openai.com/")
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
@@ -75,4 +69,5 @@ val appModule = module {
     single { get<PokemonDatabase>().pokemonDao() }
 
     single { Gson() }
+
 }

@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.BottomAppBar
@@ -61,10 +62,15 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.pokeverse.R
+import com.example.pokeverse.ui.theme.appTypography
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.TeamMapper.toEntity
 import kotlinx.coroutines.Dispatchers
@@ -72,6 +78,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.ui.text.googlefonts.Font as GoogleFontInstance
 
 @RequiresApi(Build.VERSION_CODES.N)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -85,7 +92,6 @@ fun HomeScreen(navController: NavHostController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-
 
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
@@ -108,10 +114,12 @@ fun HomeScreen(navController: NavHostController) {
                     title = {
                         Text(
                             "Pokéverse",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = Color.White,
-                            modifier = Modifier.padding(bottom = 4.dp) // Adjusted padding for alignment
+                            style = MaterialTheme.typography.headlineSmall.copy(
+                                fontSize = 26.sp, letterSpacing = 0.5.sp
+                            ),
+                            color = Color.White
                         )
+
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Black,
@@ -159,8 +167,25 @@ fun HomeScreen(navController: NavHostController) {
                             indicatorColor = Color(0xFF1A1A1A)
                         )
                     )
+
+                    NavigationBarItem(
+                        selected = currentDestination == "settings",
+                        onClick = { navController.navigate("settings") },
+                        icon = {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        },
+                        label = { Text("Settings") },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Color(0xFF802525),
+                            selectedTextColor = Color.White,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray,
+                            indicatorColor = Color(0xFF1A1A1A)
+                        )
+                    )
                 }
             }
+
 
         ) { paddingValues ->
             val focusManager = LocalFocusManager.current
@@ -327,14 +352,11 @@ fun HomeScreen(navController: NavHostController) {
                                                     tint = if (isInTeam) Color.Yellow else Color.White.copy(
                                                         alpha = if (team.value.size >= 6) 0.2f else 1f
                                                     ),
-                                                    modifier = Modifier.shadow(
-                                                        elevation = 4.dp,
+                                                    modifier = Modifier.graphicsLayer(
+                                                        shadowElevation = 8f,
                                                         shape = CircleShape,
-                                                        ambientColor = Color.Yellow,
-                                                        spotColor = Color.Yellow
-
+                                                        clip = true
                                                     )
-
                                                 )
                                             }
                                         }

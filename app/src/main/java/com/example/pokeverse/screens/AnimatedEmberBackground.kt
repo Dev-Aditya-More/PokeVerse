@@ -37,24 +37,72 @@ fun AnimatedEmberBackground(types: List<String>) {
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     val emberColor = remember(types) {
+        val lowerTypes = types.map { it.lowercase() }
+
         when {
-            "charizard-x" in types.map { it.lowercase() } -> Color(0xFF4FC3F7)
-            "charizard-y" in types.map { it.lowercase() } -> Color(0xFFFF7043)
-            "gmax" in types.map { it.lowercase() } -> Color(0xFFFF4081)
-            "fire" in types -> Color(0xFFFF5722)
-            "electric" in types -> Color(0xFFFFEB3B)
-            "ghost" in types -> Color(0xFF7E57C2)
-            "ice" in types -> Color(0xFF81D4FA)
-            "dark" in types -> Color(0xFF616161)
-            "psychic" in types -> Color(0xFFE040FB)
-            "grass" in types -> Color(0xFF66BB6A)
-            "water" in types -> Color(0xFF29B6F6)
-            "poison" in types -> Color(0xFF9C27B0)
-            "rock" in types -> Color(0xFF795548)
-            "dragon" in types -> Color(0xFF673AB7)
-            else -> Color(0xFFFFFFFF)
+            "charizard-x" in lowerTypes -> Color(0xFF4FC3F7)
+            "charizard-y" in lowerTypes -> Color(0xFFFF7043)
+            "gmax" in lowerTypes -> Color(0xFFFF4081)
+            "fire" in lowerTypes -> listOf(
+                Color(0xFFFF5722),
+                Color(0xFFFF7043),
+                Color(0xFFFFA726)
+            ).random()
+
+            "electric" in lowerTypes -> listOf(
+                Color(0xFFFFEB3B),
+                Color(0xFFFFC107)
+            ).random()
+
+            "ghost" in lowerTypes -> listOf(
+                Color(0xFF9575CD),
+                Color(0xFF7E57C2)
+            ).random()
+
+            "ice" in lowerTypes -> listOf(
+                Color(0xFF81D4FA),
+                Color(0xFFB3E5FC)
+            ).random()
+
+            "dark" in lowerTypes -> listOf(
+                Color(0xFF616161),
+                Color(0xFF9E9E9E)
+            ).random()
+
+            "psychic" in lowerTypes -> listOf(
+                Color(0xFFE040FB),
+                Color(0xFFCE93D8)
+            ).random()
+
+            "grass" in lowerTypes -> listOf(
+                Color(0xFF66BB6A),
+                Color(0xFF81C784)
+            ).random()
+
+            "water" in lowerTypes -> listOf(
+                Color(0xFF29B6F6),
+                Color(0xFF4FC3F7)
+            ).random()
+
+            "poison" in lowerTypes -> listOf(
+                Color(0xFFAB47BC),
+                Color(0xFF9C27B0)
+            ).random()
+
+            "rock" in lowerTypes -> listOf(
+                Color(0xFF795548),
+                Color(0xFFA1887F)
+            ).random()
+
+            "dragon" in lowerTypes -> listOf(
+                Color(0xFF673AB7),
+                Color(0xFF9575CD)
+            ).random()
+
+            else -> Color.White
         }
     }
+
 
     Box(
         modifier = Modifier

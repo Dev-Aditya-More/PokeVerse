@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -180,25 +182,41 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
             // Pokémon Image animation
             val imageAlpha = remember { Animatable(0f) }
             val imageScale = remember { Animatable(0.9f) }
+            val isPressed = remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
                 imageAlpha.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
                 imageScale.animateTo(1.0f, tween(600, easing = FastOutSlowInEasing))
             }
 
+            val pressScale by animateFloatAsState(
+                targetValue = if (isPressed.value) 1.1f else imageScale.value,
+                animationSpec = tween(300),
+                label = "pressScale"
+            )
+
             AsyncImage(
                 model = pokemon?.sprites?.other?.officialArtwork?.frontDefault
                     ?: pokemon?.sprites?.front_default,
                 contentDescription = pokemon?.name,
+                contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .size(220.dp)
                     .graphicsLayer {
                         alpha = imageAlpha.value
-                        scaleX = imageScale.value
-                        scaleY = imageScale.value
+                        scaleX = pressScale
+                        scaleY = pressScale
                     }
-                    .align(Alignment.Center),
-                contentScale = ContentScale.Fit
+                    .align(Alignment.Center)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = {
+                                isPressed.value = true
+                                tryAwaitRelease()
+                                isPressed.value = false
+                            }
+                        )
+                    }
             )
         }
 

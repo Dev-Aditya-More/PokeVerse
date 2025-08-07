@@ -9,14 +9,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOut
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -50,12 +48,11 @@ import com.example.pokeverse.screens.DreamTeam
 import com.example.pokeverse.screens.HomeScreen
 import com.example.pokeverse.screens.IntroScreen
 import com.example.pokeverse.screens.PokemonDetailScreen
+import com.example.pokeverse.screens.SettingsScreen
 import com.example.pokeverse.ui.theme.PokeVerseTheme
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.ScreenStateManager
-import com.example.pokeverse.utils.ScreenStateManager.markIntroSeen
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
@@ -78,7 +75,8 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            PokeVerseTheme {
+
+            PokeVerseTheme{
                 navController = rememberNavController()  // Store in field
                 val viewModel: PokemonViewModel = koinViewModel()
 
@@ -98,46 +96,52 @@ class MainActivity : ComponentActivity() {
                 AnimatedNavHost(
                     navController = navController,
                     startDestination = startDestination.value,
-                    enterTransition = { fadeIn(animationSpec = tween(500)) + scaleIn(tween(300))},
-                    exitTransition = { fadeOut(animationSpec = tween(300)) },
-                    popEnterTransition = { fadeIn(animationSpec = tween(500)) + scaleIn(tween(300)) },
-                    popExitTransition = { fadeOut(animationSpec = tween(300)) }
+                    enterTransition = {
+                        slideInHorizontally(
+                            initialOffsetX = { it / 4 }, // subtle right-to-left slide
+                            animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(400))
+                    },
+                    exitTransition = {
+                        slideOutHorizontally(
+                            targetOffsetX = { -it / 6 }, // slight left slide
+                            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(300))
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(
+                            initialOffsetX = { -it / 4 }, // reverse direction for pop
+                            animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
+                        ) + fadeIn(animationSpec = tween(400))
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(
+                            targetOffsetX = { it / 6 }, // reverse direction for pop
+                            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
+                        ) + fadeOut(animationSpec = tween(300))
+                    }
                 ) {
-                    composable("splash") {
+                    composable("splash",
+                        enterTransition = {
+                            scaleIn(initialScale = 0.8f, animationSpec = tween(600)) + fadeIn(tween(600))
+                        }
+                    ) {
                         SplashScreen(navController)
                     }
                     composable("intro") {
                         IntroScreen(navController = navController)
                     }
-                    composable(
-                        "home",
-                        exitTransition = {
-                            slideOutHorizontally(
-                                animationSpec = tween(300),
-                                targetOffsetX = { -it / 2 }
-                            )
-                        }
-                    ) {
+                    composable("home") {
                         HomeScreen(navController)
                     }
-                    composable(
-                        "dream_team",
-                        enterTransition = {
-                            slideInHorizontally(
-                            animationSpec = tween(300),
-                            initialOffsetX = { it / 2 }
-                        )
-                        }
-                    ) { backStackEntry ->
+                    composable("dream_team") {
                         DreamTeam(
                             navController = navController,
                             team = viewModel.team.collectAsState().value,
                             onRemove = { viewModel.removeFromTeam(it) }
                         )
                     }
-                    composable(
-                        "pokemon_detail/{pokemonName}"
-                    ){ backStackEntry ->
+                    composable("pokemon_detail/{pokemonName}") { backStackEntry ->
                         val pokemonName = backStackEntry.arguments?.getString("pokemonName")
                         if (pokemonName != null) {
                             PokemonDetailScreen(pokemonName, navController)
@@ -146,15 +150,21 @@ class MainActivity : ComponentActivity() {
                                 listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
                             )
                             Box(
-                                modifier = Modifier.fillMaxSize().background(brush = pokeballGradient),
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(brush = pokeballGradient),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text("Error: Pokémon not found", color = Color.White)
-
                             }
                         }
                     }
+
+                    composable("settings") {
+                        SettingsScreen(navController)
+                    }
                 }
+
             }
         }
     }
