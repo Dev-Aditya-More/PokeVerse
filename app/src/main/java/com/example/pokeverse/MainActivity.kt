@@ -22,7 +22,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -146,17 +156,9 @@ class MainActivity : ComponentActivity() {
                         if (pokemonName != null) {
                             PokemonDetailScreen(pokemonName, navController)
                         } else {
-                            val pokeballGradient = Brush.verticalGradient(
-                                listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
+                            PokemonNotFoundScreen(
+                                onBackClick = { navController.popBackStack() }
                             )
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(brush = pokeballGradient),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text("Error: Pokémon not found", color = Color.White)
-                            }
                         }
                     }
 
@@ -209,6 +211,53 @@ fun SplashScreen(navController: NavController) {
             modifier = Modifier.size(450.dp)
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PokemonNotFoundScreen(
+    onBackClick: () -> Unit // pass this from your NavController
+) {
+    val pokeballGradient = Brush.verticalGradient(
+        listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
+    )
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Oops!") },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = Color.White
+                )
+            )
+        },
+        modifier = Modifier.fillMaxSize(),
+        containerColor = Color.Transparent,
+        content = { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(brush = pokeballGradient)
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Error: Pokémon not found",
+                    color = Color.White
+                )
+            }
+        }
+    )
 }
 
 

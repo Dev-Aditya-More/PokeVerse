@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,7 +33,6 @@ import kotlin.collections.filter
 class PokemonViewModel(
     private val repository: PokemonRepo,
     private val teamDao: TeamDao,
-    private val mapper: TeamMapper,
     private val descriptionLocalRepository: DescriptionRepo
 ) : ViewModel() {
 
@@ -146,18 +146,6 @@ class PokemonViewModel(
         }
     }
 
-    suspend fun fetchPokemonDataAndWait(name: String): Boolean {
-        return withContext(Dispatchers.IO) {
-            try {
-                fetchPokemonData(name)
-                delay(500)
-                uiState.value.pokemon != null
-            } catch (e: Exception) {
-                false
-            }
-        }
-    }
-
     fun addToTeam(pokemonResult: PokemonResult) = viewModelScope.launch {
         val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
         val entity = pokemonResponse.toEntity()
@@ -207,5 +195,5 @@ data class PokemonDetailUiState(
     val description: String = "",
     val isLoading: Boolean = true,
     val error: String? = null,
-    val varieties: List<PokemonVariety> = emptyList()
+    val varieties: List<PokemonVariety> = emptyList(),
 )

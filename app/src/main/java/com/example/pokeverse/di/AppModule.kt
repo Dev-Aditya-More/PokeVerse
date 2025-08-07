@@ -10,6 +10,7 @@ import com.example.pokeverse.data.repository.PokemonRepoImpl
 import com.example.pokeverse.domain.repository.DescriptionRepo
 import com.example.pokeverse.domain.repository.PokemonRepo
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
+import com.example.pokeverse.ui.viewmodel.SettingsViewModel
 import com.example.pokeverse.utils.ScreenStateManager
 import com.example.pokeverse.utils.TeamMapper
 import com.google.gson.Gson
@@ -53,7 +54,11 @@ val appModule = module {
 
     // ViewModels
     viewModel {
-        PokemonViewModel(get(), get(), get(), get())
+        PokemonViewModel(get(), get(), get())
+    }
+
+    viewModel {
+        SettingsViewModel(androidContext())
     }
 
     single { DescriptionRepo(androidContext()) }

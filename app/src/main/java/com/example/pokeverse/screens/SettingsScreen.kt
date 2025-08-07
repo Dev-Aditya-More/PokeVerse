@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -24,10 +25,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +43,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.pokeverse.ui.viewmodel.SettingsViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +56,10 @@ fun SettingsScreen(
     )
 
     var isAboutExpanded by remember { mutableStateOf(false) }
+    var isSpecialEffectsExpanded by remember { mutableStateOf(false) }
+    val settingsViewModel: SettingsViewModel = koinViewModel()
+
+    val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -165,7 +175,7 @@ fun SettingsScreen(
                     Column(
                         modifier = Modifier.padding(top = 8.dp)
                     ) {
-                        Text("Developer: Aditya More", color = Color.Gray)
+                        Text("Made with ❤️ by Aditya More", color = Color.Gray)
                         Text("Version: 1.0.0", color = Color.Gray)
                         Text("Built with Jetpack Compose", color = Color.Gray)
                     }
@@ -177,6 +187,54 @@ fun SettingsScreen(
                 DividerDefaults.Thickness,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { isSpecialEffectsExpanded = !isSpecialEffectsExpanded }
+                    .padding(vertical = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Special Effects (Experimental)",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = Color.White
+                    )
+                    Switch(
+                        checked = specialEffectsEnabled,
+                        onCheckedChange = {
+                            settingsViewModel.toggleSpecialEffects(it)
+                        },
+                        modifier = Modifier.padding(start = 8.dp),
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color(0xFF802525),
+                            uncheckedThumbColor = Color.Black,
+                            checkedTrackColor = Color.Black,
+                            uncheckedTrackColor = Color(0xFF802525),
+                            uncheckedBorderColor = Color(0xFF802525)
+                        )
+                    )
+                    Icon(
+                        imageVector = if (isSpecialEffectsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = "Expand",
+                        tint = Color.White
+                    )
+                }
+
+                AnimatedVisibility(visible = isSpecialEffectsExpanded) {
+                    Column(
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text("You'll see the particle effect on detail screen", color = Color.Gray)
+                    }
+                }
+            }
+
+
         }
     }
 }

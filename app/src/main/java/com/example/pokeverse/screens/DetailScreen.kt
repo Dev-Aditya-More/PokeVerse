@@ -72,7 +72,10 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.pokeverse.R
+import com.example.pokeverse.specialscreens.ParticleBackground
+import com.example.pokeverse.specialscreens.getParticleTypeFor
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
+import com.example.pokeverse.ui.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 
@@ -83,6 +86,8 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
     val viewModel: PokemonViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsState()
     val pokemon = uiState.pokemon
+    val settingsViewModel : SettingsViewModel = koinViewModel()
+    val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsState()
 
     LaunchedEffect(pokemonName) {
         viewModel.fetchPokemonData(pokemonName)
@@ -157,9 +162,10 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                 .zIndex(-1f)
         ) {
 
-            AnimatedEmberBackground(
-                types = typeList
-            )
+            if (specialEffectsEnabled) {
+                val particleType = getParticleTypeFor(typeList)
+                ParticleBackground(particleType)
+            }
 
             // Actual radial background
             Canvas(modifier = Modifier.fillMaxSize()) {
