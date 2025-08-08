@@ -1,9 +1,6 @@
 package com.example.pokeverse.specialscreens
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -25,17 +22,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlin.random.Random
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
+@Preview
 fun LeafParticles(modifier: Modifier = Modifier) {
+
     val leafCount = 20
     val infiniteTransition = rememberInfiniteTransition()
 
-    // Animate a "time" value to simulate passage of time
     val time by infiniteTransition.animateFloat(
         initialValue = 0f,
-        targetValue = 1f, // Just cycles every second
+        targetValue = 1f, // cycles every second
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 4000, easing = LinearOutSlowInEasing)
+            animation = tween(durationMillis = 10000, easing = LinearOutSlowInEasing)
         )
     )
 
