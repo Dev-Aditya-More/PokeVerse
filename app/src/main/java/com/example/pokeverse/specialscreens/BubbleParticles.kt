@@ -8,6 +8,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
@@ -52,14 +54,42 @@ fun BubbleParticles(
 
     Canvas(modifier = modifier.fillMaxSize()) {
         particles.forEach { particle ->
+            val center = Offset(particle.x * size.width, particle.y * size.height)
+
             drawCircle(
-                color = particle.color.copy(alpha = particle.alpha),
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        particle.color.copy(alpha = 0.3f), // center
+                        Color.White.copy(alpha = 0.05f)    // edge
+                    ),
+                    center = center,
+                    radius = particle.radius * density
+                ),
                 radius = particle.radius * density,
-                center = Offset(particle.x * size.width, particle.y * size.height),
-                style = Stroke(width = 1.5f * density) // outline for more bubble look
+                center = center
+            )
+
+            drawCircle(
+                color = Color.White.copy(alpha = 0.6f),
+                radius = particle.radius * density,
+                center = center,
+                style = Stroke(width = 1.2f * density)
+            )
+
+            drawOval(
+                color = Color.White.copy(alpha = 0.4f),
+                topLeft = Offset(
+                    center.x - particle.radius * density * 0.5f,
+                    center.y - particle.radius * density * 0.7f
+                ),
+                size = Size(
+                    particle.radius * density * 0.6f,
+                    particle.radius * density * 0.3f
+                )
             )
         }
     }
+
 }
 data class BubbleParticle(
     val x: Float,

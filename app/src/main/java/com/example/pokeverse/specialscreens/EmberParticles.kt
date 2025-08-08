@@ -35,82 +35,104 @@ import kotlin.math.sin
 import kotlin.random.Random
 
 @Composable
-fun EmberParticles(modifier: Modifier = Modifier) {
-    val emberCount = 25
-    val infiniteTransition = rememberInfiniteTransition(label = "ember_transition")
+fun EmberParticles(
+    modifier: Modifier = Modifier,
+    particleCount: Int = 60,
+    colors: List<Color> = listOf(Color(0xFFFF6D00), Color(0xFFFFA726), Color(0xFFFFC107))
+) {
+    val particles = remember { mutableStateListOf<EmberParticle>() }
+    val density = LocalDensity.current.density
+    val scope = rememberCoroutineScope()
 
-    val emberParticles = remember {
-        List(emberCount) {
-            EmberParticle(
-                startX = Random.nextFloat(),
-                delay = Random.nextInt(0, 2000),
-                speed = Random.nextFloat() * 0.5f + 0.5f, // 0.5x to 1.0x
-                color = listOf(
-                    Color(0xFFFF6B00),
-                    Color(0xFFFFB300),
-                    Color(0xFFDD2C00)
-                ).random(),
-                size = Random.nextFloat() * 6f + 4f // 4 to 10 dp
-            )
+    // Add new particles
+    LaunchedEffect(Unit) {
+        while (true) {
+            if (particles.size < particleCount) {
+                particles += EmberParticle.generate(colors)
+            }
+            delay(50L)
         }
     }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        emberParticles.forEach { particle ->
-            val yAnim by infiniteTransition.animateFloat(
-                initialValue = 1f,
-                targetValue = 0f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(
-                        durationMillis = (4000 / particle.speed).toInt(),
-                        delayMillis = particle.delay,
-                        easing = LinearEasing
-                    ),
-                    repeatMode = RepeatMode.Restart
-                ),
-                label = "y_anim"
-            )
+    // Update particles
+    LaunchedEffect(Unit) {
+        while (true) {
+            val iterator = particles.listIterator()
+            while (iterator.hasNext()) {
+                val p = iterator.next().update()
+                if (p.isAlive()) {
+                    iterator.set(p)
+                } else {
+                    iterator.remove()
+                }
+            }
+            delay(16L) // ~60 FPS
+        }
+    }
 
-            val alphaAnim by infiniteTransition.animateFloat(
-                initialValue = 0.4f,
-                targetValue = 1f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(
-                        durationMillis = 800,
-                        delayMillis = particle.delay,
-                        easing = FastOutLinearInEasing
-                    ),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "alpha_anim"
-            )
-
-            val xOffset = sin((1f - yAnim) * 6f * PI).toFloat() * 0.02f // slight left-right flicker
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .graphicsLayer {
-                        alpha = alphaAnim
-                        translationX = (particle.startX + xOffset - 0.5f) * size.width
-                        translationY = yAnim * size.height
-                    }
-                    .size(particle.size.dp)
-                    .background(
-                        color = particle.color,
-                        shape = CircleShape
+    Canvas(modifier = modifier.fillMaxSize()) {
+        particles.forEach { particle ->
+            drawIntoCanvas { canvas ->
+                val paint = Paint().asFrameworkPaint().apply {
+                    isAntiAlias = true
+                    color = android.graphics.Color.argb(
+                        (particle.alpha * 255).toInt().coerceIn(0, 255),
+                        (particle.color.red * 255).toInt(),
+                        (particle.color.green * 255).toInt(),
+                        (particle.color.blue * 255).toInt()
                     )
-            )
+                    maskFilter = BlurMaskFilter(particle.size * density, BlurMaskFilter.Blur.NORMAL)
+                }
+
+                canvas.nativeCanvas.drawCircle(
+                    particle.x * size.width,
+                    particle.y * size.height,
+                    particle.size * density,
+                    paint
+                )
+            }
         }
     }
 }
 
 data class EmberParticle(
-    val startX: Float,
-    val delay: Int,
-    val speed: Float,
+    val x: Float,
+    val y: Float,
+    val size: Float,
+    val velocityY: Float,
+    val alpha: Float,
+    val lifetime: Int,
     val color: Color,
-    val size: Float
-)
+    val age: Int = 0
+) {
+    fun update(): EmberParticle {
+        val newAge = age + 1
+        val progress = newAge.toFloat() / lifetime
+        val newAlpha = 1f - progress
+        val newY = y - velocityY
+
+        return this.copy(
+            y = newY,
+            alpha = newAlpha,
+            age = newAge
+        )
+    }
+
+    fun isAlive(): Boolean = age < lifetime
+
+    companion object {
+        fun generate(colors: List<Color>): EmberParticle {
+            return EmberParticle(
+                x = Random.nextFloat(),
+                y = 1f + Random.nextFloat() * 0.1f,
+                size = Random.nextFloat() * 6f + 4f,
+                velocityY = Random.nextFloat() * 0.008f + 0.004f,
+                alpha = 1f,
+                lifetime = 60 + Random.nextInt(60),
+                color = colors.random()
+            )
+        }
+    }
+}
 
 
