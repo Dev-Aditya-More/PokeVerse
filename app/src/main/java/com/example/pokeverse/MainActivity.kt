@@ -10,6 +10,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -75,7 +77,7 @@ import org.koin.core.context.GlobalContext.startKoin
 class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
 
-    @OptIn(ExperimentalAnimationApi::class)
+    @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,68 +112,88 @@ class MainActivity : ComponentActivity() {
                         else -> "home"
                     }
                 }
-
-                AnimatedNavHost(
-                    navController = navController,
-                    startDestination = startDestination.value,
-                    enterTransition = {
-                        slideInHorizontally(
-                            initialOffsetX = { it / 4 }, // subtle right-to-left slide
-                            animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(400))
-                    },
-                    exitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { -it / 6 }, // slight left slide
-                            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                        ) + fadeOut(animationSpec = tween(300))
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(
-                            initialOffsetX = { -it / 4 }, // reverse direction for pop
-                            animationSpec = tween(durationMillis = 400, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(400))
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { it / 6 }, // reverse direction for pop
-                            animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
-                        ) + fadeOut(animationSpec = tween(300))
-                    }
+                SharedTransitionLayout(
+                    modifier = Modifier
                 ) {
-                    composable("splash",
+                    AnimatedNavHost(
+                        navController = navController,
+                        startDestination = startDestination.value,
                         enterTransition = {
-                            scaleIn(initialScale = 0.8f, animationSpec = tween(600)) + fadeIn(tween(600))
+                            slideInHorizontally(
+                                initialOffsetX = { it / 4 }, // subtle right-to-left slide
+                                animationSpec = tween(
+                                    durationMillis = 400,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ) + fadeIn(animationSpec = tween(400))
+                        },
+                        exitTransition = {
+                            slideOutHorizontally(
+                                targetOffsetX = { -it / 6 }, // slight left slide
+                                animationSpec = tween(
+                                    durationMillis = 300,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ) + fadeOut(animationSpec = tween(300))
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(
+                                initialOffsetX = { -it / 4 }, // reverse direction for pop
+                                animationSpec = tween(
+                                    durationMillis = 400,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ) + fadeIn(animationSpec = tween(400))
+                        },
+                        popExitTransition = {
+                            slideOutHorizontally(
+                                targetOffsetX = { it / 6 }, // reverse direction for pop
+                                animationSpec = tween(
+                                    durationMillis = 300,
+                                    easing = FastOutSlowInEasing
+                                )
+                            ) + fadeOut(animationSpec = tween(300))
                         }
                     ) {
-                        SplashScreen(navController)
-                    }
-                    composable("intro") {
-                        IntroScreen(navController = navController)
-                    }
-                    composable("home") {
-                        HomeScreen(navController)
-                    }
-                    composable("dream_team") {
-                        DreamTeam(
-                            navController = navController,
-                            team = viewModel.team.collectAsState().value,
-                            onRemove = { viewModel.removeFromTeam(it) }
-                        )
-                    }
-                    composable("pokemon_detail/{pokemonName}") { backStackEntry ->
-                        val pokemonName = backStackEntry.arguments?.getString("pokemonName")
-                        if (pokemonName != null) {
-                            PokemonDetailScreen(pokemonName, navController)
-                        } else {
-                            PokemonNotFoundScreen(
-                                onBackClick = { navController.popBackStack() }
+                        composable(
+                            "splash",
+                            enterTransition = {
+                                scaleIn(initialScale = 0.8f, animationSpec = tween(600)) + fadeIn(
+                                    tween(600)
+                                )
+                            }
+                        ) {
+                            SplashScreen(navController)
+                        }
+                        composable("intro") {
+                            IntroScreen(navController = navController)
+                        }
+                        composable("home") {
+                            HomeScreen(
+                                navController
                             )
                         }
-                    }
+                        composable("dream_team") {
+                            DreamTeam(
+                                navController = navController,
+                                team = viewModel.team.collectAsState().value,
+                                onRemove = { viewModel.removeFromTeam(it) }
+                            )
+                        }
+                        composable("pokemon_detail/{pokemonName}") { backStackEntry ->
+                            val pokemonName = backStackEntry.arguments?.getString("pokemonName")
+                            if (pokemonName != null) {
+                                PokemonDetailScreen(pokemonName, navController)
+                            } else {
+                                PokemonNotFoundScreen(
+                                    onBackClick = { navController.popBackStack() }
+                                )
+                            }
+                        }
 
-                    composable("settings") {
-                        SettingsScreen(navController)
+                        composable("settings") {
+                            SettingsScreen(navController)
+                        }
                     }
                 }
 

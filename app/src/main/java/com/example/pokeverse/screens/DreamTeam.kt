@@ -95,6 +95,7 @@ fun DreamTeam(
                 )
             )
         },
+
         bottomBar = {
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentDestination = navBackStackEntry?.destination?.route

@@ -44,6 +44,9 @@ class PokemonViewModel(
     var isLoading by mutableStateOf(false)
     var endReached by mutableStateOf(false)
 
+    var listError by mutableStateOf<String?>(null)
+        private set
+
     private var currentOffset = 0
     private val limit = 20
 
@@ -84,6 +87,7 @@ class PokemonViewModel(
 
             } catch (e: Exception) {
                 Log.e("PokemonViewModel", "Pagination failed: ${e.message}")
+                listError = "Failed to load Pokémon list"
             } finally {
                 isLoading = false
             }

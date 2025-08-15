@@ -188,18 +188,13 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
             // Pokémon Image animation
             val imageAlpha = remember { Animatable(0f) }
             val imageScale = remember { Animatable(0.9f) }
-            val isPressed = remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
                 imageAlpha.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
                 imageScale.animateTo(1.0f, tween(600, easing = FastOutSlowInEasing))
             }
 
-            val pressScale by animateFloatAsState(
-                targetValue = if (isPressed.value) 1.1f else imageScale.value,
-                animationSpec = tween(300),
-                label = "pressScale"
-            )
+            val pressScale = remember { Animatable(1.0f) }
 
             AsyncImage(
                 model = pokemon?.sprites?.other?.officialArtwork?.frontDefault
@@ -210,16 +205,16 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                     .size(220.dp)
                     .graphicsLayer {
                         alpha = imageAlpha.value
-                        scaleX = pressScale
-                        scaleY = pressScale
+                        scaleX = pressScale.value
+                        scaleY = pressScale.value
                     }
                     .align(Alignment.Center)
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onPress = {
-                                isPressed.value = true
+                                pressScale.animateTo(1.1f, tween(150))
                                 tryAwaitRelease()
-                                isPressed.value = false
+                                pressScale.animateTo(1.0f, tween(150))
                             }
                         )
                     }
@@ -459,13 +454,10 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                             }
                         }
 
-
-
                     }
                 }
 
                 else -> {
-                    // Retry UI
                     Box(
                         modifier = Modifier
                             .fillMaxSize()

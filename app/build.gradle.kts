@@ -25,15 +25,15 @@ android {
     signingConfigs {
         create("release") {
             storeFile = file("C:/Users/adity/AndroidStudioProjects/PokeVerse/app/my-release-key.jks")
-            storePassword = "aditya1875" // <- Replace this
+            storePassword = "aditya1875"
             keyAlias = "my-key-alias"
-            keyPassword = "aditya1875"     // <- Replace this
+            keyPassword = "aditya1875"
         }
     }
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = true // enables shrinking
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -78,9 +78,10 @@ dependencies {
     implementation(libs.moshi.kotlin)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.accompanist.navigation.animation)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.foundation)
+    implementation(libs.androidx.material3.android)
+    implementation(libs.androidx.compose.material3.material3)
     // Koin Core
     implementation(libs.koin.core)
     implementation(libs.material3.window.size.class1)
@@ -91,15 +92,14 @@ dependencies {
     // Koin for Jetpack Compose
     implementation(libs.koin.androidx.compose)
 
-    implementation(libs.androidx.material3.window.size.class1)
     implementation(libs.material3)
     implementation(libs.ui)
-    implementation("androidx.compose.ui:ui-text-google-fonts:1.6.1")
-
-// Optional for shared element transitions
-    implementation(libs.accompanist.navigation.material)
+    implementation(libs.androidx.ui.text.google.fonts)
+    implementation(libs.androidx.material3.expressive)
     implementation(libs.accompanist.placeholder.material)
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.accompanist.sharedelement)
+    implementation(libs.accompanist.navigation.animation.v0340)
 
     // ui tests
     testImplementation(libs.junit)
