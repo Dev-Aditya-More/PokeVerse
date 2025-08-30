@@ -39,6 +39,9 @@ class PokemonViewModel(
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
+    private val _currentIndex = MutableStateFlow(0)
+    val currentIndex: StateFlow<Int> = _currentIndex
+
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
     var isLoading by mutableStateOf(false)
@@ -191,6 +194,31 @@ class PokemonViewModel(
             .last()
             .toIntOrNull() ?: -1
     }
+
+    fun showNextPokemon() {
+        val list = _pokemonList.value
+        if (_currentIndex.value < list.size - 1) {
+            _currentIndex.value++
+            fetchPokemonData(list[_currentIndex.value].name)
+        }
+    }
+
+    fun showPreviousPokemon() {
+        if (_currentIndex.value > 0) {
+            _currentIndex.value--
+            fetchPokemonData(_pokemonList.value[_currentIndex.value].name)
+        }
+    }
+
+    fun setCurrentPokemon(name: String) {
+        val index = _pokemonList.value.indexOfFirst { it.name == name }
+        if (index != -1) {
+            _currentIndex.value = index
+        }
+        fetchPokemonData(name)
+
+    }
+
 
 }
 

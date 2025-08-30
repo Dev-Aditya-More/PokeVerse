@@ -92,13 +92,14 @@ dependencies {
     // Koin for Jetpack Compose
     implementation(libs.koin.androidx.compose)
 
+    // haze
+    implementation(libs.haze.jetpack.compose)
+
     implementation(libs.material3)
     implementation(libs.ui)
     implementation(libs.androidx.ui.text.google.fonts)
-    implementation(libs.androidx.material3.expressive)
     implementation(libs.accompanist.placeholder.material)
     implementation(libs.accompanist.systemuicontroller)
-    implementation(libs.accompanist.sharedelement)
     implementation(libs.accompanist.navigation.animation.v0340)
 
     // ui tests

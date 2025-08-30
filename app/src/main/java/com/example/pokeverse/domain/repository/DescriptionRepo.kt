@@ -16,7 +16,7 @@ class DescriptionRepo(private val context: Context) {
             .bufferedReader().use { it.readText() }
 
         val gson = Gson()
-        val type = object : TypeToken<List<PokemonDescription>>() {}.type
+        val type = object : TypeToken<List<PokemonDescription>>(){}.type
         val list: List<PokemonDescription> = gson.fromJson(json, type)
 
         return list.associateBy({ it.id }, { it.description })

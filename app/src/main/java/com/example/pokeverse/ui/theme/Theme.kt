@@ -96,12 +96,7 @@ fun PokeVerseTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = ExpressiveTypography,
-        shapes = ExpressiveShapes
-    ) {
-        SharedTransitionLayout {
-            CompositionLocalProvider(LocalSharedTransitionScope provides this) {
-                content()
-            }
-        }
-    }
+        shapes = ExpressiveShapes,
+        content = content
+    )
 }
