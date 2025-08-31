@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.pokeverse"
-        minSdk = 21
+        minSdk = 25
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.compose.material)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
