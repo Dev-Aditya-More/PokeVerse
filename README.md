@@ -8,12 +8,24 @@ A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuri
 
 ---
 
+## Built using
+> [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Android/android2.svg">]()
+> [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Kotlin/kotlin2.svg">]()
+
+---
+
+## Get from
+
+> [<img src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea" height="80">](https://github.com/Dev-Aditya-More/PokeVerse/releases)
+
+---
+
 ## 📱 Assets
 
 - ### v1.0.0
 <br> <p align="center"> <img src="screenshots/Screenshot_20250708_171327.png" alt="Home Screen" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/Screenshot_20250708_171404.png" alt="Detail Screen" width="300"/> </p> <br> <hr> <br>
 - ### v1.0.1
-<br> <p align="center"> <img src="screenshots/home_screen.png" alt="Home Screen" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwo.png" alt="Detail Screen" width="300"/> <br><br> <img src="screenshots/mewtwoy.png" alt="Detail Screen" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwox.png" alt="Detail Screen" width="300"/> </p> <br> <hr> <br> <p align="center"> <img src="screenshots/PokeVerse.png" alt="Banner" width="1000"/> </p>
+<br> <p align="center"> <img src="screenshots/home_screen.png" alt="" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwo.png" alt="Detail Screen" width="300"/> <br><br> <img src="screenshots/mewtwoy.png" alt="" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwox.png" alt="Detail Screen" width="300"/> </p> <br> <hr> <br> <p align="center"> <img src="screenshots/PokeVerse.png" alt="" width="1000"/> </p>
 <br>
 
 https://github.com/user-attachments/assets/97fcc201-ead2-4765-a2d3-2190847c6bf3
