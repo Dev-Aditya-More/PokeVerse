@@ -176,7 +176,7 @@ fun SettingsScreen(
                         modifier = Modifier.padding(top = 8.dp)
                     ) {
                         Text("Made with ❤️ by Aditya More", color = Color.Gray)
-                        Text("Version: 1.0.0", color = Color.Gray)
+                        Text("Version: 1.0.2", color = Color.Gray)
                         Text("Built with Jetpack Compose", color = Color.Gray)
                     }
                 }
