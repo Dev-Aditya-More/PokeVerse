@@ -88,6 +88,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
     val pokemon = uiState.pokemon
     val settingsViewModel : SettingsViewModel = koinViewModel()
     val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsState()
+    var spriteEffectsEnabled by remember { mutableStateOf(false) }
 
     LaunchedEffect(pokemonName) {
         viewModel.fetchPokemonData(pokemonName)
@@ -159,10 +160,10 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                 .aspectRatio(1f)
                 .padding(top = 75.dp)
                 .align(Alignment.TopCenter)
-                .zIndex(-1f)
+                .zIndex(2f)
         ) {
 
-            if (specialEffectsEnabled) {
+            if (specialEffectsEnabled && spriteEffectsEnabled) {
                 val particleType = getParticleTypeFor(typeList)
                 ParticleBackground(particleType)
             }
@@ -212,9 +213,15 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onPress = {
+                                // Press scaling
                                 pressScale.animateTo(1.1f, tween(150))
+                                spriteEffectsEnabled = true
+
                                 tryAwaitRelease()
+
+                                // Reset back
                                 pressScale.animateTo(1.0f, tween(150))
+                                spriteEffectsEnabled = false
                             }
                         )
                     }
@@ -285,7 +292,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
             )
             when {
                 isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize().background(brush = pokeballGradient), contentAlignment = Alignment.Center) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CustomProgressIndicator()
                     }
                 }

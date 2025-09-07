@@ -204,19 +204,10 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodyLarge,
                         color = Color.White
                     )
-                    Switch(
+                    MetaballSwitch(
                         checked = specialEffectsEnabled,
-                        onCheckedChange = {
-                            settingsViewModel.toggleSpecialEffects(it)
-                        },
-                        modifier = Modifier.padding(start = 8.dp),
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color(0xFF802525),
-                            uncheckedThumbColor = Color.Black,
-                            checkedTrackColor = Color.Black,
-                            uncheckedTrackColor = Color(0xFF802525),
-                            uncheckedBorderColor = Color(0xFF802525)
-                        )
+                        onCheckedChange = { settingsViewModel.toggleSpecialEffects(it) },
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                     Icon(
                         imageVector = if (isSpecialEffectsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -229,7 +220,7 @@ fun SettingsScreen(
                     Column(
                         modifier = Modifier.padding(top = 8.dp)
                     ) {
-                        Text("You'll see the particle effect on detail screen", color = Color.Gray)
+                        Text("You'll see the particle effect \n(Try pressing the pokemon sprite)", color = Color.Gray, style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }
