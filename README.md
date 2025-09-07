@@ -1,10 +1,6 @@
 # PokéVerse
 
-A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuring dynamic theming, glassmorphic UI, and modern Android design principles.
-
-<p align="center">
-  <img src="/app/src/main/res/drawable/mysplash2.png" alt="PokéVerse Logo" width="60%" />
-</p>
+<p align="start"> <img src="screenshots/PokeVerse.png" alt="" width="1000"/> </p>
 
 ---
 
@@ -25,8 +21,14 @@ A clean, beautiful Pokédex Android app built using **Jetpack Compose**, featuri
 - ### v1.0.0
 <br> <p align="center"> <img src="screenshots/Screenshot_20250708_171327.png" alt="Home Screen" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/Screenshot_20250708_171404.png" alt="Detail Screen" width="300"/> </p> <br> <hr> <br>
 - ### v1.0.1
-<br> <p align="center"> <img src="screenshots/Screenshot_20250713_204301.png" alt="" width="290"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwo.png" alt="Detail Screen" width="300"/> <br><br> <img src="screenshots/mewtwoy.png" alt="" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwox.png" alt="Detail Screen" width="300"/> </p> <br> <hr> <br> <p align="center"> <img src="screenshots/PokeVerse.png" alt="" width="1000"/> </p>
+<br> <p align="center"> <img src="screenshots/Screenshot_20250713_204301.png" alt="" width="290"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwo.png" alt="Detail Screen" width="300"/> <br><br> <img src="screenshots/mewtwoy.png" alt="" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwox.png" alt="Detail Screen" width="300"/> </p> <br> <hr> <br> 
 <br>
+
+- ### v1.0.2
+
+https://github.com/user-attachments/assets/0158a21e-9a7c-459f-a6ba-ab59563f915b
+  
+<br><hr>
 
 https://github.com/user-attachments/assets/97fcc201-ead2-4765-a2d3-2190847c6bf3
 
@@ -48,20 +50,6 @@ https://github.com/user-attachments/assets/97fcc201-ead2-4765-a2d3-2190847c6bf3
 
 - 🔙 **Smooth Navigation**  
   Back arrow on detail screen for intuitive navigation.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Android Studio Meerkat or newer
-- Kotlin 1.9+
-- Gradle 8+
-
-### Install
-
-install this version from github release by downloading the apk file
 
 ---
 
