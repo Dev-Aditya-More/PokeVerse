@@ -21,16 +21,23 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
@@ -39,7 +46,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,8 +66,10 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.pokeverse.di.appModule
+import com.example.pokeverse.screens.BottomNavigationBar
 import com.example.pokeverse.screens.DreamTeam
 import com.example.pokeverse.screens.HomeScreen
 import com.example.pokeverse.screens.IntroScreen
@@ -67,6 +78,7 @@ import com.example.pokeverse.screens.SettingsScreen
 import com.example.pokeverse.ui.theme.PokeVerseTheme
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.ScreenStateManager
+import com.example.pokeverse.utils.WithBottomBar
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -78,11 +90,14 @@ class MainActivity : ComponentActivity() {
     private lateinit var navController: NavHostController
 
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge()
+        WindowInsetsControllerCompat(window, window.decorView).apply {
+            isAppearanceLightStatusBars = false
+            isAppearanceLightNavigationBars = false
+        }
 
         val controller = WindowCompat.getInsetsController(window, window.decorView)
         controller.hide(WindowInsetsCompat.Type.navigationBars())
@@ -96,13 +111,12 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
+            val startDestination = remember { mutableStateOf("splash") }
             PokeVerseTheme{
                 navController = rememberNavController()  // Store in field
                 val viewModel: PokemonViewModel = koinViewModel()
-
-                val startDestination = remember { mutableStateOf("splash") }
-
                 LaunchedEffect(Unit) {
+
                     val introSeen = ScreenStateManager.isIntroSeen(this@MainActivity)
                     val lastRoute = ScreenStateManager.getLastRoute(this@MainActivity)
 
@@ -112,86 +126,70 @@ class MainActivity : ComponentActivity() {
                         else -> "home"
                     }
                 }
-                SharedTransitionLayout(
-                    modifier = Modifier
-                ) {
-                    AnimatedNavHost(
-                        navController = navController,
-                        startDestination = startDestination.value,
-                        enterTransition = {
-                            slideInHorizontally(
-                                initialOffsetX = { it / 4 }, // subtle right-to-left slide
-                                animationSpec = tween(
-                                    durationMillis = 400,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + fadeIn(animationSpec = tween(400))
-                        },
-                        exitTransition = {
-                            slideOutHorizontally(
-                                targetOffsetX = { -it / 6 }, // slight left slide
-                                animationSpec = tween(
-                                    durationMillis = 300,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + fadeOut(animationSpec = tween(300))
-                        },
-                        popEnterTransition = {
-                            slideInHorizontally(
-                                initialOffsetX = { -it / 4 }, // reverse direction for pop
-                                animationSpec = tween(
-                                    durationMillis = 400,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + fadeIn(animationSpec = tween(400))
-                        },
-                        popExitTransition = {
-                            slideOutHorizontally(
-                                targetOffsetX = { it / 6 }, // reverse direction for pop
-                                animationSpec = tween(
-                                    durationMillis = 300,
-                                    easing = FastOutSlowInEasing
-                                )
-                            ) + fadeOut(animationSpec = tween(300))
-                        }
-                    ) {
-                        composable(
-                            "splash",
-                            enterTransition = {
-                                scaleIn(initialScale = 0.8f, animationSpec = tween(600)) + fadeIn(
-                                    tween(600)
-                                )
-                            }
-                        ) {
-                            SplashScreen(navController)
-                        }
-                        composable("intro") {
-                            IntroScreen(navController = navController)
-                        }
-                        composable("home") {
-                            HomeScreen(
-                                navController
+
+                AnimatedNavHost(
+                    navController = navController,
+                    startDestination = startDestination.value,
+                    enterTransition = {
+                        when (initialState.destination.route) {
+                            "splash" -> fadeIn(animationSpec = tween(300)) // special fade after splash
+                            else -> slideInHorizontally(
+                                initialOffsetX = { it },
+                                animationSpec = tween(300)
                             )
                         }
-                        composable("dream_team") {
+                    },
+                    exitTransition = {
+                        when (targetState.destination.route) {
+                            "intro", "home" -> fadeOut(animationSpec = tween(300)) // smoother intro/home
+                            else -> slideOutHorizontally(
+                                targetOffsetX = { -it },
+                                animationSpec = tween(300)
+                            )
+                        }
+                    },
+                    popEnterTransition = {
+                        slideInHorizontally(
+                            initialOffsetX = { -it },
+                            animationSpec = tween(300)
+                        )
+                    },
+                    popExitTransition = {
+                        slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(300)
+                        )
+                    }
+                ) {
+                    composable("splash") { SplashScreen(navController) }
+                    composable("intro") { IntroScreen(navController) }
+                    composable("home") {
+                        WithBottomBar(navController) {
+                            HomeScreen(navController)
+                        }
+                    }
+                    composable("dream_team") {
+                        WithBottomBar(navController) {
                             DreamTeam(
                                 navController = navController,
                                 team = viewModel.team.collectAsState().value,
                                 onRemove = { viewModel.removeFromTeam(it) }
                             )
                         }
-                        composable("pokemon_detail/{pokemonName}") { backStackEntry ->
-                            val pokemonName = backStackEntry.arguments?.getString("pokemonName")
-                            if (pokemonName != null) {
-                                PokemonDetailScreen(pokemonName, navController)
-                            } else {
-                                PokemonNotFoundScreen(
-                                    onBackClick = { navController.popBackStack() }
-                                )
-                            }
+                    }
+                    composable("pokemon_detail/{pokemonName}") { backStackEntry ->
+                        val pokemonName = backStackEntry.arguments?.getString("pokemonName")
+                        if (pokemonName != null) {
+                            PokemonDetailScreen(pokemonName, navController)
+                        } else {
+                            PokemonNotFoundScreen(
+                                onBackClick = { navController.popBackStack() },
+                                onRetryClick = { navController.navigate("home") }
+                            )
                         }
-
-                        composable("settings") {
+                    }
+                    composable("settings") {
+                        WithBottomBar(navController) {
                             SettingsScreen(navController)
                         }
                     }
@@ -246,7 +244,8 @@ fun SplashScreen(navController: NavController) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PokemonNotFoundScreen(
-    onBackClick: () -> Unit // pass this from your NavController
+    onBackClick: () -> Unit,
+    onRetryClick: () -> Unit // optional retry action
 ) {
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
@@ -273,21 +272,50 @@ fun PokemonNotFoundScreen(
         },
         modifier = Modifier.fillMaxSize(),
         containerColor = Color.Transparent,
-        content = { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(brush = pokeballGradient)
-                    .padding(padding),
-                contentAlignment = Alignment.Center
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(brush = pokeballGradient)
+                .padding(padding),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
+                // Placeholder for image/animation
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = "Not Found",
+                    tint = Color.LightGray,
+                    modifier = Modifier.size(96.dp)
+                )
+
+                Spacer(Modifier.height(16.dp))
+
                 Text(
-                    text = "Error: Pokémon not found",
+                    text = "We couldn’t find that Pokémon...",
+                    style = MaterialTheme.typography.headlineSmall,
                     color = Color.White
                 )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Try searching again or check the spelling.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                Button(onClick = onRetryClick) {
+                    Text("Try Again")
+                }
             }
         }
-    )
+    }
 }
 
 

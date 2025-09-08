@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.pokeverse.ui.viewmodel.SettingsViewModel
@@ -51,15 +52,17 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingsScreen(
     navController: NavController
 ) {
-    val pokeballGradient = Brush.verticalGradient(
-        listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
-    )
+    val pokeballGradient = remember {
+        Brush.verticalGradient(
+            listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
+        )
+    }
 
     var isAboutExpanded by remember { mutableStateOf(false) }
     var isSpecialEffectsExpanded by remember { mutableStateOf(false) }
     val settingsViewModel: SettingsViewModel = koinViewModel()
 
-    val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsState()
+    val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -80,63 +83,6 @@ fun SettingsScreen(
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
-        },
-        bottomBar = {
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentDestination = navBackStackEntry?.destination?.route
-
-            BottomAppBar(
-                containerColor = Color.Black,
-                contentColor = Color.White,
-            ) {
-                NavigationBarItem(
-                    selected = currentDestination == "home",
-                    onClick = { navController.navigate("home") },
-                    icon = {
-                        Icon(Icons.Default.Home, contentDescription = "Home")
-                    },
-                    label = { Text("Home") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF802525),
-                        selectedTextColor = Color.White,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Color(0xFF1A1A1A)
-                    )
-                )
-
-                NavigationBarItem(
-                    selected = currentDestination == "dream_team",
-                    onClick = { navController.navigate("dream_team") },
-                    icon = {
-                        Icon(Icons.Default.Star, contentDescription = "Team")
-                    },
-                    label = { Text("Team") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF802525),
-                        selectedTextColor = Color.White,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Color(0xFF1A1A1A)
-                    )
-                )
-
-                NavigationBarItem(
-                    selected = currentDestination == "settings",
-                    onClick = { navController.navigate("settings") },
-                    icon = {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    },
-                    label = { Text("Settings") },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Color(0xFF802525),
-                        selectedTextColor = Color.White,
-                        unselectedIconColor = Color.Gray,
-                        unselectedTextColor = Color.Gray,
-                        indicatorColor = Color(0xFF1A1A1A)
-                    )
-                )
-            }
         }
     ) { padding ->
         Column(

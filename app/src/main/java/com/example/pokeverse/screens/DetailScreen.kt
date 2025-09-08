@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -51,6 +52,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -130,6 +132,14 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
     val context = LocalContext.current
     var isTtsReady by remember { mutableStateOf(false) }
     val mediaPlayer = MediaPlayer.create(context, R.raw.beepeffect)
+    val listState = rememberLazyListState()
+    val spriteVisible by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 &&
+                    listState.firstVisibleItemScrollOffset < 200
+        }
+    }
+
 
     val tts = remember {
         TextToSpeech(context) { status ->
@@ -160,7 +170,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                 .aspectRatio(1f)
                 .padding(top = 75.dp)
                 .align(Alignment.TopCenter)
-                .zIndex(2f)
+                .zIndex(1f)
         ) {
 
             if (specialEffectsEnabled && spriteEffectsEnabled) {
@@ -197,45 +207,45 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
 
             val pressScale = remember { Animatable(1.0f) }
 
-            AsyncImage(
-                model = pokemon?.sprites?.other?.officialArtwork?.frontDefault
-                    ?: pokemon?.sprites?.front_default,
-                contentDescription = pokemon?.name,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .size(220.dp)
-                    .graphicsLayer {
-                        alpha = imageAlpha.value
-                        scaleX = pressScale.value
-                        scaleY = pressScale.value
-                    }
-                    .align(Alignment.Center)
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = {
-                                // Press scaling
-                                pressScale.animateTo(1.1f, tween(150))
-                                spriteEffectsEnabled = true
+                AsyncImage(
+                    model = pokemon?.sprites?.other?.officialArtwork?.frontDefault
+                        ?: pokemon?.sprites?.front_default,
+                    contentDescription = pokemon?.name,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(220.dp)
+                        .graphicsLayer {
+                            alpha = if (spriteVisible) 1f else 0f   // instantly hide/show
+                            translationY = if (spriteVisible) 0f else -1000f // push off-screen
+                            scaleX = pressScale.value
+                            scaleY = pressScale.value
+                        }
+                        .align(Alignment.Center)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    // Press scaling
+                                    pressScale.animateTo(1.1f, tween(150))
+                                    spriteEffectsEnabled = true
 
-                                tryAwaitRelease()
+                                    tryAwaitRelease()
 
-                                // Reset back
-                                pressScale.animateTo(1.0f, tween(150))
-                                spriteEffectsEnabled = false
-                            }
-                        )
-                    }
-            )
+                                    // Reset back
+                                    pressScale.animateTo(1.0f, tween(150))
+                                    spriteEffectsEnabled = false
+                                }
+                            )
+                        }
+                )
         }
 
         Scaffold(
             containerColor = Color.Transparent,
-            modifier = Modifier.navigationBarsPadding(),
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
-                            text = pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "Details",
+                            text = pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "",
                             fontWeight = FontWeight.Bold,
                             color = Color.White
                         )
@@ -287,7 +297,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
                 )
             }
         ) { padding ->
-            val pokeballGradient = Brush.verticalGradient(
+            Brush.verticalGradient(
                 listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
             )
             when {
@@ -299,6 +309,7 @@ fun PokemonDetailScreen(pokemonName: String, navController: NavController) {
 
                 pokemon != null -> {
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(padding)

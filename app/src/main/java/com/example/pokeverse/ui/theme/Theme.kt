@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.*
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 
 private val DarkColorScheme = darkColorScheme(
@@ -91,6 +93,16 @@ fun PokeVerseTheme(
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
+    }
+    val systemUiController = rememberSystemUiController()
+    val darkIcons = false  // we want white icons
+    val color = Color.Black
+
+    SideEffect {
+        systemUiController.setSystemBarsColor(
+            color = color,
+            darkIcons = darkIcons
+        )
     }
 
     MaterialTheme(

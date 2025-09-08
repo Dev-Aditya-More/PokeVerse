@@ -7,6 +7,7 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,9 +16,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,6 +35,8 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.BottomAppBar
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,11 +67,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.pokeverse.R
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.TeamMapper.toEntity
 import kotlinx.coroutines.Dispatchers
@@ -74,7 +82,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
-@RequiresApi(Build.VERSION_CODES.N)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun HomeScreen(navController: NavHostController) {
@@ -86,6 +93,7 @@ fun HomeScreen(navController: NavHostController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+    val hasError by viewModel.error.collectAsState()
 
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
@@ -113,7 +121,6 @@ fun HomeScreen(navController: NavHostController) {
                             ),
                             color = Color.White
                         )
-
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Black,
@@ -121,63 +128,6 @@ fun HomeScreen(navController: NavHostController) {
                         titleContentColor = Color.White
                     )
                 )
-            },
-            bottomBar = {
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
-                val currentDestination = navBackStackEntry?.destination?.route
-
-                BottomAppBar(
-                    containerColor = Color.Black,
-                    contentColor = Color.White,
-                ) {
-                    NavigationBarItem(
-                        selected = currentDestination == "home",
-                        onClick = { navController.navigate("home") },
-                        icon = {
-                            Icon(Icons.Default.Home, contentDescription = "Home")
-                        },
-                        label = { Text("Home") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF802525),
-                            selectedTextColor = Color.White,
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray,
-                            indicatorColor = Color(0xFF1A1A1A)
-                        )
-                    )
-
-                    NavigationBarItem(
-                        selected = currentDestination == "dream_team",
-                        onClick = { navController.navigate("dream_team") },
-                        icon = {
-                            Icon(Icons.Default.Star, contentDescription = "Team")
-                        },
-                        label = { Text("Team") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF802525),
-                            selectedTextColor = Color.White,
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray,
-                            indicatorColor = Color(0xFF1A1A1A)
-                        )
-                    )
-
-                    NavigationBarItem(
-                        selected = currentDestination == "settings",
-                        onClick = { navController.navigate("settings") },
-                        icon = {
-                            Icon(Icons.Default.Settings, contentDescription = "Settings")
-                        },
-                        label = { Text("Settings") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF802525),
-                            selectedTextColor = Color.White,
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray,
-                            indicatorColor = Color(0xFF1A1A1A)
-                        )
-                    )
-                }
             }
 
 
@@ -188,7 +138,7 @@ fun HomeScreen(navController: NavHostController) {
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-            ) { // Removed inner background to let Scaffold handle it
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -212,11 +162,12 @@ fun HomeScreen(navController: NavHostController) {
                         trailingIcon = {
                             IconButton(
                                 onClick = {
-                                    if (query.isNotBlank()) {
+                                    val cleanedQuery = query.trim().lowercase()
+                                    if (cleanedQuery.isNotBlank()) {
                                         coroutineScope.launch {
-                                            val success = viewModel.fetchPokemonData(query.lowercase()).toString()
+                                            val success = viewModel.fetchPokemonData(cleanedQuery).toString()
                                             if (success.isNotEmpty()) {
-                                                navController.navigate("pokemon_detail/${query.lowercase()}")
+                                                navController.navigate("pokemon_detail/$cleanedQuery")
                                             } else {
                                                 Toast.makeText(context, "Pokémon not found", Toast.LENGTH_SHORT).show()
                                             }
@@ -239,8 +190,9 @@ fun HomeScreen(navController: NavHostController) {
                         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(
                             onSearch = {
-                                if (query.isNotBlank()) {
-                                    viewModel.fetchPokemonData(query.lowercase())
+                                val cleanedQuery = query.trim().lowercase()
+                                if (cleanedQuery.isNotBlank()) {
+                                    viewModel.fetchPokemonData(cleanedQuery)
                                 }
                             }
                         ),
@@ -248,6 +200,7 @@ fun HomeScreen(navController: NavHostController) {
                             unfocusedBorderColor = Color.DarkGray,
                             unfocusedTrailingIconColor = Color.DarkGray,
                             unfocusedLabelColor = Color.DarkGray,
+                            unfocusedTextColor = Color.White,
                             focusedTextColor = Color.White,
                             focusedTrailingIconColor = Color.White,
                             focusedBorderColor = Color(0xFF802525)
@@ -260,6 +213,30 @@ fun HomeScreen(navController: NavHostController) {
                             contentAlignment = Alignment.Center
                         ) {
                             CustomProgressIndicator()
+                        }
+                    } else if (pokemonList.isEmpty() && hasError) {
+                        // No internet or failed API
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Image(
+                                    painter = painterResource(R.drawable.nointrnet),
+                                    contentDescription = "No Internet",
+                                    modifier = Modifier.size(300.dp)
+                                )
+                                Spacer(Modifier.height(16.dp))
+                                Text("No Internet Connection", color = Color.White)
+                                Spacer(Modifier.height(8.dp))
+                                Button(onClick = { viewModel.loadPokemonList() },
+                                    colors = ButtonDefaults.buttonColors(
+                                        Color(0xFF802525)
+                                    )
+                                ) {
+                                    Text("Retry")
+                                }
+                            }
                         }
                     } else {
 

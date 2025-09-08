@@ -39,6 +39,9 @@ class PokemonViewModel(
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
+    private val _error = MutableStateFlow(false)
+    val error: StateFlow<Boolean> = _error
+
     private val _currentIndex = MutableStateFlow(0)
     val currentIndex: StateFlow<Int> = _currentIndex
 
@@ -89,8 +92,8 @@ class PokemonViewModel(
                 }
 
             } catch (e: Exception) {
-                Log.e("PokemonViewModel", "Pagination failed: ${e.message}")
                 listError = "Failed to load Pokémon list"
+                _error.value = true
             } finally {
                 isLoading = false
             }
@@ -218,8 +221,6 @@ class PokemonViewModel(
         fetchPokemonData(name)
 
     }
-
-
 }
 
 data class PokemonDetailUiState(
