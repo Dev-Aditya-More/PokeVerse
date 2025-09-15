@@ -16,18 +16,18 @@ android {
         applicationId = "com.example.pokeverse"
         minSdk = 25
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.0.2"
+        versionCode = 6
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file("C:/Users/adity/AndroidStudioProjects/PokeVerse/app/my-release-key.jks")
-            storePassword = "aditya1875"
-            keyAlias = "my-key-alias"
-            keyPassword = "aditya1875"
+            storeFile = file(properties["RELEASE_STORE_FILE"] ?: "")
+            storePassword = properties["RELEASE_STORE_PASSWORD"] as String?
+            keyAlias = properties["RELEASE_KEY_ALIAS"] as String?
+            keyPassword = properties["RELEASE_KEY_PASSWORD"] as String?
         }
     }
 
@@ -87,6 +87,9 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.material3.window.size.class1)
 
+    implementation(libs.accompanist.pager)
+    implementation(libs.accompanist.pager.indicators)
+
     // Koin for Android
     implementation(libs.koin.android)
 
@@ -102,6 +105,7 @@ dependencies {
     implementation(libs.accompanist.placeholder.material)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.navigation.animation.v0340)
+
 
     // ui tests
     testImplementation(libs.junit)

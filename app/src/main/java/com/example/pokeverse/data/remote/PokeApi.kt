@@ -3,6 +3,7 @@ package com.example.pokeverse.data.remote
 import com.example.pokeverse.data.remote.model.PokemonListResponse
 import com.example.pokeverse.data.remote.model.PokemonResponse
 import com.example.pokeverse.data.remote.model.PokemonSpeciesResponse
+import com.example.pokeverse.data.remote.model.evolutionModels.EvolutionChainResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -19,4 +20,8 @@ interface PokeApi {
 
     @GET("pokemon-species/{name}")
     suspend fun getPokemonSpeciesByName(@Path("name") name: String): PokemonSpeciesResponse
+
+    @GET("evolution-chain/{id}")
+    suspend fun getEvolutionChain(@Path("id") id: Int): EvolutionChainResponse
+
 }

@@ -4,6 +4,7 @@ import com.example.pokeverse.data.remote.PokeApi
 import com.example.pokeverse.data.remote.model.PokemonListResponse
 import com.example.pokeverse.data.remote.model.PokemonResponse
 import com.example.pokeverse.data.remote.model.PokemonSpeciesResponse
+import com.example.pokeverse.data.remote.model.evolutionModels.EvolutionChainResponse
 import com.example.pokeverse.domain.repository.PokemonRepo
 
 class PokemonRepoImpl(
@@ -19,5 +20,9 @@ class PokemonRepoImpl(
 
     override suspend fun getPokemonSpeciesByName(name: String): PokemonSpeciesResponse {
         return api.getPokemonSpeciesByName(name)
+    }
+
+    override suspend fun getEvolutionChain(id: Int): EvolutionChainResponse {
+        return api.getEvolutionChain(id)
     }
 }

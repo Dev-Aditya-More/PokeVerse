@@ -1,5 +1,6 @@
 package com.example.pokeverse.data.remote.model
 
+import com.example.pokeverse.data.remote.model.evolutionModels.EvolutionChainResponse
 import com.google.gson.annotations.SerializedName
 
 data class PokemonSpeciesResponse(
@@ -7,7 +8,10 @@ data class PokemonSpeciesResponse(
     val flavorTextEntries: List<FlavorTextEntry>,
 
     @SerializedName("varieties")
-    val varieties: List<PokemonVariety> = emptyList()
+    val varieties: List<PokemonVariety> = emptyList(),
+
+    @SerializedName("evolution_chain")
+    val evolutionChain: EvolutionChainResponse? = null
 )
 
 data class FlavorTextEntry(

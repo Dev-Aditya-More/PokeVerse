@@ -18,24 +18,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -51,14 +43,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.pokeverse.R
 import com.example.pokeverse.data.local.entity.TeamMemberEntity
 import com.example.pokeverse.data.remote.model.PokemonResponse
@@ -120,26 +110,50 @@ fun DreamTeam(
                 }
 
                 team.isEmpty() -> {
-                    Box(modifier = Modifier.fillMaxSize()) {
-
-                        Image(
-                            painter = painterResource(id = R.drawable.pikachuteam),
-                            contentDescription = "Pikachu",
-                            modifier = Modifier.size(740.dp),
-                            contentScale = ContentScale.Crop
-                        )
-
-                        Text(
-                            text = " No Pokémons in your team!! ",
-                            color = Color.White,
-                            style = MaterialTheme.typography.headlineMedium.copy(fontSize = 22.sp),
-                            textAlign = TextAlign.Center,
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    listOf(Color(0xFF1E1E2C), Color(0xFF2C5364))
+                                )
+                            )
+                    ) {
+                        Column(
                             modifier = Modifier
                                 .align(Alignment.Center)
-                                .padding(horizontal = 16.dp).padding(bottom = 420.dp)
-                                .background(Color.Black, shape = RoundedCornerShape(1.dp))
-                        )
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.teampoke),
+                                contentDescription = "Pikachu",
+                                modifier = Modifier
+                                    .size(420.dp)
+                                    .padding(bottom = 16.dp)
+                            )
 
+                            Spacer(modifier = Modifier.height(25.dp))
+
+                            Text(
+                                text = "Your Team is Empty!",
+                                color = Color.White,
+                                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 22.sp),
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "Catch some Pokémon and build your squad!",
+                                color = Color(0xFFB0BEC5),
+                                style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 24.dp)
+                            )
+
+                        }
                     }
                 }
 
@@ -221,14 +235,3 @@ fun DreamTeam(
         }
     }
 }
-
-//@Preview
-//@Composable
-//private fun DreamTeamPreview() {
-//
-//    DreamTeam(
-//        navController = NavHostController(LocalContext.current),
-//        team = emptyList(),
-//        onRemove = {}
-//    )
-//}

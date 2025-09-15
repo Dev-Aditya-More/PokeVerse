@@ -16,7 +16,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.pokeverse.R
 
 @Composable
-fun CustomProgressIndicator() {
+fun CustomProgressIndicator(modifier: Modifier = Modifier) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.pokemon_animation))
     val progress by animateLottieCompositionAsState(
         composition = composition,
@@ -32,6 +32,7 @@ fun CustomProgressIndicator() {
             modifier = Modifier
                 .size(50.dp)
                 .align(Alignment.Center)
+                .then(modifier)
         )
     }
 }

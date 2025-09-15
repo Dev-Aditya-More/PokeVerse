@@ -13,6 +13,9 @@ import com.example.pokeverse.data.remote.model.PokemonResponse
 import com.example.pokeverse.data.remote.model.PokemonResult
 import com.example.pokeverse.data.remote.model.PokemonVariety
 import com.example.pokeverse.data.remote.model.Region
+import com.example.pokeverse.data.remote.model.evolutionModels.Chain
+import com.example.pokeverse.data.remote.model.evolutionModels.EvolutionChainResponse
+import com.example.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.example.pokeverse.domain.repository.DescriptionRepo
 import com.example.pokeverse.domain.repository.PokemonRepo
 import com.example.pokeverse.utils.TeamMapper
@@ -42,11 +45,12 @@ class PokemonViewModel(
     private val _error = MutableStateFlow(false)
     val error: StateFlow<Boolean> = _error
 
-    private val _currentIndex = MutableStateFlow(0)
-    val currentIndex: StateFlow<Int> = _currentIndex
+    private val _evolutionStages = MutableStateFlow<List<EvolutionStage>>(emptyList())
+    val evolutionStages: StateFlow<List<EvolutionStage>> = _evolutionStages
 
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
+
     var isLoading by mutableStateOf(false)
     var endReached by mutableStateOf(false)
 
@@ -56,9 +60,19 @@ class PokemonViewModel(
     private var currentOffset = 0
     private val limit = 20
 
+    private val _filters = MutableStateFlow(PokemonFilter())
+    val filters: StateFlow<PokemonFilter> = _filters
+
+    // -------------------------
+    // Local description support
+    // -------------------------
     fun getLocalDescription(pokemonId: Int): String {
         return descriptionLocalRepository.getDescriptionById(pokemonId)
     }
+
+    // -------------------------
+    // Pokémon List Loading
+    // -------------------------
     fun loadPokemonList(isNewRegion: Boolean = false) {
         if (isLoading || endReached) return
 
@@ -100,16 +114,21 @@ class PokemonViewModel(
         }
     }
 
-
-    /** Main entry to fetch full Pokémon info + species */
+    // -------------------------
+    // Pokémon Detail Loading
+    // -------------------------
     fun fetchPokemonData(name: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             fetchPokemonInternal(name, includeSpecies = true)
+
+            uiState.value.pokemon?.id?.let { id ->
+                fetchEvolutionChain(id)
+            }
         }
     }
 
-    /** Called when a variety like 'charizard-mega-x' is selected */
+
     fun fetchVarietyPokemon(name: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -117,30 +136,38 @@ class PokemonViewModel(
         }
     }
 
-    private suspend fun fetchPokemonInternal(name: String, includeSpecies: Boolean) {
+    private suspend fun fetchPokemonInternal(
+        name: String,
+        includeSpecies: Boolean
+    ) {
         try {
             val pokemon = repository.getPokemonByName(name)
 
-            val description = if (includeSpecies) {
-                val species = repository.getPokemonSpeciesByName(name)
-                species.flavorTextEntries.firstOrNull {
-                    it.language.name == "en"
-                }?.flavorText?.replace("\n", " ")?.replace("\u000c", " ")
-                    ?: "Description not available."
-            } else {
-                "Variety form of ${pokemon.name.capitalize(Locale.ROOT)}"
-            }
+            var description = "Description not available."
+            var varieties: List<PokemonVariety> = emptyList()
+            var evolutionChainId: Int? = null
 
-            val varieties = if (includeSpecies) {
-                repository.getPokemonSpeciesByName(name).varieties
-            } else {
-                _uiState.value.varieties // retain existing
+            if (includeSpecies) {
+                val species = repository.getPokemonSpeciesByName(name)
+
+                description = species.flavorTextEntries.firstOrNull {
+                    it.language.name == "en"
+                }?.flavorText
+                    ?.replace("\n", " ")
+                    ?.replace("\u000c", " ")
+                    ?: description
+
+                varieties = species.varieties
+
+                // Extract evolution chain ID once
+                val evolutionChainId = species.evolutionChain?.id
             }
 
             _uiState.value = PokemonDetailUiState(
                 pokemon = pokemon,
                 description = description,
                 varieties = varieties,
+                evolutionChainId = null,
                 isLoading = false,
                 error = null
             )
@@ -156,6 +183,9 @@ class PokemonViewModel(
         }
     }
 
+    // -------------------------
+    // Team Management
+    // -------------------------
     fun addToTeam(pokemonResult: PokemonResult) = viewModelScope.launch {
         val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
         val entity = pokemonResponse.toEntity()
@@ -178,9 +208,9 @@ class PokemonViewModel(
     val team: StateFlow<List<TeamMemberEntity>> = teamDao.getTeam()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
-    private val _filters = MutableStateFlow(PokemonFilter())
-    val filters: StateFlow<PokemonFilter> = _filters
-
+    // -------------------------
+    // Filters
+    // -------------------------
     fun setRegionFilter(region: Region?) {
         _filters.update { it.copy(selectedRegion = region) }
 
@@ -191,37 +221,54 @@ class PokemonViewModel(
         loadPokemonList(isNewRegion = true)
     }
 
+    // -------------------------
+    // Evolution Chain
+    // -------------------------
+    fun fetchEvolutionChain(chainId: Int) {
+        viewModelScope.launch {
+            try {
+                val chainResponse = repository.getEvolutionChain(chainId)
+
+                val stages = mutableListOf<EvolutionStage>()
+                collectSpecies(chainResponse.chain, stages)
+
+                _evolutionStages.value = stages.mapIndexed { index, stage ->
+                    stage.copy(
+                        hasPrev = index > 0,
+                        hasNext = index < stages.lastIndex
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e("PokeVM", "Failed to fetch evolution chain for $chainId", e)
+            }
+        }
+    }
+
+    private fun collectSpecies(chain: Chain, list: MutableList<EvolutionStage>) {
+        val id = extractIdFromUrl(chain.species.url)
+        list.add(
+            EvolutionStage(
+                id = id,
+                name = chain.species.name,
+                imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png",
+                hasNext = chain.evolvesTo.isNotEmpty(),
+                hasPrev = chain.evolvesFrom.isNotEmpty()
+            )
+        )
+        chain.evolvesTo.forEach { evo -> collectSpecies(evo, list) }
+    }
+
+    // -------------------------
+    // Utility
+    // -------------------------
     fun extractIdFromUrl(url: String): Int {
         return url.trimEnd('/')
             .split("/")
             .last()
             .toIntOrNull() ?: -1
     }
-
-    fun showNextPokemon() {
-        val list = _pokemonList.value
-        if (_currentIndex.value < list.size - 1) {
-            _currentIndex.value++
-            fetchPokemonData(list[_currentIndex.value].name)
-        }
-    }
-
-    fun showPreviousPokemon() {
-        if (_currentIndex.value > 0) {
-            _currentIndex.value--
-            fetchPokemonData(_pokemonList.value[_currentIndex.value].name)
-        }
-    }
-
-    fun setCurrentPokemon(name: String) {
-        val index = _pokemonList.value.indexOfFirst { it.name == name }
-        if (index != -1) {
-            _currentIndex.value = index
-        }
-        fetchPokemonData(name)
-
-    }
 }
+
 
 data class PokemonDetailUiState(
     val pokemon: PokemonResponse? = null,
@@ -229,4 +276,5 @@ data class PokemonDetailUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val varieties: List<PokemonVariety> = emptyList(),
+    val evolutionChainId: Int? = null
 )

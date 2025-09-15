@@ -1,10 +1,7 @@
 package com.example.pokeverse.screens
 
-import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -30,11 +27,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -43,8 +37,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -65,14 +57,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.pokeverse.R
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.TeamMapper.toEntity
@@ -133,6 +126,7 @@ fun HomeScreen(navController: NavHostController) {
 
         ) { paddingValues ->
             val focusManager = LocalFocusManager.current
+            val keyboardController = LocalSoftwareKeyboardController.current
 
             Box(
                 modifier = Modifier
@@ -159,17 +153,24 @@ fun HomeScreen(navController: NavHostController) {
                         value = query,
                         onValueChange = { query = it },
                         label = { Text("Search a Pokémon", color = Color.White) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                         trailingIcon = {
                             IconButton(
                                 onClick = {
                                     val cleanedQuery = query.trim().lowercase()
                                     if (cleanedQuery.isNotBlank()) {
                                         coroutineScope.launch {
-                                            val success = viewModel.fetchPokemonData(cleanedQuery).toString()
+                                            val success =
+                                                viewModel.fetchPokemonData(cleanedQuery).toString()
                                             if (success.isNotEmpty()) {
                                                 navController.navigate("pokemon_detail/$cleanedQuery")
                                             } else {
-                                                Toast.makeText(context, "Pokémon not found", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(
+                                                    context,
+                                                    "Pokémon not found",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                         }
                                     }
@@ -182,20 +183,17 @@ fun HomeScreen(navController: NavHostController) {
                                 )
                             }
                         },
+                        keyboardActions = KeyboardActions {
+                            val cleanedQuery = query.trim().lowercase()
+                            if (cleanedQuery.isNotBlank()) {
+                                viewModel.fetchPokemonData(cleanedQuery)
+                            }
+                            keyboardController?.hide()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
                             .padding(bottom = 4.dp),
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(
-                            onSearch = {
-                                val cleanedQuery = query.trim().lowercase()
-                                if (cleanedQuery.isNotBlank()) {
-                                    viewModel.fetchPokemonData(cleanedQuery)
-                                }
-                            }
-                        ),
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color.DarkGray,
                             unfocusedTrailingIconColor = Color.DarkGray,
@@ -207,149 +205,148 @@ fun HomeScreen(navController: NavHostController) {
                         )
                     )
 
-                    if (pokemonList.isEmpty() && isLoading) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CustomProgressIndicator()
+                    when {
+                        isLoading && pokemonList.isEmpty() -> {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                CustomProgressIndicator()
+                            }
                         }
-                    } else if (pokemonList.isEmpty() && hasError) {
-                        // No internet or failed API
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Image(
-                                    painter = painterResource(R.drawable.nointrnet),
-                                    contentDescription = "No Internet",
-                                    modifier = Modifier.size(300.dp)
-                                )
-                                Spacer(Modifier.height(16.dp))
-                                Text("No Internet Connection", color = Color.White)
-                                Spacer(Modifier.height(8.dp))
-                                Button(onClick = { viewModel.loadPokemonList() },
-                                    colors = ButtonDefaults.buttonColors(
-                                        Color(0xFF802525)
+
+                        hasError && pokemonList.isEmpty() -> {
+                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Image(
+                                        painter = painterResource(R.drawable.nointrnet),
+                                        contentDescription = "No Internet",
+                                        modifier = Modifier.size(300.dp),
+                                        contentScale = ContentScale.Fit
                                     )
-                                ) {
-                                    Text("Retry")
+                                    Spacer(Modifier.height(16.dp))
+                                    Text("No Internet Connection", color = Color.White)
+                                    Spacer(Modifier.height(8.dp))
+                                    Button(
+                                        onClick = { viewModel.loadPokemonList() },
+                                        colors = ButtonDefaults.buttonColors(Color(0xFF802525))
+                                    ) {
+                                        Text("Retry")
+                                    }
                                 }
                             }
                         }
-                    } else {
 
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            LazyColumn(
-                                state = listState,
-                                contentPadding = PaddingValues(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                itemsIndexed(pokemonList) { index, pokemon ->
-                                    if (index >= pokemonList.size - 5 && !isLoading && !endReached) {
-                                        viewModel.loadPokemonList()
-                                        Text(text = "Total: ${pokemonList.size} Pokémon shown")
-                                    }
-                                    var isPressed by remember { mutableStateOf(false) }
+                        else -> {
 
-                                    val scale by animateFloatAsState(
-                                        targetValue = if (isPressed) 0.97f else 1f,
-                                        animationSpec = tween(durationMillis = 100),
-                                        label = "cardScale"
-                                    )
-                                    
-                                    Card(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .graphicsLayer {
-                                                scaleX = scale
-                                                scaleY = scale
-                                            }
-                                            .clickable {
-                                                isPressed = true
-                                                coroutineScope.launch {
-                                                    delay(150)
-                                                    isPressed = false
-                                                    withContext(Dispatchers.Main) {
-                                                        navController.navigate("pokemon_detail/${pokemon.name}")
-                                                    }
-                                                }
-                                            },
-                                        elevation = CardDefaults.cardElevation(4.dp),
-                                        colors = CardDefaults.cardColors(containerColor = Color.Black)
-                                    ) {
-                                        Row(
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                LazyColumn(
+                                    state = listState,
+                                    contentPadding = PaddingValues(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    itemsIndexed(pokemonList) { index, pokemon ->
+                                        if (index >= pokemonList.size - 5 && !isLoading && !endReached) {
+                                            viewModel.loadPokemonList()
+                                            Text(text = "Total: ${pokemonList.size} Pokémon shown")
+                                        }
+                                        var isPressed by remember { mutableStateOf(false) }
+
+                                        val scale by animateFloatAsState(
+                                            targetValue = if (isPressed) 0.97f else 1f,
+                                            animationSpec = tween(durationMillis = 100),
+                                            label = "cardScale"
+                                        )
+
+                                        Card(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(end = 10.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            val isInTeam by viewModel.isInTeam(pokemon.name)
-                                                .collectAsState(initial = false)
-                                            val team = viewModel.team.collectAsState()
-
-                                            Text(
-                                                text = pokemon.name.replaceFirstChar { it.uppercase() },
-                                                modifier = Modifier.padding(16.dp),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color = Color.White
-                                            )
-
-                                            IconButton(
-                                                onClick = {
-                                                    val team =
-                                                        viewModel.team.value // Safe here outside composition
-                                                    if (isInTeam) {
-                                                        viewModel.removeFromTeam(pokemon.toEntity())
-                                                    } else {
-                                                        if (team.size >= 6) {
-                                                            Toast.makeText(
-                                                                context,
-                                                                "Team already has 6 Pokémon!",
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
-                                                        } else {
-                                                            viewModel.addToTeam(pokemon)
+                                                .graphicsLayer {
+                                                    scaleX = scale
+                                                    scaleY = scale
+                                                }
+                                                .clickable {
+                                                    isPressed = true
+                                                    coroutineScope.launch {
+                                                        delay(150)
+                                                        isPressed = false
+                                                        withContext(Dispatchers.Main) {
+                                                            navController.navigate("pokemon_detail/${pokemon.name}")
                                                         }
                                                     }
                                                 },
-                                                enabled = isInTeam || team.value.size < 6
+                                            elevation = CardDefaults.cardElevation(4.dp),
+                                            colors = CardDefaults.cardColors(containerColor = Color.Black)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(end = 10.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Icon(
-                                                    imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
-                                                    contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
-                                                    tint = if (isInTeam) Color.Yellow else Color.White.copy(
-                                                        alpha = if (team.value.size >= 6) 0.2f else 1f
-                                                    ),
-                                                    modifier = Modifier.graphicsLayer(
-                                                        shadowElevation = 8f,
-                                                        shape = CircleShape,
-                                                        clip = true
-                                                    )
+                                                val isInTeam by viewModel.isInTeam(pokemon.name)
+                                                    .collectAsState(initial = false)
+                                                val team = viewModel.team.collectAsState()
+
+                                                Text(
+                                                    text = pokemon.name.replaceFirstChar { it.uppercase() },
+                                                    modifier = Modifier.padding(16.dp),
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    color = Color.White
                                                 )
+
+                                                IconButton(
+                                                    onClick = {
+                                                        val team =
+                                                            viewModel.team.value // Safe here outside composition
+                                                        if (isInTeam) {
+                                                            viewModel.removeFromTeam(pokemon.toEntity())
+                                                        } else {
+                                                            if (team.size >= 6) {
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Team already has 6 Pokémon!",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                            } else {
+                                                                viewModel.addToTeam(pokemon)
+                                                            }
+                                                        }
+                                                    },
+                                                    enabled = isInTeam || team.value.size < 6
+                                                ) {
+                                                    Icon(
+                                                        imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
+                                                        contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
+                                                        tint = if (isInTeam) Color.Yellow else Color.White.copy(
+                                                            alpha = if (team.value.size >= 6) 0.2f else 1f
+                                                        ),
+                                                        modifier = Modifier.graphicsLayer(
+                                                            shadowElevation = 8f,
+                                                            shape = CircleShape,
+                                                            clip = true
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    if (isLoading && pokemonList.isNotEmpty()) {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(16.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                CustomProgressIndicator()
                                             }
                                         }
                                     }
                                 }
-
-                                if (isLoading && pokemonList.isNotEmpty()) {
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(16.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            CustomProgressIndicator()
-                                        }
-                                    }
-                                }
                             }
-                        }
 
+                        }
                     }
                 }
             }

@@ -1,5 +1,7 @@
 package com.example.pokeverse.data.remote.model
 
+import com.example.pokeverse.data.remote.model.evolutionModels.EvolutionChainResponse
+import com.example.pokeverse.data.remote.model.evolutionModels.Species
 import com.google.gson.annotations.SerializedName
 
 data class PokemonResponse(
