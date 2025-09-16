@@ -1,4 +1,4 @@
-package com.example.pokeverse.screens
+package com.example.pokeverse.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home

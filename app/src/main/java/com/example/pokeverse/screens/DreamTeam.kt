@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.pokeverse.R
+import com.example.pokeverse.components.CustomProgressIndicator
 import com.example.pokeverse.data.local.entity.TeamMemberEntity
 import com.example.pokeverse.data.remote.model.PokemonResponse
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel

@@ -1,4 +1,4 @@
-package com.example.pokeverse.screens
+package com.example.pokeverse.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

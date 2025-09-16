@@ -19,6 +19,7 @@ import com.example.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.example.pokeverse.domain.repository.DescriptionRepo
 import com.example.pokeverse.domain.repository.PokemonRepo
 import com.example.pokeverse.utils.TeamMapper
+import com.example.pokeverse.utils.UiError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.net.UnknownHostException
 import java.util.Locale
 import kotlin.collections.filter
 
@@ -41,9 +43,6 @@ class PokemonViewModel(
 
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
-
-    private val _error = MutableStateFlow(false)
-    val error: StateFlow<Boolean> = _error
 
     private val _evolutionStages = MutableStateFlow<List<EvolutionStage>>(emptyList())
     val evolutionStages: StateFlow<List<EvolutionStage>> = _evolutionStages
@@ -106,10 +105,12 @@ class PokemonViewModel(
                 }
 
             } catch (e: Exception) {
-                listError = "Failed to load Pokémon list"
-                _error.value = true
-            } finally {
-                isLoading = false
+                val error = if (e is UnknownHostException) {
+                    UiError.NoInternet
+                } else {
+                    UiError.Unexpected(e.localizedMessage)
+                }
+                _uiState.value = PokemonDetailUiState(error = error)
             }
         }
     }
@@ -178,7 +179,7 @@ class PokemonViewModel(
             Log.e("PokeVM", "Failed to load $name", e)
             _uiState.value = _uiState.value.copy(
                 isLoading = false,
-                error = "Failed to load Pokémon"
+                error = UiError.Unexpected(e.localizedMessage)
             )
         }
     }
@@ -274,7 +275,7 @@ data class PokemonDetailUiState(
     val pokemon: PokemonResponse? = null,
     val description: String = "",
     val isLoading: Boolean = true,
-    val error: String? = null,
+    val error: UiError? = null,
     val varieties: List<PokemonVariety> = emptyList(),
     val evolutionChainId: Int? = null
 )

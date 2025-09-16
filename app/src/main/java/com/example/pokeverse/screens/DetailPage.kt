@@ -67,6 +67,8 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.pokeverse.R
+import com.example.pokeverse.components.CustomProgressIndicator
+import com.example.pokeverse.components.EvolutionConnector
 import com.example.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.example.pokeverse.specialscreens.ParticleBackground
 import com.example.pokeverse.specialscreens.getParticleTypeFor
@@ -183,7 +185,7 @@ fun PokemonDetailPage(
 
             if (specialEffectsEnabled && spriteEffectsEnabled) {
                 val particleType = getParticleTypeFor(typeList)
-                ParticleBackground(particleType)
+                ParticleBackground(particleType, pokemon.toString())
             }
 
             // Actual radial background (kept unchanged)
@@ -206,13 +208,12 @@ fun PokemonDetailPage(
 
             // Left connector (glowing) — clickable: navigate to prev stage by calling onConnectorClick
             if (showLeftConnector && currentStage?.prevId != null) {
-                EvolutionConnector(
+                com.example.pokeverse.components.EvolutionConnector(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .padding(start = 8.dp)
                         .size(width = 120.dp, height = 40.dp)
-                        .zIndex(10f)
-                    ,
+                        .zIndex(10f),
                     direction = EvolutionConnector.Direction.LEFT
                 ) {
                     // the ViewModel already holds stages list; find prev stage by id/name and call onConnectorClick
@@ -484,7 +485,6 @@ fun PokemonDetailPage(
                                                     onClick = {
                                                         val formName = variety.pokemon.name
                                                         viewModel.fetchVarietyPokemon(formName)
-                                                        navController.navigate("pokemon_detail/$formName")
                                                     },
                                                     label = {
                                                         Text(

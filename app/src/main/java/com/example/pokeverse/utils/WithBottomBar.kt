@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavHostController
-import com.example.pokeverse.screens.BottomNavigationBar
+import com.example.pokeverse.components.BottomNavigationBar
 
 @Composable
 fun WithBottomBar(navController: NavHostController, content: @Composable (PaddingValues) -> Unit) {

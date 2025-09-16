@@ -54,6 +54,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.pokeverse.di.appModule
@@ -114,39 +115,9 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                AnimatedNavHost(
+                NavHost(
                     navController = navController,
-                    startDestination = startDestination.value,
-                    enterTransition = {
-                        when (initialState.destination.route) {
-                            "splash" -> fadeIn(animationSpec = tween(300)) // special fade after splash
-                            else -> slideInHorizontally(
-                                initialOffsetX = { it },
-                                animationSpec = tween(300)
-                            )
-                        }
-                    },
-                    exitTransition = {
-                        when (targetState.destination.route) {
-                            "intro", "home" -> fadeOut(animationSpec = tween(300)) // smoother intro/home
-                            else -> slideOutHorizontally(
-                                targetOffsetX = { -it },
-                                animationSpec = tween(300)
-                            )
-                        }
-                    },
-                    popEnterTransition = {
-                        slideInHorizontally(
-                            initialOffsetX = { -it },
-                            animationSpec = tween(300)
-                        )
-                    },
-                    popExitTransition = {
-                        slideOutHorizontally(
-                            targetOffsetX = { it },
-                            animationSpec = tween(300)
-                        )
-                    }
+                    startDestination = startDestination.value
                 ) {
                     composable("splash") { SplashScreen(navController) }
                     composable("intro") { IntroScreen(navController) }
@@ -170,7 +141,7 @@ class MainActivity : ComponentActivity() {
                             PokemonDetailScreen(pokemonName, navController)
                         } else {
                             PokemonNotFoundScreen(
-                                onBackClick = { navController.popBackStack() },
+                                onBackClick = { navController.popBackStack() }, // a buggggggg
                                 onRetryClick = { navController.navigate("home") }
                             )
                         }
@@ -181,7 +152,6 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-
             }
         }
     }
@@ -243,7 +213,7 @@ fun PokemonNotFoundScreen(
             TopAppBar(
                 title = { Text("Oops!") },
                 navigationIcon = {
-                    IconButton(onClick = onRetryClick) {
+                    IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
                             contentDescription = "Back",

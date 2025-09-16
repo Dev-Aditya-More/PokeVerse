@@ -1,15 +1,13 @@
-package com.example.pokeverse.screens
+package com.example.pokeverse.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -17,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -66,8 +65,8 @@ fun ResponsiveMetaballSwitch(
             val radius = h / 2f
 
             // track colors
-            val trackOn = androidx.compose.ui.graphics.Color(0xFF802525)
-            val trackOff = androidx.compose.ui.graphics.Color(0xFF616161)
+            val trackOn = Color(0xFF802525)
+            val trackOff = Color(0xFF616161)
 
             // draw track (rounded capsule)
             drawRoundRect(
@@ -87,12 +86,12 @@ fun ResponsiveMetaballSwitch(
 
             // subtle shadow/outline for thumb
             drawCircle(
-                color = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.16f),
+                color = Color.Black.copy(alpha = 0.16f),
                 radius = thumbRadius + 2f,
                 center = Offset(cx, centerY)
             )
             drawCircle(
-                color = androidx.compose.ui.graphics.Color.White,
+                color = Color.White,
                 radius = thumbRadius,
                 center = Offset(cx, centerY)
             )
@@ -100,7 +99,7 @@ fun ResponsiveMetaballSwitch(
             // optional metaball glow when pressed/checked (small highlight)
             if (progress > 0.2f) {
                 drawCircle(
-                    color = androidx.compose.ui.graphics.Color(0xFFFFF59D).copy(alpha = 0.08f * progress),
+                    color = Color(0xFFFFF59D).copy(alpha = 0.08f * progress),
                     radius = thumbRadius * 1.6f * progress,
                     center = Offset(cx, centerY)
                 )

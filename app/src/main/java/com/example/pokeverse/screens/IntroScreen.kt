@@ -28,11 +28,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.pokeverse.R
-import com.example.pokeverse.utils.ScreenStateManager
+import com.example.pokeverse.components.NeumorphicButton
+import com.example.pokeverse.components.QuoteCarousel
 import com.example.pokeverse.utils.ScreenStateManager.markIntroSeen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

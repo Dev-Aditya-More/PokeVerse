@@ -42,7 +42,6 @@ fun EmberParticles(
 ) {
     val particles = remember { mutableStateListOf<EmberParticle>() }
     val density = LocalDensity.current.density
-    val scope = rememberCoroutineScope()
 
     // Add new particles
     LaunchedEffect(Unit) {

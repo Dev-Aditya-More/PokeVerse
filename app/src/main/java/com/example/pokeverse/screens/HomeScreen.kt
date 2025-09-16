@@ -67,8 +67,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.pokeverse.R
+import com.example.pokeverse.components.CustomProgressIndicator
+import com.example.pokeverse.components.FilterBar
 import com.example.pokeverse.ui.viewmodel.PokemonViewModel
 import com.example.pokeverse.utils.TeamMapper.toEntity
+import com.example.pokeverse.utils.UiError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -86,7 +89,7 @@ fun HomeScreen(navController: NavHostController) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val hasError by viewModel.error.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
@@ -212,7 +215,7 @@ fun HomeScreen(navController: NavHostController) {
                             }
                         }
 
-                        hasError && pokemonList.isEmpty() -> {
+                        uiState.error != null && pokemonList.isEmpty() -> {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Image(
@@ -222,7 +225,11 @@ fun HomeScreen(navController: NavHostController) {
                                         contentScale = ContentScale.Fit
                                     )
                                     Spacer(Modifier.height(16.dp))
-                                    Text("No Internet Connection", color = Color.White)
+                                    when (uiState.error) {
+                                        UiError.NoInternet -> Text("No Internet Connection")
+                                        is UiError.Unexpected -> Text("Something went wrong")
+                                        null -> {}
+                                    }
                                     Spacer(Modifier.height(8.dp))
                                     Button(
                                         onClick = { viewModel.loadPokemonList() },

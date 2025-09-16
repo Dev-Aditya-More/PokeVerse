@@ -19,28 +19,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,12 +39,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.pokeverse.R
+import com.example.pokeverse.components.CustomProgressIndicator
+import com.example.pokeverse.components.ResponsiveMetaballSwitch
 import com.example.pokeverse.ui.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -170,14 +158,14 @@ fun SettingsScreen(navController: NavController) {
                                 Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color(0xFFFFD54F))
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
-                                    "Special Effects (Experimental)",
+                                    "Special Effects",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = Color.White
                                 )
                             }
                             ResponsiveMetaballSwitch(
                                 checked = specialEffectsEnabled,
-                                onCheckedChange = { settingsViewModel.toggleSpecialEffects(it)},
+                                onCheckedChange = { settingsViewModel.toggleSpecialEffects(it) },
                                 enabled = true
                             )
                             Icon(
