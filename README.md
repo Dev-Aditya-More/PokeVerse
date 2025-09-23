@@ -73,7 +73,7 @@
 
 📦 API Source
 
-Data is fetched from ![PokeAPI](pokeapi.co)
+Data is fetched from ![PokeAPI](https//pokeapi.co)
 
 --- 
 
