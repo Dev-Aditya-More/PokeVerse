@@ -1,8 +1,6 @@
 # PokéVerse
 
-<p align="start"> <img src="screenshots/PokeVerse.png" alt="" width="1000"/> </p>
-
----
+> Explore, collect, and manage your Pokémon universe in one app!
 
 ## Built using
 > [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Android/android2.svg">]()
@@ -18,19 +16,10 @@
 
 ## 📱 Assets
 
-- ### v1.0.0
-<br> <p align="center"> <img src="screenshots/Screenshot_20250708_171327.png" alt="Home Screen" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/Screenshot_20250708_171404.png" alt="Detail Screen" width="300"/> </p> <br> <hr> <br>
-- ### v1.0.1
-<br> <p align="center"> <img src="screenshots/Screenshot_20250713_204301.png" alt="" width="290"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwo.png" alt="Detail Screen" width="300"/> <br><br> <img src="screenshots/mewtwoy.png" alt="" width="300"/> &nbsp;&nbsp;&nbsp; <img src="screenshots/mewtwox.png" alt="Detail Screen" width="300"/> </p> <br> <hr> <br> 
-<br>
-
-- ### v1.0.2
-
-https://github.com/user-attachments/assets/0158a21e-9a7c-459f-a6ba-ab59563f915b
-  
-<br><hr>
-
-https://github.com/user-attachments/assets/97fcc201-ead2-4765-a2d3-2190847c6bf3
+| ![1](fastlane/metadata/android/en-US/images/phoneScreenshots/1.png) | ![2](fastlane/metadata/android/en-US/images/phoneScreenshots/2.png) |
+|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
+| ![3](fastlane/metadata/android/en-US/images/phoneScreenshots/3.png) | ![4](fastlane/metadata/android/en-US/images/phoneScreenshots/4.png) |
+| ![5](fastlane/metadata/android/en-US/images/phoneScreenshots/5.png) | ![6](fastlane/metadata/android/en-US/images/phoneScreenshots/6.png) | 
 
 ---
 
@@ -84,7 +73,7 @@ https://github.com/user-attachments/assets/97fcc201-ead2-4765-a2d3-2190847c6bf3
 
 📦 API Source
 
-Data is fetched from ![PokeAPI](pokeapi.co)
+Data is fetched from ![PokeAPI](https://pokeapi.co/)
 
 --- 
 

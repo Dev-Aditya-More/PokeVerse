@@ -1,0 +1,11 @@
+🌟 Key Features:
+
+- Browse and discover Pokémon with detailed stats and abilities
+
+- Keep track of your collection in a clean, easy-to-use interface
+
+- Search and filter to quickly find your favorite Pokémon
+
+- Beautiful, responsive design built with Material3 and Jetpack Compose
+
+Whether you’re a casual fan or a seasoned trainer, PokeVerse helps you explore and enjoy the Pokémon universe like never before!
