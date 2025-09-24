@@ -146,7 +146,6 @@ class PokemonViewModel(
 
             var description = "Description not available."
             var varieties: List<PokemonVariety> = emptyList()
-            var evolutionChainId: Int? = null
 
             if (includeSpecies) {
                 val species = repository.getPokemonSpeciesByName(name)

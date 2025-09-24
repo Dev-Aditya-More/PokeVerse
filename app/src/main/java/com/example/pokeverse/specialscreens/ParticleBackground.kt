@@ -15,7 +15,7 @@ enum class SpecialEffect {
 
 fun getSpecialEffectFor(pokemonName: String): SpecialEffect {
     return when {
-        pokemonName.equals("charizard x", ignoreCase = true) -> SpecialEffect.BLUE_FLAMES
+        pokemonName.equals("Charizard-mega-x", ignoreCase = true) -> SpecialEffect.BLUE_FLAMES
         pokemonName.equals("gengar", ignoreCase = true) -> SpecialEffect.DARK_AURA
         else -> SpecialEffect.NONE
     }
@@ -36,7 +36,6 @@ fun getParticleTypeFor(types: List<String>): ParticleType {
         "poison" -> ParticleType.POISON
         "bug" -> ParticleType.BUG
         "ghost" -> ParticleType.GHOST
-        // add more types here as needed
         else -> ParticleType.NONE
     }
 }

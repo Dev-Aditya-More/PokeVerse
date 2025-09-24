@@ -163,16 +163,22 @@ fun SettingsScreen(navController: NavController) {
                                     color = Color.White
                                 )
                             }
-                            ResponsiveMetaballSwitch(
-                                checked = specialEffectsEnabled,
-                                onCheckedChange = { settingsViewModel.toggleSpecialEffects(it) },
-                                enabled = true
-                            )
-                            Icon(
-                                imageVector = if (isSpecialEffectsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = "Expand",
-                                tint = Color.White
-                            )
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                ResponsiveMetaballSwitch(
+                                    checked = specialEffectsEnabled,
+                                    onCheckedChange = { settingsViewModel.toggleSpecialEffects(it) },
+                                    enabled = true
+                                )
+                                Icon(
+                                    imageVector = if (isSpecialEffectsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                                    contentDescription = "Expand",
+                                    tint = Color.White
+                                )
+                            }
                         }
 
                         AnimatedVisibility(visible = isSpecialEffectsExpanded) {
