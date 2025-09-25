@@ -1,5 +1,3 @@
-import kotlinx.coroutines.launch
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,15 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "com.example.pokeverse"
+    namespace = "com.aditya1875.pokeverse"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.pokeverse"
+        applicationId = "com.aditya1875.pokeverse"
         minSdk = 25
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.1.7"
+        versionCode = 18
+        versionName = "1.1.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

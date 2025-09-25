@@ -16,8 +16,8 @@
 -dontwarn sun.misc.Unsafe
 
 # Keep your actual model classes
--keep class com.example.pokeverse.data.remote.model.** { *; }
--keepclassmembers class com.example.pokeverse.data.remote.model.** {
+-keep class com.aditya1875.pokeverse.data.remote.model.** { *; }
+-keepclassmembers class com.aditya1875.pokeverse.data.remote.model.** {
     <fields>;
 }
 
@@ -27,7 +27,7 @@
 -keep class androidx.room.** { *; }
 -keep class * extends androidx.room.RoomDatabase { *; }
 
--keep class com.example.pokeverse.data.local.** { *; }
+-keep class com.aditya1875.pokeverse.data.local.** { *; }
 -keep @androidx.room.Dao public interface * { *; }
 -keepclassmembers class * {
     @androidx.room.* <methods>;
@@ -42,7 +42,7 @@
 # Koin DI
 ############################
 -keep class org.koin.** { *; }
--keep class com.example.pokeverse.di.** { *; }
+-keep class com.aditya1875.pokeverse.di.** { *; }
 
 # Keep Kotlin Flow interfaces
 -keep class kotlinx.coroutines.flow.StateFlow { *; }
