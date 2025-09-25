@@ -1,0 +1,3 @@
+v1.1.8
+- fixed some common issues
+- and a lot of ui bugs
