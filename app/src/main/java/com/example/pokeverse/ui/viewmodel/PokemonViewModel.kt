@@ -81,6 +81,10 @@ class PokemonViewModel(
         val regionStart = selectedRegion?.offset ?: 0
         val regionEnd = regionStart + (selectedRegion?.limit ?: Int.MAX_VALUE)
 
+        if (isNewRegion) {
+            currentOffset = regionStart
+        }
+
         isLoading = true
         viewModelScope.launch {
             try {
@@ -216,6 +220,7 @@ class PokemonViewModel(
 
         currentOffset = region?.offset ?: 0
         endReached = false
+        isLoading = false
         _pokemonList.value = emptyList()
 
         loadPokemonList(isNewRegion = true)
