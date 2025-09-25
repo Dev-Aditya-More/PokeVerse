@@ -43,3 +43,7 @@
 ############################
 -keep class org.koin.** { *; }
 -keep class com.example.pokeverse.di.** { *; }
+
+# Keep Kotlin Flow interfaces
+-keep class kotlinx.coroutines.flow.StateFlow { *; }
+-keep class kotlinx.coroutines.flow.MutableStateFlow { *; }

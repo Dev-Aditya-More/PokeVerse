@@ -99,7 +99,7 @@ class PokemonViewModel(
                 if (isNewRegion) {
                     _pokemonList.value = filteredList
                 } else {
-                    _pokemonList.value += filteredList
+                    _pokemonList.value = _pokemonList.value + filteredList
                 }
 
                 currentOffset += limit
@@ -109,13 +109,10 @@ class PokemonViewModel(
                 }
 
             } catch (e: Exception) {
-                val error = if (e is UnknownHostException) {
-                    UiError.NoInternet
-                } else {
-                    UiError.Unexpected(e.localizedMessage)
-                }
-                _uiState.value = PokemonDetailUiState(error = error)
+                Log.e("PokeVM", "Failed to load Pokemon list", e)
+                _uiState.value = PokemonDetailUiState(error = UiError.Unexpected(e.localizedMessage))
             }
+
         }
     }
 
