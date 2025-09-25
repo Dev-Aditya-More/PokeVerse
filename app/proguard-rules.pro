@@ -15,9 +15,9 @@
 -keep class com.google.gson.** { *; }
 -dontwarn sun.misc.Unsafe
 
-# Keep your model classes and their fields
--keep class com.example.pokeverse.model.** { *; }
--keepclassmembers class com.example.pokeverse.model.** {
+# Keep your actual model classes
+-keep class com.example.pokeverse.data.remote.model.** { *; }
+-keepclassmembers class com.example.pokeverse.data.remote.model.** {
     <fields>;
 }
 
@@ -27,7 +27,7 @@
 -keep class androidx.room.** { *; }
 -keep class * extends androidx.room.RoomDatabase { *; }
 
--keep class com.example.pokeverse.data.local.** { *; }   # adjust package
+-keep class com.example.pokeverse.data.local.** { *; }
 -keep @androidx.room.Dao public interface * { *; }
 -keepclassmembers class * {
     @androidx.room.* <methods>;
@@ -37,3 +37,9 @@
 # Coroutines
 ############################
 -dontwarn kotlinx.coroutines.**
+
+############################
+# Koin DI
+############################
+-keep class org.koin.** { *; }
+-keep class com.example.pokeverse.di.** { *; }
