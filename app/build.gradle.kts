@@ -14,8 +14,8 @@ android {
         applicationId = "com.aditya1875.pokeverse"
         minSdk = 25
         targetSdk = 36
-        versionCode = 19
-        versionName = "1.1.9"
+        versionCode = 20
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
