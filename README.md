@@ -1,6 +1,6 @@
 # PokéVerse
 
-> Explore, collect, and manage your Pokémon universe in one app
+> Explore, collect, and manage your Pokémon universe in one app!
 
 ## Built using
 > [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Android/android2.svg">]()
