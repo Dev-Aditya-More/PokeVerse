@@ -10,7 +10,10 @@
 
 ## Get from
 
-> [<img src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea" height="80">](https://github.com/Dev-Aditya-More/PokeVerse/releases)
+> [<img src="https://f-droid.org/badge/get-it-on.png"
+    alt="Get it on F-Droid"
+    height="80">](https://f-droid.org/packages/com.aditya1875.pokeverse)
+[<img src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea" height="80">](https://github.com/Dev-Aditya-More/PokeVerse/releases)
 
 ---
 
