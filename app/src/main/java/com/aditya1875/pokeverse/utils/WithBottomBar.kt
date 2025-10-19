@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.utils
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -15,10 +16,12 @@ import com.aditya1875.pokeverse.components.BottomNavigationBar
 fun WithBottomBar(navController: NavHostController, content: @Composable (PaddingValues) -> Unit) {
     Scaffold(
         containerColor = Color.Black,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         bottomBar = { BottomNavigationBar(navController) }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+        Box(modifier = Modifier
+            .padding(padding)
+            .consumeWindowInsets(padding)
+        ) {
             content(padding)
         }
     }

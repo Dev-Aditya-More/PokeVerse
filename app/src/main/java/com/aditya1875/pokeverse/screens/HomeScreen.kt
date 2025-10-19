@@ -2,6 +2,7 @@ package com.aditya1875.pokeverse.screens
 
 import android.widget.Toast
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -36,7 +37,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -46,8 +49,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -67,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.components.AnimatedBackground
 import com.aditya1875.pokeverse.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.components.FilterBar
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
@@ -85,15 +91,30 @@ fun HomeScreen(navController: NavHostController) {
     val pokemonList by viewModel.pokemonList.collectAsState()
     val isLoading = viewModel.isLoading
     val endReached = viewModel.endReached
-    var query by rememberSaveable { mutableStateOf("") } // Persistent search query
+    var query by rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsState()
 
-    val pokeballGradient = Brush.verticalGradient(
-        listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
-    )
+    val team by viewModel.team.collectAsState()
+    val teamMembershipMap = remember(team) {
+        team.associate { it.name to true }
+    }
+
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val layoutInfo = listState.layoutInfo
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisibleItemIndex >= pokemonList.size - 5 && !isLoading && !endReached
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) {
+            viewModel.loadPokemonList()
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.loadPokemonList()
@@ -102,9 +123,10 @@ fun HomeScreen(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(pokeballGradient)
 
     ) {
+        AnimatedBackground()
+
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -143,9 +165,15 @@ fun HomeScreen(navController: NavHostController) {
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ) { focusManager.clearFocus() }
-                        .background(pokeballGradient) // Moved background here for full coverage
                 ) {
                     val filterState by viewModel.filters.collectAsState()
+                    val cleanedQuery = query.trim().lowercase()
+                    val performSearch = {
+                        if (cleanedQuery.isNotBlank()) {
+                            viewModel.fetchPokemonData(cleanedQuery)
+                            navController.navigate("pokemon_detail/$cleanedQuery")
+                        }
+                    }
 
                     FilterBar(
                         currentFilter = filterState,
@@ -161,21 +189,10 @@ fun HomeScreen(navController: NavHostController) {
                         trailingIcon = {
                             IconButton(
                                 onClick = {
-                                    val cleanedQuery = query.trim().lowercase()
-                                    if (cleanedQuery.isNotBlank()) {
-                                        coroutineScope.launch {
-                                            val success =
-                                                viewModel.fetchPokemonData(cleanedQuery).toString()
-                                            if (success.isNotEmpty()) {
-                                                navController.navigate("pokemon_detail/$cleanedQuery")
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Pokémon not found",
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
-                                        }
+                                    coroutineScope.launch{
+                                        performSearch()
+                                        delay(150)
+                                        keyboardController?.hide()
                                     }
                                 }
                             ) {
@@ -187,11 +204,11 @@ fun HomeScreen(navController: NavHostController) {
                             }
                         },
                         keyboardActions = KeyboardActions {
-                            val cleanedQuery = query.trim().lowercase()
-                            if (cleanedQuery.isNotBlank()) {
-                                viewModel.fetchPokemonData(cleanedQuery)
+                            coroutineScope.launch {
+                                performSearch()
+                                delay(150)
+                                keyboardController?.hide()
                             }
-                            keyboardController?.hide()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -226,9 +243,9 @@ fun HomeScreen(navController: NavHostController) {
                                     )
                                     Spacer(Modifier.height(16.dp))
                                     when (uiState.error) {
-                                        UiError.NoInternet -> Text("No Internet Connection")
+                                        is UiError.Network -> Text("No Internet Connection")
                                         is UiError.Unexpected -> Text("Something went wrong")
-                                        null -> {}
+                                        else -> Text("Unknown Error")
                                     }
                                     Spacer(Modifier.height(8.dp))
                                     Button(
@@ -244,6 +261,15 @@ fun HomeScreen(navController: NavHostController) {
                         else -> {
 
                             Box(modifier = Modifier.fillMaxSize()) {
+
+                                val animatedIndices = remember { mutableStateSetOf<Int>() }
+
+                                // Compute visible item indices using derivedStateOf
+                                val visibleIndices by remember {
+                                    derivedStateOf {
+                                        listState.layoutInfo.visibleItemsInfo.map { it.index }.toSet()
+                                    }
+                                }
                                 LazyColumn(
                                     state = listState,
                                     contentPadding = PaddingValues(16.dp),
@@ -251,12 +277,35 @@ fun HomeScreen(navController: NavHostController) {
                                     modifier = Modifier.fillMaxSize()
                                 ) {
                                     itemsIndexed(pokemonList) { index, pokemon ->
-                                        if (index >= pokemonList.size - 5 && !isLoading && !endReached) {
-                                            viewModel.loadPokemonList()
-                                            Text(text = "Total: ${pokemonList.size} Pokémon shown")
+                                        LaunchedEffect(index, visibleIndices) {
+                                            if (visibleIndices.contains(index)) {
+                                                animatedIndices.add(index)
+                                            }
                                         }
-                                        var isPressed by remember { mutableStateOf(false) }
+                                        // Stagger delay
+                                        val itemAnimDelay = index * 50L
+                                        var isVisible by remember { mutableStateOf(false) }
 
+                                        // Animate entry
+                                        val alphaa by animateFloatAsState(
+                                            targetValue = if (isVisible) 1f else 0f,
+                                            animationSpec = tween(durationMillis = 400, delayMillis = itemAnimDelay.toInt()),
+                                            label = "alphaAnim"
+                                        )
+
+                                        val transY by animateDpAsState(
+                                            targetValue = if (isVisible) 0.dp else 20.dp,
+                                            animationSpec = tween(durationMillis = 400, delayMillis = itemAnimDelay.toInt()),
+                                            label = "slideAnim"
+                                        )
+
+                                        // Trigger entry when composed
+                                        LaunchedEffect(Unit) {
+                                            isVisible = true
+                                        }
+
+                                        // Press animation
+                                        var isPressed by remember { mutableStateOf(false) }
                                         val scale by animateFloatAsState(
                                             targetValue = if (isPressed) 0.97f else 1f,
                                             animationSpec = tween(durationMillis = 100),
@@ -267,6 +316,8 @@ fun HomeScreen(navController: NavHostController) {
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .graphicsLayer {
+                                                    alpha = alphaa
+                                                    translationY = transY.toPx()
                                                     scaleX = scale
                                                     scaleY = scale
                                                 }
@@ -290,10 +341,8 @@ fun HomeScreen(navController: NavHostController) {
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                val isInTeam by viewModel.isInTeam(pokemon.name)
-                                                    .collectAsState(initial = false)
-                                                val team = viewModel.team.collectAsState()
 
+                                                val isInTeam = teamMembershipMap[pokemon.name] ?: false
                                                 Text(
                                                     text = pokemon.name.replaceFirstChar { it.uppercase() },
                                                     modifier = Modifier.padding(16.dp),
@@ -303,8 +352,6 @@ fun HomeScreen(navController: NavHostController) {
 
                                                 IconButton(
                                                     onClick = {
-                                                        val team =
-                                                            viewModel.team.value // Safe here outside composition
                                                         if (isInTeam) {
                                                             viewModel.removeFromTeam(pokemon.toEntity())
                                                         } else {
@@ -319,13 +366,13 @@ fun HomeScreen(navController: NavHostController) {
                                                             }
                                                         }
                                                     },
-                                                    enabled = isInTeam || team.value.size < 6
+                                                    enabled = isInTeam || team.size < 6
                                                 ) {
                                                     Icon(
                                                         imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
                                                         contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
                                                         tint = if (isInTeam) Color.Yellow else Color.White.copy(
-                                                            alpha = if (team.value.size >= 6) 0.2f else 1f
+                                                            alpha = if (team.size >= 6) 0.2f else 1f
                                                         ),
                                                         modifier = Modifier.graphicsLayer(
                                                             shadowElevation = 8f,

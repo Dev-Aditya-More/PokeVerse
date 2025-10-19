@@ -77,7 +77,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    implementation(libs.androidx.compose.material)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
@@ -87,8 +86,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.foundation)
-    implementation(libs.androidx.material3.android)
-    implementation(libs.androidx.compose.material3.material3)
     // Koin Core
     implementation(libs.koin.core)
     implementation(libs.material3.window.size.class1)

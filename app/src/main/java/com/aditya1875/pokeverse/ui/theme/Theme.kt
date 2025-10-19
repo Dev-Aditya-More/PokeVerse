@@ -76,7 +76,9 @@ private val ExpressiveShapes = Shapes(
     large = RoundedCornerShape(40.dp)
 )
 
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalSharedTransitionApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun PokeVerseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -91,21 +93,19 @@ fun PokeVerseTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-    val systemUiController = rememberSystemUiController()
-    val darkIcons = false  // we want white icons
-    val color = Color.Black
 
+    val sysUiController = rememberSystemUiController()
     SideEffect {
-        systemUiController.setSystemBarsColor(
-            color = color,
-            darkIcons = darkIcons
-        )
+        // Force black bars and white icons (darkIcons = false -> white icons)
+        sysUiController.setStatusBarColor(color = Color.Transparent, darkIcons = false)
+        sysUiController.setNavigationBarColor(color = Color.Transparent, darkIcons = false)
     }
 
-    MaterialTheme(
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
         typography = ExpressiveTypography,
         shapes = ExpressiveShapes,
+        motionScheme = MotionScheme.expressive(),
         content = content
     )
 }

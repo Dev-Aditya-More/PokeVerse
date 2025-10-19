@@ -13,7 +13,19 @@ object ScreenStateManager {
     val LAST_ROUTE = stringPreferencesKey("last_route")
     val INTRO_SEEN = booleanPreferencesKey("intro_seen")
 
+    val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
+
     val SPECIAL_EFFECTS_ENABLED = booleanPreferencesKey("special_effects_enabled")
+
+    suspend fun isFirstLaunch(context: Context): Boolean {
+        return context.dataStore.data.first()[FIRST_LAUNCH] ?: true
+    }
+
+    suspend fun markFirstLaunchShown(context: Context) {
+        context.dataStore.edit { prefs ->
+            prefs[FIRST_LAUNCH] = false
+        }
+    }
 
     suspend fun saveCurrentRoute(context: Context, route: String) {
         context.dataStore.edit { prefs ->
@@ -45,6 +57,7 @@ object ScreenStateManager {
     suspend fun isSpecialEffectsEnabled(context: Context): Boolean {
         return context.dataStore.data.first()[SPECIAL_EFFECTS_ENABLED] ?: false
     }
+
 
     // Read as Flow (optional)
     fun specialEffectsEnabledFlow(context: Context): Flow<Boolean> {

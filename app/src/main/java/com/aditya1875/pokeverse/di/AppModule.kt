@@ -52,7 +52,7 @@ val appModule = module {
 
     // ViewModels
     viewModel {
-        PokemonViewModel(get(), get(), get())
+        PokemonViewModel(get(), get(), get(), get())
     }
 
     viewModel {

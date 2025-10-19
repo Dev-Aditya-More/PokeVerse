@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.ui.viewmodel
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +20,7 @@ import com.aditya1875.pokeverse.data.remote.model.evolutionModels.Chain
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.aditya1875.pokeverse.domain.repository.DescriptionRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
+import com.aditya1875.pokeverse.utils.ScreenStateManager.isFirstLaunch
 import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,14 +29,24 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.net.UnknownHostException
 import kotlin.collections.filter
 
 class PokemonViewModel(
     private val repository: PokemonRepo,
     private val teamDao: TeamDao,
-    private val descriptionLocalRepository: DescriptionRepo
+    private val descriptionLocalRepository: DescriptionRepo,
+    private val context: Context
 ) : ViewModel() {
 
+    private val _showTagline = MutableStateFlow(false)
+    val showTagline: StateFlow<Boolean> = _showTagline
+
+    init {
+        viewModelScope.launch {
+            _showTagline.value = isFirstLaunch(context)
+        }
+    }
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
@@ -69,14 +83,22 @@ class PokemonViewModel(
 
         val selectedRegion = filters.value.selectedRegion
         val regionRange = selectedRegion?.range
-
         val regionStart = selectedRegion?.offset ?: 0
         val regionEnd = regionStart + (selectedRegion?.limit ?: Int.MAX_VALUE)
 
-        if (isNewRegion) {
-            currentOffset = regionStart
+        if (isNewRegion) currentOffset = regionStart
+
+        // --- NEW: Check for connectivity ---
+        if (!isNetworkAvailable(context)) {
+            _uiState.value = PokemonDetailUiState(
+                error = UiError.Network("No Internet Connection"),
+                isLoading = false
+            )
+            isLoading = false
+            return
         }
 
+        // Proceed only if online
         isLoading = true
         viewModelScope.launch {
             try {
@@ -95,18 +117,24 @@ class PokemonViewModel(
                 }
 
                 currentOffset += limit
-
                 if (newList.isEmpty() || newList.size < limit || currentOffset >= regionEnd) {
                     endReached = true
                 }
 
+                // reset any previous error
+                _uiState.value = PokemonDetailUiState(isLoading = false, error = null)
+
+            } catch (e: UnknownHostException) {
+                _uiState.value = PokemonDetailUiState(error = UiError.Network(e.localizedMessage))
             } catch (e: Exception) {
                 Log.e("PokeVM", "Failed to load Pokemon list", e)
                 _uiState.value = PokemonDetailUiState(error = UiError.Unexpected(e.localizedMessage))
+            } finally {
+                isLoading = false
             }
-
         }
     }
+
 
     // -------------------------
     // Pokémon Detail Loading
@@ -251,6 +279,14 @@ class PokemonViewModel(
         )
         chain.evolvesTo.forEach { evo -> collectSpecies(evo, list) }
     }
+
+    private fun isNetworkAvailable(context: Context): Boolean {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
+
 
     // -------------------------
     // Utility
