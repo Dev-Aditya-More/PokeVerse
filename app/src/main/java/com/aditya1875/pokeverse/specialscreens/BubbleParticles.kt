@@ -7,20 +7,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
 import kotlin.math.sin
 import kotlin.random.Random
 
 @Composable
-fun BubbleParticles(
+fun WaterParticles(
     modifier: Modifier = Modifier,
-    particleCount: Int = 30,
+    particleCount: Int = 60,
     colors: List<Color> = listOf(Color(0xFFB3E5FC), Color(0xFF81D4FA), Color(0xFF4FC3F7))
 ) {
     val particles = remember { mutableStateListOf<BubbleParticle>() }
@@ -52,7 +55,11 @@ fun BubbleParticles(
         }
     }
 
-    Canvas(modifier = modifier.fillMaxSize()) {
+    Canvas(modifier = modifier
+        .fillMaxSize()
+        .clipToBounds()
+        .zIndex(0f)
+    ) {
         particles.forEach { particle ->
             val center = Offset(particle.x * size.width, particle.y * size.height)
 
@@ -66,14 +73,16 @@ fun BubbleParticles(
                     radius = particle.radius * density
                 ),
                 radius = particle.radius * density,
-                center = center
+                center = center,
+                blendMode = BlendMode.Softlight
             )
 
             drawCircle(
                 color = Color.White.copy(alpha = 0.6f),
                 radius = particle.radius * density,
                 center = center,
-                style = Stroke(width = 1.2f * density)
+                style = Stroke(width = 1.2f * density),
+                blendMode = BlendMode.Softlight
             )
 
             drawOval(
@@ -85,7 +94,8 @@ fun BubbleParticles(
                 size = Size(
                     particle.radius * density * 0.6f,
                     particle.radius * density * 0.3f
-                )
+                ),
+                blendMode = BlendMode.Softlight
             )
         }
     }

@@ -1,9 +1,5 @@
 package com.aditya1875.pokeverse.screens
 
-import android.media.MediaPlayer
-import android.speech.tts.TextToSpeech
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -16,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,14 +20,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -39,29 +37,22 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.LoadingIndicatorDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -71,8 +62,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.components.EvolutionConnector
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.aditya1875.pokeverse.specialscreens.ParticleBackground
@@ -80,9 +69,11 @@ import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonDetailUiState
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
-import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 fun PokemonDetailPage(
     uiState: PokemonDetailUiState,
@@ -99,7 +90,7 @@ fun PokemonDetailPage(
     val spriteEffectsEnabled = spriteEffectsEnabledState.value
     val typeList = pokemon?.types?.map { it.type.name } ?: emptyList()
     val currentNameForBg = currentStage?.name ?: pokemon?.name ?: ""
-    // gmax color map (kept as you had it)
+
     val gmaxPokemonColors = mapOf(
         "Charizard-gmax" to Color(0xFFDA4453),
         "Venusaur-gmax" to Color(0xFF88B04B),
@@ -117,150 +108,74 @@ fun PokemonDetailPage(
         "Butterfree-gmax" to Color(0xFFBA68C8),
         "Toxtricity-gmax" to Color(0xFF8E24AA),
     )
-    val formKey = "$gmaxPokemonColors"
-    val bgColor = if (formKey.isNotEmpty())
-        gmaxPokemonColors[formKey] ?: getPokemonBackgroundColor(currentNameForBg, typeList)
-    else getPokemonBackgroundColor(currentNameForBg, typeList)
 
-    val context = LocalContext.current
-    var isTtsReady by remember { mutableStateOf(false) }
-    val mediaPlayer = remember { MediaPlayer.create(context, R.raw.beepeffect) }
+    val bgColor = gmaxPokemonColors[currentNameForBg] ?: getPokemonBackgroundColor(currentNameForBg, typeList)
     val listState = rememberLazyListState()
     val spriteVisible by remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset < 200
+            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 200
         }
     }
-    LaunchedEffect(currentStage, showLeftConnector, showRightConnector) {
-        Log.d("DBG_EVO", "currentStage=${currentStage?.name} showLeft=$showLeftConnector showRight=$showRightConnector")
-    }
-
-    // TTS
-    val tts = remember {
-        lateinit var ttsInstance: TextToSpeech
-        ttsInstance = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                // now it's safe to call methods on the created instance
-                val result = ttsInstance.setLanguage(Locale.US)
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e("TTS", "Language not supported or missing data: $result")
-                    isTtsReady = false
-                } else {
-                    ttsInstance.setPitch(1.3f)
-                    ttsInstance.setSpeechRate(0.9f)
-                    isTtsReady = true
-                }
-            } else {
-                Log.e("TTS", "Initialization failed: $status")
-                isTtsReady = false
-            }
-        }
-        ttsInstance
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            try {
-                tts.stop()
-                tts.shutdown()
-            } catch (_: Exception) {}
-            try { mediaPlayer.release() } catch (_: Exception) {}
-        }
-    }
-
-    // use the stage image immediately if uiState.pokemon hasn't loaded yet
-    val spriteUrlFallback = currentStage?.imageUrl
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black) // Dark background
+            .background(Color.Black)
+            .windowInsetsPadding(WindowInsets.systemBars)
     ) {
 
-        // Gradient behind Pokémon image + sprite + connectors
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(1f)
-                .padding(top = 75.dp)
                 .align(Alignment.TopCenter)
                 .zIndex(1f)
         ) {
 
-            if (specialEffectsEnabled && spriteEffectsEnabled) {
-                val particleType = getParticleTypeFor(typeList)
-                ParticleBackground(particleType, pokemon.toString())
-            }
-
-            // Actual radial background (kept unchanged)
+            // Slightly dim the background to reduce overcolor on glossy cards
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val gradientBrush = Brush.radialGradient(
                     colors = listOf(
-                        bgColor.copy(alpha = 0.6f),  // Core glow
-                        bgColor.copy(alpha = 0.15f),  // Fade out
-                        Color.Transparent              // Smooth outer edge
+                        bgColor.copy(alpha = 0.55f),
+                        bgColor.copy(alpha = 0.1f),
+                        Color.Transparent
                     ),
                     center = center,
                     radius = size.maxDimension * 0.7f
                 )
-                drawCircle(
-                    brush = gradientBrush,
-                    radius = size.maxDimension * 0.7f,
-                    center = center
-                )
+                drawRect(Color.Black.copy(alpha = 0.25f))
+                drawCircle(brush = gradientBrush, radius = size.maxDimension * 0.7f, center = center)
             }
 
-            // Left connector (glowing) — clickable: navigate to prev stage by calling onConnectorClick
-            if (showLeftConnector && currentStage?.prevId != null) {
-                com.aditya1875.pokeverse.components.EvolutionConnector(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 8.dp)
-                        .size(width = 120.dp, height = 40.dp)
-                        .zIndex(10f),
-                    direction = EvolutionConnector.Direction.LEFT
-                ) {
-                    // the ViewModel already holds stages list; find prev stage by id/name and call onConnectorClick
-                    // We pass the stage through onConnectorClick; parent pager will navigate.
-                    onConnectorClick(currentStage.prevId)
-                }
+            // Particle effects remain the same
+            if (specialEffectsEnabled && spriteEffectsEnabled) {
+                val particleType = getParticleTypeFor(typeList)
+                ParticleBackground(particleType, pokemon?.name.toString())
             }
 
-            // Pokémon Image animation (sprite uses uiState.pokemon if available else fallback)
-            val imageAlpha = remember { Animatable(0f) }
-            val imageScale = remember { Animatable(0.9f) }
-
-            LaunchedEffect(currentStage?.imageUrl, uiState.pokemon?.id) {
-                imageAlpha.animateTo(1f, tween(800, easing = FastOutSlowInEasing))
-                imageScale.animateTo(1.0f, tween(600, easing = FastOutSlowInEasing))
-            }
-
-            val pressScale = remember { Animatable(1.0f) }
+            // Pokémon sprite
+            val pressScale = remember { Animatable(1f) }
 
             AsyncImage(
-                model = uiState.pokemon?.sprites?.other?.officialArtwork?.frontDefault
-                    ?: uiState.pokemon?.sprites?.front_default
-                    ?: spriteUrlFallback,
-                contentDescription = uiState.pokemon?.name ?: currentStage?.name,
+                model = pokemon?.sprites?.other?.officialArtwork?.frontDefault
+                    ?: pokemon?.sprites?.front_default
+                    ?: currentStage?.imageUrl,
+                contentDescription = pokemon?.name ?: currentStage?.name,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .size(220.dp)
+                    .align(Alignment.Center)
                     .graphicsLayer {
                         alpha = if (spriteVisible) 1f else 0f
-                        translationY = if (spriteVisible) 0f else -1000f
                         scaleX = pressScale.value
                         scaleY = pressScale.value
                     }
-                    .align(Alignment.Center)
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onPress = {
                                 pressScale.animateTo(1.1f, tween(150))
                                 spriteEffectsEnabledState.value = true
-
                                 tryAwaitRelease()
-
                                 pressScale.animateTo(1.0f, tween(150))
                                 spriteEffectsEnabledState.value = false
                             }
@@ -268,7 +183,18 @@ fun PokemonDetailPage(
                     }
             )
 
-            // Right connector
+            // Evolution connectors
+            if (showLeftConnector && currentStage?.prevId != null) {
+                EvolutionConnector(
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 8.dp)
+                        .size(width = 120.dp, height = 40.dp)
+                        .zIndex(10f),
+                    direction = EvolutionConnector.Direction.LEFT
+                ) { onConnectorClick(currentStage.prevId) }
+            }
+
             if (showRightConnector && currentStage?.nextId != null) {
                 EvolutionConnector(
                     modifier = Modifier
@@ -277,71 +203,41 @@ fun PokemonDetailPage(
                         .size(width = 120.dp, height = 40.dp)
                         .zIndex(10f),
                     direction = EvolutionConnector.Direction.RIGHT
-                ) {
-                    onConnectorClick(currentStage.nextId)
-                }
+                ) { onConnectorClick(currentStage.nextId) }
             }
         }
 
+        // The main scroll area
         Scaffold(
             containerColor = Color.Transparent,
+            contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
-                            text = pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "",
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
                         )
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
                                 tint = Color.White
                             )
                         }
                     },
-                    actions = {
-                        IconButton(onClick = {
-                            val name = pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "This Pokémon"
-                            val type = pokemon?.types?.firstOrNull()?.type?.name ?: "unknown type"
-                            val descriptionText = pokemon?.id?.let { viewModel.getLocalDescription(it) } ?: ""
-                            val cleanText = descriptionText.replace(Regex("[^\\x00-\\x7F]"), " ").replace("\n", " ").trim()
-                            val speechText = "$name. A $type type Pokémon. $cleanText"
-
-                            if (isTtsReady) {
-                                val utteranceId = java.util.UUID.randomUUID().toString()
-                                try {
-                                    // try to play beep then speak
-                                    mediaPlayer.setOnCompletionListener {
-                                        tts.speak(speechText, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
-                                    }
-                                    mediaPlayer.start()
-
-                                    // fallback: if beep didn't start, speak immediately
-                                    if (!mediaPlayer.isPlaying) {
-                                        tts.speak(speechText, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
-                                    }
-                                } catch (e: Exception) {
-                                    Log.e("TTS", "beep/speak failed, speaking directly", e)
-                                    tts.speak(speechText, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
-                                }
-                            } else {
-                                Toast.makeText(context, "TTS not ready", Toast.LENGTH_SHORT).show()
-                            }
-                        }) {
-                            Icon(imageVector = Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Speak Description", tint = Color.White)
-                        }
-
-                    },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Black,
-                        navigationIconContentColor = Color.White,
-                        titleContentColor = Color.White,
-                        actionIconContentColor = Color.White
-                    )
+                        containerColor = Color.Transparent
+                    ),
+                    modifier = Modifier
+                        .background(
+                            Brush.verticalGradient(
+                                listOf(Color.Black.copy(alpha = 0.6f), Color.Transparent)
+                            )
+                        ).zIndex(1f)
                 )
             }
         ) { padding ->
@@ -363,7 +259,8 @@ fun PokemonDetailPage(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(padding)
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = 16.dp)
+                        ,
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         item { Spacer(modifier = Modifier.height(260.dp)) }
