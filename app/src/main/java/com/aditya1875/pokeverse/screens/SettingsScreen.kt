@@ -1,25 +1,38 @@
 package com.aditya1875.pokeverse.screens
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
+import android.content.Intent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,27 +54,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.aditya1875.pokeverse.components.AnimatedBackground
 import com.aditya1875.pokeverse.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.components.ResponsiveMetaballSwitch
 import com.aditya1875.pokeverse.ui.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
+import androidx.core.net.toUri
+import com.aditya1875.pokeverse.components.SettingsCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(navController: NavController) {
-    val pokeballGradient = remember {
-        Brush.verticalGradient(
-            listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
-        )
-    }
+    val settingsViewModel: SettingsViewModel = koinViewModel()
+    val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
+
+    val infiniteTransition = rememberInfiniteTransition(label = "Gradient")
+    val animatedOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(8000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = ""
+    )
+    val animatedGradient = Brush.verticalGradient(
+        colors = listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A)),
+        startY = animatedOffset,
+        endY = animatedOffset + 1000f
+    )
 
     var isAboutExpanded by remember { mutableStateOf(false) }
     var isSpecialEffectsExpanded by remember { mutableStateOf(false) }
-    val settingsViewModel: SettingsViewModel = koinViewModel()
-    val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -70,130 +100,145 @@ fun SettingsScreen(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Settings ",
+                        text = "Settings",
                         style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        color = Color.White
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black,
-                    titleContentColor = Color.White
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Black)
             )
         }
     ) { padding ->
+        val context = LocalContext.current
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(pokeballGradient)
+                .background(animatedGradient)
                 .padding(padding)
         ) {
             // Pokéball watermark
             CustomProgressIndicator(
                 Modifier
-                    .size(300.dp)
-                    .align(Alignment.Center)
                     .size(280.dp)
-                    .alpha(0.08f)
+                    .align(Alignment.Center)
+                    .graphicsLayer(alpha = 0.08f)
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(16.dp)
+                    .padding(top = 15.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // About Section
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { isAboutExpanded = !isAboutExpanded }
-                        .animateContentSize(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Info, contentDescription = null, tint = Color.White)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("About", style = MaterialTheme.typography.titleMedium, color = Color.White)
-                            }
-                            Icon(
-                                imageVector = if (isAboutExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                contentDescription = "Expand",
-                                tint = Color.White
-                            )
-                        }
 
-                        AnimatedVisibility(visible = isAboutExpanded) {
-                            Column(modifier = Modifier.padding(top = 8.dp)) {
-                                Text("Made with ❤️ by Aditya More", color = Color.Gray)
-                                Text("Version: 1.0.2", color = Color.Gray)
-                                Text("Built with Jetpack Compose", color = Color.Gray)
-                            }
-                        }
-                    }
+                // About Section
+                SettingsCard(
+                    title = "About",
+                    icon = Icons.Default.Info,
+                    iconTint = Color.White,
+                    expanded = isAboutExpanded,
+                    onExpandToggle = { isAboutExpanded = !isAboutExpanded }
+                ) {
+                    Text("Made with ❤️ by Aditya More", color = Color.Gray)
+                    Text("Version: 1.0.2", color = Color.Gray)
+                    Text("Built with Jetpack Compose", color = Color.Gray)
                 }
 
                 // Special Effects Section
-                Card(
+                SettingsCard(
+                    title = "Special Effects",
+                    icon = Icons.Default.AutoAwesome,
+                    iconTint = Color(0xFFFFD54F),
+                    expanded = isSpecialEffectsExpanded,
+                    onExpandToggle = { isSpecialEffectsExpanded = !isSpecialEffectsExpanded },
+                    trailing = {
+                        ResponsiveMetaballSwitch(
+                            checked = specialEffectsEnabled,
+                            onCheckedChange = { settingsViewModel.toggleSpecialEffects(it) },
+                            enabled = true
+                        )
+                    }
+                ) {
+                    Text(
+                        "You'll see particle effects in Pokémon details.\nTry pressing the Pokémon sprite!",
+                        color = Color.Gray,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+
+                Divider(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { isSpecialEffectsExpanded = !isSpecialEffectsExpanded }
-                        .animateContentSize(),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
+                        .alpha(0.3f)
+                        .background(Brush.horizontalGradient(
+                            listOf(Color.Transparent, Color.Gray.copy(alpha = 0.5f), Color.Transparent)
+                        ))
+                )
+
+                // Socials Section
+                Text(
+                    "Connect with us",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color.White.copy(alpha = 0.9f),
+                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+                )
+
+                val socials = listOf(
+                    SocialLink("GitHub", "https://github.com/Dev-Aditya-More/PokeVerse", Icons.Default.Code),
+                    SocialLink("YouTube", "https://youtube.com/@TheCodeForge-yt", Icons.Default.PlayArrow),
+                    SocialLink("X (Twitter)", "https://twitter.com/Pokeverse_App",
+                        Icons.AutoMirrored.Filled.Send
+                    )
+                )
+
+                socials.forEach { social ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val intent = Intent(Intent.ACTION_VIEW, social.url.toUri())
+                                context.startActivity(intent)
+                            },
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = Color(0xFFFFD54F))
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    "Special Effects",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Color.White
-                                )
-                            }
-
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.End
-                            ) {
-                                ResponsiveMetaballSwitch(
-                                    checked = specialEffectsEnabled,
-                                    onCheckedChange = { settingsViewModel.toggleSpecialEffects(it) },
-                                    enabled = true
-                                )
-                                Icon(
-                                    imageVector = if (isSpecialEffectsExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                    contentDescription = "Expand",
-                                    tint = Color.White
-                                )
-                            }
-                        }
-
-                        AnimatedVisibility(visible = isSpecialEffectsExpanded) {
+                            Icon(
+                                social.icon,
+                                contentDescription = social.name,
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                "You'll see the particle effect \n(Try pressing the Pokémon sprite)",
-                                color = Color.Gray,
-                                style = MaterialTheme.typography.bodyLarge,
-                                modifier = Modifier.padding(top = 8.dp)
+                                text = social.name,
+                                color = Color.White,
+                                style = MaterialTheme.typography.titleMedium
                             )
                         }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Text(
+                    text = "© PokéVerse 2025. All rights reserved.",
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.alpha(0.6f)
+                )
             }
         }
     }
 }
+
+
+data class SocialLink(val name: String, val url: String, val icon: ImageVector)

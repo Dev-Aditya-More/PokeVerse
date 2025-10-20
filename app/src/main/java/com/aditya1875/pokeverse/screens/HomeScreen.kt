@@ -283,7 +283,7 @@ fun HomeScreen(navController: NavHostController) {
                                             }
                                         }
                                         // Stagger delay
-                                        val itemAnimDelay = index * 50L
+                                        val itemAnimDelay = index
                                         var isVisible by remember { mutableStateOf(false) }
 
                                         // Animate entry
@@ -330,7 +330,9 @@ fun HomeScreen(navController: NavHostController) {
                                                             navController.navigate("pokemon_detail/${pokemon.name}")
                                                         }
                                                     }
-                                                },
+                                                }
+                                                .animateItem()
+                                            ,
                                             elevation = CardDefaults.cardElevation(4.dp),
                                             colors = CardDefaults.cardColors(containerColor = Color.Black)
                                         ) {

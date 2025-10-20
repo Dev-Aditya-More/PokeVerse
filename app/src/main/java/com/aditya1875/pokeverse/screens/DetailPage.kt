@@ -36,8 +36,12 @@ import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LoadingIndicatorDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -57,6 +61,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -77,7 +82,7 @@ import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PokemonDetailPage(
     uiState: PokemonDetailUiState,
@@ -340,13 +345,15 @@ fun PokemonDetailPage(
                 )
             }
         ) { padding ->
-            // I preserved your gradient then the exact when block and LazyColumn content.
-            Brush.verticalGradient(listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))) // no-op here to keep parity
 
             when {
                 uiState.isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CustomProgressIndicator()
+                    Box(modifier = Modifier.fillMaxSize().background(Color.Black), contentAlignment = Alignment.Center) {
+
+                        LoadingIndicator(
+                            modifier = Modifier.size(95.dp),
+                            color = Color(0xFF802525),
+                        )
                     }
                 }
 

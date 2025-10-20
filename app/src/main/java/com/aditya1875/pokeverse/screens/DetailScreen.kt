@@ -6,6 +6,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -26,9 +27,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.aditya1875.pokeverse.components.AnimatedBackground
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.ui.viewmodel.SettingsViewModel
 import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.PagerState
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -47,7 +50,8 @@ fun PokemonDetailScreen(
     val stages by viewModel.evolutionStages.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
-    // initial fetch
+    AnimatedBackground()
+
     LaunchedEffect(pokemonName) {
         viewModel.fetchPokemonData(pokemonName)
         viewModel.fetchVarietyPokemon(pokemonName)
@@ -65,13 +69,14 @@ fun PokemonDetailScreen(
     }
     val pagerState = rememberPagerState(initialPage = initialPage)
 
-    // update details when page changes
     LaunchedEffect(pagerState, stages) {
         snapshotFlow { pagerState.currentPage }
             .collectLatest { page ->
                 stages.getOrNull(page)?.let { stage ->
-                    viewModel.fetchPokemonData(stage.name)
-                    viewModel.fetchVarietyPokemon(stage.name)
+                    if (!stage.name.equals(uiState.pokemon?.name, ignoreCase = true)) {
+                        viewModel.fetchPokemonData(stage.name)
+                        viewModel.fetchVarietyPokemon(stage.name)
+                    }
                 }
             }
     }
@@ -85,7 +90,6 @@ fun PokemonDetailScreen(
             .background(Color.Black)
     ) {
         if (stages.isEmpty()) {
-            // no evolution chain → single detail page
             PokemonDetailPage(
                 uiState = uiState,
                 currentStage = null,
@@ -97,7 +101,6 @@ fun PokemonDetailScreen(
                 spriteEffectsEnabledState = spriteEffectsEnabledState
             )
         } else {
-            // multiple evolution stages
             HorizontalPager(
                 count = stages.size,
                 state = pagerState,
@@ -214,11 +217,4 @@ fun getPokemonBackgroundColor(name: String, types: List<String>): Color {
 
     // Final fallback
     return Color.LightGray
-}
-
-
-@Preview(showSystemUi = true)
-@Composable
-private fun DetailScreen() {
-    PokemonDetailScreen(pokemonName = "Pikachu", navController = NavController(LocalContext.current))
 }
