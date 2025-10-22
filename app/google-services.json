@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "362465307544",
+    "project_id": "composepractice-33177",
+    "storage_bucket": "composepractice-33177.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:362465307544:android:6bdcf271cac32bf95499ed",
+        "android_client_info": {
+          "package_name": "com.aditya1875.pokeverse"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoDLueEpn8KfUG_7eYCYjNNJHgi3S-iUQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

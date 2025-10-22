@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -14,8 +15,8 @@ android {
         applicationId = "com.aditya1875.pokeverse"
         minSdk = 25
         targetSdk = 36
-        versionCode = 21
-        versionName = "1.2.1"
+        versionCode = 22
+        versionName = "1.2.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -102,13 +103,16 @@ dependencies {
     // haze
     implementation(libs.haze.jetpack.compose)
 
-    implementation(libs.material3)
     implementation(libs.ui)
     implementation(libs.androidx.ui.text.google.fonts)
     implementation(libs.accompanist.placeholder.material)
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.navigation.animation.v0340)
 
+    implementation(libs.firebase.analytics)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.androidx.core.ktx)
 
     // ui tests
     testImplementation(libs.junit)
