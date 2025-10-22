@@ -8,7 +8,7 @@
 
 ---
 
-## Get from
+## Get from (github for the best experience)
 
 > [<img src="https://f-droid.org/badge/get-it-on.png"
     alt="Get it on F-Droid"
