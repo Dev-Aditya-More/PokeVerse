@@ -150,7 +150,6 @@ class PokemonViewModel(
         }
     }
 
-
     fun fetchVarietyPokemon(name: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
@@ -163,13 +162,13 @@ class PokemonViewModel(
         includeSpecies: Boolean
     ) {
         try {
-            val pokemon = repository.getPokemonByName(name)
+            val pokemon = repository.getPokemonByName(name).copy()
 
             var description = "Description not available."
             var varieties: List<PokemonVariety> = emptyList()
 
             if (includeSpecies) {
-                val species = repository.getPokemonSpeciesByName(name)
+                val species = repository.getPokemonSpeciesByName(name).copy()
 
                 description = species.flavorTextEntries.firstOrNull {
                     it.language.name == "en"

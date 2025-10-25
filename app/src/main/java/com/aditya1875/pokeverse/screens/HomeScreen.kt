@@ -118,6 +118,7 @@ fun HomeScreen(navController: NavHostController) {
 
     LaunchedEffect(Unit) {
         viewModel.loadPokemonList()
+        query = ""
     }
 
     Box(

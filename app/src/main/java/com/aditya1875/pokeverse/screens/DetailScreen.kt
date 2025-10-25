@@ -50,8 +50,6 @@ fun PokemonDetailScreen(
     val stages by viewModel.evolutionStages.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
-    AnimatedBackground()
-
     LaunchedEffect(pokemonName) {
         viewModel.fetchPokemonData(pokemonName)
         viewModel.fetchVarietyPokemon(pokemonName)
@@ -91,7 +89,6 @@ fun PokemonDetailScreen(
     ) {
         if (stages.isEmpty()) {
             PokemonDetailPage(
-                uiState = uiState,
                 currentStage = null,
                 showLeftConnector = false,
                 showRightConnector = false,
@@ -108,7 +105,6 @@ fun PokemonDetailScreen(
             ) { page ->
                 val stage = stages[page]
                 PokemonDetailPage(
-                    uiState = uiState,
                     currentStage = stage,
                     showLeftConnector = stage.hasPrev,
                     showRightConnector = stage.hasNext,

@@ -43,7 +43,6 @@ fun ElectricParticles(
         }
     }
 
-    // Physics updater: moves sparks using real dt, applies jitter & damping, removes expired
     LaunchedEffect(Unit) {
         var last = System.currentTimeMillis()
         while (true) {
@@ -155,7 +154,7 @@ fun ElectricParticles(
 }
 
 /** Helpers and model **/
-private data class Spark(
+data class Spark(
     var x: Float,
     var y: Float,
     var vx: Float,
@@ -166,7 +165,7 @@ private data class Spark(
     var createdAt: Long
 )
 
-private enum class SparkShape { STREAK, ZIGZAG }
+enum class SparkShape { STREAK, ZIGZAG }
 
 /** Utility to rotate an Offset by degrees (used above) */
 private fun Offset.rotate(degrees: Float): Offset {

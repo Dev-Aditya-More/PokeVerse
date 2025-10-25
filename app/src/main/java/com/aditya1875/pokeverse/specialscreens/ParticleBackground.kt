@@ -7,16 +7,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 enum class ParticleType {
-    FIRE, WATER, GRASS, ROCK, ELECTRIC, FLYING, ICE, GROUND, POISON, BUG, GHOST, NONE
+    FIRE, WATER, GRASS, ROCK, ELECTRIC, FLYING, ICE, GROUND, POISON, BUG, GHOST, FIGHTING, PSYCHIC, FAIRY, DRAGON, DARK, STEEL, NORMAL, NONE
 }
 enum class SpecialEffect {
-    BLUE_FLAMES, DARK_AURA, NONE
+    BLUE_FLAMES, NONE
 }
 
 fun getSpecialEffectFor(pokemonName: String): SpecialEffect {
     return when {
         pokemonName.equals("charizard-mega-x", ignoreCase = true) -> SpecialEffect.BLUE_FLAMES
-        pokemonName.equals("gengar", ignoreCase = true) -> SpecialEffect.DARK_AURA
         else -> SpecialEffect.NONE
     }
 }
@@ -36,6 +35,13 @@ fun getParticleTypeFor(types: List<String>): ParticleType {
         "poison" -> ParticleType.POISON
         "bug" -> ParticleType.BUG
         "ghost" -> ParticleType.GHOST
+        "fighting" -> ParticleType.FIGHTING
+        "psychic" -> ParticleType.PSYCHIC
+        "fairy" -> ParticleType.FAIRY
+        "dragon" -> ParticleType.DRAGON
+        "dark" -> ParticleType.DARK
+        "steel" -> ParticleType.STEEL
+        "normal" -> ParticleType.NORMAL
         else -> ParticleType.NONE
     }
 }
@@ -52,7 +58,6 @@ fun ParticleBackground(
     Box(modifier = Modifier.fillMaxSize()) {
         when (special) {
             SpecialEffect.BLUE_FLAMES -> BlueFlameParticles()
-            SpecialEffect.DARK_AURA -> DarkAuraParticles()
             SpecialEffect.NONE -> when (type) {
                 ParticleType.FIRE -> EmberParticles()
                 ParticleType.WATER -> WaterParticles()
@@ -65,16 +70,17 @@ fun ParticleBackground(
                 ParticleType.POISON -> PoisonParticles()
                 ParticleType.BUG -> BugParticles()
                 ParticleType.GHOST -> GhostParticles()
+                ParticleType.FIGHTING -> FightingParticles()
+                ParticleType.PSYCHIC -> PsychicParticles()
+                ParticleType.FAIRY -> FairyParticles()
+                ParticleType.DRAGON -> DragonParticles()
+                ParticleType.DARK -> DarkParticles()
+                ParticleType.STEEL -> SteelParticles()
+                ParticleType.NORMAL -> NormalParticles()
                 ParticleType.NONE -> {}
             }
         }
     }
-}
-
-
-@Composable
-fun DarkAuraParticles() {
-    TODO("Not yet implemented")
 }
 
 @Composable
@@ -98,18 +104,15 @@ fun BlueFlameParticles(
 }
 
 
+/*
+TO BE IMPLEMENTED
 
-//@Preview
-//@Composable
-//fun EmberTestPreview() {
-//    Box(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(Color.Black)
-//    ) {
-//        AnimatedEmberBackground(
-//
-//        )
-//    }
-//}
+Fighting tick
+Psychic tick
+Fairy tick
+Dragon tick
+Dark tick
+Steel
+Normal
+*/
 
