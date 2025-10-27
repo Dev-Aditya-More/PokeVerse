@@ -24,10 +24,24 @@ data class Stat(val name: String)
 
 data class OtherSprites(
     @SerializedName("official-artwork")
-    val officialArtwork: OfficialArtwork? = null
+    val officialArtwork: OfficialArtwork? = null,
+    @SerializedName("home")
+    val home: Home? = null,
+    @SerializedName("showdown")
+    val showdown: Showdown? = null
 )
 
 data class OfficialArtwork(
+    @SerializedName("front_default")
+    val frontDefault: String?
+)
+
+data class Home(
+    @SerializedName("front_default")
+    val frontDefault: String?
+)
+
+data class Showdown(
     @SerializedName("front_default")
     val frontDefault: String?
 )

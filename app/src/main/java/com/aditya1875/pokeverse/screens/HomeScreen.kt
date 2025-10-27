@@ -70,6 +70,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.AnimatedBackground
@@ -88,16 +89,16 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun HomeScreen(navController: NavHostController) {
     val viewModel: PokemonViewModel = koinViewModel()
-    val pokemonList by viewModel.pokemonList.collectAsState()
+    val pokemonList by viewModel.pokemonList.collectAsStateWithLifecycle()
     val isLoading = viewModel.isLoading
     val endReached = viewModel.endReached
     var query by rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val team by viewModel.team.collectAsState()
+    val team by viewModel.team.collectAsStateWithLifecycle()
     val teamMembershipMap = remember(team) {
         team.associate { it.name to true }
     }
@@ -222,7 +223,7 @@ fun HomeScreen(navController: NavHostController) {
                             unfocusedTextColor = Color.White,
                             focusedTextColor = Color.White,
                             focusedTrailingIconColor = Color.White,
-                            focusedBorderColor = Color(0xFF802525)
+                            focusedBorderColor = Color.White.copy(alpha = 0.5f),
                         )
                     )
 
@@ -244,8 +245,14 @@ fun HomeScreen(navController: NavHostController) {
                                     )
                                     Spacer(Modifier.height(16.dp))
                                     when (uiState.error) {
-                                        is UiError.Network -> Text("No Internet Connection")
-                                        is UiError.Unexpected -> Text("Something went wrong")
+                                        is UiError.Network -> Text(
+                                            "No Internet Connection",
+                                            color = Color.White
+                                        )
+                                        is UiError.Unexpected -> Text(
+                                            "Something went wrong",
+                                            color = Color.White
+                                        )
                                         else -> Text("Unknown Error")
                                     }
                                     Spacer(Modifier.height(8.dp))

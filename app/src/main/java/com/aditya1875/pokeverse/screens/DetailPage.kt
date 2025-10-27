@@ -1,17 +1,22 @@
 package com.aditya1875.pokeverse.screens
 
 import android.media.MediaPlayer
+import android.os.Build
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +41,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -54,10 +62,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +84,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.EvolutionConnector
 import com.aditya1875.pokeverse.components.LayeredWaveformVisualizer
@@ -83,6 +97,11 @@ import com.aditya1875.pokeverse.specialscreens.ParticleBackground
 import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonDetailUiState
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 
@@ -110,6 +129,22 @@ fun PokemonDetailPage(
     var isTtsReady by remember { mutableStateOf(false) }
     val mediaPlayer = remember { MediaPlayer.create(context, R.raw.beepeffect) }
     var isSpeaking by remember { mutableStateOf(false) }
+    var showLoader by remember { mutableStateOf(false) }
+
+    var isSpriteChanged by rememberSaveable { mutableStateOf(false) }
+    var currentSpriteUrl by rememberSaveable {
+        mutableStateOf(
+            pokemon?.sprites?.other?.home?.frontDefault
+                ?: pokemon?.sprites?.other?.officialArtwork?.frontDefault
+                ?: currentStage?.imageUrl
+        )
+    }
+
+    LaunchedEffect(pokemon) {
+        currentSpriteUrl = pokemon?.sprites?.other?.home?.frontDefault
+            ?: pokemon?.sprites?.other?.officialArtwork?.frontDefault
+                    ?: currentStage?.imageUrl
+    }
 
     val listState = rememberLazyListState()
 
@@ -242,35 +277,73 @@ fun PokemonDetailPage(
                 ParticleBackground(particleType, pokemon?.name.toString())
             }
 
-
             val pressScale = remember { Animatable(1f) }
-            AsyncImage(
-                model = pokemon?.sprites?.other?.officialArtwork?.frontDefault
-                    ?: pokemon?.sprites?.front_default
-                    ?: currentStage?.imageUrl,
-                contentDescription = pokemon?.name ?: currentStage?.name,
-                contentScale = ContentScale.Fit,
+            val context = LocalContext.current
+            val imageLoader = ImageLoader.Builder(context)
+                .components {
+                    if (Build.VERSION.SDK_INT >= 28) {
+                        add(ImageDecoderDecoder.Factory())
+                    } else {
+                        add(GifDecoder.Factory())
+                    }
+                }
+                .build()
+
+            Box(
                 modifier = Modifier
                     .size(220.dp)
                     .align(Alignment.Center)
-                    .graphicsLayer {
-                        alpha = if (spriteVisible) 1f else 0f
-                        scaleX = pressScale.value
-                        scaleY = pressScale.value
-                    }
-                    .zIndex(2f) // highest zIndex in this Box
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = {
-                                pressScale.animateTo(1.1f, tween(150))
-                                spriteEffectsEnabledState.value = true
-                                tryAwaitRelease()
-                                pressScale.animateTo(1.0f, tween(150))
-                                spriteEffectsEnabledState.value = false
-                            }
-                        )
-                    }
-            )
+                    .zIndex(2f)
+            ) {
+                AsyncImage(
+
+                    model = ImageRequest.Builder(context)
+                        .data(currentSpriteUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = pokemon?.name ?: currentStage?.name,
+                    contentScale = ContentScale.Fit,
+                    imageLoader = imageLoader,
+                    onLoading = { showLoader = true },
+                    onSuccess = { showLoader = false; isSpriteChanged = false },
+                    onError = { showLoader = false },
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .graphicsLayer {
+                            alpha = if (showLoader || !spriteVisible) 0f else 1f
+                            scaleX = pressScale.value
+                            scaleY = pressScale.value
+                        }
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onPress = {
+                                    pressScale.animateTo(1.1f, tween(150))
+                                    spriteEffectsEnabledState.value = true
+                                    tryAwaitRelease()
+                                    pressScale.animateTo(1.0f, tween(150))
+                                    spriteEffectsEnabledState.value = false
+                                }
+                            )
+                        }
+                )
+
+                AnimatedVisibility(
+                    visible = showLoader,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    LottieAnimation(
+                        composition = rememberLottieComposition(
+                            LottieCompositionSpec.RawRes(R.raw.spark)
+                        ).value,
+                        iterations = LottieConstants.IterateForever,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .align(Alignment.Center)
+                    )
+                }
+            }
+
 
             // Evolution connectors (kept same zIndex as sprite so they are visible)
             if (showLeftConnector && currentStage?.prevId != null) {
@@ -320,6 +393,65 @@ fun PokemonDetailPage(
                         }
                     },
                     actions = {
+                        val team by viewModel.team.collectAsState()
+                        val teamMembershipMap = remember(team) {
+                            team.associate { it.name to true }
+                        }
+
+                        val isInTeam = teamMembershipMap[pokemon?.name] ?: false
+                        val availableSprites = listOfNotNull(
+                            pokemon?.sprites?.other?.home?.frontDefault,
+                            pokemon?.sprites?.other?.showdown?.frontDefault,
+                            pokemon?.sprites?.other?.officialArtwork?.frontDefault,
+                            currentStage?.imageUrl
+                        )
+
+                        IconButton(
+                            onClick = {
+                                // Filter out current sprite so it actually changes
+                                val others = availableSprites.filter { it != currentSpriteUrl }
+                                if (others.isNotEmpty()) {
+                                    currentSpriteUrl = others.random()
+                                    showLoader = !showLoader
+                                    isSpriteChanged = true
+                                }
+                            },
+                            modifier = Modifier.pointerInput(Unit) {
+                                detectTapGestures(
+                                    onLongPress = {
+                                        Toast
+                                            .makeText(context, "Tap to shuffle Pokémon sprite ✨", Toast.LENGTH_SHORT)
+                                            .show()
+                                    }
+                                )
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Shuffle,
+                                contentDescription = "Change Sprite",
+                                tint = Color.White
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                pokemon?.let {
+                                    if (isInTeam) {
+                                        viewModel.removeFromTeam(pokemon.toEntity().toEntity())
+                                        Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} removed from team", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        viewModel.addToTeam(it.toEntity())
+                                        Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} added to team", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
+                                contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
+                                tint = if (isInTeam) Color(0xFFFFD700) else Color.White
+                            )
+                        }
                         IconButton(onClick = {
                             val name =
                                 pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "This Pokémon"

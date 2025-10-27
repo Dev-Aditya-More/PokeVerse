@@ -6,5 +6,5 @@ data class PokemonListResponse(
 
 data class PokemonResult(
     val name: String,
-    val url: String
+    val url: String = ""
 )

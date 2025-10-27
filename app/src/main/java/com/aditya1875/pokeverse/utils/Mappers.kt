@@ -13,7 +13,7 @@ fun mapEvolutionChain(chain: Chain): List<EvolutionStage> {
         EvolutionStage(
             id = id,
             name = species.name.replaceFirstChar { it.uppercase() },
-            imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png",
+            imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png",
             hasPrev = index > 0,
             hasNext = index < stages.lastIndex
         )

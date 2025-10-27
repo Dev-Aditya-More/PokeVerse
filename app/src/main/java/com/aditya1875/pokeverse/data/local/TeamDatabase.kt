@@ -6,6 +6,6 @@ import com.aditya1875.pokeverse.data.local.dao.TeamDao
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 
 @Database(entities = [TeamMemberEntity::class], version = 1)
-abstract class AppDatabase : RoomDatabase() {
+abstract class TeamDatabase : RoomDatabase() {
     abstract fun teamDao(): TeamDao
 }
