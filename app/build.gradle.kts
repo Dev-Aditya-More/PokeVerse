@@ -15,8 +15,8 @@ android {
         applicationId = "com.aditya1875.pokeverse"
         minSdk = 25
         targetSdk = 36
-        versionCode = 23
-        versionName = "1.2.3"
+        versionCode = 24
+        versionName = "1.2.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -49,6 +49,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     dependenciesInfo {
@@ -71,6 +72,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.gson)

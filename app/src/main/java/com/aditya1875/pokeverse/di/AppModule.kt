@@ -1,8 +1,8 @@
 package com.aditya1875.pokeverse.di
 
 import androidx.room.Room
-import com.aditya1875.pokeverse.data.local.AppDatabase
-import com.aditya1875.pokeverse.data.local.entity.PokemonDatabase
+import com.aditya1875.pokeverse.data.local.TeamDatabase
+import com.aditya1875.pokeverse.data.local.PokemonDatabase
 import org.koin.androidx.viewmodel.dsl.viewModel
 import com.aditya1875.pokeverse.data.remote.PokeApi
 import com.aditya1875.pokeverse.data.repository.PokemonRepoImpl
@@ -42,12 +42,12 @@ val appModule = module {
     single {
         Room.databaseBuilder(
             androidContext(),
-            AppDatabase::class.java,
-            "pokeverse_db"
+            TeamDatabase::class.java,
+            "pokeverseTeam_db"
         ).build()
     }
 
-    single { get<AppDatabase>().teamDao() }
+    single { get<TeamDatabase>().teamDao() }
     single { TeamMapper }
 
     // ViewModels
@@ -65,7 +65,7 @@ val appModule = module {
         Room.databaseBuilder(
             get(),
             PokemonDatabase::class.java,
-            "pokemon.db"
+            "pokemon_db"
         ).build()
     }
 
