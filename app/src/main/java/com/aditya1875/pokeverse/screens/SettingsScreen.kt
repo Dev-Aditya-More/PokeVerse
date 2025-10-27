@@ -1,18 +1,19 @@
 package com.aditya1875.pokeverse.screens
 
 import android.content.Intent
+import android.media.Image
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,22 +25,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -55,18 +50,21 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.aditya1875.pokeverse.components.AnimatedBackground
+import com.aditya1875.pokeverse.BuildConfig
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.components.ResponsiveMetaballSwitch
+import com.aditya1875.pokeverse.components.SettingsCard
 import com.aditya1875.pokeverse.ui.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
-import androidx.core.net.toUri
-import com.aditya1875.pokeverse.components.SettingsCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,20 +136,20 @@ fun SettingsScreen(navController: NavController) {
                 SettingsCard(
                     title = "About",
                     icon = Icons.Default.Info,
-                    iconTint = Color.White,
+                    iconTint = Color.Black,
                     expanded = isAboutExpanded,
                     onExpandToggle = { isAboutExpanded = !isAboutExpanded }
                 ) {
-                    Text("Made with ❤️ by Aditya More", color = Color.Gray)
-                    Text("Version: 1.0.2", color = Color.Gray)
-                    Text("Built with Jetpack Compose", color = Color.Gray)
+                    Text("Crafted with ❤️ using Jetpack Compose", color = Color.Gray)
+                    Text("Version ${BuildConfig.VERSION_NAME}", color = Color.Gray)
                 }
 
                 // Special Effects Section
                 SettingsCard(
-                    title = "Special Effects",
+                    title = " Special Effects",
                     icon = Icons.Default.AutoAwesome,
-                    iconTint = Color(0xFFFFD54F),
+                    iconTint = Color.Black,
+                    iconSize = 25.dp,
                     expanded = isSpecialEffectsExpanded,
                     onExpandToggle = { isSpecialEffectsExpanded = !isSpecialEffectsExpanded },
                     trailing = {
@@ -169,13 +167,14 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
 
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier
                         .fillMaxWidth()
                         .alpha(0.3f)
                         .background(Brush.horizontalGradient(
                             listOf(Color.Transparent, Color.Gray.copy(alpha = 0.5f), Color.Transparent)
-                        ))
+                        )),
+                    thickness = DividerDefaults.Thickness, color = DividerDefaults.color
                 )
 
                 // Socials Section
@@ -187,10 +186,22 @@ fun SettingsScreen(navController: NavController) {
                 )
 
                 val socials = listOf(
-                    SocialLink("GitHub", "https://github.com/Dev-Aditya-More/PokeVerse", Icons.Default.Code),
-                    SocialLink("YouTube", "https://youtube.com/@TheCodeForge-yt", Icons.Default.PlayArrow),
-                    SocialLink("X (Twitter)", "https://twitter.com/Pokeverse_App",
-                        Icons.AutoMirrored.Filled.Send
+                    SocialLink(
+                        "GitHub",
+                        "https://github.com/Dev-Aditya-More/PokeVerse",
+                        painterResource(R.drawable.github)
+                    ),
+                    SocialLink(
+                        " YouTube",
+                        "https://youtube.com/@TheCodeForge-yt",
+                        painterResource(R.drawable.youtube),
+                        size = 20.dp
+                    ),
+                    SocialLink(
+                        " Twitter",
+                        "https://twitter.com/Pokeverse_App",
+                        painterResource(R.drawable.xlogo),
+                        size = 20.dp
                     )
                 )
 
@@ -212,10 +223,10 @@ fun SettingsScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Start
                         ) {
-                            Icon(
-                                social.icon,
+                            Image(
+                                painter = social.icon,
                                 contentDescription = social.name,
-                                tint = Color.White
+                                modifier = Modifier.size(social.size)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
@@ -230,7 +241,7 @@ fun SettingsScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(40.dp))
 
                 Text(
-                    text = "© PokéVerse 2025. All rights reserved.",
+                    text = "© Pokéverse 2025. All rights reserved.",
                     color = Color.Gray,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.alpha(0.6f)
@@ -241,4 +252,4 @@ fun SettingsScreen(navController: NavController) {
 }
 
 
-data class SocialLink(val name: String, val url: String, val icon: ImageVector)
+data class SocialLink(val name: String, val url: String, val icon: Painter, val size: Dp = 30.dp)
