@@ -2,6 +2,8 @@
 
 > Explore, collect, and manage your Pokémon universe in one app!
 
+
+
 ## Built using
 > [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Android/android2.svg">]()
 > [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Kotlin/kotlin2.svg">]()
@@ -77,6 +79,12 @@
 📦 API Source
 
 Data is fetched from ![PokeAPI](https://pokeapi.co/)
+
+---
+
+## Follow us on
+
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/Pokeverse_App.svg?style=social&label=Follow%20%40Pokeverse_App)](https://twitter.com/Pokeverse_App)
 
 --- 
 
