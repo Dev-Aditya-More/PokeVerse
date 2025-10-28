@@ -1,30 +1,47 @@
-# Privacy Policy for Pokeverse
+🔒 Pokéverse Security Policy
 
-**Effective date:** September 30, 2025
+Last updated: Oct 29, 2025
+Contact: adityaapps.dev@gmail.com
 
-Pokeverse (“we”, “our”, or “us”) respects your privacy and is committed to protecting it. This Privacy Policy explains how we collect, use, and safeguard your personal information when you use our app or website.
+🧩 Overview
 
-## Information We Collect
-- **Usage data**: Anonymous analytics such as page visits or feature interactions (if enabled).  
+Pokéverse is a fan-made app that shows Pokémon details, abilities, and descriptions using the PokéAPI.
+We don’t collect or store any personal user information — the app focuses on reading data from public APIs.
 
-We **do not** sell, trade, or rent your personal information to third parties.
+🧠 Basic Security Practices
 
-## How We Use Your Information
-- To notify you about app updates, new features, or launch information.  
-- To improve Pokeverse features and user experience.  
+The app only uses HTTPS (secure connections) when talking to any API.
 
-## Security
-We implement reasonable security measures to protect your information. However, no method of transmission over the internet is 100% secure.
+No passwords or accounts are required to use the app.
 
-## Third-Party Services
-If you use third-party integrations (e.g., Google Play, email services), their privacy policies may apply.
+Any cached Pokémon data is stored locally on the device and can be cleared anytime.
 
-## Children’s Privacy
-Pokeverse is not intended for children under 13. We do not knowingly collect personal information from children.
+No sensitive data (like tokens or personal info) is saved or sent anywhere.
 
-## Changes to This Policy
-We may update this Privacy Policy occasionally. We will notify users by posting the new version on our website.
+No ads or tracking are included in the current version.
 
-## Contact
-For questions regarding this Privacy Policy, contact us at:  
-**Email:** aditya1875more@gmail.com
+🧱 Data & Storage
+
+We only save small bits of data (like favorite Pokémon or cached lists) to improve loading speed.
+
+Data is stored locally in the app’s private storage area — other apps can’t access it.
+
+If you uninstall Pokéverse, all stored data is automatically deleted.
+
+🧰 Dependencies
+
+Pokéverse uses open-source libraries (Jetpack Compose, Coil, Koin, etc.).
+
+These libraries are from trusted sources and kept up to date.
+
+🚫 What We Don’t Do
+
+We don’t collect analytics or usage data.
+
+We don’t share any information with third parties.
+
+We don’t store passwords, emails, or user profiles.
+
+🐞 Reporting Security Issues
+
+If you find a bug or a possible security issue (like unsafe data handling, broken HTTPS, etc.), please reach out at: adityaapps.dev@gmail.com
