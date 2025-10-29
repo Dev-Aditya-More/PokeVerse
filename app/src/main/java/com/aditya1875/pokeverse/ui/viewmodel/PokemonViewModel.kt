@@ -165,7 +165,7 @@ class PokemonViewModel(
             val pokemon = repository.getPokemonByName(name).copy()
 
             var description = "Description not available."
-            var varieties: List<PokemonVariety> = emptyList()
+            var varieties: List<PokemonVariety> = _uiState.value.varieties
 
             if (includeSpecies) {
                 val species = repository.getPokemonSpeciesByName(name).copy()
