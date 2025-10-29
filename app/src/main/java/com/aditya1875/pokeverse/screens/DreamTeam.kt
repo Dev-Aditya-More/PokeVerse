@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
@@ -42,15 +43,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
@@ -67,19 +73,10 @@ fun DreamTeam(
     viewModel: PokemonViewModel = koinViewModel()
 ) {
     val pokeballGradient = Brush.verticalGradient(
-        listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A))
+        listOf(Color(0xFF0D0D0D), Color(0xFF20232A), Color(0xFF141414))
     )
 
-    val teamDetailsState = remember { mutableStateOf<List<PokemonResponse>>(emptyList()) }
-
-    LaunchedEffect(team) {
-        val fetched = mutableListOf<PokemonResponse>()
-        for (member in team) {
-            viewModel.fetchPokemonData(member.name)
-            viewModel.uiState.value.pokemon?.let { fetched.add(it) }
-        }
-        teamDetailsState.value = fetched
-    }
+    // No per-item refetch; we render directly from stored team data to avoid duplicating sprites
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -208,6 +205,10 @@ fun DreamTeam(
                                         )
                                     )
                                 ) {
+                                    val team by viewModel.team.collectAsStateWithLifecycle()
+                                    val teamMembershipMap = remember(team) { team.associate { it.name to true } }
+                                    val isInTeam = teamMembershipMap[pokemon.name] ?: false
+
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -215,13 +216,32 @@ fun DreamTeam(
                                         verticalAlignment = Alignment.CenterVertically,
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(
+                                                model = ImageRequest.Builder(LocalContext.current)
+                                                    .data(pokemon.imageUrl)
+                                                    .crossfade(true)
+                                                    .build()
+                                            ),
+                                            contentDescription = pokemon.name,
+                                            modifier = Modifier
+                                                .size(72.dp)
+                                                .clip(CircleShape)
+                                                .background(Color.Black.copy(alpha = 0.15f))
+                                        )
+
+
                                         Text(
                                             text = pokemon.name.replaceFirstChar { it.uppercase() },
                                             color = Color.White,
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.SemiBold
                                         )
-                                        IconButton(onClick = { onRemove(pokemon) }) {
+                                        IconButton(onClick = {
+                                            if(isInTeam) {
+                                                onRemove(pokemon)
+                                            }
+                                        }) {
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
                                                 contentDescription = "Remove from Team",

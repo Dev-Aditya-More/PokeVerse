@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
@@ -136,7 +137,7 @@ fun SettingsScreen(navController: NavController) {
                 SettingsCard(
                     title = "About",
                     icon = Icons.Default.Info,
-                    iconTint = Color.Black,
+                    iconTint = Color.White,
                     expanded = isAboutExpanded,
                     onExpandToggle = { isAboutExpanded = !isAboutExpanded }
                 ) {
@@ -148,7 +149,7 @@ fun SettingsScreen(navController: NavController) {
                 SettingsCard(
                     title = " Special Effects",
                     icon = Icons.Default.AutoAwesome,
-                    iconTint = Color.Black,
+                    iconTint = Color.White,
                     iconSize = 25.dp,
                     expanded = isSpecialEffectsExpanded,
                     onExpandToggle = { isSpecialEffectsExpanded = !isSpecialEffectsExpanded },
@@ -189,7 +190,8 @@ fun SettingsScreen(navController: NavController) {
                     SocialLink(
                         "GitHub",
                         "https://github.com/Dev-Aditya-More/PokeVerse",
-                        painterResource(R.drawable.github)
+                        painterResource(R.drawable.github),
+                        color = Color.White
                     ),
                     SocialLink(
                         " YouTube",
@@ -201,7 +203,8 @@ fun SettingsScreen(navController: NavController) {
                         " Twitter",
                         "https://twitter.com/Pokeverse_App",
                         painterResource(R.drawable.xlogo),
-                        size = 20.dp
+                        size = 20.dp,
+                        Color.White
                     )
                 )
 
@@ -226,7 +229,9 @@ fun SettingsScreen(navController: NavController) {
                             Image(
                                 painter = social.icon,
                                 contentDescription = social.name,
-                                modifier = Modifier.size(social.size)
+                                modifier = Modifier.size(social.size),
+                                colorFilter = ColorFilter.tint(social.color)
+                                
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
@@ -252,4 +257,4 @@ fun SettingsScreen(navController: NavController) {
 }
 
 
-data class SocialLink(val name: String, val url: String, val icon: Painter, val size: Dp = 30.dp)
+data class SocialLink(val name: String, val url: String, val icon: Painter, val size: Dp = 30.dp, val color: Color = Color.Transparent)
