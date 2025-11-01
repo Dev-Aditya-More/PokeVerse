@@ -8,18 +8,22 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.random.Random
 
 @Preview
 @Composable
 fun PsychicParticles(
     modifier: Modifier = Modifier,
-    maxParticles: Int = 30,                 // fewer particles = sparse, elegant
-    spawnRateMillis: Long = 70L            // slower spawn = calmer vibe
+    maxParticles: Int = 40,
+    spawnRateMillis: Long = 80L
 ) {
     data class Particle(
         var x: Float,
@@ -34,39 +38,38 @@ fun PsychicParticles(
 
     val density = LocalDensity.current
     val particles = remember { mutableStateListOf<Particle>() }
-    val rnd = remember { kotlin.random.Random(System.currentTimeMillis()) }
+    val rnd = remember { Random(System.currentTimeMillis()) }
 
-    // Spawn logic
+    // Spawn particles gently across the screen
     LaunchedEffect(Unit) {
         while (true) {
             if (particles.size < maxParticles) {
                 val angleOffset = rnd.nextFloat() * 360f
                 particles += Particle(
-                    // slightly spread out, not just in the center
-                    x = 0.3f + (rnd.nextFloat() - 0.5f) * 0.9f,
-                    y = 0.5f + (rnd.nextFloat() - 0.5f) * 0.9f,
+                    x = 0.5f + (rnd.nextFloat() - 0.5f) * 0.6f, // slightly centered
+                    y = 0.5f + (rnd.nextFloat() - 0.5f) * 0.8f,
 
-                    // bigger base sizes — gentle, wave-like orbs
-                    radius = rnd.nextFloat() * 20.dp.toPxCustom(density) + 10.dp.toPxCustom(density),
+                    // smaller and subtler radii
+                    radius = rnd.nextFloat() * 8.dp.toPxCustom(density) + 4.dp.toPxCustom(density),
 
-                    // soft psychic violet
-                    color = Color(0xFF9B59B6).copy(alpha = 0.4f),
+                    // mix in soft violet to pink tones
+                    color = listOf(
+                        Color(0xFF9B59B6).copy(alpha = 0.25f),
+                        Color(0xFFBB86FC).copy(alpha = 0.2f),
+                        Color(0xFFCE93D8).copy(alpha = 0.18f)
+                    ).random(),
 
                     angleOffset = angleOffset,
-
-                    // live a little longer
-                    lifetime = rnd.nextLong(2500L, 4000L),
+                    lifetime = rnd.nextLong(3000L, 5000L),
                     createdAt = System.currentTimeMillis(),
-
-                    // each particle gets a unique horizontal drift speed
-                    horizontalDrift = (rnd.nextFloat() - 0.5f) * 0.0008f
+                    horizontalDrift = (rnd.nextFloat() - 0.5f) * 0.0004f // calmer drift
                 )
             }
             delay(spawnRateMillis)
         }
     }
 
-    // Update positions
+    // Animate the particles’ movement
     LaunchedEffect(Unit) {
         var lastTime = System.currentTimeMillis()
         while (true) {
@@ -83,19 +86,19 @@ fun PsychicParticles(
                     continue
                 }
 
-                // Subtle oscillation and floating motion
-                val waveX = kotlin.math.sin((age + p.angleOffset) / 800.0) * 0.002f
-                val waveY = kotlin.math.cos((age + p.angleOffset) / 600.0) * 0.001f
+                // Gentle oscillation and upward drift
+                val waveX = sin((age + p.angleOffset) / 1000.0) * 0.0012f
+                val waveY = cos((age + p.angleOffset) / 900.0) * 0.001f
 
                 p.x += (waveX + p.horizontalDrift).toFloat()
-                p.y -= 0.0003f + waveY.toFloat() // slow gentle rise
+                p.y -= (0.00025f + waveY).toFloat()
             }
 
             delay(16L)
         }
     }
 
-    // Draw
+    // Draw them softly and ethereally
     Canvas(modifier = modifier.fillMaxSize()) {
         val w = size.width
         val h = size.height
@@ -105,11 +108,11 @@ fun PsychicParticles(
             val t = ((now - p.createdAt) / p.lifetime.toFloat()).coerceIn(0f, 1f)
             val alpha = (1f - t).coerceIn(0f, 1f)
 
-            // use smooth fade and size shrink for dreamy feel
             drawCircle(
-                color = p.color.copy(alpha = alpha * 0.9f),
-                radius = p.radius * (1f - 0.3f * t),
-                center = Offset(p.x * w, p.y * h)
+                color = p.color.copy(alpha = alpha * 0.8f),
+                radius = p.radius * (1f - 0.2f * t), // shrink slowly, subtle fade
+                center = Offset(p.x * w, p.y * h),
+                blendMode = BlendMode.Plus // additive glow feel
             )
         }
     }

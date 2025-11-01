@@ -197,7 +197,8 @@ fun SettingsScreen(navController: NavController) {
                         " YouTube",
                         "https://youtube.com/@TheCodeForge-yt",
                         painterResource(R.drawable.youtube),
-                        size = 20.dp
+                        size = 20.dp,
+                        Color.Red
                     ),
                     SocialLink(
                         " Twitter",
@@ -230,8 +231,12 @@ fun SettingsScreen(navController: NavController) {
                                 painter = social.icon,
                                 contentDescription = social.name,
                                 modifier = Modifier.size(social.size),
-                                colorFilter = ColorFilter.tint(social.color)
-                                
+                                colorFilter = if (social.name.contains("YouTube", ignoreCase = true)) {
+                                    null
+                                } else {
+                                    ColorFilter.tint(color = social.color) // tint all other icons white
+                                }
+
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
@@ -257,4 +262,4 @@ fun SettingsScreen(navController: NavController) {
 }
 
 
-data class SocialLink(val name: String, val url: String, val icon: Painter, val size: Dp = 30.dp, val color: Color = Color.Transparent)
+data class SocialLink(val name: String, val url: String, val icon: Painter, val size: Dp = 30.dp, val color: Color)

@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.specialscreens
 
+import android.graphics.RuntimeShader
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -12,13 +15,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlin.math.sin
 import kotlin.random.Random
 
+@Preview
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun GhostParticles(
     modifier: Modifier = Modifier,
@@ -60,10 +68,51 @@ fun GhostParticles(
             animation = tween(durationMillis = 12000, easing = LinearEasing)
         )
     )
+    val ghostShader = remember {
+        RuntimeShader(
+            """
+            uniform float2 iResolution;
+            uniform float iTime;
+            uniform float2 uCenter;
+            uniform float uSize;
+
+            half4 main(float2 fragCoord) {
+                float2 uv = (fragCoord - uCenter) / uSize;
+
+                // radial distance
+                float dist = length(uv);
+
+                // spectral flow distortion
+                float wave = sin(dist * 10.0 - iTime * 4.0) * 0.05;
+                float alpha = smoothstep(0.6, 0.1, dist + wave);
+
+                // ghostly color gradient
+                float3 color = mix(
+                    float3(0.6, 0.7, 1.0),  // inner bluish core
+                    float3(0.4, 0.2, 0.6),  // outer purple aura
+                    dist + wave
+                );
+
+                return half4(color, alpha * 0.7);
+            }
+            """
+        )
+    }
+
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val widthPx = size.width
         val heightPx = size.height
+
+        val timeSec = globalTime * 10f
+        ghostShader.setFloatUniform("iResolution", widthPx, heightPx)
+        ghostShader.setFloatUniform("iTime", timeSec)
+
+        drawRect(
+            brush = ShaderBrush(ghostShader),
+            size = Size(widthPx * 2f, heightPx * 2f),
+            alpha = 0.3f
+        )
 
         particles.forEach { p ->
             // Life progress looping 0..1

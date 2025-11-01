@@ -8,6 +8,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalDensity
@@ -16,13 +17,15 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlin.math.cos
+import kotlin.math.sin
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun FightingParticles(
     modifier: Modifier = Modifier,
-    maxParticles: Int = 45,            // fewer for clarity, looks more impactful
-    spawnRateMillis: Long = 70L
+    maxParticles: Int = 45,
+    spawnRateMillis: Long = 40L
 ) {
     val density = LocalDensity.current
 
@@ -35,40 +38,40 @@ fun FightingParticles(
         val color: Color,
         val lifetime: Long,
         val createdAt: Long,
-        val gravity: Float
+        val gravity: Float,
+        var rotation: Float
     )
 
     val particles = remember { mutableStateListOf<Particle>() }
     val rnd = remember { kotlin.random.Random(System.currentTimeMillis()) }
 
-    // --- Spawner ---
+    // --- Spawn phase ---
     LaunchedEffect(Unit) {
         while (true) {
             if (particles.size < maxParticles) {
                 val angle = rnd.nextFloat() * (Math.PI.toFloat() * 2f)
                 val baseColor = listOf(
-                    Color(0xFFB87333), // bronze-like tone
-                    Color(0xFFD2691E), // brownish-orange
-                    Color(0xFFC68642)  // dusty tan
+                    Color(0xFFFF6D00),
                 ).random()
 
                 particles += Particle(
-                    x = 0.5f + (rnd.nextFloat() - 0.5f) * 0.3f, // around center
-                    y = 0.6f + (rnd.nextFloat() - 0.5f) * 0.2f,
+                    x = 0.5f + (rnd.nextFloat() - 0.5f) * 0.3f,
+                    y = (rnd.nextFloat() - 0.5f),
                     angle = angle,
-                    speed = rnd.nextFloat() * 0.8f + 0.3f,       // moderate velocity
-                    size = rnd.nextFloat() * 10.dp.toPxCustom(density) + 8.dp.toPxCustom(density),
+                    speed = rnd.nextFloat(),
+                    size = rnd.nextFloat() * 8.dp.toPxCustom(density) + 8.dp.toPxCustom(density),
                     color = baseColor.copy(alpha = 0.9f),
-                    lifetime = rnd.nextLong(900L, 1400L),
+                    lifetime = rnd.nextLong(900L, 1500L),
                     createdAt = System.currentTimeMillis(),
-                    gravity = 0.8f + rnd.nextFloat() * 0.4f      // slightly varying gravity
+                    gravity = 0.7f + rnd.nextFloat() * 0.3f,
+                    rotation = rnd.nextFloat() * 360f
                 )
             }
             delay(spawnRateMillis)
         }
     }
 
-    // --- Motion & decay ---
+    // --- Motion phase ---
     LaunchedEffect(Unit) {
         var lastTime = System.currentTimeMillis()
         while (true) {
@@ -85,14 +88,11 @@ fun FightingParticles(
                     continue
                 }
 
-                // Radial expansion — like impact debris
-                p.x += kotlin.math.cos(p.angle) * p.speed * dt * 2.5f
-                p.y += kotlin.math.sin(p.angle) * p.speed * dt * 2.5f
-
-                // Gravity pulling down — makes them “fall”
-                p.y += p.gravity * dt * 0.15f
-
-                // Slight friction to slow over time
+                // swirl + impact movement
+                val swirl = sin((now + p.x * 1000) * 0.005f) * 0.0025f
+                p.x += (cos(p.angle) + swirl) * p.speed * dt * 2.8f
+                p.y += sin(p.angle) * p.speed * dt * 2.8f + p.gravity * dt * 0.18f
+                p.rotation += 90f * dt // spin subtly
                 p.speed *= 0.985f
             }
 
@@ -100,7 +100,7 @@ fun FightingParticles(
         }
     }
 
-    // --- Draw phase ---
+    // --- Drawing phase ---
     Canvas(modifier = modifier.fillMaxSize()) {
         val w = size.width
         val h = size.height
@@ -109,24 +109,32 @@ fun FightingParticles(
         particles.forEach { p ->
             val age = now - p.createdAt
             val t = (age / p.lifetime.toFloat()).coerceIn(0f, 1f)
-            val fade = (1f - t * t).coerceIn(0f, 1f) // slower fade
+            val fade = (1f - t * t).coerceIn(0f, 1f)
 
-            // Dusty blurred glow effect
+            // inner core glow — brighter like impact sparks
             drawCircle(
-                color = p.color.copy(alpha = fade * 0.8f),
-                radius = p.size * (1.2f - 0.6f * t),
+                color = p.color.copy(alpha = fade * 0.9f),
+                radius = p.size * (0.6f - 0.3f * t),
                 center = Offset(p.x * w, p.y * h)
             )
 
-            // inner solid core
+            // outer glowing aura — like shockwave ring
             drawCircle(
-                color = p.color.copy(alpha = fade),
-                radius = p.size * (0.5f - 0.3f * t),
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        p.color.copy(alpha = fade * 0.7f),
+                        Color.Transparent
+                    ),
+                    center = Offset(p.x * w, p.y * h),
+                    radius = p.size * (1.8f - t)
+                ),
+                radius = p.size * (1.6f - 0.5f * t),
                 center = Offset(p.x * w, p.y * h)
             )
         }
     }
 }
+
 
 fun Dp.toPxCustom(density: Density): Float = this.value * density.density
 
