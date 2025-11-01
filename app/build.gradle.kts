@@ -15,6 +15,7 @@ android {
         applicationId = "com.aditya1875.pokeverse"
         minSdk = 25
         targetSdk = 36
+
         versionCode = 26
         versionName = "1.2.6"
 
