@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.specialscreens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -47,6 +49,7 @@ fun getParticleTypeFor(types: List<String>): ParticleType {
 }
 
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun ParticleBackground(
     types: ParticleType,
@@ -60,7 +63,7 @@ fun ParticleBackground(
             SpecialEffect.BLUE_FLAMES -> BlueFlameParticles()
             SpecialEffect.NONE -> when (type) {
                 ParticleType.FIRE -> EmberParticles()
-                ParticleType.WATER -> WaterParticles()
+                ParticleType.WATER -> HydroPumpParticles()
                 ParticleType.GRASS -> LeafParticles()
                 ParticleType.ROCK -> RockParticleBackground()
                 ParticleType.ELECTRIC -> ElectricParticles()
