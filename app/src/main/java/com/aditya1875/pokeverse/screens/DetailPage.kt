@@ -6,6 +6,7 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -105,6 +106,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalMaterial3ExpressiveApi::class
@@ -281,11 +283,7 @@ fun PokemonDetailPage(
             val context = LocalContext.current
             val imageLoader = ImageLoader.Builder(context)
                 .components {
-                    if (Build.VERSION.SDK_INT >= 28) {
-                        add(ImageDecoderDecoder.Factory())
-                    } else {
-                        add(GifDecoder.Factory())
-                    }
+                    add(ImageDecoderDecoder.Factory())
                 }
                 .build()
 
@@ -393,11 +391,8 @@ fun PokemonDetailPage(
                         }
                     },
                     actions = {
-                        val team by viewModel.team.collectAsState()
-                        val teamMembershipMap = remember(team) {
-                            team.associate { it.name to true }
-                        }
-
+                        val team by viewModel.team.collectAsStateWithLifecycle()
+                        val teamMembershipMap = remember(team) { team.associate { it.name to true } }
                         val isInTeam = teamMembershipMap[pokemon?.name] ?: false
                         val availableSprites = listOfNotNull(
                             pokemon?.sprites?.other?.home?.frontDefault,
