@@ -28,20 +28,35 @@ data class OtherSprites(
     @SerializedName("home")
     val home: Home? = null,
     @SerializedName("showdown")
-    val showdown: Showdown? = null
+    val showdown: Showdown? = null,
+    @SerializedName("dream_world")
+    val dreamWorld: DreamWorld? = null
 )
 
 data class OfficialArtwork(
     @SerializedName("front_default")
-    val frontDefault: String?
+    val frontDefault: String?,
+    @SerializedName("front_shiny")
+    val frontShiny: String?
 )
 
 data class Home(
     @SerializedName("front_default")
-    val frontDefault: String?
+    val frontDefault: String?,
+    @SerializedName("front_shiny")
+    val frontShiny: String?
 )
 
 data class Showdown(
     @SerializedName("front_default")
-    val frontDefault: String?
+    val frontDefault: String?,
+    @SerializedName("front_shiny")
+    val frontShiny: String?
+)
+
+data class DreamWorld(
+    @SerializedName("front_default")
+    val frontDefault: String?,
+    @SerializedName("front_shiny")
+    val frontShiny: String?
 )

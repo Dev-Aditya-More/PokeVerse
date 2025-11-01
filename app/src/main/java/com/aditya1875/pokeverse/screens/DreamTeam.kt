@@ -230,7 +230,6 @@ fun DreamTeam(
                                                 .background(Color.Black.copy(alpha = 0.15f))
                                         )
 
-
                                         Text(
                                             text = pokemon.name.replaceFirstChar { it.uppercase() },
                                             color = Color.White,
