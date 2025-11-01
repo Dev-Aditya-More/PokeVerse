@@ -1,0 +1,19 @@
+name: GitHub Repo Stats
+
+on:
+  schedule:
+    - cron: "0 0 * * *"   # runs daily
+  workflow_dispatch:       # allows manual trigger
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GitHub Repo Stats
+        uses: lowlighter/metrics@latest
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: repositories
+          plugin_repositories: yes
+          repositories_affiliations: owner,collaborator
+          config_output: metrics.svg
