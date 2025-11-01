@@ -1,0 +1,353 @@
+name: 🚨 Main WorkFlow
+
+#ditched the idea of creating seperate files for diff workflows it might be scalable and more clan but for apk to run after
+#  all the workflows are completed is just to complicated instead we can just put every workflow under one job and use 'need'
+#  instead
+
+on:
+#  push:
+#    branches: [ "master" ]
+  pull_request:
+    branches: [ "master",  "development"]
+
+  workflow_dispatch:
+
+
+# ensures one run at a time, and cancel older runs in the queue if new commits r pushed
+concurrency:
+  group: blank-${{ github.ref }}
+  cancel-in-progress: true
+
+
+jobs:
+
+  lint:
+    name: Lint Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Give gradlew execute permission
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+
+      - name: Run lint
+        run: ./gradlew lintDebug
+
+      - name: Upload lint report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.html
+
+  unit-test:
+
+    name: Unit Test
+    needs: [lint]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Give gradlew execute permission
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Run tests
+        run: ./gradlew test
+
+      - name: Upload the test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit test-report
+          path: app/build/reports/tests/testDebugUnitTest/
+
+  #instrumentation-test is the name of the job
+  instrumentation-test:
+
+    needs: [unit-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+
+
+    #  matrix is used to define a set of combinations of values (like API level, architecture, device, OS version, etc.)
+    #  so the same job runs multiple times—once for each combination. So basically loops through all combination
+    strategy:
+      fail-fast: false
+      matrix:
+        api-level: [ 30 ]
+        arch: [ x86_64 ]
+        target: [ google_apis ]
+        first-boot-delay: [ 600 ]
+        iteration: [ 0 ]
+
+    steps:
+
+
+      #frees up space un ubuntu removes unwanted stuff
+      - name: Free Disk Space (Ubuntu)
+        uses: insightsengineering/disk-space-reclaimer@v1
+        with:
+          tools-cache: false
+          android: false
+          dotnet: true
+          haskell: false
+          large-packages: false
+          swap-storage: false
+          docker-images: false
+
+
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      # enables hardware acceleration - resulting in significant reduced time in in emulator boot up : only in ubuntu os
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Give gradlew execute permission
+        run: chmod +x ./gradlew
+
+      - name: Setup Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      #adding a specific jdk version in runner for predictability & certainty inside runner
+      - name: Configure JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+
+      #  This step caches the Android Virtual Device (AVD) and ADB-related files to significantly reduce emulator startup time
+      #  in GitHub Actions CI workflows.
+      - name: AVD cache
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-${{ matrix.api-level }}-${{ matrix.arch }}-${{matrix.target}}-v1-${{ github.event.inputs.clearCaches }}
+          restore-keys: |
+            avd-${{ matrix.api-level }}-${{ matrix.arch }}-${{matrix.target}}-v1
+
+
+      #  Boots the emulator once, warms it up (e.g., first-time setup, Dalvik cache population), then takes a snapshot of that
+      #  running emulator state. This snapshot makes future emulator startups much faster
+
+      - name: AVD Boot and Snapshot Creation
+        if: "${{ github.event.inputs.clearCaches != '' || (steps.avd-cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master') }}"
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          force-avd-creation: false
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          sdcard-path-or-size: 100M
+          disable-animations: true
+          # Give the emulator a little time to run and do first boot stuff before taking snapshot
+          script: |
+            touch adb-log.txt
+            $ANDROID_HOME/platform-tools/adb logcat '*:D' >> adb-log.txt &
+            adb logcat --clear
+            echo "Generated AVD snapshot for caching."
+
+
+      #  makes the emulator to boot up faster
+
+      - name: Emulator Snapshot After Firstboot Warmup
+
+        if: "${{ github.event.inputs.clearCaches != '' || (steps.avd-cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master') }}"
+        env:
+          FIRST_BOOT_DELAY: ${{ matrix.first-boot-delay }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api-level }}
+          force-avd-creation: false
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          sdcard-path-or-size: 100M
+          disable-animations: true
+          script: |
+            touch adb-log.txt
+            $ANDROID_HOME/platform-tools/adb logcat '*:D' >> adb-log.txt &
+            $ANDROID_HOME/platform-tools/adb shell su root "setprop ctl.restart zygote"
+            sleep 10
+            sleep $FIRST_BOOT_DELAY
+            adb logcat --clear
+            echo "First boot warmup completed."
+
+
+
+      - name: Run android Tests
+        uses: reactivecircus/android-emulator-runner@v2
+        timeout-minutes: 30
+        with:
+          api-level: ${{ matrix.api-level }}
+          force-avd-creation: false
+          target: ${{ matrix.target }}
+          arch: ${{ matrix.arch }}
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          sdcard-path-or-size: 100M
+          disable-animations: true
+          script: ./gradlew connectedCheck --stacktrace --info
+
+      - name: Upload instrumentation test report
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumentation_test_report
+          path: app/build/reports/androidTests/connected/debug/
+
+
+
+  distribution:
+
+    needs: [instrumentation-test]
+    name: Build Debug apk
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 17
+          cache: 'gradle'
+
+      - name: Grant execute permissions for gradlew
+        run: chmod +x gradlew
+
+      - name: Setup Gradle cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Build Debug Apk
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Upload Debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+
+#  distribution:
+#
+##sign the apk with keystore and upload the apk to github
+#
+#    needs: [instrumentation-test]
+#    name: Build signed apk
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Setup JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: 'temurin'
+#          java-version: 17
+#          cache: 'gradle'
+#
+#      - name: Grant execute permissions for gradlew
+#        run: chmod +x gradlew
+#
+#      - name: Setup Gradle cache
+#        uses: actions/cache@v4
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+#          restore-keys: |
+#            ${{ runner.os }}-gradle-
+#
+#
+#
+#
+#      - name: Calculate new versionName
+#        id: calc_version
+#        run: |
+#         file="app/build.gradle.kts"
+#         current=$(grep -Po 'versionName\s*=\s*"\K[0-9]+\.[0-9]+' "$file")
+#         IFS='.' read -r major minor <<< "$current"
+#         if [ "$minor" -lt 5 ]; then
+#          minor=$((minor+1))
+#         else
+#          major=$((major+1))
+#          minor=0
+#         fi
+#         new="$major.$minor"
+#         echo "NEW_VERSION=$new" >> $GITHUB_ENV
+#
+#
+#
+#
+#      - name: Debug versionName
+#        run: echo "Will bump to $NEW_VERSION"
+#
+#      - name: Version Bump
+#        uses: chkfung/android-version-actions@v1.2.3
+#        with:
+#          gradlePath: app/build.gradle.kts
+#          versionCode: ${{ github.run_number }}
+#          versionName: "0.0"
+#
+#      - name: Decode Keystore
+#        env:
+#          KEYSTORE_FILE: ${{ secrets.ANDROID_KEYSTORE }}
+#        run: echo "$KEYSTORE_FILE" | base64 --decode > $GITHUB_WORKSPACE/keystore.jks
+#
+#      - name: Build Signed apk APK
+#        run: |
+#          ./gradlew assembleRelease --stacktrace \
+#          -Pandroid.injected.signing.store.file=$GITHUB_WORKSPACE/keystore.jks \
+#          -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+#          -Pandroid.injected.signing.key.alias=${{ secrets.KEYSTORE_ALIAS }}    \
+#          -Pandroid.injected.signing.key.password=${{ secrets.KEYSTORE_PASSWORD }}
+#
+#      - name: Upload Beta APK
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: beta-apk
+#          path: app/build/outputs/apk/release/app-release.apk
