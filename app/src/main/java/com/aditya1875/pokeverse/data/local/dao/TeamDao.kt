@@ -15,6 +15,9 @@ interface TeamDao {
     @Delete
     suspend fun removeFromTeam(pokemon: TeamMemberEntity)
 
+    @Query("DELETE FROM team_members WHERE name = :name")
+    suspend fun removeFromTeamByName(name: String)
+
     @Query("SELECT * FROM team_members")
     fun getTeam(): Flow<List<TeamMemberEntity>>
 
