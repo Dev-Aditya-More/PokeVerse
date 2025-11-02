@@ -223,6 +223,10 @@ class PokemonViewModel(
         teamDao.removeFromTeam(pokemon)
     }
 
+    fun removeFromTeamByName(name: String) = viewModelScope.launch {
+        teamDao.removeFromTeamByName(name)
+    }
+
     fun isInTeam(name: String): Flow<Boolean> = teamDao.isInTeam(name)
 
     val team: StateFlow<List<TeamMemberEntity>> = teamDao.getTeam()
