@@ -28,18 +28,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
+@Preview
 @Composable
-fun SplashScreen(navController: NavController) {
+fun SplashScreen(navController: NavController = rememberNavController()) {
     val context = LocalContext.current
     val scale = remember { Animatable(0.8f) }
     val viewModel: PokemonViewModel = koinViewModel()
@@ -70,7 +73,7 @@ fun SplashScreen(navController: NavController) {
     }
 
     val gradient = Brush.verticalGradient(
-        listOf(Color(0xFF3C3C3C), Color(0xFF1A1A1A))
+        listOf(Color(0xFFFF512F), Color(0xFFF09819))
     )
 
     Box(

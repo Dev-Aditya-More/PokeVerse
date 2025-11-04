@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.aditya1875.pokeverse
 
 import android.Manifest
@@ -25,8 +23,12 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.aditya1875.pokeverse.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.di.appModule
+import com.aditya1875.pokeverse.notifications.NotificationWorker
 import com.aditya1875.pokeverse.screens.DreamTeam
 import com.aditya1875.pokeverse.screens.HomeScreen
 import com.aditya1875.pokeverse.screens.IntroScreen
@@ -41,7 +43,6 @@ import com.aditya1875.pokeverse.utils.WithBottomBar
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.context.GlobalContext.startKoin
-
 class MainActivity : ComponentActivity() {
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -54,6 +55,16 @@ class MainActivity : ComponentActivity() {
         NotificationUtils.createNotificationChannel(this)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(1, java.util.concurrent.TimeUnit.DAYS)
+            .setInitialDelay(10, java.util.concurrent.TimeUnit.MINUTES) // optional
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "daily_pokeverse_notification",
+            ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
 
         startKoin {
             androidContext(this@MainActivity)

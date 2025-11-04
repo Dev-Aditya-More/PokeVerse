@@ -8,8 +8,8 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.aditya1875.pokeverse" />
-                  <option name="mobileSdkAppId" value="1:362465307544:android:6bdcf271cac32bf95499ed" />
+                  <option name="appId" value="com.aditya1875.pokeverse.play" />
+                  <option name="mobileSdkAppId" value="1:362465307544:android:9a0b5748f77cd8185499ed" />
                   <option name="projectId" value="composepractice-33177" />
                   <option name="projectNumber" value="362465307544" />
                 </ConnectionSetting>

@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -17,7 +18,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +38,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -63,7 +62,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,7 +70,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -87,7 +84,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.R
@@ -96,7 +92,6 @@ import com.aditya1875.pokeverse.components.LayeredWaveformVisualizer
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.aditya1875.pokeverse.specialscreens.ParticleBackground
 import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
-import com.aditya1875.pokeverse.ui.viewmodel.PokemonDetailUiState
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
 import com.airbnb.lottie.compose.LottieAnimation
@@ -180,6 +175,14 @@ fun PokemonDetailPage(
             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 200
         }
     }
+
+    val pressed = remember { mutableStateOf(false) }
+    val defaultColor = Color.Black.copy(alpha = 0.6f)
+    val containerColor by animateColorAsState(
+        targetValue = if (pressed.value) bgColor else defaultColor,
+        animationSpec = tween(150),
+        label = "chip color anim"
+    )
 
     val tts = remember {
         lateinit var ttsInstance: TextToSpeech
@@ -569,7 +572,9 @@ fun PokemonDetailPage(
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text("Types", fontWeight = FontWeight.Bold, color = Color.White)
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
                                         pokemon.types.forEach {
+
                                             AssistChip(
                                                 onClick = {},
                                                 label = {
@@ -579,9 +584,23 @@ fun PokemonDetailPage(
                                                     )
                                                 },
                                                 colors = AssistChipDefaults.assistChipColors(
-                                                    containerColor = Color.Black.copy(alpha = 0.6f),
+                                                    containerColor = containerColor,
                                                     labelColor = Color.White
-                                                )
+                                                ),
+                                                modifier = Modifier
+                                                    .pointerInput(Unit) {
+                                                        detectTapGestures(
+                                                            onPress = {
+                                                                pressed.value = true
+                                                                try {
+                                                                    // Wait for the press to finish
+                                                                    awaitRelease()
+                                                                } finally {
+                                                                    pressed.value = false
+                                                                }
+                                                            }
+                                                        )
+                                                    }
                                             )
                                         }
                                     }

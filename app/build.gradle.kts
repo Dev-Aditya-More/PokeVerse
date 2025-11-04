@@ -2,9 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.aboutlibraries)
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.gms.google-services")
+    // don't apply globally — applied conditionally below
 }
 
 android {
@@ -60,6 +61,26 @@ android {
         includeInBundle = false
     }
 
+    flavorDimensions += "distribution"
+
+    productFlavors {
+        create("play") {
+            dimension = "distribution"
+            applicationIdSuffix = ".play"
+            versionNameSuffix = "-play"
+            buildConfigField("boolean", "USE_FIREBASE", "true")
+        }
+        create("foss") {
+            dimension = "distribution"
+            applicationIdSuffix = ".foss"
+            versionNameSuffix = "-foss"
+            buildConfigField("boolean", "USE_FIREBASE", "false")
+        }
+    }
+}
+
+if (gradle.startParameter.taskNames.any { it.lowercase().contains("play") }) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 dependencies {
@@ -90,6 +111,7 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.foundation)
+
     // Koin Core
     implementation(libs.koin.core)
     implementation(libs.material3.window.size.class1)
@@ -103,6 +125,8 @@ dependencies {
     // Koin for Jetpack Compose
     implementation(libs.koin.androidx.compose)
 
+    implementation(libs.androidx.core.splashscreen)
+
     // haze
     implementation(libs.haze.jetpack.compose)
 
@@ -112,11 +136,18 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.navigation.animation.v0340)
 
-    implementation(libs.firebase.analytics)
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.messaging)
-    implementation(libs.androidx.core.ktx)
+    add("playImplementation", libs.firebase.analytics)
+    add("playImplementation", platform(libs.firebase.bom))
+    add("playImplementation", libs.firebase.messaging)
+//    add("playImplementation", libs.androidx.core.ktx)
+//    add("playImplementation",libs.firebase.common.ktx)
 
+    // Glance Widget
+    implementation (libs.androidx.glance.appwidget)
+    implementation (libs.androidx.work.runtime.ktx)
+    implementation(libs.colorpicker.compose)
+    // AboutLibraries
+    implementation(libs.aboutlibraries.compose.m3)
     // ui tests
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
