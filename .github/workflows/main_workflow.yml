@@ -50,7 +50,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run lint
-        run: ./gradlew lintDebug
+        run: ./gradlew lintFossDebug
 
       - name: Upload lint report
         uses: actions/upload-artifact@v4
@@ -359,6 +359,7 @@ jobs:
 #          name: beta-apk
 
 #          path: app/build/outputs/apk/release/app-release.apk
+
 
 
 
