@@ -86,6 +86,7 @@ fun ParticleBackground(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun BlueFlameParticles(
     modifier: Modifier = Modifier,
