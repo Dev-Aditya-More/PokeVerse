@@ -17,8 +17,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 26
-        versionName = "1.2.6"
+        versionCode = 27
+        versionName = "1.2.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -72,9 +72,22 @@ android {
         }
         create("foss") {
             dimension = "distribution"
-            applicationIdSuffix = ".foss"
-            versionNameSuffix = "-foss"
+//            applicationIdSuffix = ".foss"
+//            versionNameSuffix = "-foss"
             buildConfigField("boolean", "USE_FIREBASE", "false")
+        }
+    }
+
+    sourceSets {
+        getByName("play") {
+            java.srcDir("src/play/java")
+            res.srcDir("src/play/res")
+            manifest.srcFile("src/play/AndroidManifest.xml")
+        }
+        getByName("foss") {
+            java.srcDir("src/foss/java")
+            res.srcDir("src/foss/res")
+            manifest.srcFile("src/foss/AndroidManifest.xml")
         }
     }
 }

@@ -28,6 +28,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.aditya1875.pokeverse.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.di.appModule
+import com.aditya1875.pokeverse.notifications.NotificationScheduler
 import com.aditya1875.pokeverse.notifications.NotificationWorker
 import com.aditya1875.pokeverse.screens.DreamTeam
 import com.aditya1875.pokeverse.screens.HomeScreen
@@ -48,6 +49,7 @@ class MainActivity : ComponentActivity() {
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
 
         requestNotificationPermission()
@@ -56,15 +58,7 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(1, java.util.concurrent.TimeUnit.DAYS)
-            .setInitialDelay(10, java.util.concurrent.TimeUnit.MINUTES) // optional
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "daily_pokeverse_notification",
-            ExistingPeriodicWorkPolicy.KEEP,
-            workRequest
-        )
+        NotificationScheduler.scheduleDailyNotifications(this)
 
         startKoin {
             androidContext(this@MainActivity)
