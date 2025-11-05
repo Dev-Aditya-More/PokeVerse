@@ -17,8 +17,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 27
-        versionName = "1.2.7"
+        versionCode = 28
+        versionName = "1.2.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -74,6 +74,7 @@ android {
             dimension = "distribution"
 //            applicationIdSuffix = ".foss"
 //            versionNameSuffix = "-foss"
+            isDefault = true
             buildConfigField("boolean", "USE_FIREBASE", "false")
         }
     }
@@ -90,6 +91,8 @@ android {
             manifest.srcFile("src/foss/AndroidManifest.xml")
         }
     }
+
+    flavorDimensions("distribution")
 }
 
 if (gradle.startParameter.taskNames.any { it.lowercase().contains("play") }) {
@@ -106,8 +109,11 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
+    implementation(libs.coil.svg)
+
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.gson)
