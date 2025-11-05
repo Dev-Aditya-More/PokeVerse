@@ -180,3 +180,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(kotlin("test"))
 }
+
+// Disable baseline profiles to make builds reproducible
+tasks.whenTaskAdded {
+    if (name.contains("ArtProfile")) {
+        enabled = false
+    }
+}
