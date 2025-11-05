@@ -78,7 +78,10 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -376,10 +379,22 @@ fun PokemonDetailPage(
             topBar = {
                 TopAppBar(
                     title = {
+                        val displayName = pokemon?.name
+                            ?.replace("-", " ")
+                            ?.replaceFirstChar { it.uppercase() }
+                            ?: ""
+
+                        val fontSize = if (displayName.length > 15) 18.sp else 22.sp
+
                         Text(
-                            pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "",
+                            text = displayName,
                             color = Color.White,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontSize = fontSize,
+                            textAlign = TextAlign.Start,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     },
                     navigationIcon = {
