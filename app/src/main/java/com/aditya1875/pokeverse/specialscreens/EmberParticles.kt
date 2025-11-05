@@ -33,7 +33,8 @@ import kotlin.random.Random
 fun EmberParticles(
     modifier: Modifier = Modifier,
     particleCount: Int = 60,
-    colors: List<Color> = listOf(Color(0xFFFF6D00), Color(0xFFFFA726), Color(0xFFFFC107))
+    colors: List<Color> = listOf(Color(0xFFFF6D00), Color(0xFFFFA726), Color(0xFFFFC107)),
+    flameType: String = "orange" // "blue" for Charizard X flames
 ) {
     val particles = remember { mutableStateListOf<EmberParticle>() }
     val density = LocalDensity.current.density
@@ -43,41 +44,45 @@ fun EmberParticles(
             """
             uniform float2 resolution;
             uniform float  time;
+            uniform float  flameType; // 0 = orange, 1 = blue
 
             half4 main(float2 fragCoord) {
                 float2 uv = fragCoord / resolution.xy;
                 uv -= 0.5;
-
-                // Adjust aspect ratio
                 uv.x *= resolution.x / resolution.y;
 
-                // Twisting motion
                 float angle = atan(uv.y, uv.x);
                 float radius = length(uv);
                 angle += sin(time * 0.8 + radius * 8.0) * 0.5;
                 uv = float2(cos(angle), sin(angle)) * radius;
 
-                // Vertical column shape
                 uv.y *= 1.8;
                 uv.x *= 0.6;
 
-                // Ember core intensity
                 float glow = exp(-8.0 * dot(uv, uv));
 
-                // Poké-style ember colors:
-                float3 deepOrange = float3(1.0, 0.42, 0.0);   // #FF6D00
-                float3 brightOrange = float3(1.0, 0.65, 0.15); // #FFA726
-                float3 golden = float3(1.0, 0.76, 0.03);       // #FFC107
+                float3 deepOrange = float3(1.0, 0.42, 0.0);
+                float3 brightOrange = float3(1.0, 0.65, 0.15);
+                float3 golden = float3(1.0, 0.76, 0.03);
 
-                // Color blend based on intensity
-                float3 color = mix(deepOrange, brightOrange, pow(glow, 0.6));
-                color = mix(color, golden, pow(glow, 2.5));
+                float3 deepBlue = float3(0.05, 0.2, 0.65);
+                float3 strongBlue = float3(0.10, 0.46, 0.82);
+                float3 cyanGlow = float3(0.0, 0.75, 0.9);
 
-                // Flicker (heat shimmer effect)
+                float3 color;
+                if (flameType > 0.5) {
+                    // Blue flame mode
+                    color = mix(deepBlue, strongBlue, pow(glow, 0.6));
+                    color = mix(color, cyanGlow, pow(glow, 2.5));
+                } else {
+                    // Orange flame mode
+                    color = mix(deepOrange, brightOrange, pow(glow, 0.6));
+                    color = mix(color, golden, pow(glow, 2.5));
+                }
+
                 float flicker = 0.85 + 0.15 * sin(time * 5.0 + uv.y * 12.0);
                 color *= flicker;
 
-                // Add subtle turbulence for movement
                 float swirl = sin(uv.y * 10.0 + time * 2.0) * 0.02;
                 uv.x += swirl;
 
@@ -87,29 +92,24 @@ fun EmberParticles(
         )
     }
 
-    // Generate new particles continuously
+    // 🧩 Generate & animate particles
     LaunchedEffect(Unit) {
         while (true) {
-            if (particles.size < particleCount) {
+            if (particles.size < particleCount)
                 particles += EmberParticle.generate(colors)
-            }
             delay(50L)
         }
     }
 
-    // Animate particles
     LaunchedEffect(Unit) {
         while (true) {
             val iterator = particles.listIterator()
             while (iterator.hasNext()) {
                 val updated = iterator.next().update()
-                if (updated.isAlive()) {
-                    iterator.set(updated)
-                } else {
-                    iterator.remove()
-                }
+                if (updated.isAlive()) iterator.set(updated)
+                else iterator.remove()
             }
-            delay(16L) // ~60 FPS
+            delay(16L)
         }
     }
 
@@ -122,10 +122,11 @@ fun EmberParticles(
     }
 
     Canvas(modifier = modifier.fillMaxSize()) {
-
         runtimeShader.setFloatUniform("resolution", size.width, size.height)
         runtimeShader.setFloatUniform("time", time)
+        runtimeShader.setFloatUniform("flameType", if (flameType == "blue") 1f else 0f)
         drawRect(ShaderBrush(runtimeShader))
+
         particles.forEach { particle ->
             drawIntoCanvas { canvas ->
                 val paint = Paint().asFrameworkPaint().apply {
@@ -136,14 +137,11 @@ fun EmberParticles(
                         (particle.color.green * 255).toInt(),
                         (particle.color.blue * 255).toInt()
                     )
-
-                    // Blur based on particle size and current alpha → smoother fade
                     maskFilter = BlurMaskFilter(
                         (particle.size * (0.8f + 0.4f * particle.alpha)) * density,
                         BlurMaskFilter.Blur.NORMAL
                     )
                 }
-
                 canvas.nativeCanvas.drawCircle(
                     particle.x * size.width,
                     particle.y * size.height,

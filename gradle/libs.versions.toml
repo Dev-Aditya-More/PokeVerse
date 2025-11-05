@@ -62,6 +62,7 @@ androidx-ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-f
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 coil-gif = { module = "io.coil-kt:coil-gif", version.ref = "coilCompose" }
+coil-svg = { module = "io.coil-kt:coil-svg", version.ref = "coilCompose" }
 colorpicker-compose = { module = "com.github.skydoves:colorpicker-compose", version.ref = "colorpickerCompose" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version = "3.0.0"}

@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -40,9 +41,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview
+@Preview(showBackground = true)
 @Composable
 fun PokemonNotFoundScreen(
     onRetryClick: () -> Unit = {}
@@ -57,69 +58,67 @@ fun PokemonNotFoundScreen(
     )
 
     val animatedGradient = Brush.linearGradient(
-        colors = listOf(Color(0xFF2E2E2E), Color(0xFF1A1A1A), Color(0xFF2E2E2E)),
+        colors = listOf(Color(0xFF1C1C1C), Color(0xFF262626), Color(0xFF1C1C1C)),
         start = Offset(offset, 0f),
         end = Offset(offset + 300f, 1000f)
     )
 
-    Scaffold { padding ->
+    Scaffold(containerColor = Color.Transparent) { padding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(animatedGradient)
                 .padding(padding)
-                .padding(horizontal = 24.dp),
+                .padding(horizontal = 32.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Subtle entrance animation
-                AnimatedVisibility(visible = true) {
-                    Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                        tint = Color(0xFFB0B0B0),
-                        modifier = Modifier
-                            .size(96.dp)
-                            .graphicsLayer {
-                                shadowElevation = 8.dp.toPx()
-                            }
-                    )
-                }
-
-                Spacer(Modifier.height(24.dp))
+                // Icon with soft bounce
+                Icon(
+                    imageVector = Icons.Default.Search,
+                    contentDescription = null,
+                    tint = Color(0xFFBDBDBD),
+                    modifier = Modifier
+                        .size(100.dp)
+                        .graphicsLayer {
+                            shadowElevation = 12.dp.toPx()
+                            alpha = 0.9f
+                        }
+                )
 
                 Text(
-                    text = "Pokémon Not Found",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
+                    text = "No Pokémon Found",
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                        letterSpacing = 0.5.sp
                     ),
                     textAlign = TextAlign.Center
                 )
 
-                Spacer(Modifier.height(8.dp))
-
                 Text(
-                    text = "We couldn’t find that Pokémon.\nTry another name or check the spelling.",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = Color(0xFFCCCCCC),
-                        textAlign = TextAlign.Center
-                    )
+                    text = "We couldn’t find that Pokémon.\nPlease check the spelling or try again.",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = Color(0xFFB0B0B0),
+                        lineHeight = 22.sp
+                    ),
+                    textAlign = TextAlign.Center
                 )
 
-                Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(16.dp))
 
                 Button(
                     onClick = onRetryClick,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFEF5350),
+                        containerColor = Color(0xFFEE4B2B),
                         contentColor = Color.White
                     ),
-                    elevation = ButtonDefaults.buttonElevation(6.dp)
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
+                    elevation = ButtonDefaults.buttonElevation(8.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
@@ -129,7 +128,10 @@ fun PokemonNotFoundScreen(
                     Spacer(Modifier.width(8.dp))
                     Text(
                         "Try Again",
-                        style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium)
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Medium,
+                            letterSpacing = 0.3.sp
+                        )
                     )
                 }
             }

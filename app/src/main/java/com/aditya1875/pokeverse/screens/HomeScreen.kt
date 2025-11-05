@@ -25,15 +25,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
@@ -75,7 +78,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -260,32 +265,83 @@ fun HomeScreen(navController: NavHostController) {
                         }
 
                         uiState.error != null && pokemonList.isEmpty() -> {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            listOf(Color(0xFF1C1C1C), Color(0xFF101010))
+                                        )
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                                ) {
                                     Image(
                                         painter = painterResource(R.drawable.nointrnet),
                                         contentDescription = "No Internet",
-                                        modifier = Modifier.size(300.dp),
+                                        modifier = Modifier
+                                            .size(260.dp)
+                                            .graphicsLayer {
+                                                alpha = 0.95f
+                                                scaleX = 1.05f
+                                                scaleY = 1.05f
+                                            },
                                         contentScale = ContentScale.Fit
                                     )
-                                    Spacer(Modifier.height(16.dp))
-                                    when (uiState.error) {
-                                        is UiError.Network -> Text(
-                                            "No Internet Connection",
-                                            color = Color.White
-                                        )
-                                        is UiError.Unexpected -> Text(
-                                            "Something went wrong",
-                                            color = Color.White
-                                        )
-                                        else -> Text("Unknown Error")
+
+                                    val (title, subtitle) = when (uiState.error) {
+                                        is UiError.Network -> "No Internet Connection" to "Check your network and try again."
+                                        is UiError.Unexpected -> "Something went wrong" to "An unexpected error occurred."
+                                        else -> "Unknown Error" to "Please try again later."
                                     }
+
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.headlineSmall.copy(
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color.White,
+                                            letterSpacing = 0.5.sp
+                                        ),
+                                        textAlign = TextAlign.Center
+                                    )
+
+                                    Text(
+                                        text = subtitle,
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = Color(0xFFB0B0B0),
+                                            lineHeight = 20.sp
+                                        ),
+                                        textAlign = TextAlign.Center
+                                    )
+
                                     Spacer(Modifier.height(8.dp))
+
                                     Button(
                                         onClick = { viewModel.loadPokemonList() },
-                                        colors = ButtonDefaults.buttonColors(Color(0xFF802525))
+                                        shape = RoundedCornerShape(14.dp),
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFFEF5350),
+                                            contentColor = Color.White
+                                        ),
+                                        elevation = ButtonDefaults.buttonElevation(8.dp),
+                                        contentPadding = PaddingValues(horizontal = 22.dp, vertical = 10.dp)
                                     ) {
-                                        Text("Retry")
+                                        Icon(
+                                            imageVector = Icons.Default.Refresh,
+                                            contentDescription = "Retry",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(
+                                            "Retry",
+                                            style = MaterialTheme.typography.labelLarge.copy(
+                                                fontWeight = FontWeight.Medium,
+                                                letterSpacing = 0.3.sp
+                                            )
+                                        )
                                     }
                                 }
                             }

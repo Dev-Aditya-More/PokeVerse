@@ -88,7 +88,9 @@ import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.ImageDecoderDecoder
+import coil.decode.SvgDecoder
 import coil.request.ImageRequest
+import coil.size.Size
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.EvolutionConnector
 import com.aditya1875.pokeverse.components.LayeredWaveformVisualizer
@@ -134,15 +136,15 @@ fun PokemonDetailPage(
     var isSpriteChanged by rememberSaveable { mutableStateOf(false) }
     var currentSpriteUrl by rememberSaveable {
         mutableStateOf(
-            pokemon?.sprites?.other?.home?.frontDefault
-                ?: pokemon?.sprites?.other?.officialArtwork?.frontDefault
+            pokemon?.sprites?.other?.officialArtwork?.frontDefault
+                ?: pokemon?.sprites?.other?.home?.frontDefault
                 ?: currentStage?.imageUrl
         )
     }
 
     LaunchedEffect(pokemon) {
-        currentSpriteUrl = pokemon?.sprites?.other?.home?.frontDefault
-            ?: pokemon?.sprites?.other?.officialArtwork?.frontDefault
+        currentSpriteUrl = pokemon?.sprites?.other?.officialArtwork?.frontDefault
+            ?: pokemon?.sprites?.other?.home?.frontDefault
                     ?: currentStage?.imageUrl
     }
 
@@ -303,7 +305,10 @@ fun PokemonDetailPage(
 
                     model = ImageRequest.Builder(context)
                         .data(currentSpriteUrl)
+                        .decoderFactory(SvgDecoder.Factory())
                         .crossfade(true)
+                        .allowHardware(false)
+                        .size(Size.ORIGINAL)
                         .build(),
                     contentDescription = pokemon?.name ?: currentStage?.name,
                     contentScale = ContentScale.Fit,
@@ -338,16 +343,15 @@ fun PokemonDetailPage(
                 ) {
                     LottieAnimation(
                         composition = rememberLottieComposition(
-                            LottieCompositionSpec.RawRes(R.raw.spark)
+                            LottieCompositionSpec.RawRes(R.raw.shine)
                         ).value,
                         iterations = LottieConstants.IterateForever,
                         modifier = Modifier
-                            .fillMaxSize()
+                            .size(200.dp)
                             .align(Alignment.Center)
                     )
                 }
             }
-
 
             // Evolution connectors (kept same zIndex as sprite so they are visible)
             if (showLeftConnector && currentStage?.prevId != null) {
@@ -412,20 +416,26 @@ fun PokemonDetailPage(
                         val team by viewModel.team.collectAsStateWithLifecycle()
                         val teamMembershipMap = remember(team) { team.associate { it.name to true } }
                         val isInTeam = teamMembershipMap[pokemon?.name] ?: false
-                        val availableSprites = listOfNotNull(
-                            pokemon?.sprites?.other?.home?.frontDefault,
-                            pokemon?.sprites?.other?.showdown?.frontDefault,
-                            pokemon?.sprites?.other?.officialArtwork?.frontDefault,
-                            currentStage?.imageUrl
-                        )
 
                         IconButton(
                             onClick = {
-                                // Filter out current sprite so it actually changes
-                                val others = availableSprites.filter { it != currentSpriteUrl }
-                                if (others.isNotEmpty()) {
-                                    currentSpriteUrl = others.random()
-                                    showLoader = !showLoader
+                                // ordered sprite priority list
+                                val orderedSprites = listOfNotNull(
+                                    pokemon?.sprites?.other?.officialArtwork?.frontDefault,
+                                    pokemon?.sprites?.other?.home?.frontDefault,
+                                    pokemon?.sprites?.other?.dreamWorld?.frontDefault,
+                                    pokemon?.sprites?.other?.showdown?.frontDefault,
+                                    currentStage?.imageUrl
+                                )
+
+                                // find current index in that order
+                                val currentIndex = orderedSprites.indexOf(currentSpriteUrl)
+                                val nextIndex = if (currentIndex == -1 || currentIndex == orderedSprites.lastIndex) 0 else currentIndex + 1
+
+                                val nextSprite = orderedSprites.getOrNull(nextIndex)
+                                if (nextSprite != null && nextSprite != currentSpriteUrl) {
+                                    currentSpriteUrl = nextSprite
+                                    showLoader = true
                                     isSpriteChanged = true
                                 }
                             },
@@ -433,7 +443,7 @@ fun PokemonDetailPage(
                                 detectTapGestures(
                                     onLongPress = {
                                         Toast
-                                            .makeText(context, "Tap to shuffle Pokémon sprite ✨", Toast.LENGTH_SHORT)
+                                            .makeText(context, "Tap to switch sprite in order ✨", Toast.LENGTH_SHORT)
                                             .show()
                                     }
                                 )
@@ -441,7 +451,7 @@ fun PokemonDetailPage(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Shuffle,
-                                contentDescription = "Change Sprite",
+                                contentDescription = "Switch Sprite",
                                 tint = Color.White
                             )
                         }
@@ -636,6 +646,20 @@ fun PokemonDetailPage(
                                     Spacer(modifier = Modifier.height(12.dp))
 
                                     pokemon.stats.forEachIndexed { index, stat ->
+
+                                        val progress = remember { Animatable(0f) }
+
+                                        LaunchedEffect(pokemon) {
+                                            progress.animateTo(
+                                                targetValue = stat.base_stat / 255f,
+                                                animationSpec = tween(
+                                                    durationMillis = 1200,
+                                                    delayMillis = index * 150,
+                                                    easing = FastOutSlowInEasing
+                                                )
+                                            )
+                                        }
+
                                         val animatedProgress = animateFloatAsState(
                                             targetValue = stat.base_stat / 255f,
                                             animationSpec = tween(

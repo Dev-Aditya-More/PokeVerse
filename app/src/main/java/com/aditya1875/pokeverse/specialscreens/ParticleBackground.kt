@@ -103,7 +103,8 @@ fun BlueFlameParticles(
     EmberParticles(
         modifier = modifier,
         particleCount = particleCount,
-        colors = charizardXFlames
+        colors = charizardXFlames,
+        flameType = "blue"
     )
 }
 
