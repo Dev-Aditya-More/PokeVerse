@@ -17,7 +17,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,6 +41,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
@@ -92,7 +98,6 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Size
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.EvolutionConnector
 import com.aditya1875.pokeverse.components.LayeredWaveformVisualizer
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.aditya1875.pokeverse.specialscreens.ParticleBackground
@@ -114,9 +119,6 @@ import java.util.Locale
 @Composable
 fun PokemonDetailPage(
     currentStage: EvolutionStage?,
-    showLeftConnector: Boolean,
-    showRightConnector: Boolean,
-    onConnectorClick: (Int) -> Unit,
     navController: NavController,
     specialEffectsEnabled: Boolean,
     spriteEffectsEnabledState: MutableState<Boolean>,
@@ -132,6 +134,16 @@ fun PokemonDetailPage(
     val mediaPlayer = remember { MediaPlayer.create(context, R.raw.beepeffect) }
     var isSpeaking by remember { mutableStateOf(false) }
     var showLoader by remember { mutableStateOf(false) }
+    val name =
+        pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "This Pokémon"
+    val type = pokemon?.types?.firstOrNull()?.type?.name ?: "unknown type"
+    val descriptionText =
+        pokemon?.id?.let { viewModel.getLocalDescription(it) } ?: ""
+    val cleanText =
+        descriptionText.replace(Regex("[^\\x00-\\x7F]"), " ")
+            .replace("\n", " ")
+            .trim()
+    val speechText = "$name. A $type type Pokémon. $cleanText"
 
     var isSpriteChanged by rememberSaveable { mutableStateOf(false) }
     var currentSpriteUrl by rememberSaveable {
@@ -146,6 +158,10 @@ fun PokemonDetailPage(
         currentSpriteUrl = pokemon?.sprites?.other?.officialArtwork?.frontDefault
             ?: pokemon?.sprites?.other?.home?.frontDefault
                     ?: currentStage?.imageUrl
+
+        pokemon?.name?.let { name ->
+            viewModel.fetchEvolutionChain(name)
+        }
     }
 
     val listState = rememberLazyListState()
@@ -352,29 +368,6 @@ fun PokemonDetailPage(
                     )
                 }
             }
-
-            // Evolution connectors (kept same zIndex as sprite so they are visible)
-            if (showLeftConnector && currentStage?.prevId != null) {
-                EvolutionConnector(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = 8.dp)
-                        .size(width = 120.dp, height = 40.dp)
-                        .zIndex(2f),
-                    direction = EvolutionConnector.Direction.LEFT
-                ) { onConnectorClick(currentStage.prevId) }
-            }
-
-            if (showRightConnector && currentStage?.nextId != null) {
-                EvolutionConnector(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .padding(end = 8.dp)
-                        .size(width = 120.dp, height = 40.dp)
-                        .zIndex(2f),
-                    direction = EvolutionConnector.Direction.RIGHT
-                ) { onConnectorClick(currentStage.nextId) }
-            }
         }
 
         Scaffold(
@@ -477,16 +470,6 @@ fun PokemonDetailPage(
                             )
                         }
                         IconButton(onClick = {
-                            val name =
-                                pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "This Pokémon"
-                            val type = pokemon?.types?.firstOrNull()?.type?.name ?: "unknown type"
-                            val descriptionText =
-                                pokemon?.id?.let { viewModel.getLocalDescription(it) } ?: ""
-                            val cleanText =
-                                descriptionText.replace(Regex("[^\\x00-\\x7F]"), " ")
-                                    .replace("\n", " ")
-                                    .trim()
-                            val speechText = "$name. A $type type Pokémon. $cleanText"
 
                             if (isTtsReady) {
                                 val utteranceId = java.util.UUID.randomUUID().toString()
@@ -595,7 +578,7 @@ fun PokemonDetailPage(
                         item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("Types", fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text("Types", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 
                                         pokemon.types.forEach {
@@ -633,38 +616,49 @@ fun PokemonDetailPage(
                             }
                         }
 
+                        if (descriptionText.isNotBlank()) {
+                            item {
+                                GlossyCard(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text(
+                                            "Description",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = descriptionText,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            lineHeight = 20.sp,
+                                            color = Color.White.copy(alpha = 0.9f)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
                         // stats
                         item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
                                         "Base Stats",
+                                        style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White,
-                                        style = MaterialTheme.typography.titleMedium
+                                        color = Color.White
                                     )
+
                                     Spacer(modifier = Modifier.height(12.dp))
 
                                     pokemon.stats.forEachIndexed { index, stat ->
-
-                                        val progress = remember { Animatable(0f) }
-
-                                        LaunchedEffect(pokemon) {
-                                            progress.animateTo(
-                                                targetValue = stat.base_stat / 255f,
-                                                animationSpec = tween(
-                                                    durationMillis = 1200,
-                                                    delayMillis = index * 150,
-                                                    easing = FastOutSlowInEasing
-                                                )
-                                            )
-                                        }
-
                                         val animatedProgress = animateFloatAsState(
                                             targetValue = stat.base_stat / 255f,
                                             animationSpec = tween(
-                                                durationMillis = 3000,
-                                                delayMillis = index * 100,
+                                                durationMillis = 2500,
+                                                delayMillis = index * 120,
                                                 easing = FastOutSlowInEasing
                                             ), label = "statAnimation"
                                         )
@@ -675,56 +669,106 @@ fun PokemonDetailPage(
                                                 .padding(vertical = 6.dp)
                                         ) {
                                             Row(
-                                                verticalAlignment = Alignment.CenterVertically
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
                                                 Text(
                                                     text = stat.stat.name.replace("-", " ")
                                                         .replaceFirstChar { it.uppercase() },
-                                                    color = Color.White,
-                                                    fontWeight = FontWeight.Medium,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = Color.White.copy(alpha = 0.9f),
                                                     modifier = Modifier.weight(1f)
                                                 )
                                                 Text(
                                                     text = stat.base_stat.toString(),
-                                                    color = Color.White,
-                                                    textAlign = androidx.compose.ui.text.style.TextAlign.End,
-                                                    modifier = Modifier.width(40.dp)
+                                                    style = MaterialTheme.typography.labelMedium,
+                                                    color = Color.White.copy(alpha = 0.7f),
+                                                    modifier = Modifier.width(40.dp),
+                                                    textAlign = TextAlign.End
                                                 )
                                             }
+
+                                            Spacer(modifier = Modifier.height(4.dp))
 
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .height(12.dp)
-                                                    .clip(
-                                                        MaterialTheme.shapes.small.copy(
-                                                            all = androidx.compose.foundation.shape.CornerSize(
-                                                                50.dp
-                                                            )
-                                                        )
-                                                    )
-                                                    .background(Color.Gray.copy(alpha = 0.2f))
+                                                    .height(10.dp)
+                                                    .clip(RoundedCornerShape(50))
+                                                    .background(Color.White.copy(alpha = 0.1f))
                                             ) {
                                                 Box(
                                                     modifier = Modifier
                                                         .fillMaxWidth(animatedProgress.value)
                                                         .fillMaxHeight()
-                                                        .clip(
-                                                            MaterialTheme.shapes.small.copy(
-                                                                all = androidx.compose.foundation.shape.CornerSize(
-                                                                    50.dp
-                                                                )
-                                                            )
-                                                        )
+                                                        .clip(RoundedCornerShape(50))
                                                         .background(
                                                             Brush.horizontalGradient(
-                                                                listOf(
-                                                                    bgColor.copy(alpha = 0.7f),
-                                                                    bgColor
-                                                                )
+                                                                listOf(bgColor.copy(alpha = 0.7f), bgColor)
                                                             )
                                                         )
                                                 )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        item {
+                            val evoList by viewModel.evolutionList.collectAsStateWithLifecycle()
+
+                            if (evoList.isNotEmpty()) {
+                                GlossyCard(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                ) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Text(
+                                            text = "Evolution Chain",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color.White
+                                        )
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .horizontalScroll(rememberScrollState()),
+                                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            evoList.forEach { stage ->
+                                                Column(
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    modifier = Modifier.animateItem()
+                                                ) {
+                                                    AsyncImage(
+                                                        model = stage.imageUrl,
+                                                        contentDescription = stage.name,
+                                                        modifier = Modifier
+                                                            .size(90.dp)
+                                                            .clip(CircleShape)
+                                                            .background(Color.White.copy(alpha = 0.05f))
+                                                            .border(
+                                                                width = 1.dp,
+                                                                color = Color.White.copy(alpha = 0.2f),
+                                                                shape = CircleShape
+                                                            )
+                                                            .clickable { /* TODO: handle click (like show details) */ },
+                                                        contentScale = ContentScale.Fit
+                                                    )
+
+                                                    Spacer(modifier = Modifier.height(6.dp))
+
+                                                    Text(
+                                                        text = stage.name.replaceFirstChar { it.uppercase() },
+                                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                                        color = Color.White.copy(alpha = 0.9f)
+                                                    )
+                                                }
                                             }
                                         }
                                     }
