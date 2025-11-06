@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.notifications
+package com.aditya1875.pokeverse.WorkManager
 
 import android.Manifest
 import android.app.PendingIntent
