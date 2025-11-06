@@ -46,10 +46,6 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
     val context = LocalContext.current
     val scale = remember { Animatable(0.8f) }
     val viewModel: PokemonViewModel = koinViewModel()
-    val showTagline by viewModel.showTagline.collectAsStateWithLifecycle()
-    val alpha = remember { Animatable(0f) }
-    val isDark = isSystemInDarkTheme()
-    val taglineColor = if (isDark) Color(0xFFBDBDBD) else Color(0xFF424242)
 
     LaunchedEffect(Unit) {
         // Scale animation for logo
@@ -57,14 +53,6 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
             targetValue = 1f,
             animationSpec = tween(1200, easing = { OvershootInterpolator(2f).getInterpolation(it) })
         )
-
-        if (showTagline) {
-            alpha.animateTo(1f, animationSpec = tween(800))
-            delay(1800)
-            ScreenStateManager.markFirstLaunchShown(context)
-        } else {
-            delay(2000)
-        }
 
         val next = if (ScreenStateManager.isIntroSeen(context)) "home" else "intro"
         navController.navigate(next) {
@@ -93,22 +81,6 @@ fun SplashScreen(navController: NavController = rememberNavController()) {
                     .size(450.dp)
                     .scale(scale.value)
             )
-
-            if (showTagline) {
-                Spacer(Modifier.height(16.dp))
-                Text(
-                    text = "Explore the legends behind the stats",
-                    color = taglineColor,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontStyle = FontStyle.Italic,
-                        letterSpacing = 0.5.sp
-                    ),
-                    modifier = Modifier
-                        .alpha(alpha.value)
-                        .scale(scale.value.coerceAtMost(1.05f))
-                )
-            }
-
         }
     }
 }
