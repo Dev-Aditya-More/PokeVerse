@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse.data.remote.model.evolutionModels
 
-data class EvolutionStage(
+data class evoFinal(
     val name: String,
-    val imageUrl: String
+    val evolution_chain: EvolutionChain,
+    val is_baby: Boolean
 )

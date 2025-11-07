@@ -17,11 +17,15 @@ import com.aditya1875.pokeverse.data.remote.model.PokemonResult
 import com.aditya1875.pokeverse.data.remote.model.PokemonVariety
 import com.aditya1875.pokeverse.data.remote.model.Region
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.Chain
+import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionDetail
+import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionDisplayItem
+import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionNode
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.aditya1875.pokeverse.domain.repository.DescriptionRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.utils.ScreenStateManager.isFirstLaunch
 import com.aditya1875.pokeverse.utils.UiError
+import com.aditya1875.pokeverse.utils.extractEvolutionChain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -50,8 +54,9 @@ class PokemonViewModel(
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
-    private val _evolutionStages = MutableStateFlow<List<EvolutionStage>>(emptyList())
-    val evolutionStages: StateFlow<List<EvolutionStage>> = _evolutionStages
+    private val _evolutionList = MutableStateFlow<List<EvolutionDisplayItem>>(emptyList())
+
+    val evolutionList: StateFlow<List<EvolutionDisplayItem>> = _evolutionList
 
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
@@ -144,8 +149,8 @@ class PokemonViewModel(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             fetchPokemonInternal(name, includeSpecies = true)
 
-            uiState.value.pokemon?.id?.let { id ->
-                fetchEvolutionChain(id)
+            uiState.value.pokemon?.name?.let { name ->
+                fetchEvolutionChain(name)
             }
         }
     }
@@ -249,39 +254,53 @@ class PokemonViewModel(
     // -------------------------
     // Evolution Chain
     // -------------------------
-    fun fetchEvolutionChain(chainId: Int) {
+    fun fetchEvolutionChain(name: String) {
         viewModelScope.launch {
             try {
-                val chainResponse = repository.getEvolutionChain(chainId)
+                val species = repository.getPokemonSpeciesByName(name)
+                val evolutionChainUrl = species.evolutionChain?.response?.evolution_chain?.url
 
-                val stages = mutableListOf<EvolutionStage>()
-                collectSpecies(chainResponse.chain, stages)
+                if (evolutionChainUrl != null) {
 
-                _evolutionStages.value = stages.mapIndexed { index, stage ->
-                    stage.copy(
-                        hasPrev = index > 0,
-                        hasNext = index < stages.lastIndex
-                    )
+                    val chainId = extractIdFromUrl(evolutionChainUrl)
+                    val evolutionChainResponse = repository.getEvolutionChain(chainId)
+
+                    val rootNode = parseEvolutionChain(evolutionChainResponse.chain)
+                    val evolutionNames = flattenEvolutionChain(rootNode)
+
+                    // Fetch sprites for each evolution stage
+                    val evolutionList = evolutionNames.map { evoName ->
+                        val response = repository.getPokemonByName(evoName)
+                        val imageUrl = response.sprites.other?.officialArtwork?.frontDefault
+                            ?: response.sprites.front_default
+                        EvolutionDisplayItem(evoName, imageUrl)
+                    }
+
+                    _evolutionList.value = evolutionList
+                } else {
+                    _evolutionList.value = emptyList()
                 }
             } catch (e: Exception) {
-                Log.e("PokeVM", "Failed to fetch evolution chain for $chainId", e)
+                Log.e("PokemonVM", "Error fetching evolution chain: ${e.message}", e)
+                _evolutionList.value = emptyList()
             }
         }
     }
 
-    private fun collectSpecies(chain: Chain, list: MutableList<EvolutionStage>) {
-        val id = extractIdFromUrl(chain.species.url)
-        list.add(
-            EvolutionStage(
-                id = id,
-                name = chain.species.name,
-                imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png",
-                hasNext = chain.evolvesTo.isNotEmpty(),
-                hasPrev = chain.evolvesFrom.isNotEmpty()
-            )
+    private fun parseEvolutionChain(chain: Chain): EvolutionNode {
+        return EvolutionNode(
+            name = chain.species.name,
+            url = chain.species.url,
+            evolvesTo = chain.evolvesTo.map { parseEvolutionChain(it) }
         )
-        chain.evolvesTo.forEach { evo -> collectSpecies(evo, list) }
     }
+
+
+    private fun flattenEvolutionChain(node: EvolutionNode): List<String> {
+        return listOf(node.name) + node.evolvesTo.flatMap { flattenEvolutionChain(it) }
+    }
+
+
 
     private fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

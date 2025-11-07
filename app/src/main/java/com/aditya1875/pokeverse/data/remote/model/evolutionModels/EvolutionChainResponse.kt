@@ -4,7 +4,8 @@ import com.google.gson.annotations.SerializedName
 
 data class EvolutionChainResponse(
     val id: Int,
-    val chain: Chain
+    val chain: Chain,
+    val response : evoFinal
 )
 
 data class Chain(

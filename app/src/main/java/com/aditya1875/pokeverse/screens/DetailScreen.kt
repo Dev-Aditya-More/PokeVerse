@@ -24,19 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.components.AnimatedBackground
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.ui.viewmodel.SettingsViewModel
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.PagerState
-import com.google.accompanist.pager.rememberPagerState
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -50,7 +43,6 @@ fun PokemonDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val settingsViewModel: SettingsViewModel = koinViewModel()
     val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
-    val stages by viewModel.evolutionStages.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(pokemonName) {
@@ -58,31 +50,6 @@ fun PokemonDetailScreen(
         viewModel.fetchVarietyPokemon(pokemonName)
     }
 
-    // fetch evolution chain when available
-    LaunchedEffect(uiState.evolutionChainId) {
-        uiState.evolutionChainId?.let(viewModel::fetchEvolutionChain)
-    }
-
-    // pager setup
-    val initialPage = remember(stages, pokemonName) {
-        stages.indexOfFirst { it.name.equals(pokemonName, ignoreCase = true) }
-            .coerceAtLeast(0)
-    }
-    val pagerState = rememberPagerState(initialPage = initialPage)
-
-    LaunchedEffect(pagerState, stages) {
-        snapshotFlow { pagerState.currentPage }
-            .collectLatest { page ->
-                stages.getOrNull(page)?.let { stage ->
-                    if (!stage.name.equals(uiState.pokemon?.name, ignoreCase = true)) {
-                        viewModel.fetchPokemonData(stage.name)
-                        viewModel.fetchVarietyPokemon(stage.name)
-                    }
-                }
-            }
-    }
-
-    // global state for sprite effects (shared across pages)
     val spriteEffectsEnabledState = remember { mutableStateOf(false) }
 
     Box(
@@ -90,39 +57,12 @@ fun PokemonDetailScreen(
             .fillMaxSize()
             .background(Color.Black)
     ) {
-        if (stages.isEmpty()) {
-            PokemonDetailPage(
-                currentStage = null,
-                showLeftConnector = false,
-                showRightConnector = false,
-                onConnectorClick = {}, // no-op
-                navController = navController,
-                specialEffectsEnabled = specialEffectsEnabled,
-                spriteEffectsEnabledState = spriteEffectsEnabledState
-            )
-        } else {
-            HorizontalPager(
-                count = stages.size,
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                val stage = stages[page]
-                PokemonDetailPage(
-                    currentStage = stage,
-                    showLeftConnector = stage.hasPrev,
-                    showRightConnector = stage.hasNext,
-                    onConnectorClick = { targetId ->
-                        val idx = stages.indexOfFirst { it.id == targetId }
-                        if (idx >= 0) {
-                            scope.launch { pagerState.animateScrollToPage(idx) }
-                        }
-                    },
-                    navController = navController,
-                    specialEffectsEnabled = specialEffectsEnabled,
-                    spriteEffectsEnabledState = spriteEffectsEnabledState
-                )
-            }
-        }
+        PokemonDetailPage(
+            currentStage = null,
+            navController = navController,
+            specialEffectsEnabled = specialEffectsEnabled,
+            spriteEffectsEnabledState = spriteEffectsEnabledState
+        )
     }
 }
 
