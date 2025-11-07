@@ -166,6 +166,8 @@ dependencies {
     implementation (libs.androidx.glance.appwidget)
     implementation (libs.androidx.work.runtime.ktx)
     implementation(libs.colorpicker.compose)
+
+    implementation(libs.androidx.material.icons.core)
     // AboutLibraries
     implementation(libs.aboutlibraries.compose.m3)
     // ui tests

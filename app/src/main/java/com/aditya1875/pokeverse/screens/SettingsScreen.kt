@@ -28,6 +28,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DividerDefaults
@@ -64,6 +66,7 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.components.ResponsiveMetaballSwitch
 import com.aditya1875.pokeverse.components.SettingsCard
+import com.aditya1875.pokeverse.components.zigZagBackground
 import com.aditya1875.pokeverse.ui.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -115,13 +118,6 @@ fun SettingsScreen(navController: NavController) {
                 .background(animatedGradient)
                 .padding(padding)
         ) {
-            // Pokéball watermark
-            CustomProgressIndicator(
-                Modifier
-                    .size(280.dp)
-                    .align(Alignment.Center)
-                    .graphicsLayer(alpha = 0.08f)
-            )
 
             Column(
                 modifier = Modifier
@@ -168,23 +164,25 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
 
-                HorizontalDivider(
+                Box(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .alpha(0.3f)
-                        .background(Brush.horizontalGradient(
-                            listOf(Color.Transparent, Color.Gray.copy(alpha = 0.5f), Color.Transparent)
-                        )),
-                    thickness = DividerDefaults.Thickness, color = DividerDefaults.color
-                )
-
-                // Socials Section
-                Text(
-                    "Connect with us",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White.copy(alpha = 0.9f),
-                    modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-                )
+                        .height(100.dp)
+                        .zigZagBackground()
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Button(
+                        onClick = {},
+                        modifier = Modifier.padding(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF802525))
+                    ) {
+                        Text(
+                            text = "Socials",
+                            color = Color.White,
+                        )
+                    }
+                }
 
                 val socials = listOf(
                     SocialLink(
@@ -205,7 +203,7 @@ fun SettingsScreen(navController: NavController) {
                         "https://twitter.com/Pokeverse_App",
                         painterResource(R.drawable.xlogo),
                         size = 20.dp,
-                        Color.White
+                        Color.Black
                     )
                 )
 

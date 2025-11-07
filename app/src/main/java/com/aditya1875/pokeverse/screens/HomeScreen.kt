@@ -323,7 +323,7 @@ fun HomeScreen(navController: NavHostController) {
                                         onClick = { viewModel.loadPokemonList() },
                                         shape = RoundedCornerShape(14.dp),
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(0xFFEF5350),
+                                            containerColor = Color(0xFF802525),
                                             contentColor = Color.White
                                         ),
                                         elevation = ButtonDefaults.buttonElevation(8.dp),

@@ -26,6 +26,7 @@ activityCompose = "1.11.0"
 composeBom = "2025.10.01"
 lottieCompose = "6.7.1"
 material3Expressive = "1.5.0-alpha07"
+materialIconsCore = "1.7.8"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.5"
 retrofit = "3.0.0"
@@ -54,6 +55,7 @@ androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", versi
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "foundation" }
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glanceAppwidget" }
+androidx-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 androidx-material-icons-extended = { module = "androidx.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomRuntime" }
