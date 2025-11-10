@@ -27,6 +27,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
@@ -36,6 +37,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -106,17 +108,7 @@ fun DreamTeam(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text("Dream Team", style = MaterialTheme.typography.headlineSmall, color = Color.White)
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black,
-                    titleContentColor = Color.White
-                )
-            )
-        },
+
     ) { padding ->
 
         val isLoading = viewModel.isLoading
@@ -144,7 +136,6 @@ fun DreamTeam(
                             .fillMaxSize()
                             .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
-                        // 🧢 Team Name Section
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -187,38 +178,40 @@ fun DreamTeam(
                                     color = Color.White,
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clickable{
+                                            isEditingName = true
+                                        }
                                 )
-
-                                IconButton(onClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    isEditingName = true
-                                }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Edit,
-                                        contentDescription = "Edit Name",
-                                        tint = Color(0xFFEF5350)
-                                    )
-                                }
                             }
                         }
 
-                        Row(
+                        // Team progress (replaces Pokéball row)
+                        val teamProgress = remember(team.size) { team.size / 6f }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(top = 4.dp, bottom = 12.dp),
-                            horizontalArrangement = Arrangement.Center
+                                .padding(top = 4.dp, bottom = 12.dp)
                         ) {
-                            repeat(team.size) {
-                                Image(
-                                    painter = pokeball,
-                                    contentDescription = "Pokeball",
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                        .graphicsLayer { rotationZ = rotation }
-                                        .padding(horizontal = 4.dp)
-                                )
-                            }
+                            Text(
+                                text = "Team Progress: ${team.size}/6",
+                                color = Color.White.copy(alpha = 0.9f),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+
+                            LinearProgressIndicator(
+                                progress = { teamProgress },
+                                modifier = Modifier
+                                    .fillMaxWidth(0.6f)
+                                    .height(8.dp)
+                                    .clip(RoundedCornerShape(50)),
+                                color = Color(0xFFEF5350), // your brand red
+                                trackColor = Color.White.copy(alpha = 0.2f)
+                            )
                         }
 
                         // Pokémon Cards List

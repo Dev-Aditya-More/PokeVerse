@@ -54,11 +54,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.glance.Image
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.BuildConfig
@@ -72,7 +76,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
+fun SettingsScreen() {
     val settingsViewModel: SettingsViewModel = koinViewModel()
     val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
 
@@ -188,23 +192,37 @@ fun SettingsScreen(navController: NavController) {
                     SocialLink(
                         "GitHub",
                         "https://github.com/Dev-Aditya-More/PokeVerse",
-                        painterResource(R.drawable.github),
+                        ImageVector.vectorResource(id = R.drawable.github_brands_solid_full),
                         color = Color.White
                     ),
                     SocialLink(
-                        " YouTube",
-                        "https://youtube.com/@TheCodeForge-yt",
-                        painterResource(R.drawable.youtube),
+                        "Twitter",
+                        "https://twitter.com/Pokeverse_App",
+                        ImageVector.vectorResource(id = R.drawable.x_twitter_brands_solid_full),
                         size = 20.dp,
-                        Color.Red
+                        Color.White
                     ),
                     SocialLink(
-                        " Twitter",
-                        "https://twitter.com/Pokeverse_App",
-                        painterResource(R.drawable.xlogo),
+                        "Linkedin",
+                        "https://linkedin.com/in/adityamore2005",
+                        ImageVector.vectorResource(id = R.drawable.linkedin_brands_solid_full),
                         size = 20.dp,
-                        Color.Black
-                    )
+                        Color.White
+                    ),
+                    SocialLink(
+                        "Discord",
+                        "https://www.discord.com/techgeekaditya/",
+                        ImageVector.vectorResource(id = R.drawable.discord_brands_solid_full),
+                        size = 20.dp,
+                        Color.White
+                    ),
+                    SocialLink(
+                        "YouTube",
+                        "https://youtube.com/@TheCodeForge-yt",
+                        ImageVector.vectorResource(id = R.drawable.youtube_brands_solid_full_1_),
+                        size = 20.dp,
+                        Color.White
+                    ),
                 )
 
                 socials.forEach { social ->
@@ -225,16 +243,11 @@ fun SettingsScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Start
                         ) {
-                            Image(
-                                painter = social.icon,
+                            Icon(
+                                imageVector = social.icon,
                                 contentDescription = social.name,
                                 modifier = Modifier.size(social.size),
-                                colorFilter = if (social.name.contains("YouTube", ignoreCase = true)) {
-                                    null
-                                } else {
-                                    ColorFilter.tint(color = social.color) // tint all other icons white
-                                }
-
+                                tint = social.color,
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(
@@ -260,4 +273,4 @@ fun SettingsScreen(navController: NavController) {
 }
 
 
-data class SocialLink(val name: String, val url: String, val icon: Painter, val size: Dp = 30.dp, val color: Color)
+data class SocialLink(val name: String, val url: String, val icon: ImageVector, val size: Dp = 30.dp, val color: Color)

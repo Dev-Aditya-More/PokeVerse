@@ -122,6 +122,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.compose.material3)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
@@ -170,6 +171,8 @@ dependencies {
     implementation(libs.androidx.material.icons.core)
     // AboutLibraries
     implementation(libs.aboutlibraries.compose.m3)
+
+    implementation(libs.liquid)
     // ui tests
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
