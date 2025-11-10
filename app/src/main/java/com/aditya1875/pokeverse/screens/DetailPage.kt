@@ -359,7 +359,7 @@ fun PokemonDetailPage(
                 ) {
                     LottieAnimation(
                         composition = rememberLottieComposition(
-                            LottieCompositionSpec.RawRes(R.raw.shine)
+                            LottieCompositionSpec.RawRes(R.raw.click)
                         ).value,
                         iterations = LottieConstants.IterateForever,
                         modifier = Modifier
