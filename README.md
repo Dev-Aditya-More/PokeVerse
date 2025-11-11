@@ -19,7 +19,7 @@
 
 ---
 
-## 📱 Assets
+## Screenshots (old ones)
 
 | ![1](fastlane/metadata/android/en-US/images/phoneScreenshots/1.png) | ![2](fastlane/metadata/android/en-US/images/phoneScreenshots/2.png) |
 |:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
@@ -35,6 +35,9 @@
 
 - ❄️ **Glassmorphic Cards**  
   Detail screen features frosted-glass UI components for stats and metadata.
+
+- ✨ **Exclusive Particle Effects**
+  Get customized particle effects for every single pokemon.
 
 - 🌈 **Dynamic Type-Based Backgrounds**  
   Background colors change based on the Pokémon’s primary type (e.g., Fire → red/orange, Water → blue).
