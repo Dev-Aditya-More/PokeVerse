@@ -92,7 +92,6 @@ fun EmberParticles(
         )
     }
 
-    // 🧩 Generate & animate particles
     LaunchedEffect(Unit) {
         while (true) {
             if (particles.size < particleCount)

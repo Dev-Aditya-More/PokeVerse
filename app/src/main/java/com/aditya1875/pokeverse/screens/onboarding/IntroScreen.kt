@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.screens
+package com.aditya1875.pokeverse.screens.onboarding
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween

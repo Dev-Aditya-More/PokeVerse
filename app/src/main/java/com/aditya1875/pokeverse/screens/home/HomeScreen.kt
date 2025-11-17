@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.screens
+package com.aditya1875.pokeverse.screens.home
 
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -48,9 +48,7 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -90,7 +88,6 @@ import com.aditya1875.pokeverse.components.AnimatedBackground
 import com.aditya1875.pokeverse.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.components.FilterBar
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
-import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
 import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

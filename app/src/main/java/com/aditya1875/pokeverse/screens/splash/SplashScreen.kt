@@ -1,5 +1,6 @@
-package com.aditya1875.pokeverse.screens
+package com.aditya1875.pokeverse.screens.splash
 
+import android.content.Context
 import android.os.Build
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -22,8 +23,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import android.view.animation.OvershootInterpolator
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.remember
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.CardShader
@@ -34,7 +33,7 @@ import com.aditya1875.pokeverse.components.SmokeShader
 @Composable
 fun SplashScreen(
     navController: NavController = rememberNavController(),
-    getNext: (context: android.content.Context) -> String = { "home" }
+    getNext: (context: Context) -> String = { "home" }
 ) {
     val context = LocalContext.current
     val scale = remember { Animatable(0.8f) }

@@ -26,12 +26,12 @@ import androidx.navigation.compose.rememberNavController
 import com.aditya1875.pokeverse.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.di.appModule
 import com.aditya1875.pokeverse.WorkManager.NotificationScheduler
-import com.aditya1875.pokeverse.screens.DreamTeam
-import com.aditya1875.pokeverse.screens.HomeScreen
-import com.aditya1875.pokeverse.screens.IntroScreen
-import com.aditya1875.pokeverse.screens.PokemonDetailScreen
-import com.aditya1875.pokeverse.screens.SettingsScreen
-import com.aditya1875.pokeverse.screens.SplashScreen
+import com.aditya1875.pokeverse.screens.detail.PokemonDetailScreen
+import com.aditya1875.pokeverse.screens.home.HomeScreen
+import com.aditya1875.pokeverse.screens.onboarding.IntroScreen
+import com.aditya1875.pokeverse.screens.settings.SettingsScreen
+import com.aditya1875.pokeverse.screens.splash.SplashScreen
+import com.aditya1875.pokeverse.screens.team.DreamTeam
 import com.aditya1875.pokeverse.ui.theme.PokeVerseTheme
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.NotificationUtils
@@ -144,6 +144,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview(showSystemUi = true)
 @Composable
 private fun SplashScreenPreview() {
