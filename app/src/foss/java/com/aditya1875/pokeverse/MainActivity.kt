@@ -114,7 +114,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("settings") {
                         WithBottomBar(navController) {
-                            SettingsScreen()
+                            SettingsScreen(navController)
                         }
                     }
                 }
