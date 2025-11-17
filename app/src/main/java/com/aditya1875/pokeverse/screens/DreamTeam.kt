@@ -72,6 +72,7 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.CustomProgressIndicator
+import com.aditya1875.pokeverse.components.VibrantProgressBar
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -85,63 +86,48 @@ fun DreamTeam(
     viewModel: PokemonViewModel = koinViewModel()
 ) {
     val pokeballGradient = Brush.verticalGradient(
-        listOf(Color(0xFF0D0D0D), Color(0xFF20232A), Color(0xFF141414))
+        listOf(Color(0xFF0D0D0D), Color(0xFF212226), Color(0xFF121212))
     )
 
     var teamName by rememberSaveable { mutableStateOf("My Dream Team") }
     var isEditingName by rememberSaveable { mutableStateOf(false) }
 
     val haptic = LocalHapticFeedback.current
-    val context = LocalContext.current
-
-    val pokeball = painterResource(id = R.drawable.ogpokeball)
-    val infiniteTransition = rememberInfiniteTransition(label = "pokeballWiggle")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = -5f,
-        targetValue = 5f,
-        animationSpec = infiniteRepeatable(
-            tween(800, easing = LinearEasing),
-            RepeatMode.Reverse
-        ),
-        label = "rotation"
-    )
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-
+        containerColor = Color.Transparent,
+        modifier = Modifier.fillMaxSize()
     ) { padding ->
-
-        val isLoading = viewModel.isLoading
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(brush = pokeballGradient)
+                .background(pokeballGradient)
         ) {
             when {
-                isLoading -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                viewModel.isLoading -> {
+                    Box(Modifier.fillMaxSize(), Alignment.Center) {
                         CustomProgressIndicator()
                     }
                 }
 
-                team.isEmpty() -> {
-                    EmptyTeamView()
-                }
+                team.isEmpty() -> EmptyTeamView()
 
                 else -> {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .padding(horizontal = 20.dp)
                     ) {
+
+                        Spacer(Modifier.height(32.dp))
+
+                        // Team Name
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
+                            Modifier.fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                            horizontalArrangement = Arrangement.Center
                         ) {
                             if (isEditingName) {
                                 OutlinedTextField(
@@ -149,13 +135,11 @@ fun DreamTeam(
                                     onValueChange = { teamName = it },
                                     textStyle = LocalTextStyle.current.copy(
                                         color = Color.White,
-                                        fontSize = 20.sp,
+                                        fontSize = 22.sp,
                                         fontWeight = FontWeight.Bold
                                     ),
                                     singleLine = true,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(end = 8.dp),
+                                    modifier = Modifier.weight(1f),
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = Color(0xFFEF5350),
                                         unfocusedBorderColor = Color.Gray
@@ -168,56 +152,50 @@ fun DreamTeam(
                                 }) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
-                                        contentDescription = "Confirm Name",
-                                        tint = Color(0xFF4CAF50)
+                                        tint = Color(0xFF4CAF50),
+                                        contentDescription = null
                                     )
                                 }
                             } else {
                                 Text(
                                     text = teamName,
                                     color = Color.White,
-                                    fontSize = 24.sp,
+                                    fontSize = 28.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier
-                                        .weight(1f)
-                                        .clickable{
-                                            isEditingName = true
-                                        }
+                                        .clickable { isEditingName = true }
                                 )
                             }
                         }
 
-                        // Team progress (replaces Pokéball row)
-                        val teamProgress = remember(team.size) { team.size / 6f }
+                        Spacer(Modifier.height(16.dp))
 
+                        // Progress Section
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 4.dp, bottom = 12.dp)
+                            Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Text(
                                 text = "Team Progress: ${team.size}/6",
-                                color = Color.White.copy(alpha = 0.9f),
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
+                                color = Color.White.copy(alpha = 0.85f),
+                                fontSize = 15.sp
                             )
 
-                            LinearProgressIndicator(
-                                progress = { teamProgress },
+                            Spacer(Modifier.height(6.dp))
+
+                            VibrantProgressBar(
+                                progress = team.size / 6f,
                                 modifier = Modifier
                                     .fillMaxWidth(0.6f)
-                                    .height(8.dp)
-                                    .clip(RoundedCornerShape(50)),
-                                color = Color(0xFFEF5350), // your brand red
-                                trackColor = Color.White.copy(alpha = 0.2f)
                             )
                         }
 
+                        Spacer(Modifier.height(24.dp))
+
                         // Pokémon Cards List
                         LazyColumn(
-                            contentPadding = PaddingValues(bottom = 24.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = 32.dp),
+                            verticalArrangement = Arrangement.spacedBy(14.dp),
                             modifier = Modifier.weight(1f)
                         ) {
                             items(team) { pokemon ->
