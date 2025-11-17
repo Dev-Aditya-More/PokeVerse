@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.screens
+package com.aditya1875.pokeverse.screens.detail
 
 import android.media.MediaPlayer
 import android.os.Build
@@ -110,6 +110,8 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
+import java.util.UUID
+import kotlin.collections.get
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
@@ -472,7 +474,7 @@ fun PokemonDetailPage(
                         IconButton(onClick = {
 
                             if (isTtsReady) {
-                                val utteranceId = java.util.UUID.randomUUID().toString()
+                                val utteranceId = UUID.randomUUID().toString()
                                 try {
                                     // try to play beep then speak
                                     mediaPlayer.setOnCompletionListener {
@@ -578,7 +580,12 @@ fun PokemonDetailPage(
                         item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("Types", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+                                    Text(
+                                        "Types",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 
                                         pokemon.types.forEach {
@@ -704,7 +711,10 @@ fun PokemonDetailPage(
                                                         .clip(RoundedCornerShape(50))
                                                         .background(
                                                             Brush.horizontalGradient(
-                                                                listOf(bgColor.copy(alpha = 0.7f), bgColor)
+                                                                listOf(
+                                                                    bgColor.copy(alpha = 0.7f),
+                                                                    bgColor
+                                                                )
                                                             )
                                                         )
                                                 )
@@ -765,7 +775,9 @@ fun PokemonDetailPage(
 
                                                     Text(
                                                         text = stage.name.replaceFirstChar { it.uppercase() },
-                                                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            fontWeight = FontWeight.Medium
+                                                        ),
                                                         color = Color.White.copy(alpha = 0.9f)
                                                     )
                                                 }
@@ -795,7 +807,11 @@ fun PokemonDetailPage(
                                                     onClick = {
                                                         val formName = variety.pokemon.name
                                                         val currentName = uiState.pokemon?.name
-                                                        if (!formName.equals(currentName, ignoreCase = true)) {
+                                                        if (!formName.equals(
+                                                                currentName,
+                                                                ignoreCase = true
+                                                            )
+                                                        ) {
                                                             viewModel.fetchVarietyPokemon(formName)
                                                         }
                                                     },

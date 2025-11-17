@@ -32,7 +32,7 @@ import kotlin.random.Random
 @Composable
 fun HydroPumpParticles(
     modifier: Modifier = Modifier,
-    particleCount: Int = 80,
+    particleCount: Int = 50,
     colors: List<Color> = listOf(
         Color(0xFFB3E5FC),
         Color(0xFF81D4FA),
@@ -85,7 +85,6 @@ fun HydroPumpParticles(
         }
     }
 
-    // --- Update particles (twisting + rising) ---
     LaunchedEffect(Unit) {
         while (true) {
             val iterator = particles.listIterator()
@@ -127,7 +126,7 @@ fun HydroPumpParticles(
         drawRect(
             brush = ShaderBrush(hydroShader),
             size = size,
-            alpha = 0.8f
+            alpha = 0.3f
         )
 
         particles.forEach { particle ->
