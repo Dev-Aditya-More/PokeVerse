@@ -274,7 +274,7 @@ fun HomeScreen(navController: NavHostController) {
                             ) {
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                                    verticalArrangement = Arrangement.spacedBy(15.dp)
                                 ) {
                                     Image(
                                         painter = painterResource(R.drawable.nointrnet),
@@ -308,13 +308,12 @@ fun HomeScreen(navController: NavHostController) {
                                     Text(
                                         text = subtitle,
                                         style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = Color(0xFFB0B0B0),
-                                            lineHeight = 20.sp
+                                            color = Color(0xFFB0B0B0)
                                         ),
                                         textAlign = TextAlign.Center
                                     )
 
-                                    Spacer(Modifier.height(8.dp))
+                                    Spacer(Modifier.height(4.dp))
 
                                     Button(
                                         onClick = { viewModel.loadPokemonList() },

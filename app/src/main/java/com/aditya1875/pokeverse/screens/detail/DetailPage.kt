@@ -269,7 +269,7 @@ fun PokemonDetailPage(
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .align(Alignment.TopCenter)
-                .zIndex(1f) // this container remains top area
+                .zIndex(1f)
         ) {
 
             // background radial glow
@@ -361,7 +361,7 @@ fun PokemonDetailPage(
                 ) {
                     LottieAnimation(
                         composition = rememberLottieComposition(
-                            LottieCompositionSpec.RawRes(R.raw.click)
+                            LottieCompositionSpec.RawRes(R.raw.shine)
                         ).value,
                         iterations = LottieConstants.IterateForever,
                         modifier = Modifier
