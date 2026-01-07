@@ -1,6 +1,6 @@
 # PokéVerse
 
-> Explore, collect, and manage your Pokémon universe in one app!
+> Explore the legends like never before! ✨🚀
 
 
 
@@ -10,11 +10,9 @@
 
 ---
 
-## Get from (github for the best experience)
+## Get from
 
-> [<img src="https://f-droid.org/badge/get-it-on.png"
-    alt="Get it on F-Droid"
-    height="80">](https://f-droid.org/packages/com.aditya1875.pokeverse)
+<a href='https://indusapp.store/5pzliyk1'><img alt='Get it on Indus Appstore' src='https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-black-background-english.png' height="80"/></a>
 [<img src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea" height="80">](https://github.com/Dev-Aditya-More/PokeVerse/releases)
 
 ---
