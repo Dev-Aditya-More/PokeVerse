@@ -6,10 +6,12 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -68,6 +70,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -87,7 +90,9 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.components.AnimatedBackground
 import com.aditya1875.pokeverse.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.components.FilterBar
+import com.aditya1875.pokeverse.components.SuggestionRow
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.utils.SearchUiState
 import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -107,7 +112,7 @@ fun HomeScreen(navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+    val searchUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
     val team by viewModel.team.collectAsStateWithLifecycle()
     val teamMembershipMap = remember(team) {
         team.associate { it.name to true }
@@ -253,6 +258,30 @@ fun HomeScreen(navController: NavHostController) {
                             focusedBorderColor = Color.White.copy(alpha = 0.5f),
                         )
                     )
+
+                    AnimatedVisibility(
+                        visible = searchUiState.showSuggestions && searchUiState.suggestions.isNotEmpty(),
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color(0xFF1A1A1A))
+                        ) {
+                            searchUiState.suggestions.take(5).forEach { pokemon ->
+                                SuggestionRow(
+                                    pokemon = pokemon,
+                                    onClick = {
+                                        navController.navigate("pokemon_detail/${pokemon.id}")
+                                    }
+                                )
+                            }
+                        }
+                    }
+
 
                     when {
                         isLoading && pokemonList.isEmpty() -> {

@@ -55,7 +55,6 @@ fun PokemonDetailScreen(
             .background(Color.Black)
     ) {
         PokemonDetailPage(
-            currentStage = null,
             navController = navController,
             specialEffectsEnabled = specialEffectsEnabled,
             spriteEffectsEnabledState = spriteEffectsEnabledState

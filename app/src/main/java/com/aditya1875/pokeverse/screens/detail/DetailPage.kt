@@ -17,10 +17,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,8 +38,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -98,8 +93,8 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Size
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.components.EvolutionChainRow
 import com.aditya1875.pokeverse.components.LayeredWaveformVisualizer
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionStage
 import com.aditya1875.pokeverse.specialscreens.ParticleBackground
 import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
@@ -111,7 +106,6 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 import java.util.UUID
-import kotlin.collections.get
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
@@ -120,7 +114,6 @@ import kotlin.collections.get
 )
 @Composable
 fun PokemonDetailPage(
-    currentStage: EvolutionStage?,
     navController: NavController,
     specialEffectsEnabled: Boolean,
     spriteEffectsEnabledState: MutableState<Boolean>,
@@ -130,7 +123,7 @@ fun PokemonDetailPage(
     val pokemon = uiState.pokemon
     val spriteEffectsEnabled = spriteEffectsEnabledState.value
     val typeList = pokemon?.types?.map { it.type.name } ?: emptyList()
-    val currentNameForBg = currentStage?.name ?: pokemon?.name ?: ""
+    val currentNameForBg = pokemon?.name ?: ""
     val context = LocalContext.current
     var isTtsReady by remember { mutableStateOf(false) }
     val mediaPlayer = remember { MediaPlayer.create(context, R.raw.beepeffect) }
@@ -152,18 +145,13 @@ fun PokemonDetailPage(
         mutableStateOf(
             pokemon?.sprites?.other?.officialArtwork?.frontDefault
                 ?: pokemon?.sprites?.other?.home?.frontDefault
-                ?: currentStage?.imageUrl
         )
     }
+    val evolutionUi = uiState.evolutionUi
 
     LaunchedEffect(pokemon) {
         currentSpriteUrl = pokemon?.sprites?.other?.officialArtwork?.frontDefault
             ?: pokemon?.sprites?.other?.home?.frontDefault
-                    ?: currentStage?.imageUrl
-
-        pokemon?.name?.let { name ->
-            viewModel.fetchEvolutionChain(name)
-        }
     }
 
     val listState = rememberLazyListState()
@@ -305,6 +293,17 @@ fun PokemonDetailPage(
                 ParticleBackground(particleType, pokemon?.name.toString())
             }
 
+
+            if (evolutionUi != null) {
+                EvolutionChainRow(
+                    evolution = evolutionUi,
+                    onPokemonClick = { name ->
+                        viewModel.fetchPokemonData(name)
+                    },
+                    modifier = Modifier.zIndex(10f)
+                )
+            }
+
             val pressScale = remember { Animatable(1f) }
             val context = LocalContext.current
             val imageLoader = ImageLoader.Builder(context)
@@ -317,7 +316,7 @@ fun PokemonDetailPage(
                 modifier = Modifier
                     .size(220.dp)
                     .align(Alignment.Center)
-                    .zIndex(2f)
+                    .zIndex(4f)
             ) {
                 AsyncImage(
 
@@ -328,7 +327,7 @@ fun PokemonDetailPage(
                         .allowHardware(false)
                         .size(Size.ORIGINAL)
                         .build(),
-                    contentDescription = pokemon?.name ?: currentStage?.name,
+                    contentDescription = pokemon?.name,
                     contentScale = ContentScale.Fit,
                     imageLoader = imageLoader,
                     onLoading = { showLoader = true },
@@ -352,6 +351,7 @@ fun PokemonDetailPage(
                                 }
                             )
                         }
+
                 )
 
                 AnimatedVisibility(
@@ -420,7 +420,6 @@ fun PokemonDetailPage(
                                     pokemon?.sprites?.other?.home?.frontDefault,
                                     pokemon?.sprites?.other?.dreamWorld?.frontDefault,
                                     pokemon?.sprites?.other?.showdown?.frontDefault,
-                                    currentStage?.imageUrl
                                 )
 
                                 // find current index in that order
@@ -718,69 +717,6 @@ fun PokemonDetailPage(
                                                             )
                                                         )
                                                 )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        item {
-                            val evoList by viewModel.evolutionList.collectAsStateWithLifecycle()
-
-                            if (evoList.isNotEmpty()) {
-                                GlossyCard(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(
-                                            text = "Evolution Chain",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = Color.White
-                                        )
-
-                                        Spacer(modifier = Modifier.height(12.dp))
-
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .horizontalScroll(rememberScrollState()),
-                                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            evoList.forEach { stage ->
-                                                Column(
-                                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                                    modifier = Modifier.animateItem()
-                                                ) {
-                                                    AsyncImage(
-                                                        model = stage.imageUrl,
-                                                        contentDescription = stage.name,
-                                                        modifier = Modifier
-                                                            .size(90.dp)
-                                                            .clip(CircleShape)
-                                                            .background(Color.White.copy(alpha = 0.05f))
-                                                            .border(
-                                                                width = 1.dp,
-                                                                color = Color.White.copy(alpha = 0.2f),
-                                                                shape = CircleShape
-                                                            )
-                                                            .clickable { /* TODO: handle click (like show details) */ },
-                                                        contentScale = ContentScale.Fit
-                                                    )
-
-                                                    Spacer(modifier = Modifier.height(6.dp))
-
-                                                    Text(
-                                                        text = stage.name.replaceFirstChar { it.uppercase() },
-                                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                                            fontWeight = FontWeight.Medium
-                                                        ),
-                                                        color = Color.White.copy(alpha = 0.9f)
-                                                    )
-                                                }
                                             }
                                         }
                                     }

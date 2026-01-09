@@ -16,16 +16,13 @@ import com.aditya1875.pokeverse.data.remote.model.PokemonResponse
 import com.aditya1875.pokeverse.data.remote.model.PokemonResult
 import com.aditya1875.pokeverse.data.remote.model.PokemonVariety
 import com.aditya1875.pokeverse.data.remote.model.Region
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.Chain
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionDetail
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionDisplayItem
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionNode
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionStage
+import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionChainUi
 import com.aditya1875.pokeverse.domain.repository.DescriptionRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
+import com.aditya1875.pokeverse.utils.EvolutionChainMapper
 import com.aditya1875.pokeverse.utils.ScreenStateManager.isFirstLaunch
+import com.aditya1875.pokeverse.utils.SearchUiState
 import com.aditya1875.pokeverse.utils.UiError
-import com.aditya1875.pokeverse.utils.extractEvolutionChain
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -37,10 +34,10 @@ import java.net.UnknownHostException
 import kotlin.collections.filter
 
 class PokemonViewModel(
+    private val context: Context,
     private val repository: PokemonRepo,
     private val teamDao: TeamDao,
     private val descriptionLocalRepository: DescriptionRepo,
-    private val context: Context
 ) : ViewModel() {
 
     private val _showTagline = MutableStateFlow(false)
@@ -54,10 +51,8 @@ class PokemonViewModel(
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
-    private val _evolutionList = MutableStateFlow<List<EvolutionDisplayItem>>(emptyList())
-
-    val evolutionList: StateFlow<List<EvolutionDisplayItem>> = _evolutionList
-
+    private val _searchUiState = MutableStateFlow(SearchUiState())
+    val searchUiState: StateFlow<SearchUiState> = _searchUiState
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
 
@@ -118,7 +113,7 @@ class PokemonViewModel(
                 if (isNewRegion) {
                     _pokemonList.value = filteredList
                 } else {
-                    _pokemonList.value = _pokemonList.value + filteredList
+                    _pokemonList.value += filteredList
                 }
 
                 currentOffset += limit
@@ -148,10 +143,6 @@ class PokemonViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             fetchPokemonInternal(name, includeSpecies = true)
-
-            uiState.value.pokemon?.name?.let { name ->
-                fetchEvolutionChain(name)
-            }
         }
     }
 
@@ -184,17 +175,21 @@ class PokemonViewModel(
 
                 varieties = species.varieties
 
-                // Extract evolution chain ID once
-                val evolutionChainId = species.evolutionChain?.id
+                fetchEvolutionChain(name)
             }
 
-            _uiState.value = PokemonDetailUiState(
-                pokemon = pokemon,
-                description = description,
-                varieties = varieties,
-                evolutionChainId = null,
-                isLoading = false,
-                error = null
+            _uiState.update {
+                it.copy(
+                    pokemon = pokemon,
+                    description = description,
+                    varieties = varieties,
+                    isLoading = false,
+                    error = null
+                )
+            }
+            Log.d(
+                "EvolutionDebug",
+                "FINAL evolutionUi = ${_uiState.value.evolutionUi != null}"
             )
 
             Log.d("PokeVM", "Loaded $name successfully")
@@ -251,57 +246,6 @@ class PokemonViewModel(
         loadPokemonList(isNewRegion = true)
     }
 
-    // -------------------------
-    // Evolution Chain
-    // -------------------------
-    fun fetchEvolutionChain(name: String) {
-        viewModelScope.launch {
-            try {
-                val species = repository.getPokemonSpeciesByName(name)
-                val evolutionChainUrl = species.evolutionChain?.response?.evolution_chain?.url
-
-                if (evolutionChainUrl != null) {
-
-                    val chainId = extractIdFromUrl(evolutionChainUrl)
-                    val evolutionChainResponse = repository.getEvolutionChain(chainId)
-
-                    val rootNode = parseEvolutionChain(evolutionChainResponse.chain)
-                    val evolutionNames = flattenEvolutionChain(rootNode)
-
-                    // Fetch sprites for each evolution stage
-                    val evolutionList = evolutionNames.map { evoName ->
-                        val response = repository.getPokemonByName(evoName)
-                        val imageUrl = response.sprites.other?.officialArtwork?.frontDefault
-                            ?: response.sprites.front_default
-                        EvolutionDisplayItem(evoName, imageUrl)
-                    }
-
-                    _evolutionList.value = evolutionList
-                } else {
-                    _evolutionList.value = emptyList()
-                }
-            } catch (e: Exception) {
-                Log.e("PokemonVM", "Error fetching evolution chain: ${e.message}", e)
-                _evolutionList.value = emptyList()
-            }
-        }
-    }
-
-    private fun parseEvolutionChain(chain: Chain): EvolutionNode {
-        return EvolutionNode(
-            name = chain.species.name,
-            url = chain.species.url,
-            evolvesTo = chain.evolvesTo.map { parseEvolutionChain(it) }
-        )
-    }
-
-
-    private fun flattenEvolutionChain(node: EvolutionNode): List<String> {
-        return listOf(node.name) + node.evolvesTo.flatMap { flattenEvolutionChain(it) }
-    }
-
-
-
     private fun isNetworkAvailable(context: Context): Boolean {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val network = connectivityManager.activeNetwork ?: return false
@@ -309,6 +253,35 @@ class PokemonViewModel(
         return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
     }
 
+    suspend fun fetchEvolutionChain(pokemonName: String) {
+        try {
+            val species = repository.getPokemonSpeciesByName(pokemonName)
+            val chainId = extractIdFromUrl(species.evolutionChain?.url ?: "")
+
+            val evolutionChain = repository.getEvolutionChain(chainId)
+
+            val linear = EvolutionChainMapper.extractLinearChain(evolutionChain.chain)
+            val uiChain = EvolutionChainMapper.toUiChain(linear, pokemonName)
+
+            Log.d("EvolutionDebug", "Fetching evolution for $pokemonName")
+            Log.d("EvolutionDebug", "Linear chain = ${linear.joinToString { it.name }}")
+            Log.d(
+                "EvolutionDebug",
+                "Matched index for $pokemonName = ${
+                    linear.indexOfFirst { it.name.equals(pokemonName, ignoreCase = true) }
+                }"
+            )
+
+            _uiState.update {
+                it.copy(evolutionUi = uiChain)
+            }
+
+
+        } catch (e: Exception) {
+            Log.e("PokeVM", "Failed to load evolution chain", e)
+            // silently fail — evolution is non-critical UI
+        }
+    }
 
     // -------------------------
     // Utility
@@ -319,6 +292,7 @@ class PokemonViewModel(
             .last()
             .toIntOrNull() ?: -1
     }
+
 }
 
 
@@ -328,5 +302,5 @@ data class PokemonDetailUiState(
     val isLoading: Boolean = true,
     val error: UiError? = null,
     val varieties: List<PokemonVariety> = emptyList(),
-    val evolutionChainId: Int? = null
+    val evolutionUi: EvolutionChainUi? = null
 )
