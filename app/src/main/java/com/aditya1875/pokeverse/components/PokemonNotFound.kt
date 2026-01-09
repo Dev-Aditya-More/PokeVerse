@@ -76,7 +76,6 @@ fun PokemonNotFoundScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Icon with soft bounce
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
