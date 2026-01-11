@@ -1,7 +1,12 @@
 package com.aditya1875.pokeverse.screens.team
 
+import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,9 +26,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -57,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.R
@@ -101,7 +110,7 @@ fun DreamTeam(
                     }
                 }
 
-                team.isEmpty() -> EmptyTeamView()
+                team.isEmpty() -> EmptyTeamView(navController)
 
                 else -> {
                     Column(
@@ -204,7 +213,9 @@ fun DreamTeam(
 }
 
 @Composable
-private fun EmptyTeamView() {
+private fun EmptyTeamView(
+    navController: NavController
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -217,24 +228,52 @@ private fun EmptyTeamView() {
         Column(
             modifier = Modifier
                 .align(Alignment.Center)
-                .padding(16.dp),
+                .padding(16.dp)
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.05f),
+                            Color.Transparent
+                        ),
+                        radius = 600f
+                    )
+                )
+            ,
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            val floatAnim by rememberInfiniteTransition().animateFloat(
+                initialValue = -8f,
+                targetValue = 8f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(2000, easing = EaseInOut),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+
             Image(
                 painter = painterResource(id = R.drawable.teampoke),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(420.dp)
-                    .padding(bottom = 16.dp)
+                    .size(370.dp)
+                    .graphicsLayer {
+                        translationY = floatAnim
+                        alpha = 0.95f
+                    }
             )
+
+            Spacer(modifier = Modifier.height(25.dp))
+
             Text(
-                text = "Your Team is Empty!",
-                color = Color.White,
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 22.sp),
-                textAlign = TextAlign.Center
+                text = "Your Team is Empty",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 24.sp,
+                letterSpacing = 0.5.sp,
+                color = Color.White
             )
+
             Spacer(modifier = Modifier.height(8.dp))
+
             Text(
                 text = "Catch some Pokémon and build your squad!",
                 color = Color(0xFFB0BEC5),
@@ -242,6 +281,37 @@ private fun EmptyTeamView() {
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("home") {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        // 2. Avoid multiple copies of the same destination when
+                        // reselecting the same item
+                        launchSingleTop = true
+                        // 3. Restore state when reselecting a previously selected item
+                        restoreState = true
+                    }
+                },
+                shape = RoundedCornerShape(18.dp),
+                modifier = Modifier
+                    .fillMaxWidth(0.75f)
+                    .height(52.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFFFFC107),
+                    contentColor = Color.Black
+                )
+            ) {
+                Text(
+                    text = "Build Your Team",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }

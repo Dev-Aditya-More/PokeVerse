@@ -240,6 +240,7 @@ fun PokemonDetailPage(
             isSpeaking = false
         }
 
+        @Deprecated("Deprecated in Java")
         override fun onError(utteranceId: String?) {
             isSpeaking = false
         }
@@ -251,7 +252,6 @@ fun PokemonDetailPage(
             .background(Color.Black)
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -259,7 +259,6 @@ fun PokemonDetailPage(
                 .align(Alignment.TopCenter)
                 .zIndex(1f)
         ) {
-
             // background radial glow
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val gradientBrush = Brush.radialGradient(
@@ -295,13 +294,19 @@ fun PokemonDetailPage(
 
 
             if (evolutionUi != null) {
-                EvolutionChainRow(
-                    evolution = evolutionUi,
-                    onPokemonClick = { name ->
-                        viewModel.fetchPokemonData(name)
-                    },
-                    modifier = Modifier.zIndex(10f)
-                )
+                AnimatedVisibility(
+                    visible = spriteVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    EvolutionChainRow(
+                        evolution = evolutionUi,
+                        onPokemonClick = { name ->
+                            viewModel.fetchPokemonData(name)
+                        },
+                        modifier = Modifier.zIndex(10f)
+                    )
+                }
             }
 
             val pressScale = remember { Animatable(1f) }
@@ -311,6 +316,15 @@ fun PokemonDetailPage(
                     add(ImageDecoderDecoder.Factory())
                 }
                 .build()
+
+            val animatedAlpha by animateFloatAsState(
+                targetValue = if (showLoader || !spriteVisible) 0f else 1f,
+                animationSpec = tween(
+                    durationMillis = 250,
+                    easing = FastOutSlowInEasing
+                ),
+                label = "SpriteFade"
+            )
 
             Box(
                 modifier = Modifier
@@ -336,7 +350,7 @@ fun PokemonDetailPage(
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
-                            alpha = if (showLoader || !spriteVisible) 0f else 1f
+                            alpha = animatedAlpha
                             scaleX = pressScale.value
                             scaleY = pressScale.value
                         }

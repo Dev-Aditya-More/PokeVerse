@@ -199,9 +199,16 @@ fun SettingsScreen(navController: NavController) {
                         Color.White
                     ),
                     SocialLink(
-                        "Discord",
-                        "https://www.discord.com/techgeekaditya/",
-                        ImageVector.vectorResource(id = R.drawable.discord_brands_solid_full),
+                        "BuyMeACoffee",
+                        "https://www.buymeacoffee.com/aditya1875q",
+                        ImageVector.vectorResource(id = R.drawable.buy_me_coffee_icon),
+                        size = 20.dp,
+                        Color.White
+                    ),
+                    SocialLink(
+                        "Reddit",
+                        "https://www.reddit.com/user/Incredible_aditya123/",
+                        ImageVector.vectorResource(id = R.drawable.reddit2),
                         size = 20.dp,
                         Color.White
                     ),
@@ -262,4 +269,4 @@ fun SettingsScreen(navController: NavController) {
 }
 
 
-data class SocialLink(val name: String, val url: String, val icon: ImageVector, val size: Dp = 30.dp, val color: Color)
+data class SocialLink(val name: String, val url: String, val icon: ImageVector, val size: Dp = 28.dp, val color: Color)
