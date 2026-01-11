@@ -91,8 +91,6 @@ android {
             manifest.srcFile("src/foss/AndroidManifest.xml")
         }
     }
-
-    flavorDimensions("distribution")
 }
 
 if (gradle.startParameter.taskNames.any { it.lowercase().contains("play") }) {
