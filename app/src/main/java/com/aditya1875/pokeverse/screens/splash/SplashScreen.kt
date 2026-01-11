@@ -51,8 +51,11 @@ fun SplashScreen(
     }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+
         // Full-screen shader background
-        CardShader(SmokeShader().shader, SmokeShader().speed)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            CardShader(SmokeShader().shader, SmokeShader().speed)
+        } else null
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
