@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.aboutlibraries)
     id("com.google.devtools.ksp") version "2.1.21-2.0.1"
     id("org.jetbrains.kotlin.plugin.serialization")
-    // don't apply globally — applied conditionally below
 }
 
 android {
@@ -17,8 +16,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 32
-        versionName = "1.3.2"
+        versionCode = 33
+        versionName = "1.3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -91,8 +90,6 @@ android {
             manifest.srcFile("src/foss/AndroidManifest.xml")
         }
     }
-
-    flavorDimensions("distribution")
 }
 
 if (gradle.startParameter.taskNames.any { it.lowercase().contains("play") }) {

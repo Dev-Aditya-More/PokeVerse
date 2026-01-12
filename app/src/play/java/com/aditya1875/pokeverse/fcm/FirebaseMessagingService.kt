@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.fcm
 import android.Manifest
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.NotificationCompat
@@ -14,36 +15,41 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlin.random.Random
 
-
 class PokeVerseFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
-        super.onNewToken(token)
         Log.d("FCM", "New FCM token: $token")
-
-        // TODO: send this token to your backend if you have one9
-        // For now, just log it or toast it.
     }
 
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        super.onMessageReceived(remoteMessage)
-        Log.d("FCM", "Message received: ${remoteMessage.data}")
+        val title = remoteMessage.data["title"] ?: "PokéVerse"
+        val body = remoteMessage.data["body"] ?: "Something new awaits you"
+        val type = remoteMessage.data["type"]
 
-        val title = remoteMessage.notification?.title ?: "PokéVerse Alert!"
-        val body = remoteMessage.notification?.body ?: "A new Pokémon event is here!"
-
-        showNotification(title, body)
+        showNotification(title, body, type)
     }
 
-    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
-    private fun showNotification(title: String, message: String) {
+    private fun showNotification(
+        title: String,
+        message: String,
+        type: String?
+    ) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !NotificationManagerCompat.from(this).areNotificationsEnabled()
+        ) {
+            return
+        }
+
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            putExtra("notification_type", type)
         }
 
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent, PendingIntent.FLAG_IMMUTABLE
+            this,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
         )
 
         val notification = NotificationCompat.Builder(this, NotificationUtils.CHANNEL_ID)
@@ -55,6 +61,7 @@ class PokeVerseFirebaseMessagingService : FirebaseMessagingService() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        NotificationManagerCompat.from(this).notify(Random.nextInt(), notification)
+        NotificationManagerCompat.from(this)
+            .notify(Random.nextInt(), notification)
     }
 }

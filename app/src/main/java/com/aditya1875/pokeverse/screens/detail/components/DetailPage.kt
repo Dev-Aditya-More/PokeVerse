@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.screens.detail
+package com.aditya1875.pokeverse.screens.detail.components
 
 import android.media.MediaPlayer
 import android.os.Build
@@ -93,8 +93,8 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Size
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.EvolutionChainRow
-import com.aditya1875.pokeverse.components.LayeredWaveformVisualizer
+import com.aditya1875.pokeverse.screens.detail.GlossyCard
+import com.aditya1875.pokeverse.screens.detail.getPokemonBackgroundColor
 import com.aditya1875.pokeverse.specialscreens.ParticleBackground
 import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
@@ -106,6 +106,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 import java.util.UUID
+import kotlin.collections.get
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
@@ -240,6 +241,7 @@ fun PokemonDetailPage(
             isSpeaking = false
         }
 
+        @Deprecated("Deprecated in Java")
         override fun onError(utteranceId: String?) {
             isSpeaking = false
         }
@@ -251,7 +253,6 @@ fun PokemonDetailPage(
             .background(Color.Black)
             .windowInsetsPadding(WindowInsets.systemBars)
     ) {
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -259,7 +260,6 @@ fun PokemonDetailPage(
                 .align(Alignment.TopCenter)
                 .zIndex(1f)
         ) {
-
             // background radial glow
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val gradientBrush = Brush.radialGradient(
@@ -295,13 +295,19 @@ fun PokemonDetailPage(
 
 
             if (evolutionUi != null) {
-                EvolutionChainRow(
-                    evolution = evolutionUi,
-                    onPokemonClick = { name ->
-                        viewModel.fetchPokemonData(name)
-                    },
-                    modifier = Modifier.zIndex(10f)
-                )
+                AnimatedVisibility(
+                    visible = spriteVisible,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    EvolutionChainRow(
+                        evolution = evolutionUi,
+                        onPokemonClick = { name ->
+                            viewModel.fetchPokemonData(name)
+                        },
+                        modifier = Modifier.zIndex(10f)
+                    )
+                }
             }
 
             val pressScale = remember { Animatable(1f) }
@@ -311,6 +317,15 @@ fun PokemonDetailPage(
                     add(ImageDecoderDecoder.Factory())
                 }
                 .build()
+
+            val animatedAlpha by animateFloatAsState(
+                targetValue = if (showLoader || !spriteVisible) 0f else 1f,
+                animationSpec = tween(
+                    durationMillis = 250,
+                    easing = FastOutSlowInEasing
+                ),
+                label = "SpriteFade"
+            )
 
             Box(
                 modifier = Modifier
@@ -336,7 +351,7 @@ fun PokemonDetailPage(
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
-                            alpha = if (showLoader || !spriteVisible) 0f else 1f
+                            alpha = animatedAlpha
                             scaleX = pressScale.value
                             scaleY = pressScale.value
                         }

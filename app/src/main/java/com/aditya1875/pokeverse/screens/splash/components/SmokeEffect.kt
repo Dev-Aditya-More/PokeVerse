@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.components
+package com.aditya1875.pokeverse.screens.splash.components
 
 import android.graphics.RuntimeShader
 import android.os.Build

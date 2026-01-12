@@ -57,10 +57,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.ResponsiveMetaballSwitch
-import com.aditya1875.pokeverse.components.SettingsCard
-import com.aditya1875.pokeverse.components.zigZagBackground
+import com.aditya1875.pokeverse.screens.settings.components.ResponsiveMetaballSwitch
+import com.aditya1875.pokeverse.screens.settings.components.SettingsCard
+import com.aditya1875.pokeverse.screens.settings.components.zigZagBackground
 import com.aditya1875.pokeverse.ui.viewmodel.SettingsViewModel
+import com.aditya1875.pokeverse.utils.EffectCapabilities
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,6 +69,8 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingsScreen(navController: NavController) {
     val settingsViewModel: SettingsViewModel = koinViewModel()
     val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
+
+    val supportsShaders = EffectCapabilities.supportsShaders
 
     val infiniteTransition = rememberInfiniteTransition(label = "Gradient")
     val animatedOffset by infiniteTransition.animateFloat(
@@ -86,7 +89,9 @@ fun SettingsScreen(navController: NavController) {
     )
 
     var isAboutExpanded by remember { mutableStateOf(false) }
-    var isSpecialEffectsExpanded by remember { mutableStateOf(false) }
+    var isSpecialEffectsExpanded by remember {
+        mutableStateOf(!supportsShaders)
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -134,27 +139,42 @@ fun SettingsScreen(navController: NavController) {
                     Text("Version ${BuildConfig.VERSION_NAME}", color = Color.Gray)
                 }
 
-                // Special Effects Section
                 SettingsCard(
                     title = " Special Effects",
                     icon = Icons.Default.AutoAwesome,
                     iconTint = Color.White,
                     iconSize = 25.dp,
                     expanded = isSpecialEffectsExpanded,
-                    onExpandToggle = { isSpecialEffectsExpanded = !isSpecialEffectsExpanded },
+                    onExpandToggle = {
+                        if (supportsShaders) {
+                            isSpecialEffectsExpanded = !isSpecialEffectsExpanded
+                        }
+                    },
                     trailing = {
                         ResponsiveMetaballSwitch(
-                            checked = specialEffectsEnabled,
-                            onCheckedChange = { settingsViewModel.toggleSpecialEffects(it) },
-                            enabled = true
+                            checked = specialEffectsEnabled && supportsShaders,
+                            onCheckedChange = {
+                                if (supportsShaders) {
+                                    settingsViewModel.toggleSpecialEffects(it)
+                                }
+                            },
+                            enabled = supportsShaders
                         )
                     }
                 ) {
-                    Text(
-                        "You'll see particle effects in Pokémon details.\nTry pressing the Pokémon sprite!",
-                        color = Color.Gray,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    if (!supportsShaders) {
+                        Text(
+                            text = "Enhanced visual effects require Android 13 or newer.",
+                            color = Color(0xFFFFB74D),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    } else {
+                        Text(
+                            "You'll see particle effects in Pokémon details.\nTry pressing the Pokémon sprite!",
+                            color = Color.Gray,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                    }
                 }
 
                 Box(
@@ -199,9 +219,16 @@ fun SettingsScreen(navController: NavController) {
                         Color.White
                     ),
                     SocialLink(
-                        "Discord",
-                        "https://www.discord.com/techgeekaditya/",
-                        ImageVector.vectorResource(id = R.drawable.discord_brands_solid_full),
+                        "BuyMeACoffee",
+                        "https://www.buymeacoffee.com/aditya1875q",
+                        ImageVector.vectorResource(id = R.drawable.buy_me_coffee_icon),
+                        size = 20.dp,
+                        Color.White
+                    ),
+                    SocialLink(
+                        "Reddit",
+                        "https://www.reddit.com/user/Incredible_aditya123/",
+                        ImageVector.vectorResource(id = R.drawable.reddit2),
                         size = 20.dp,
                         Color.White
                     ),
@@ -262,4 +289,4 @@ fun SettingsScreen(navController: NavController) {
 }
 
 
-data class SocialLink(val name: String, val url: String, val icon: ImageVector, val size: Dp = 30.dp, val color: Color)
+data class SocialLink(val name: String, val url: String, val icon: ImageVector, val size: Dp = 28.dp, val color: Color)

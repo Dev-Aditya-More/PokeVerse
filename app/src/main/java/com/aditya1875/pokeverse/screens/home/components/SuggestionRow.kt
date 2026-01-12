@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.components
+package com.aditya1875.pokeverse.screens.home.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
