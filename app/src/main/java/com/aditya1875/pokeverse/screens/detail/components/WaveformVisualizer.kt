@@ -1,9 +1,7 @@
-package com.aditya1875.pokeverse.components
+package com.aditya1875.pokeverse.screens.detail.components
 
-import android.graphics.Canvas
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
@@ -24,7 +22,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 import kotlin.math.sin
-import kotlin.random.Random
 
 @Composable
 fun WaveformVisualizer(

@@ -57,9 +57,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.ResponsiveMetaballSwitch
-import com.aditya1875.pokeverse.components.SettingsCard
-import com.aditya1875.pokeverse.components.zigZagBackground
+import com.aditya1875.pokeverse.screens.settings.components.ResponsiveMetaballSwitch
+import com.aditya1875.pokeverse.screens.settings.components.SettingsCard
+import com.aditya1875.pokeverse.screens.settings.components.zigZagBackground
 import com.aditya1875.pokeverse.ui.viewmodel.SettingsViewModel
 import com.aditya1875.pokeverse.utils.EffectCapabilities
 import org.koin.androidx.compose.koinViewModel

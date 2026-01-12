@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.components
+package com.aditya1875.pokeverse.screens.splash.components
 
 import android.graphics.RuntimeShader
 import android.os.Build
@@ -18,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.ShaderBrush
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toIntSize
 

@@ -87,12 +87,11 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.AnimatedBackground
-import com.aditya1875.pokeverse.components.CustomProgressIndicator
-import com.aditya1875.pokeverse.components.FilterBar
-import com.aditya1875.pokeverse.components.SuggestionRow
+import com.aditya1875.pokeverse.screens.home.components.AnimatedBackground
+import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicator
+import com.aditya1875.pokeverse.screens.home.components.FilterBar
+import com.aditya1875.pokeverse.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
-import com.aditya1875.pokeverse.utils.SearchUiState
 import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

@@ -69,8 +69,8 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.CustomProgressIndicator
-import com.aditya1875.pokeverse.components.VibrantProgressBar
+import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicator
+import com.aditya1875.pokeverse.screens.team.components.VibrantProgressBar
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel

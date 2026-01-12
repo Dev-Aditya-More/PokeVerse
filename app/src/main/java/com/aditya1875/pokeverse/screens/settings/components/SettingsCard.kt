@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.components
+package com.aditya1875.pokeverse.screens.settings.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize

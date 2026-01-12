@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.screens.detail
+package com.aditya1875.pokeverse.screens.detail.components
 
 import android.media.MediaPlayer
 import android.os.Build
@@ -93,8 +93,8 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Size
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.EvolutionChainRow
-import com.aditya1875.pokeverse.components.LayeredWaveformVisualizer
+import com.aditya1875.pokeverse.screens.detail.GlossyCard
+import com.aditya1875.pokeverse.screens.detail.getPokemonBackgroundColor
 import com.aditya1875.pokeverse.specialscreens.ParticleBackground
 import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
@@ -106,6 +106,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 import java.util.UUID
+import kotlin.collections.get
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(

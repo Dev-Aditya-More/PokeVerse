@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.components
+package com.aditya1875.pokeverse.screens.team.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box

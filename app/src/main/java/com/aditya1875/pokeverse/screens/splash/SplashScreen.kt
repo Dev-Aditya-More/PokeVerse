@@ -25,8 +25,8 @@ import android.view.animation.OvershootInterpolator
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.remember
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.components.CardShader
-import com.aditya1875.pokeverse.components.SmokeShader
+import com.aditya1875.pokeverse.screens.splash.components.CardShader
+import com.aditya1875.pokeverse.screens.splash.components.SmokeShader
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview(showBackground = true)
