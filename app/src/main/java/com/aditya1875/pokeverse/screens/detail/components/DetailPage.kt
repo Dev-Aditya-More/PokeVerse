@@ -99,6 +99,7 @@ import com.aditya1875.pokeverse.specialscreens.ParticleBackground
 import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
+import com.aditya1875.pokeverse.utils.UiError
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -116,6 +117,7 @@ import kotlin.collections.get
 @Composable
 fun PokemonDetailPage(
     navController: NavController,
+    pokemonName: String = "pikachu",
     specialEffectsEnabled: Boolean,
     spriteEffectsEnabledState: MutableState<Boolean>,
     viewModel: PokemonViewModel = koinViewModel()
@@ -477,12 +479,15 @@ fun PokemonDetailPage(
                                         Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} added to team", Toast.LENGTH_SHORT).show()
                                     }
                                 }
-                            }
+                            },
+                            enabled = isInTeam || team.size < 6
                         ) {
                             Icon(
                                 imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
                                 contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
-                                tint = if (isInTeam) Color(0xFFFFD700) else Color.White
+                                tint = if (isInTeam) Color.Yellow else Color.White.copy(
+                                    alpha = if (team.size >= 6) 0.2f else 1f
+                                ),
                             )
                         }
                         IconButton(onClick = {
@@ -520,7 +525,7 @@ fun PokemonDetailPage(
                                     )
                                 }
                             } else {
-                                Toast.makeText(context, "TTS not ready", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "We're almost there 🚀", Toast.LENGTH_SHORT).show()
                             }
                         }) {
                             Icon(
@@ -790,22 +795,45 @@ fun PokemonDetailPage(
                     }
                 }
 
-                else -> {
+                uiState.error is UiError.NotFound -> {
+                    val missingName = (uiState.error as UiError.NotFound).name
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(padding),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Failed to load data.", color = Color.White)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(
-                                onClick = {
-                                    navController.navigate("detailscreen/${pokemon}")
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Text(
+                                text = "No Pokémon found",
+                                color = Color.White,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+
+                            Text(
+                                text = "\"$missingName\" doesn’t exist.\nCheck spelling or try suggestions.",
+                                color = Color.White.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center
+                            )
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Button(
+                                    onClick = { navController.popBackStack() }
+                                ) {
+                                    Text("Go Back")
                                 }
-                            ) {
-                                Text("Retry")
+
+                                Button(
+                                    onClick = {
+                                        viewModel.fetchPokemonData("pikachu")
+                                    }
+                                ) {
+                                    Text("Try Pikachu")
+                                }
                             }
                         }
                     }

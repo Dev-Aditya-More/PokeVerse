@@ -38,10 +38,8 @@ fun PokemonDetailScreen(
     navController: NavController
 ) {
     val viewModel: PokemonViewModel = koinViewModel()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val settingsViewModel: SettingsViewModel = koinViewModel()
     val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(pokemonName) {
         viewModel.fetchPokemonData(pokemonName)

@@ -27,9 +27,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.net.UnknownHostException
 import kotlin.collections.filter
 
@@ -48,13 +50,37 @@ class PokemonViewModel(
             _showTagline.value = isFirstLaunch(context)
         }
     }
-    private val _uiState = MutableStateFlow(PokemonDetailUiState())
-    val uiState: StateFlow<PokemonDetailUiState> = _uiState
-
     private val _searchUiState = MutableStateFlow(SearchUiState())
-    val searchUiState: StateFlow<SearchUiState> = _searchUiState
+
+    private val searchQuery = MutableStateFlow("")
+
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
+    val searchUiState: StateFlow<SearchUiState> =
+        combine(searchQuery, _pokemonList) { query, list ->
+            val cleaned = query.trim().lowercase()
+            if (cleaned.length < 2) {
+                SearchUiState(query = cleaned)
+            } else {
+                val matches = list
+                    .filter { it.name.contains(cleaned, ignoreCase = true) }
+                    .take(5)
+
+                SearchUiState(
+                    query = cleaned,
+                    suggestions = matches,
+                    showSuggestions = matches.isNotEmpty()
+                )
+            }
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            SearchUiState()
+        )
+
+
+    private val _uiState = MutableStateFlow(PokemonDetailUiState())
+    val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
     var isLoading by mutableStateOf(false)
     var endReached by mutableStateOf(false)
@@ -194,12 +220,18 @@ class PokemonViewModel(
 
             Log.d("PokeVM", "Loaded $name successfully")
 
-        } catch (e: Exception) {
-            Log.e("PokeVM", "Failed to load $name", e)
-            _uiState.value = _uiState.value.copy(
-                isLoading = false,
-                error = UiError.Unexpected(e.localizedMessage)
-            )
+        } catch (e: HttpException) {
+            if (e.code() == 404) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = UiError.NotFound(name)
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = UiError.Unexpected(e.localizedMessage)
+                )
+            }
         }
     }
 
@@ -292,6 +324,11 @@ class PokemonViewModel(
             .last()
             .toIntOrNull() ?: -1
     }
+
+    fun onSearchQueryChanged(query: String) {
+        searchQuery.value = query
+    }
+
 
 }
 

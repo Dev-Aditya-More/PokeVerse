@@ -141,7 +141,6 @@ class MainActivity : ComponentActivity() {
                 }
                 val token = task.result
                 Log.d("FCM", "FCM Token: $token")
-                Toast.makeText(this, "FCM token fetched!", Toast.LENGTH_SHORT).show()
             }
 
     }
@@ -160,6 +159,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview(showSystemUi = true)
 @Composable
 private fun SplashScreenPreview() {

@@ -71,6 +71,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -92,6 +93,7 @@ import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicato
 import com.aditya1875.pokeverse.screens.home.components.FilterBar
 import com.aditya1875.pokeverse.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
 import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -116,6 +118,7 @@ fun HomeScreen(navController: NavHostController) {
     val teamMembershipMap = remember(team) {
         team.associate { it.name to true }
     }
+    var isSearchFocused by remember { mutableStateOf(false) }
 
     val shouldLoadMore by remember {
         derivedStateOf {
@@ -164,7 +167,6 @@ fun HomeScreen(navController: NavHostController) {
                 )
             },
             floatingActionButton = {
-                // FAB will float ABOVE LazyColumn automatically
                 val fabVisible by remember { derivedStateOf { listState.firstVisibleItemIndex > 5 } }
                 AnimatedVisibility(
                     visible = fabVisible,
@@ -199,12 +201,12 @@ fun HomeScreen(navController: NavHostController) {
                             interactionSource = remember { MutableInteractionSource() }
                         ) { focusManager.clearFocus() }
                 ) {
-                    val filterState by viewModel.filters.collectAsState()
-                    val cleanedQuery = query.trim().lowercase()
+                    val filterState by viewModel.filters.collectAsStateWithLifecycle()
                     val performSearch = {
-                        if (cleanedQuery.isNotBlank()) {
-                            viewModel.fetchPokemonData(cleanedQuery)
-                            navController.navigate("pokemon_detail/$cleanedQuery")
+                        val cleaned = query.trim().lowercase()
+                        if (cleaned.length >= 2) {
+                            isSearchFocused = false
+                            navController.navigate("pokemon_detail/$cleaned")
                         }
                     }
 
@@ -215,7 +217,10 @@ fun HomeScreen(navController: NavHostController) {
 
                     OutlinedTextField(
                         value = query,
-                        onValueChange = { query = it },
+                        onValueChange = {
+                            query = it
+                            viewModel.onSearchQueryChanged(it)
+                        },
                         label = { Text("Search a Pokémon", color = Color.White) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
@@ -246,7 +251,10 @@ fun HomeScreen(navController: NavHostController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                            .padding(bottom = 4.dp),
+                            .padding(bottom = 4.dp)
+                            .onFocusChanged { focusState ->
+                                isSearchFocused = focusState.isFocused
+                            },
                         colors = OutlinedTextFieldDefaults.colors(
                             unfocusedBorderColor = Color.DarkGray,
                             unfocusedTrailingIconColor = Color.DarkGray,
@@ -259,7 +267,9 @@ fun HomeScreen(navController: NavHostController) {
                     )
 
                     AnimatedVisibility(
-                        visible = searchUiState.showSuggestions && searchUiState.suggestions.isNotEmpty(),
+                        visible = isSearchFocused &&
+                                searchUiState.showSuggestions &&
+                                searchUiState.suggestions.isNotEmpty(),
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically()
                     ) {
@@ -274,13 +284,14 @@ fun HomeScreen(navController: NavHostController) {
                                 SuggestionRow(
                                     pokemon = pokemon,
                                     onClick = {
-                                        navController.navigate("pokemon_detail/${pokemon.id}")
+                                        isSearchFocused = false
+                                        query = ""
+                                        navController.navigate("pokemon_detail/${pokemon.name}")
                                     }
                                 )
                             }
                         }
                     }
-
 
                     when {
                         isLoading && pokemonList.isEmpty() -> {
