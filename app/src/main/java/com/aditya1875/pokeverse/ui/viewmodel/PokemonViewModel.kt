@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -48,13 +49,36 @@ class PokemonViewModel(
             _showTagline.value = isFirstLaunch(context)
         }
     }
+
+    private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
+    val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
     private val _searchUiState = MutableStateFlow(SearchUiState())
-    val searchUiState: StateFlow<SearchUiState> = _searchUiState
-    private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
-    val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchUiState: StateFlow<SearchUiState> =
+        combine(_searchQuery, _pokemonList) { query, list ->
+            val cleaned = query.trim().lowercase()
+            if (cleaned.isEmpty()) {
+                SearchUiState(query = cleaned)
+            } else {
+                val matches = list
+                    .filter { it.name.contains(cleaned, ignoreCase = true) }
+                    .take(5)
+
+                SearchUiState(
+                    query = cleaned,
+                    suggestions = matches,
+                    showSuggestions = matches.isNotEmpty()
+                )
+            }
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            SearchUiState()
+        )
 
     var isLoading by mutableStateOf(false)
     var endReached by mutableStateOf(false)
@@ -293,6 +317,9 @@ class PokemonViewModel(
             .toIntOrNull() ?: -1
     }
 
+    fun onSearchQueryChanged(query: String) {
+        _searchQuery.value = query
+    }
 }
 
 

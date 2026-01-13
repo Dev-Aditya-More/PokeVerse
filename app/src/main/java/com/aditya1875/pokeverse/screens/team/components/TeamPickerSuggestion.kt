@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.screens.home.components
+package com.aditya1875.pokeverse.screens.team.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,6 +10,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,12 +27,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.data.remote.model.PokemonResult
-import com.aditya1875.pokeverse.data.remote.model.PokemonSearchIndex
 
 @Composable
-fun SuggestionRow(
+fun TeamPickerSuggestionRow(
     pokemon: PokemonResult,
-    onClick: () -> Unit
+    isInTeam: Boolean,
+    teamSize: Int,
+    onCardClick: () -> Unit,
+    onStarClick: () -> Unit
 ) {
     val pokemonId = remember(pokemon.url) {
         pokemon.url.trimEnd('/')
@@ -43,11 +50,10 @@ fun SuggestionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(onClick = onCardClick)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         // Sprite
         AsyncImage(
             model = spriteUrl,
@@ -61,7 +67,7 @@ fun SuggestionRow(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = pokemon.name.replaceFirstChar { it.uppercase() },
                 color = Color.White,
@@ -75,6 +81,23 @@ fun SuggestionRow(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
+        }
+
+        // Star button
+        IconButton(
+            onClick = {
+                onStarClick()
+            },
+            enabled = isInTeam || teamSize < 6
+        ) {
+            Icon(
+                imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
+                contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
+                tint = if (isInTeam) Color(0xFFFFC107) else Color.White.copy(
+                    alpha = if (teamSize >= 6) 0.3f else 1f
+                ),
+                modifier = Modifier.size(24.dp)
+            )
         }
     }
 }

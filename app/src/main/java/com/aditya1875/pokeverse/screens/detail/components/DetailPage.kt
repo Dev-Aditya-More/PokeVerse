@@ -15,8 +15,11 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +32,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -42,6 +46,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -57,6 +64,7 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -95,10 +103,12 @@ import coil.size.Size
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.screens.detail.GlossyCard
 import com.aditya1875.pokeverse.screens.detail.getPokemonBackgroundColor
+import com.aditya1875.pokeverse.screens.settings.components.ResponsiveMetaballSwitch
 import com.aditya1875.pokeverse.specialscreens.ParticleBackground
 import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
+import com.aditya1875.pokeverse.utils.UiError
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -106,7 +116,6 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 import java.util.UUID
-import kotlin.collections.get
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
@@ -142,18 +151,8 @@ fun PokemonDetailPage(
     val speechText = "$name. A $type type Pokémon. $cleanText"
 
     var isSpriteChanged by rememberSaveable { mutableStateOf(false) }
-    var currentSpriteUrl by rememberSaveable {
-        mutableStateOf(
-            pokemon?.sprites?.other?.officialArtwork?.frontDefault
-                ?: pokemon?.sprites?.other?.home?.frontDefault
-        )
-    }
-    val evolutionUi = uiState.evolutionUi
 
-    LaunchedEffect(pokemon) {
-        currentSpriteUrl = pokemon?.sprites?.other?.officialArtwork?.frontDefault
-            ?: pokemon?.sprites?.other?.home?.frontDefault
-    }
+    val evolutionUi = uiState.evolutionUi
 
     val listState = rememberLazyListState()
 
@@ -185,6 +184,57 @@ fun PokemonDetailPage(
     val spriteVisible by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 200
+        }
+    }
+
+    var isShinyEnabled by rememberSaveable { mutableStateOf(false) }
+    var currentSpriteSource by rememberSaveable { mutableStateOf("official-artwork") }
+
+    var currentSpriteUrl by rememberSaveable {
+        mutableStateOf(
+            pokemon?.sprites?.other?.officialArtwork?.frontDefault
+                ?: pokemon?.sprites?.other?.home?.frontDefault
+        )
+    }
+
+    fun getSpriteUrl(source: String, shiny: Boolean): String? {
+        return when (source) {
+            "official-artwork" -> {
+                if (shiny) pokemon?.sprites?.other?.officialArtwork?.frontShiny
+                else pokemon?.sprites?.other?.officialArtwork?.frontDefault
+            }
+            "home" -> {
+                if (shiny) pokemon?.sprites?.other?.home?.frontShiny
+                else pokemon?.sprites?.other?.home?.frontDefault
+            }
+            "dream-world" -> {
+                if (shiny) pokemon?.sprites?.other?.dreamWorld?.frontShiny
+                else pokemon?.sprites?.other?.dreamWorld?.frontDefault
+            }
+            "showdown" -> {
+                if (shiny) pokemon?.sprites?.other?.showdown?.frontShiny
+                else pokemon?.sprites?.other?.showdown?.frontDefault
+            }
+            else -> pokemon?.sprites?.other?.officialArtwork?.frontDefault
+        }
+    }
+
+    LaunchedEffect(pokemon) {
+        currentSpriteUrl = pokemon?.sprites?.other?.officialArtwork?.frontDefault
+            ?: pokemon?.sprites?.other?.home?.frontDefault
+        currentSpriteSource = when {
+            pokemon?.sprites?.other?.officialArtwork?.frontDefault != null -> "official-artwork"
+            pokemon?.sprites?.other?.home?.frontDefault != null -> "home"
+            else -> "official-artwork"
+        }
+        isShinyEnabled = false
+    }
+
+    LaunchedEffect(isShinyEnabled) {
+        val newUrl = getSpriteUrl(currentSpriteSource, isShinyEnabled)
+        if (newUrl != null && newUrl != currentSpriteUrl) {
+            currentSpriteUrl = newUrl
+            showLoader = true
         }
     }
 
@@ -327,47 +377,84 @@ fun PokemonDetailPage(
                 label = "SpriteFade"
             )
 
+            var spriteLoaded by remember { mutableStateOf(false) }
+            var spriteError by remember { mutableStateOf(false) }
+
             Box(
                 modifier = Modifier
                     .size(220.dp)
                     .align(Alignment.Center)
                     .zIndex(4f)
             ) {
-                AsyncImage(
+                // Check if sprite URL is available
+                val hasValidSprite = currentSpriteUrl != null && !spriteError
 
-                    model = ImageRequest.Builder(context)
-                        .data(currentSpriteUrl)
-                        .decoderFactory(SvgDecoder.Factory())
-                        .crossfade(true)
-                        .allowHardware(false)
-                        .size(Size.ORIGINAL)
-                        .build(),
-                    contentDescription = pokemon?.name,
-                    contentScale = ContentScale.Fit,
-                    imageLoader = imageLoader,
-                    onLoading = { showLoader = true },
-                    onSuccess = { showLoader = false; isSpriteChanged = false },
-                    onError = { showLoader = false },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            alpha = animatedAlpha
-                            scaleX = pressScale.value
-                            scaleY = pressScale.value
-                        }
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onPress = {
-                                    pressScale.animateTo(1.1f, tween(150))
-                                    spriteEffectsEnabledState.value = true
-                                    tryAwaitRelease()
-                                    pressScale.animateTo(1.0f, tween(150))
-                                    spriteEffectsEnabledState.value = false
-                                }
-                            )
-                        }
+                if (hasValidSprite) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(currentSpriteUrl)
+                            .decoderFactory(SvgDecoder.Factory())
+                            .crossfade(true)
+                            .allowHardware(false)
+                            .size(Size.ORIGINAL)
+                            .build(),
+                        contentDescription = pokemon?.name,
+                        contentScale = ContentScale.Fit,
+                        imageLoader = imageLoader,
+                        onLoading = {
+                            showLoader = true
+                            spriteLoaded = false
+                            spriteError = false
+                        },
+                        onSuccess = {
+                            showLoader = false
+                            isSpriteChanged = false
+                            spriteLoaded = true
+                            spriteError = false
+                        },
+                        onError = {
+                            showLoader = false
+                            spriteLoaded = false
+                            spriteError = true
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                alpha = animatedAlpha
+                                scaleX = pressScale.value
+                                scaleY = pressScale.value
+                            }
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        pressScale.animateTo(1.1f, tween(150))
+                                        spriteEffectsEnabledState.value = true
+                                        tryAwaitRelease()
+                                        pressScale.animateTo(1.0f, tween(150))
+                                        spriteEffectsEnabledState.value = false
+                                    }
+                                )
+                            }
+                    )
+                } else {
+                    // Show placeholder when sprite is not available
+                    SpritePlaceholder(
+                        isShiny = isShinyEnabled,
+                        bgColor = bgColor,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                alpha = if (!spriteVisible) 0f else 1f
+                                scaleX = pressScale.value
+                                scaleY = pressScale.value
+                            }
+                    )
 
-                )
+                    // Mark as loaded so toggle appears
+                    LaunchedEffect(Unit) {
+                        spriteLoaded = true
+                    }
+                }
 
                 AnimatedVisibility(
                     visible = showLoader,
@@ -382,6 +469,42 @@ fun PokemonDetailPage(
                         modifier = Modifier
                             .size(200.dp)
                             .align(Alignment.Center)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            AnimatedVisibility(
+                visible = spriteLoaded && spriteVisible,
+                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
+                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .offset(y = 140.dp)
+                    .zIndex(4f)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = null,
+                        tint = if (isShinyEnabled) Color(0xFFFFD700) else Color.White.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Text(
+                        text = if (isShinyEnabled) "Shiny" else "Default",
+                        color = Color.White,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    ResponsiveMetaballSwitch(
+                        checked = isShinyEnabled,
+                        onCheckedChange = { isShinyEnabled = it }
                     )
                 }
             }
@@ -429,38 +552,42 @@ fun PokemonDetailPage(
 
                         IconButton(
                             onClick = {
-                                // ordered sprite priority list
-                                val orderedSprites = listOfNotNull(
-                                    pokemon?.sprites?.other?.officialArtwork?.frontDefault,
-                                    pokemon?.sprites?.other?.home?.frontDefault,
-                                    pokemon?.sprites?.other?.dreamWorld?.frontDefault,
-                                    pokemon?.sprites?.other?.showdown?.frontDefault,
-                                )
+                                val orderedSprites = listOf(
+                                    "official-artwork" to (pokemon?.sprites?.other?.officialArtwork?.frontDefault
+                                        ?: pokemon?.sprites?.other?.officialArtwork?.frontShiny),
+                                    "home" to (pokemon?.sprites?.other?.home?.frontDefault
+                                        ?: pokemon?.sprites?.other?.home?.frontShiny),
+                                    "dream-world" to (pokemon?.sprites?.other?.dreamWorld?.frontDefault
+                                        ?: pokemon?.sprites?.other?.dreamWorld?.frontShiny),
+                                    "showdown" to (pokemon?.sprites?.other?.showdown?.frontDefault
+                                        ?: pokemon?.sprites?.other?.showdown?.frontShiny),
+                                ).filter { it.second != null }
 
-                                // find current index in that order
-                                val currentIndex = orderedSprites.indexOf(currentSpriteUrl)
+                                val currentIndex = orderedSprites.indexOfFirst { it.first == currentSpriteSource }
                                 val nextIndex = if (currentIndex == -1 || currentIndex == orderedSprites.lastIndex) 0 else currentIndex + 1
 
-                                val nextSprite = orderedSprites.getOrNull(nextIndex)
-                                if (nextSprite != null && nextSprite != currentSpriteUrl) {
-                                    currentSpriteUrl = nextSprite
-                                    showLoader = true
-                                    isSpriteChanged = true
+                                val nextSource = orderedSprites.getOrNull(nextIndex)
+                                if (nextSource != null) {
+                                    currentSpriteSource = nextSource.first
+                                    val newUrl = getSpriteUrl(nextSource.first, isShinyEnabled)
+                                    if (newUrl != null && newUrl != currentSpriteUrl) {
+                                        currentSpriteUrl = newUrl
+                                        showLoader = true
+                                        isSpriteChanged = true
+                                    }
                                 }
                             },
                             modifier = Modifier.pointerInput(Unit) {
                                 detectTapGestures(
                                     onLongPress = {
-                                        Toast
-                                            .makeText(context, "Tap to switch sprite in order ✨", Toast.LENGTH_SHORT)
-                                            .show()
+                                        Toast.makeText(context, "Tap to switch sprite style ✨", Toast.LENGTH_SHORT).show()
                                     }
                                 )
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Shuffle,
-                                contentDescription = "Switch Sprite",
+                                contentDescription = "Switch Sprite Style",
                                 tint = Color.White
                             )
                         }
@@ -469,7 +596,6 @@ fun PokemonDetailPage(
                             onClick = {
                                 pokemon?.let {
                                     if (isInTeam) {
-                                        // remove by name so we don't rely on the autogenerated id
                                         viewModel.removeFromTeamByName(it.name)
                                         Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} removed from team", Toast.LENGTH_SHORT).show()
                                     } else {
@@ -477,12 +603,15 @@ fun PokemonDetailPage(
                                         Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} added to team", Toast.LENGTH_SHORT).show()
                                     }
                                 }
-                            }
+                            },
+                            enabled = isInTeam || team.size < 6
                         ) {
                             Icon(
                                 imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
                                 contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
-                                tint = if (isInTeam) Color(0xFFFFD700) else Color.White
+                                tint = if (isInTeam) Color.Yellow else Color.White.copy(
+                                    alpha = if (team.size >= 6) 0.2f else 1f
+                                ),
                             )
                         }
                         IconButton(onClick = {
@@ -520,7 +649,7 @@ fun PokemonDetailPage(
                                     )
                                 }
                             } else {
-                                Toast.makeText(context, "TTS not ready", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "We're almost there 🚀", Toast.LENGTH_SHORT).show()
                             }
                         }) {
                             Icon(
@@ -572,8 +701,7 @@ fun PokemonDetailPage(
                     ) {
 
                         item {
-
-                            Spacer(modifier = Modifier.height(250.dp))
+                            Spacer(modifier = Modifier.height(315.dp))
                         }
 
                         // Basic Info
@@ -739,6 +867,120 @@ fun PokemonDetailPage(
                             }
                         }
 
+                        item {
+                            var isMovesExpanded by rememberSaveable { mutableStateOf(false) }
+
+                            val learnableMoves = pokemon.moves
+                                .filter { move ->
+                                    move.version_group_details.any {
+                                        it.move_learn_method.name == "level-up"
+                                    }
+                                }
+                                .sortedBy { move ->
+                                    move.version_group_details
+                                        .filter { it.move_learn_method.name == "level-up" }
+                                        .minOfOrNull { it.level_learned_at } ?: 999
+                                }
+
+                            val displayedMoves = if (isMovesExpanded) learnableMoves else learnableMoves.take(8)
+
+                            if (learnableMoves.isNotEmpty()) {
+                                GlossyCard(modifier = Modifier.fillMaxWidth()) {
+                                    Column(modifier = Modifier.padding(16.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                text = "Moves",
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White,
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                            Text(
+                                                text = "${learnableMoves.size} total",
+                                                color = Color.White.copy(alpha = 0.6f),
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        Column(
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            displayedMoves.forEach { move ->
+                                                val level = move.version_group_details
+                                                    .filter { it.move_learn_method.name == "level-up" }
+                                                    .minOfOrNull { it.level_learned_at } ?: 0
+
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(bgColor.copy(alpha = 0.15f))
+                                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        text = move.move.name
+                                                            .replace("-", " ")
+                                                            .replaceFirstChar { it.uppercase() },
+                                                        color = Color.White,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        modifier = Modifier.weight(1f)
+                                                    )
+
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .clip(RoundedCornerShape(6.dp))
+                                                            .background(bgColor.copy(alpha = 0.4f))
+                                                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = if (level > 0) "Lv. $level" else "Start",
+                                                            color = Color.White,
+                                                            style = MaterialTheme.typography.labelMedium,
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (learnableMoves.size > 8) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+
+                                            TextButton(
+                                                onClick = { isMovesExpanded = !isMovesExpanded },
+                                                modifier = Modifier.align(Alignment.CenterHorizontally)
+                                            ) {
+                                                Text(
+                                                    text = if (isMovesExpanded)
+                                                        "Show Less"
+                                                    else
+                                                        "Show All ${learnableMoves.size} Moves",
+                                                    color = bgColor
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                                Icon(
+                                                    imageVector = if (isMovesExpanded)
+                                                        Icons.Default.KeyboardArrowUp
+                                                    else
+                                                        Icons.Default.KeyboardArrowDown,
+                                                    contentDescription = null,
+                                                    tint = bgColor,
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         // Mega Evolutions / Other Forms
                         if (uiState.varieties.isNotEmpty()) {
                             item {
@@ -790,22 +1032,45 @@ fun PokemonDetailPage(
                     }
                 }
 
-                else -> {
+                uiState.error is UiError.NotFound -> {
+                    val missingName = (uiState.error as UiError.NotFound).name
+
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(padding),
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("Failed to load data.", color = Color.White)
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Button(
-                                onClick = {
-                                    navController.navigate("detailscreen/${pokemon}")
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            Text(
+                                text = "No Pokémon found",
+                                color = Color.White,
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+
+                            Text(
+                                text = "\"$missingName\" doesn’t exist.\nCheck spelling or try suggestions.",
+                                color = Color.White.copy(alpha = 0.7f),
+                                textAlign = TextAlign.Center
+                            )
+
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Button(
+                                    onClick = { navController.popBackStack() }
+                                ) {
+                                    Text("Go Back")
                                 }
-                            ) {
-                                Text("Retry")
+
+                                Button(
+                                    onClick = {
+                                        viewModel.fetchPokemonData("pikachu")
+                                    }
+                                ) {
+                                    Text("Try Pikachu")
+                                }
                             }
                         }
                     }
