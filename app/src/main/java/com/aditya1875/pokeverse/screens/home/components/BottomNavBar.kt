@@ -91,9 +91,9 @@ fun BottomNavigationBar(navController: NavHostController) {
                 label = {
                     Text(
                         text = when (route) {
-                            "home" -> "Home"
-                            "dream_team" -> "Team"
-                            "settings" -> "Settings"
+                            "home" -> ""
+                            "dream_team" -> ""
+                            "settings" -> ""
                             else -> ""
                         },
                         color = Color.White.copy(alpha = textAlpha),

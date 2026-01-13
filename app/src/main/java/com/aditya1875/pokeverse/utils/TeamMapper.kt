@@ -18,5 +18,4 @@ object TeamMapper {
             name = this.name
         )
     }
-
 }

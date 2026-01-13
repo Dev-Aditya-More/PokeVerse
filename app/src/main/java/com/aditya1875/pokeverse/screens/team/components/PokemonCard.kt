@@ -1,25 +1,25 @@
 package com.aditya1875.pokeverse.screens.team.components
 
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,34 +31,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
-import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.data.remote.model.PokemonResponse
+import com.aditya1875.pokeverse.data.remote.model.PokemonResult
 
 @Composable
-fun TeamPokemonCard(
-    pokemon: TeamMemberEntity,
+fun TeamPickerPokemonCard(
+    pokemonResult: PokemonResult,
+    isInTeam: Boolean,
     navController: NavController,
-    onRemove: (TeamMemberEntity) -> Unit,
-    viewModel: PokemonViewModel
+    onDismiss: () -> Unit
 ) {
     var isPressed by remember { mutableStateOf(false) }
 
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.95f else 1f,
-        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-        label = "cardScale"
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "cardScale",
+        finishedListener = { isPressed = false }
     )
-
-    val team by viewModel.team.collectAsStateWithLifecycle()
-    val teamMembershipMap = remember(team) { team.associate { it.name to true } }
-    val isInTeam = teamMembershipMap[pokemon.name] ?: false
 
     Card(
         modifier = Modifier
@@ -67,52 +64,49 @@ fun TeamPokemonCard(
                 scaleX = scale
                 scaleY = scale
             }
-            .clickable(
-                onClick = {
-                    isPressed = true
-                    navController.navigate("pokemon_detail/${pokemon.name}")
-                },
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1C1C1C))
+            .clickable {
+                isPressed = true
+                navController.navigate("pokemon_detail/${pokemonResult.name}")
+                onDismiss()
+            },
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF000000)
+        ),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = rememberAsyncImagePainter(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(pokemon.imageUrl)
-                        .crossfade(true)
-                        .build()
-                ),
-                contentDescription = pokemon.name,
+            // Simple placeholder circle
+            Box(
                 modifier = Modifier
                     .size(72.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.15f))
+                    .background(Color(0xFF1A1A1A))
             )
 
+            Spacer(Modifier.width(16.dp))
+
+            // Pokemon name
             Text(
-                text = pokemon.name.replaceFirstChar { it.uppercase() },
+                text = pokemonResult.name.replaceFirstChar { it.uppercase() },
                 color = Color.White,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.weight(1f)
             )
 
-            IconButton(onClick = { if (isInTeam) onRemove(pokemon) }) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Remove from Team",
-                    tint = Color(0xFFFF4444)
-                )
-            }
+            // Star icon - read only (shows team status)
+            Icon(
+                imageVector = if (isInTeam) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                contentDescription = if (isInTeam) "In team" else "Not in team",
+                tint = if (isInTeam) Color(0xFFFFC107) else Color(0xFF7A7A7A),
+                modifier = Modifier.size(28.dp)
+            )
         }
     }
 }
