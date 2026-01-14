@@ -47,7 +47,6 @@ import androidx.navigation.NavController
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.screens.team.components.EmptyTeamView
-import com.aditya1875.pokeverse.screens.team.components.TeamPickerPokemonCard
 import com.aditya1875.pokeverse.screens.team.components.TeamPokemonCard
 import com.aditya1875.pokeverse.screens.team.components.VibrantProgressBar
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel

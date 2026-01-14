@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -37,14 +38,17 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -93,6 +97,7 @@ import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicato
 import com.aditya1875.pokeverse.screens.home.components.FilterBar
 import com.aditya1875.pokeverse.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
 import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.Dispatchers
@@ -127,6 +132,8 @@ fun HomeScreen(navController: NavHostController) {
             lastVisibleItemIndex >= pokemonList.size - 5 && !isLoading && !endReached
         }
     }
+
+    val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
 
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore) {
@@ -225,20 +232,25 @@ fun HomeScreen(navController: NavHostController) {
                         singleLine = true,
                         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                         trailingIcon = {
-                            IconButton(
-                                onClick = {
-                                    coroutineScope.launch{
-                                        performSearch()
-                                        delay(150)
-                                        keyboardController?.hide()
+                            when {
+                                isSearching -> {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = Color.White,
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                                query.isNotEmpty() -> {
+                                    IconButton(onClick = {
+                                        query = ""
+                                        viewModel.onSearchQueryChanged("")
+                                    }) {
+                                        Icon(Icons.Default.Close, "Clear", tint = Color.White)
                                     }
                                 }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = "Search",
-                                    tint = Color.White
-                                )
+                                else -> {
+                                    Icon(Icons.Default.Search, "Search", tint = Color.White)
+                                }
                             }
                         },
                         keyboardActions = KeyboardActions {
@@ -266,10 +278,10 @@ fun HomeScreen(navController: NavHostController) {
                         )
                     )
 
+
                     AnimatedVisibility(
                         visible = isSearchFocused &&
-                                searchUiState.showSuggestions &&
-                                searchUiState.suggestions.isNotEmpty(),
+                                (searchUiState.showSuggestions || searchUiState.isLoading),
                         enter = fadeIn() + expandVertically(),
                         exit = fadeOut() + shrinkVertically()
                     ) {
@@ -279,16 +291,55 @@ fun HomeScreen(navController: NavHostController) {
                                 .padding(horizontal = 8.dp)
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(Color(0xFF1A1A1A))
+                                .heightIn(max = 400.dp)
                         ) {
-                            searchUiState.suggestions.take(5).forEach { pokemon ->
-                                SuggestionRow(
-                                    pokemon = pokemon,
-                                    onClick = {
-                                        isSearchFocused = false
-                                        query = ""
-                                        navController.navigate("pokemon_detail/${pokemon.name}")
+                            when {
+                                searchUiState.isLoading -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        CircularProgressIndicator(color = Color(0xFF802525))
                                     }
-                                )
+                                }
+
+                                searchUiState.suggestions.isEmpty() && query.length >= 2 -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            "No Pokémon found",
+                                            color = Color.White.copy(alpha = 0.6f)
+                                        )
+                                    }
+                                }
+
+                                searchUiState.suggestions.isNotEmpty() -> {
+                                    LazyColumn {
+                                        items(searchUiState.suggestions.count()) { searchResult ->
+                                            SuggestionRow(
+                                                searchResult = SearchResult(
+                                                    pokemon = searchUiState.suggestions[searchResult].pokemon,
+                                                    score = searchUiState.suggestions[searchResult].score,
+                                                    baseName = searchUiState.suggestions[searchResult].baseName,
+                                                    formLabel = searchUiState.suggestions[searchResult].formLabel
+                                                ),
+                                                onClick = {
+                                                    isSearchFocused = false
+                                                    query = ""
+                                                    navController.navigate("pokemon_detail/${
+                                                        searchUiState.suggestions[searchResult].pokemon.name
+                                                    }")
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

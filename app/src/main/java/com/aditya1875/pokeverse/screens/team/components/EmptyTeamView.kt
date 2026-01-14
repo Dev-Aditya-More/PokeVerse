@@ -54,7 +54,6 @@ fun EmptyTeamView(
     navController: NavController,
     viewModel: PokemonViewModel = koinViewModel()
 ) {
-    var showTeamPicker by remember { mutableStateOf(false) }
 
     val pokeballGradient = Brush.verticalGradient(
         listOf(Color(0xFF1E1E2C), Color(0xFF2C5364))
@@ -160,13 +159,5 @@ fun EmptyTeamView(
                 }
             }
         }
-    }
-
-    if (showTeamPicker) {
-        TeamPickerBottomSheet(
-            viewModel = viewModel,
-            navController = navController,
-            onDismiss = { showTeamPicker = false }
-        )
     }
 }
