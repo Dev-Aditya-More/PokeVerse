@@ -12,10 +12,19 @@ import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.screens.home.components.BottomNavigationBar
 
 @Composable
-fun WithBottomBar(navController: NavHostController, content: @Composable (PaddingValues) -> Unit) {
+fun WithBottomBar(
+    navController: NavHostController,
+    selectedTab: Int = 0,
+    onTabChange: (Int) -> Unit = {},
+    content: @Composable (PaddingValues) -> Unit
+) {
     Scaffold(
         containerColor = Color.Black,
-        bottomBar = { BottomNavigationBar(navController) }
+        bottomBar = { BottomNavigationBar(
+            navController,
+            selectedTab,
+            onTabChange
+        ) }
     ) { padding ->
         Box(modifier = Modifier
             .padding(padding)

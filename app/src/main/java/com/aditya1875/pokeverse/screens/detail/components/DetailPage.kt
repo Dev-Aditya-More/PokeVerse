@@ -101,6 +101,7 @@ import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Size
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.data.remote.model.PokemonResult
 import com.aditya1875.pokeverse.screens.detail.GlossyCard
 import com.aditya1875.pokeverse.screens.detail.getPokemonBackgroundColor
 import com.aditya1875.pokeverse.screens.settings.components.ResponsiveMetaballSwitch
@@ -456,22 +457,23 @@ fun PokemonDetailPage(
                     }
                 }
 
-                AnimatedVisibility(
-                    visible = showLoader,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    LottieAnimation(
-                        composition = rememberLottieComposition(
-                            LottieCompositionSpec.RawRes(R.raw.shine)
-                        ).value,
-                        iterations = LottieConstants.IterateForever,
-                        modifier = Modifier
-                            .size(200.dp)
-                            .align(Alignment.Center)
-                    )
-                }
+            AnimatedVisibility(
+                visible = showLoader,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                LottieAnimation(
+                    composition = rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(R.raw.shine)
+                    ).value,
+                    iterations = LottieConstants.IterateForever,
+                    modifier = Modifier
+                        .size(200.dp)
+                        .align(Alignment.Center)
+                )
             }
+
+        }
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -592,28 +594,6 @@ fun PokemonDetailPage(
                             )
                         }
 
-                        IconButton(
-                            onClick = {
-                                pokemon?.let {
-                                    if (isInTeam) {
-                                        viewModel.removeFromTeamByName(it.name)
-                                        Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} removed from team", Toast.LENGTH_SHORT).show()
-                                    } else {
-                                        viewModel.addToTeam(it.toEntity())
-                                        Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} added to team", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            },
-                            enabled = isInTeam || team.size < 6
-                        ) {
-                            Icon(
-                                imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
-                                contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
-                                tint = if (isInTeam) Color.Yellow else Color.White.copy(
-                                    alpha = if (team.size >= 6) 0.2f else 1f
-                                ),
-                            )
-                        }
                         IconButton(onClick = {
 
                             if (isTtsReady) {
@@ -649,7 +629,7 @@ fun PokemonDetailPage(
                                     )
                                 }
                             } else {
-                                Toast.makeText(context, "We're almost there 🚀", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Wait a few seconds before clicking back.", Toast.LENGTH_SHORT).show()
                             }
                         }) {
                             Icon(
@@ -658,6 +638,45 @@ fun PokemonDetailPage(
                                 tint = Color.White
                             )
                         }
+
+                        val context = LocalContext.current
+                        val isInFavorites by viewModel.isInFavorites(pokemon?.name ?: "").collectAsStateWithLifecycle(initialValue = false)
+
+                        PokemonActionsMenu(
+                            pokemon = pokemon,
+                            isInTeam = isInTeam,
+                            isInFavorites = isInFavorites,
+                            teamSize = team.size,
+                            onAddToTeam = {
+                                pokemon?.let {
+                                    viewModel.addToTeam(it.toEntity())
+                                    Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} added to team", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onRemoveFromTeam = {
+                                pokemon?.let {
+                                    viewModel.removeFromTeamByName(it.name)
+                                    Toast.makeText(context, "Removed from team", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onAddToFavorites = {
+                                pokemon?.let { pokemonData ->
+                                    viewModel.addToFavorites(
+                                        PokemonResult(
+                                            name = pokemonData.name,
+                                            url = "https://pokeapi.co/api/v2/pokemon/${pokemonData.id}/"
+                                        )
+                                    )
+                                    Toast.makeText(context, "${pokemonData.name.replaceFirstChar { c -> c.uppercase() }} added to favorites ⭐", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onRemoveFromFavorites = {
+                                pokemon?.let {
+                                    viewModel.removeFromFavoritesByName(it.name)
+                                    Toast.makeText(context, "Removed from favorites", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        )
 
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

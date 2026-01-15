@@ -9,7 +9,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.data.local.dao.FavouritesDao
 import com.aditya1875.pokeverse.data.local.dao.TeamDao
+import com.aditya1875.pokeverse.data.local.entity.FavouriteEntity
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 import com.aditya1875.pokeverse.data.remote.model.PokemonFilter
 import com.aditya1875.pokeverse.data.remote.model.PokemonResponse
@@ -44,21 +46,15 @@ import kotlin.collections.filter
 
 class PokemonViewModel(
     private val context: Context,
-    private val repository: PokemonRepo,
+    internal val repository: PokemonRepo,
     private val teamDao: TeamDao,
+    private val favouritesDao: FavouritesDao,
     private val descriptionLocalRepository: DescriptionRepo,
     private val searchRepository: PokemonSearchRepository
 ) : ViewModel() {
 
     private val _showTagline = MutableStateFlow(false)
     val showTagline: StateFlow<Boolean> = _showTagline
-
-    init {
-        viewModelScope.launch {
-            _showTagline.value = isFirstLaunch(context)
-        }
-    }
-
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = _isSearching
 
@@ -115,6 +111,9 @@ class PokemonViewModel(
 
     var listError by mutableStateOf<String?>(null)
         private set
+
+    val favorites: StateFlow<List<FavouriteEntity>> = favouritesDao.getAllFavorites()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private var currentOffset = 0
     private val limit = 20
@@ -350,6 +349,25 @@ class PokemonViewModel(
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
     }
+
+    fun addToFavorites(pokemonResult: PokemonResult) = viewModelScope.launch {
+        val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
+        val entity = FavouriteEntity(
+            name = pokemonResponse.name,
+            imageUrl = pokemonResponse.sprites.front_default ?: ""
+        )
+        favouritesDao.addToFavorites(entity)
+    }
+
+    fun removeFromFavorites(favorite: FavouriteEntity) = viewModelScope.launch {
+        favouritesDao.removeFromFavorites(favorite)
+    }
+
+    fun removeFromFavoritesByName(name: String) = viewModelScope.launch {
+        favouritesDao.removeFromFavoritesByName(name)
+    }
+
+    fun isInFavorites(name: String): Flow<Boolean> = favouritesDao.isInFavorites(name)
 }
 
 

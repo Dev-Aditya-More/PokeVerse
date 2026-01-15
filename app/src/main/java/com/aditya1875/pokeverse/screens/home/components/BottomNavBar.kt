@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
@@ -28,7 +29,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun BottomNavigationBar(navController: NavHostController) {
+fun BottomNavigationBar(
+    navController: NavHostController,
+    selectedTab: Int,
+    onTabChange: (Int) -> Unit
+) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
@@ -39,11 +44,19 @@ fun BottomNavigationBar(navController: NavHostController) {
     ) {
         val items = listOf(
             Triple("home", Icons.Default.Home, Color(0xFFEF5350)),
-            Triple("dream_team", Icons.Default.Star, Color(0xFFFFD54F)),
+            Triple("dream_team",  Icons.Default.Star, Color(0xFFFFD54F)),
             Triple("settings", Icons.Default.Settings, Color(0xFF42A5F5))
         )
 
         items.forEach { (route, icon, accentColor) ->
+
+            val resolvedIcon =
+                when (route) {
+                    "dream_team" if selectedTab == 1 -> Icons.Default.Star
+                    "dream_team" -> Icons.Default.Add
+                    else -> icon
+                }
+
             val selected = currentDestination == route
 
             val iconTint by animateColorAsState(
@@ -82,7 +95,7 @@ fun BottomNavigationBar(navController: NavHostController) {
                             .padding(10.dp)
                     ) {
                         Icon(
-                            imageVector = icon,
+                            imageVector = resolvedIcon,
                             contentDescription = route,
                             tint = iconTint
                         )

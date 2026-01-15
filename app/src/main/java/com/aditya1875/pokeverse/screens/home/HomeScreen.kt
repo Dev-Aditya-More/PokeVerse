@@ -1,6 +1,5 @@
 package com.aditya1875.pokeverse.screens.home
 
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.animateDpAsState
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,22 +30,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -92,18 +84,17 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.screens.home.components.AnimatedBackground
 import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicator
+import com.aditya1875.pokeverse.screens.home.components.AnimatedBackground
 import com.aditya1875.pokeverse.screens.home.components.FilterBar
+import com.aditya1875.pokeverse.screens.home.components.ImprovedPokemonCard
 import com.aditya1875.pokeverse.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
 import com.aditya1875.pokeverse.utils.UiError
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
@@ -134,6 +125,7 @@ fun HomeScreen(navController: NavHostController) {
     }
 
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
+
 
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore) {
@@ -457,6 +449,11 @@ fun HomeScreen(navController: NavHostController) {
                                                 animatedIndices.add(index)
                                             }
                                         }
+
+                                        val isFavorite by viewModel.isInFavorites(pokemon.name).collectAsStateWithLifecycle(false)
+
+                                        val isInTeam by viewModel.isInTeam(pokemon.name).collectAsStateWithLifecycle(false)
+
                                         // Stagger delay
                                         val itemAnimDelay = index
                                         var isVisible by remember { mutableStateOf(false) }
@@ -464,7 +461,7 @@ fun HomeScreen(navController: NavHostController) {
                                         // Animate entry
                                         val alphaa by animateFloatAsState(
                                             targetValue = if (isVisible) 1f else 0f,
-                                            animationSpec = tween(durationMillis = 400, delayMillis = itemAnimDelay.toInt()),
+                                            animationSpec = tween(durationMillis = 400, delayMillis = itemAnimDelay),
                                             label = "alphaAnim"
                                         )
 
@@ -479,98 +476,17 @@ fun HomeScreen(navController: NavHostController) {
                                             isVisible = true
                                         }
 
-                                        // Press animation
-                                        var isPressed by remember { mutableStateOf(false) }
-                                        val scale by animateFloatAsState(
-                                            targetValue = if (isPressed) 0.97f else 1f,
-                                            animationSpec = tween(durationMillis = 100),
-                                            label = "cardScale"
+                                        ImprovedPokemonCard(
+                                            pokemon = pokemon,
+                                            isInTeam = isInTeam,
+                                            isInFavorites = isFavorite,
+                                            teamSize = team.size,
+                                            onAddToTeam = { viewModel.addToTeam(pokemon) },
+                                            onRemoveFromTeam = { viewModel.removeFromTeamByName(pokemon.name) },
+                                            onAddToFavorites = { viewModel.addToFavorites(pokemon) },
+                                            onRemoveFromFavorites = { viewModel.removeFromFavoritesByName(pokemon.name) },
+                                            onClick = { navController.navigate("pokemon_detail/${pokemon.name}") }
                                         )
-
-                                        Card(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .graphicsLayer {
-                                                    alpha = alphaa
-                                                    translationY = transY.toPx()
-                                                    scaleX = scale
-                                                    scaleY = scale
-                                                }
-                                                .clickable {
-                                                    isPressed = true
-                                                    coroutineScope.launch {
-                                                        delay(150)
-                                                        isPressed = false
-                                                        withContext(Dispatchers.Main) {
-                                                            navController.navigate("pokemon_detail/${pokemon.name}")
-                                                        }
-                                                    }
-                                                }
-                                                .animateItem()
-                                            ,
-                                            elevation = CardDefaults.cardElevation(4.dp),
-                                            colors = CardDefaults.cardColors(containerColor = Color.Black)
-                                        ) {
-                                            Row(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .padding(end = 10.dp),
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-
-                                                val isInTeam = teamMembershipMap[pokemon.name] ?: false
-                                                Text(
-                                                    text = pokemon.name.replaceFirstChar { it.uppercase() },
-                                                    modifier = Modifier.padding(16.dp),
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    color = Color.White
-                                                )
-
-                                                IconButton(
-                                                    onClick = {
-                                                        if (isInTeam) {
-                                                            viewModel.removeFromTeamByName(pokemon.name)
-                                                            Toast.makeText(
-                                                                context,
-                                                                "Removed from team",
-                                                                Toast.LENGTH_SHORT
-                                                            ).show()
-
-                                                        } else {
-                                                            if (team.size >= 6) {
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "Team already has 6 Pokémon!",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                            } else {
-                                                                viewModel.addToTeam(pokemon)
-                                                                Toast.makeText(
-                                                                    context,
-                                                                    "Added to team",
-                                                                    Toast.LENGTH_SHORT
-                                                                ).show()
-                                                            }
-                                                        }
-                                                    },
-                                                    enabled = isInTeam || team.size < 6
-                                                ) {
-                                                    Icon(
-                                                        imageVector = if (isInTeam) Icons.Default.Star else Icons.Default.StarBorder,
-                                                        contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
-                                                        tint = if (isInTeam) Color.Yellow else Color.White.copy(
-                                                            alpha = if (team.size >= 6) 0.2f else 1f
-                                                        ),
-                                                        modifier = Modifier.graphicsLayer(
-                                                            shadowElevation = 8f,
-                                                            shape = CircleShape,
-                                                            clip = true
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        }
                                     }
 
                                     if (isLoading && pokemonList.isNotEmpty()) {

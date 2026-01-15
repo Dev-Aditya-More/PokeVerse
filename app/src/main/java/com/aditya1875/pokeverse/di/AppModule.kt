@@ -44,18 +44,21 @@ val appModule = module {
     // Room, Dao, Mapper
     single {
         Room.databaseBuilder(
-            androidContext(),
+            get(),
             TeamDatabase::class.java,
             "pokeverseTeam_db"
         ).build()
     }
 
     single { get<TeamDatabase>().teamDao() }
+
+    single { get<TeamDatabase>().favoritesDao()}
+
     single { TeamMapper }
 
     // ViewModels
     viewModel {
-        PokemonViewModel(get(), get(), get(), get(), get())
+        PokemonViewModel(get(), get(), get(), get(), get(), get())
     }
 
     viewModel {
