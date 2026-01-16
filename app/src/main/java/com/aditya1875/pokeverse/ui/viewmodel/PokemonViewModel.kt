@@ -9,7 +9,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.data.local.dao.FavouritesDao
 import com.aditya1875.pokeverse.data.local.dao.TeamDao
+import com.aditya1875.pokeverse.data.local.entity.FavouriteEntity
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 import com.aditya1875.pokeverse.data.remote.model.PokemonFilter
 import com.aditya1875.pokeverse.data.remote.model.PokemonResponse
@@ -19,15 +21,23 @@ import com.aditya1875.pokeverse.data.remote.model.Region
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionChainUi
 import com.aditya1875.pokeverse.domain.repository.DescriptionRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
+import com.aditya1875.pokeverse.domain.repository.PokemonSearchRepository
 import com.aditya1875.pokeverse.utils.EvolutionChainMapper
+import com.aditya1875.pokeverse.utils.PokemonSearchHelper
 import com.aditya1875.pokeverse.utils.ScreenStateManager.isFirstLaunch
 import com.aditya1875.pokeverse.utils.SearchUiState
 import com.aditya1875.pokeverse.utils.UiError
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -36,19 +46,17 @@ import kotlin.collections.filter
 
 class PokemonViewModel(
     private val context: Context,
-    private val repository: PokemonRepo,
+    internal val repository: PokemonRepo,
     private val teamDao: TeamDao,
+    private val favouritesDao: FavouritesDao,
     private val descriptionLocalRepository: DescriptionRepo,
+    private val searchRepository: PokemonSearchRepository
 ) : ViewModel() {
 
     private val _showTagline = MutableStateFlow(false)
     val showTagline: StateFlow<Boolean> = _showTagline
-
-    init {
-        viewModelScope.launch {
-            _showTagline.value = isFirstLaunch(context)
-        }
-    }
+    private val _isSearching = MutableStateFlow(false)
+    val isSearching: StateFlow<Boolean> = _isSearching
 
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
@@ -58,23 +66,41 @@ class PokemonViewModel(
     private val _searchUiState = MutableStateFlow(SearchUiState())
 
     private val _searchQuery = MutableStateFlow("")
-    val searchUiState: StateFlow<SearchUiState> =
-        combine(_searchQuery, _pokemonList) { query, list ->
-            val cleaned = query.trim().lowercase()
-            if (cleaned.isEmpty()) {
-                SearchUiState(query = cleaned)
-            } else {
-                val matches = list
-                    .filter { it.name.contains(cleaned, ignoreCase = true) }
-                    .take(5)
+    @OptIn(FlowPreview::class)
+    val debouncedSearchQuery = _searchQuery
+        .debounce(300) // 300ms delay
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
 
-                SearchUiState(
-                    query = cleaned,
-                    suggestions = matches,
-                    showSuggestions = matches.isNotEmpty()
-                )
+    @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
+    val searchUiState: StateFlow<SearchUiState> = _searchQuery
+        .debounce(300) // Wait 300ms after typing stops
+        .onEach { _isSearching.value = it.isNotBlank() }
+        .flatMapLatest { query ->
+            flow {
+                val cleaned = query.trim().lowercase()
+                if (cleaned.isEmpty()) {
+                    emit(SearchUiState(query = cleaned))
+                } else {
+                    try {
+                        val results = searchRepository.searchPokemon(cleaned, limit = 10)
+                        emit(SearchUiState(
+                            query = cleaned,
+                            suggestions = results,
+                            showSuggestions = results.isNotEmpty(),
+                            isLoading = false
+                        ))
+                    } catch (e: Exception) {
+                        Log.e("PokeVM", "Search failed", e)
+                        emit(SearchUiState(
+                            query = cleaned,
+                            error = "Search failed"
+                        ))
+                    }
+                }
+                _isSearching.value = false
             }
-        }.stateIn(
+        }
+        .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5_000),
             SearchUiState()
@@ -85,6 +111,9 @@ class PokemonViewModel(
 
     var listError by mutableStateOf<String?>(null)
         private set
+
+    val favorites: StateFlow<List<FavouriteEntity>> = favouritesDao.getAllFavorites()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private var currentOffset = 0
     private val limit = 20
@@ -320,6 +349,25 @@ class PokemonViewModel(
     fun onSearchQueryChanged(query: String) {
         _searchQuery.value = query
     }
+
+    fun addToFavorites(pokemonResult: PokemonResult) = viewModelScope.launch {
+        val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
+        val entity = FavouriteEntity(
+            name = pokemonResponse.name,
+            imageUrl = pokemonResponse.sprites.front_default ?: ""
+        )
+        favouritesDao.addToFavorites(entity)
+    }
+
+    fun removeFromFavorites(favorite: FavouriteEntity) = viewModelScope.launch {
+        favouritesDao.removeFromFavorites(favorite)
+    }
+
+    fun removeFromFavoritesByName(name: String) = viewModelScope.launch {
+        favouritesDao.removeFromFavoritesByName(name)
+    }
+
+    fun isInFavorites(name: String): Flow<Boolean> = favouritesDao.isInFavorites(name)
 }
 
 

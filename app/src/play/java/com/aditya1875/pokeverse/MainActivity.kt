@@ -14,8 +14,11 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
@@ -30,6 +33,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.aditya1875.pokeverse.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.di.appModule
+import com.aditya1875.pokeverse.screens.analysis.TeamAnalysisScreen
 import com.aditya1875.pokeverse.screens.detail.PokemonDetailScreen
 import com.aditya1875.pokeverse.screens.home.HomeScreen
 import com.aditya1875.pokeverse.screens.onboarding.IntroScreen
@@ -86,6 +90,13 @@ class MainActivity : ComponentActivity() {
                         else -> "home"
                     }
                 }
+                var selectedTab by rememberSaveable { mutableStateOf(0) }
+                var teamName by rememberSaveable { mutableStateOf("My Team") }
+                var favoritesName by rememberSaveable { mutableStateOf("My Favourites") }
+
+                val selectedName =
+                    if (selectedTab == 0) teamName else favoritesName
+
 
                 NavHost(
                     navController = navController,
@@ -99,13 +110,27 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     composable("dream_team") {
-                        WithBottomBar(navController) {
+                        WithBottomBar(
+                            navController = navController,
+                            selectedTab = selectedTab,
+                            onTabChange = { selectedTab = it }
+                        ) {
                             DreamTeam(
                                 navController = navController,
                                 team = viewModel.team.collectAsState().value,
-                                onRemove = { viewModel.removeFromTeam(it) }
+                                onRemove = { viewModel.removeFromTeam(it) },
+                                selectedName = selectedName,
+                                onNameChange = {
+                                    if (selectedTab == 0) teamName = it
+                                    else favoritesName = it
+                                },
+                                onTabChange = { selectedTab = it },
+                                selectedTab = selectedTab
                             )
                         }
+                    }
+                    composable("team_analysis") {
+                        TeamAnalysisScreen(navController = navController)
                     }
                     composable("pokemon_detail/{pokemonName}") { backStackEntry ->
                         val pokemonName = backStackEntry.arguments?.getString("pokemonName")
