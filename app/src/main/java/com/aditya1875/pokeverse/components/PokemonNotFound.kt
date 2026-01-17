@@ -113,8 +113,8 @@ fun PokemonNotFoundScreen(
                     onClick = onRetryClick,
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFEE4B2B),
-                        contentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     ),
                     contentPadding = PaddingValues(horizontal = 20.dp, vertical = 10.dp),
                     elevation = ButtonDefaults.buttonElevation(8.dp)

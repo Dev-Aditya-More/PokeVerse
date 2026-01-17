@@ -1,111 +1,167 @@
 package com.aditya1875.pokeverse.ui.theme
 
+import android.app.Activity
 import android.os.Build
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.material3.*
 import androidx.compose.runtime.SideEffect
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFF7B4BFF),       // Vibrant purple
+// ============================================
+// CHARIZARD THEME (Fire/Flying)
+// Fiery orange and red with hints of blue wings
+// ============================================
+private val CharizardDark = darkColorScheme(
+    primary = Color(0xFFFF6D00),           // Charizard Orange
     onPrimary = Color.White,
-    secondary = Color(0xFF00D4B4),     // Teal accent
-    onSecondary = Color.Black,
-    tertiary = Color(0xFFFF6F61),      // Coral pop
+    primaryContainer = Color(0xFFE65100),   // Deep Orange
+    onPrimaryContainer = Color(0xFFFFCCBC),
+
+    secondary = Color(0xFFFF5722),          // Fire Red
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFD84315),
+    onSecondaryContainer = Color(0xFFFFCCBC),
+
+    tertiary = Color(0xFF0091EA),           // Blue Wings
     onTertiary = Color.White,
-    background = Color(0xFF121212),
-    onBackground = Color(0xFFEAEAEA),
-    surface = Color(0xFF1E1E1E),
-    onSurface = Color(0xFFEAEAEA)
+    tertiaryContainer = Color(0xFF0277BD),
+    onTertiaryContainer = Color(0xFFB3E5FC),
+
+    background = Color(0xFF1A0F0A),         // Dark Charcoal
+    onBackground = Color(0xFFFFE7D6),
+
+    surface = Color(0xFF2A1810),            // Warm Dark Surface
+    onSurface = Color(0xFFFFE7D6),
+    surfaceVariant = Color(0xFF3D2317),
+    onSurfaceVariant = Color(0xFFFFCCBC),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF5D3A2E),
+    outlineVariant = Color(0xFF3D2317),
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFF7B4BFF),
+// ============================================
+// VENUSAUR THEME (Grass/Poison)
+// Vibrant green with teal accents
+// ============================================
+private val VenusaurDark = darkColorScheme(
+    primary = Color(0xFF4CAF50),           // Grass Green
     onPrimary = Color.White,
-    secondary = Color(0xFF00BFA6),
-    onSecondary = Color.Black,
-    tertiary = Color(0xFFFF6F61),
+    primaryContainer = Color(0xFF2E7D32),   // Deep Green
+    onPrimaryContainer = Color(0xFFC8E6C9),
+
+    secondary = Color(0xFF26A69A),          // Teal (Poison)
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFF00897B),
+    onSecondaryContainer = Color(0xFFB2DFDB),
+
+    tertiary = Color(0xFF66BB6A),           // Light Green
+    onTertiary = Color(0xFF1B5E20),
+    tertiaryContainer = Color(0xFF43A047),
+    onTertiaryContainer = Color(0xFFDCEDC8),
+
+    background = Color(0xFF0D1A0D),         // Dark Forest
+    onBackground = Color(0xFFE8F5E9),
+
+    surface = Color(0xFF1A2A1A),            // Deep Green Surface
+    onSurface = Color(0xFFE8F5E9),
+    surfaceVariant = Color(0xFF263626),
+    onSurfaceVariant = Color(0xFFC8E6C9),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF3D5A3D),
+    outlineVariant = Color(0xFF263626),
+)
+
+// ============================================
+// BLASTOISE THEME (Water)
+// Ocean blue with turquoise accents
+// ============================================
+private val BlastoiseDark = darkColorScheme(
+    primary = Color(0xFF2196F3),           // Ocean Blue
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFF1565C0),   // Deep Blue
+    onPrimaryContainer = Color(0xFFBBDEFB),
+
+    secondary = Color(0xFF00BCD4),          // Cyan (Water Cannons)
+    onSecondary = Color(0xFF01579B),
+    secondaryContainer = Color(0xFF0097A7),
+    onSecondaryContainer = Color(0xFFB2EBF2),
+
+    tertiary = Color(0xFF03A9F4),           // Light Blue
     onTertiary = Color.White,
-    background = Color(0xFFFFFBFE),
-    onBackground = Color(0xFF1C1B1F),
-    surface = Color(0xFFFFFBFE),
-    onSurface = Color(0xFF1C1B1F)
+    tertiaryContainer = Color(0xFF0277BD),
+    onTertiaryContainer = Color(0xFFB3E5FC),
+
+    background = Color(0xFF0A1420),         // Deep Ocean
+    onBackground = Color(0xFFE1F5FE),
+
+    surface = Color(0xFF15202B),            // Dark Blue Surface
+    onSurface = Color(0xFFE1F5FE),
+    surfaceVariant = Color(0xFF1E2C3A),
+    onSurfaceVariant = Color(0xFFBBDEFB),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF2C4A5D),
+    outlineVariant = Color(0xFF1E2C3A),
 )
 
-// Expressive Typography
-private val ExpressiveTypography = Typography(
-    displayLarge = TextStyle(
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 57.sp,
-        letterSpacing = (-0.25).sp
-    ),
-    headlineMedium = TextStyle(
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 28.sp
-    ),
-    bodyLarge = TextStyle(
-        fontWeight = FontWeight.Normal,
-        fontSize = 18.sp,
-        lineHeight = 28.sp
-    ),
-    labelLarge = TextStyle(
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp
-    )
-)
+// ============================================
+// THEME ENUM
+// ============================================
+enum class AppTheme {
+    CHARIZARD,
+    VENUSAUR,
+    BLASTOISE
+}
 
-// Expressive Shapes (more curvature)
-private val ExpressiveShapes = Shapes(
-    small = RoundedCornerShape(10.dp),
-    medium = RoundedCornerShape(20.dp),
-    large = RoundedCornerShape(40.dp)
-)
-
-@OptIn(ExperimentalSharedTransitionApi::class, ExperimentalSharedTransitionApi::class,
-    ExperimentalMaterial3ExpressiveApi::class
-)
+// ============================================
+// MAIN THEME COMPOSABLE
+// ============================================
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun PokeVerseTheme(
+fun PokeverseTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    selectedTheme: AppTheme = AppTheme.CHARIZARD,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    val colorScheme = when (selectedTheme) {
+        AppTheme.CHARIZARD -> CharizardDark
+        AppTheme.VENUSAUR -> VenusaurDark
+        AppTheme.BLASTOISE -> BlastoiseDark
     }
 
-    val sysUiController = rememberSystemUiController()
-    SideEffect {
-        // Force black bars and white icons (darkIcons = false -> white icons)
-        sysUiController.setStatusBarColor(color = Color.Transparent, darkIcons = false)
-        sysUiController.setNavigationBarColor(color = Color.Transparent, darkIcons = false)
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+        }
     }
 
     MaterialExpressiveTheme(
         colorScheme = colorScheme,
-        typography = ExpressiveTypography,
-        shapes = ExpressiveShapes,
         motionScheme = MotionScheme.expressive(),
+        typography = AppTypography,
         content = content
     )
 }

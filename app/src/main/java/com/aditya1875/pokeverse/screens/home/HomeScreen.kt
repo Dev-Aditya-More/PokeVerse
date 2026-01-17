@@ -55,7 +55,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,8 +67,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -85,13 +82,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicator
-import com.aditya1875.pokeverse.screens.home.components.AnimatedBackground
 import com.aditya1875.pokeverse.screens.home.components.FilterBar
 import com.aditya1875.pokeverse.screens.home.components.ImprovedPokemonCard
 import com.aditya1875.pokeverse.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.SearchResult
-import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
 import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -105,7 +100,6 @@ fun HomeScreen(navController: NavHostController) {
     val isLoading = viewModel.isLoading
     val endReached = viewModel.endReached
     var query by rememberSaveable { mutableStateOf("") }
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -126,7 +120,6 @@ fun HomeScreen(navController: NavHostController) {
 
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
 
-
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore) {
             viewModel.loadPokemonList()
@@ -139,29 +132,26 @@ fun HomeScreen(navController: NavHostController) {
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-
+        modifier = Modifier.fillMaxSize()
     ) {
-        AnimatedBackground()
-
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = MaterialTheme.colorScheme.background,
             topBar = {
                 TopAppBar(
                     title = {
                         Text(
-                            "Pokéverse",
+                            "Pokeverse",
                             style = MaterialTheme.typography.headlineSmall.copy(
-                                fontSize = 26.sp, letterSpacing = 0.5.sp
+                                fontSize = 26.sp,
+                                letterSpacing = 0.5.sp
                             ),
-                            color = Color.White
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Black,
-                        navigationIconContentColor = Color.White,
-                        titleContentColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimary
                     )
                 )
             },
@@ -174,15 +164,17 @@ fun HomeScreen(navController: NavHostController) {
                 ) {
                     FloatingActionButton(
                         onClick = { coroutineScope.launch { listState.animateScrollToItem(0) } },
-                        containerColor = Color(0xFF802525),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
                         elevation = FloatingActionButtonDefaults.elevation(8.dp)
                     ) {
-                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to top", tint = Color.White)
+                        Icon(
+                            Icons.Default.KeyboardArrowUp,
+                            contentDescription = "Scroll to top",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                     }
                 }
-            },
-
-
+            }
         ) { paddingValues ->
             val focusManager = LocalFocusManager.current
             val keyboardController = LocalSoftwareKeyboardController.current
@@ -220,7 +212,12 @@ fun HomeScreen(navController: NavHostController) {
                             query = it
                             viewModel.onSearchQueryChanged(it)
                         },
-                        label = { Text("Search a Pokémon", color = Color.White) },
+                        label = {
+                            Text(
+                                "Search a Pokémon",
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                         trailingIcon = {
@@ -228,7 +225,7 @@ fun HomeScreen(navController: NavHostController) {
                                 isSearching -> {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(20.dp),
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.primary,
                                         strokeWidth = 2.dp
                                     )
                                 }
@@ -237,11 +234,19 @@ fun HomeScreen(navController: NavHostController) {
                                         query = ""
                                         viewModel.onSearchQueryChanged("")
                                     }) {
-                                        Icon(Icons.Default.Close, "Clear", tint = Color.White)
+                                        Icon(
+                                            Icons.Default.Close,
+                                            "Clear",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
                                     }
                                 }
                                 else -> {
-                                    Icon(Icons.Default.Search, "Search", tint = Color.White)
+                                    Icon(
+                                        Icons.Default.Search,
+                                        "Search",
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
                                 }
                             }
                         },
@@ -260,16 +265,15 @@ fun HomeScreen(navController: NavHostController) {
                                 isSearchFocused = focusState.isFocused
                             },
                         colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = Color.DarkGray,
-                            unfocusedTrailingIconColor = Color.DarkGray,
-                            unfocusedLabelColor = Color.DarkGray,
-                            unfocusedTextColor = Color.White,
-                            focusedTextColor = Color.White,
-                            focusedTrailingIconColor = Color.White,
-                            focusedBorderColor = Color.White.copy(alpha = 0.5f),
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
                         )
                     )
-
 
                     AnimatedVisibility(
                         visible = isSearchFocused &&
@@ -282,7 +286,7 @@ fun HomeScreen(navController: NavHostController) {
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(Color(0xFF1A1A1A))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .heightIn(max = 400.dp)
                         ) {
                             when {
@@ -293,7 +297,9 @@ fun HomeScreen(navController: NavHostController) {
                                             .padding(32.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        CircularProgressIndicator(color = Color(0xFF802525))
+                                        CircularProgressIndicator(
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
                                     }
                                 }
 
@@ -306,7 +312,7 @@ fun HomeScreen(navController: NavHostController) {
                                     ) {
                                         Text(
                                             "No Pokémon found",
-                                            color = Color.White.copy(alpha = 0.6f)
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                         )
                                     }
                                 }
@@ -347,11 +353,7 @@ fun HomeScreen(navController: NavHostController) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(
-                                        Brush.verticalGradient(
-                                            listOf(Color(0xFF1C1C1C), Color(0xFF101010))
-                                        )
-                                    ),
+                                    .background(MaterialTheme.colorScheme.background),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Column(
@@ -381,7 +383,7 @@ fun HomeScreen(navController: NavHostController) {
                                         text = title,
                                         style = MaterialTheme.typography.headlineSmall.copy(
                                             fontWeight = FontWeight.SemiBold,
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onBackground,
                                             letterSpacing = 0.5.sp
                                         ),
                                         textAlign = TextAlign.Center
@@ -390,7 +392,7 @@ fun HomeScreen(navController: NavHostController) {
                                     Text(
                                         text = subtitle,
                                         style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = Color(0xFFB0B0B0)
+                                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                                         ),
                                         textAlign = TextAlign.Center
                                     )
@@ -401,8 +403,8 @@ fun HomeScreen(navController: NavHostController) {
                                         onClick = { viewModel.loadPokemonList() },
                                         shape = RoundedCornerShape(14.dp),
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(0xFF802525),
-                                            contentColor = Color.White
+                                            containerColor = MaterialTheme.colorScheme.primary,
+                                            contentColor = MaterialTheme.colorScheme.onPrimary
                                         ),
                                         elevation = ButtonDefaults.buttonElevation(8.dp),
                                         contentPadding = PaddingValues(horizontal = 22.dp, vertical = 10.dp)
@@ -426,17 +428,15 @@ fun HomeScreen(navController: NavHostController) {
                         }
 
                         else -> {
-
                             Box(modifier = Modifier.fillMaxSize()) {
-
                                 val animatedIndices = remember { mutableStateSetOf<Int>() }
 
-                                // Compute visible item indices using derivedStateOf
                                 val visibleIndices by remember {
                                     derivedStateOf {
                                         listState.layoutInfo.visibleItemsInfo.map { it.index }.toSet()
                                     }
                                 }
+
                                 LazyColumn(
                                     state = listState,
                                     contentPadding = PaddingValues(16.dp),
@@ -450,28 +450,31 @@ fun HomeScreen(navController: NavHostController) {
                                             }
                                         }
 
-                                        val isFavorite by viewModel.isInFavorites(pokemon.name).collectAsStateWithLifecycle(false)
+                                        val isFavorite by viewModel.isInFavorites(pokemon.name)
+                                            .collectAsStateWithLifecycle(false)
+                                        val isInTeam by viewModel.isInTeam(pokemon.name)
+                                            .collectAsStateWithLifecycle(false)
 
-                                        val isInTeam by viewModel.isInTeam(pokemon.name).collectAsStateWithLifecycle(false)
-
-                                        // Stagger delay
-                                        val itemAnimDelay = index
                                         var isVisible by remember { mutableStateOf(false) }
 
-                                        // Animate entry
                                         val alphaa by animateFloatAsState(
                                             targetValue = if (isVisible) 1f else 0f,
-                                            animationSpec = tween(durationMillis = 400, delayMillis = itemAnimDelay),
+                                            animationSpec = tween(
+                                                durationMillis = 400,
+                                                delayMillis = index
+                                            ),
                                             label = "alphaAnim"
                                         )
 
                                         val transY by animateDpAsState(
                                             targetValue = if (isVisible) 0.dp else 20.dp,
-                                            animationSpec = tween(durationMillis = 400, delayMillis = itemAnimDelay.toInt()),
+                                            animationSpec = tween(
+                                                durationMillis = 400,
+                                                delayMillis = index.toInt()
+                                            ),
                                             label = "slideAnim"
                                         )
 
-                                        // Trigger entry when composed
                                         LaunchedEffect(Unit) {
                                             isVisible = true
                                         }
@@ -503,7 +506,6 @@ fun HomeScreen(navController: NavHostController) {
                                     }
                                 }
                             }
-
                         }
                     }
                 }

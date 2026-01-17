@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 fun SettingsCard(
     title: String,
     icon: ImageVector,
-    iconTint: Color,
+    iconTint: Color? = null,
     iconSize: Dp = 30.dp,
     expanded: Boolean,
     onExpandToggle: () -> Unit,
@@ -44,7 +44,9 @@ fun SettingsCard(
             .fillMaxWidth()
             .clickable { onExpandToggle() }
             .animateContentSize(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -54,17 +56,27 @@ fun SettingsCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(icon, contentDescription = null, tint = iconTint, modifier = Modifier.width(iconSize))
+                    Icon(
+                        icon,
+                        contentDescription = null,
+                        tint = iconTint ?: MaterialTheme.colorScheme.primary, // Use theme if not specified
+                        modifier = Modifier.width(iconSize)
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(title, style = MaterialTheme.typography.titleMedium, color = Color.White)
+                    Text(
+                        title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     trailing?.invoke()
+                    Spacer(modifier = Modifier.width(3.dp))
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                         contentDescription = "Expand",
-                        tint = Color.White
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }

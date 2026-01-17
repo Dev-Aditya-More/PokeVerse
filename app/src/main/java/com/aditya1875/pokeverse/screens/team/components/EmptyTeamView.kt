@@ -58,9 +58,12 @@ fun EmptyTeamView(
     navController: NavController,
     viewModel: PokemonViewModel = koinViewModel()
 ) {
-
+    // Use theme-based gradient
     val pokeballGradient = Brush.verticalGradient(
-        listOf(Color(0xFF1E1E2C), Color(0xFF2C5364))
+        listOf(
+            MaterialTheme.colorScheme.surface,
+            MaterialTheme.colorScheme.surfaceVariant
+        )
     )
 
     Box(
@@ -102,14 +105,14 @@ fun EmptyTeamView(
                 text = "Your Team is Empty",
                 fontWeight = FontWeight.Bold,
                 fontSize = 26.sp,
-                color = Color.White
+                color = MaterialTheme.colorScheme.onSurface // THEME-AWARE
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Build a balanced team.\nMix types for better coverage.",
-                color = Color(0xFFAAAAAA),
+                color = MaterialTheme.colorScheme.onSurfaceVariant, // THEME-AWARE
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp
@@ -119,15 +122,11 @@ fun EmptyTeamView(
 
             Button(
                 onClick = {
-//                    showTeamPicker = true
                     navController.navigate("home") {
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }
-                        // 2. Avoid multiple copies of the same destination when
-                        // reselecting the same item
                         launchSingleTop = true
-                        // 3. Restore state when reselecting a previously selected item
                         restoreState = true
                     }
                 },
@@ -136,11 +135,11 @@ fun EmptyTeamView(
                     .fillMaxWidth(0.8f)
                     .height(54.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFDC3545),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary, // THEME-AWARE
+                    contentColor = MaterialTheme.colorScheme.onPrimary // THEME-AWARE
                 ),
                 elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 0.dp
+                    defaultElevation = 4.dp
                 )
             ) {
                 Row(
@@ -171,14 +170,16 @@ fun EmptyStateCard(
     icon: ImageVector,
     title: String,
     subtitle: String,
-    color: Color
+    color: Color? = null // Make optional, use theme color if null
 ) {
+    val accentColor = color ?: MaterialTheme.colorScheme.primary
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 32.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF2A2A2A)
+            containerColor = MaterialTheme.colorScheme.surface // THEME-AWARE
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -191,7 +192,7 @@ fun EmptyStateCard(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = color.copy(alpha = 0.5f),
+                tint = accentColor.copy(alpha = 0.5f),
                 modifier = Modifier.size(64.dp)
             )
 
@@ -200,7 +201,7 @@ fun EmptyStateCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onSurface, // THEME-AWARE
                 fontWeight = FontWeight.Bold
             )
 
@@ -209,7 +210,7 @@ fun EmptyStateCard(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant, // THEME-AWARE
                 textAlign = TextAlign.Center
             )
         }

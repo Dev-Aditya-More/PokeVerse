@@ -1,17 +1,16 @@
 package com.aditya1875.pokeverse.screens.detail.components
 
-import android.media.MediaPlayer
 import android.os.Build
-import android.speech.tts.TextToSpeech
-import android.speech.tts.UtteranceProgressListener
-import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -19,7 +18,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,13 +43,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Shuffle
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
@@ -68,7 +65,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
@@ -115,8 +111,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
-import java.util.Locale
-import java.util.UUID
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
@@ -136,9 +130,22 @@ fun PokemonDetailPage(
     val typeList = pokemon?.types?.map { it.type.name } ?: emptyList()
     val currentNameForBg = pokemon?.name ?: ""
     val context = LocalContext.current
-    var isTtsReady by remember { mutableStateOf(false) }
-    val mediaPlayer = remember { MediaPlayer.create(context, R.raw.beepeffect) }
-    var isSpeaking by remember { mutableStateOf(false) }
+
+    val ttsManager = remember { context.getTTSManager() }
+    val isTtsReady by ttsManager.isReady.collectAsStateWithLifecycle()
+    val isSpeaking by ttsManager.isSpeaking.collectAsStateWithLifecycle()
+
+    val infiniteTransition = rememberInfiniteTransition(label = "speaking")
+    val pulseAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(800),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse"
+    )
+
     var showLoader by remember { mutableStateOf(false) }
     val name =
         pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "This Pokémon"
@@ -238,65 +245,6 @@ fun PokemonDetailPage(
             showLoader = true
         }
     }
-
-    val pressed = remember { mutableStateOf(false) }
-    val defaultColor = Color.Black.copy(alpha = 0.6f)
-    val containerColor by animateColorAsState(
-        targetValue = if (pressed.value) bgColor else defaultColor,
-        animationSpec = tween(150),
-        label = "chip color anim"
-    )
-
-    val tts = remember {
-        lateinit var ttsInstance: TextToSpeech
-        ttsInstance = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                // now it's safe to call methods on the created instance
-                val result = ttsInstance.setLanguage(Locale.US)
-                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    Log.e("TTS", "Language not supported or missing data: $result")
-                    isTtsReady = false
-                } else {
-                    ttsInstance.setPitch(1.3f)
-                    ttsInstance.setSpeechRate(0.9f)
-                    isTtsReady = true
-                }
-            } else {
-                Log.e("TTS", "Initialization failed: $status")
-                isTtsReady = false
-            }
-        }
-        ttsInstance
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            try {
-                tts.stop()
-                tts.shutdown()
-            } catch (_: Exception) {
-            }
-            try {
-                mediaPlayer.release()
-            } catch (_: Exception) {
-            }
-        }
-    }
-
-    tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-        override fun onStart(utteranceId: String?) {
-            isSpeaking = true
-        }
-
-        override fun onDone(utteranceId: String?) {
-            isSpeaking = false
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun onError(utteranceId: String?) {
-            isSpeaking = false
-        }
-    })
 
     Box(
         modifier = Modifier
@@ -499,7 +447,7 @@ fun PokemonDetailPage(
 
                     Text(
                         text = if (isShinyEnabled) "Shiny" else "Default",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -513,7 +461,7 @@ fun PokemonDetailPage(
         }
 
         Scaffold(
-            containerColor = Color.Transparent,
+            containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             topBar = {
                 TopAppBar(
@@ -543,7 +491,7 @@ fun PokemonDetailPage(
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
@@ -590,52 +538,37 @@ fun PokemonDetailPage(
                             Icon(
                                 imageVector = Icons.Default.Shuffle,
                                 contentDescription = "Switch Sprite Style",
-                                tint = Color.White
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
 
                         IconButton(onClick = {
-
                             if (isTtsReady) {
-                                val utteranceId = UUID.randomUUID().toString()
-                                try {
-                                    // try to play beep then speak
-                                    mediaPlayer.setOnCompletionListener {
-                                        tts.speak(
-                                            speechText,
-                                            TextToSpeech.QUEUE_FLUSH,
-                                            null,
-                                            utteranceId
-                                        )
-                                    }
-                                    mediaPlayer.start()
-
-                                    // fallback: if beep didn't start, speak immediately
-                                    if (!mediaPlayer.isPlaying) {
-                                        tts.speak(
-                                            speechText,
-                                            TextToSpeech.QUEUE_FLUSH,
-                                            null,
-                                            utteranceId
-                                        )
-                                    }
-                                } catch (e: Exception) {
-                                    Log.e("TTS", "beep/speak failed, speaking directly", e)
-                                    tts.speak(
-                                        speechText,
-                                        TextToSpeech.QUEUE_FLUSH,
-                                        null,
-                                        utteranceId
-                                    )
+                                if (isSpeaking) {
+                                    ttsManager.stop()
+                                } else {
+                                    ttsManager.speak(speechText, withBeep = true)
                                 }
                             } else {
-                                Toast.makeText(context, "Wait a few seconds before clicking back.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Initializing...", Toast.LENGTH_SHORT).show()
                             }
-                        }) {
+                        },
+                            modifier = Modifier.graphicsLayer {
+                                alpha = if (isSpeaking) pulseAlpha else 1f
+                            }
+                        ){
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                contentDescription = "Speak Description",
-                                tint = Color.White
+                                imageVector = if (isSpeaking) {
+                                    Icons.AutoMirrored.Filled.VolumeOff // Stop icon
+                                } else {
+                                    Icons.AutoMirrored.Filled.VolumeUp // Play icon
+                                },
+                                contentDescription = if (isSpeaking) "Stop" else "Speak",
+                                tint = if (isSpeaking) {
+                                    MaterialTheme.colorScheme.primary // Highlighted
+                                } else {
+                                    MaterialTheme.colorScheme.onPrimary
+                                }
                             )
                         }
 
@@ -698,7 +631,7 @@ fun PokemonDetailPage(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color.Black),
+                            .background(MaterialTheme.colorScheme.background),
                         contentAlignment = Alignment.Center
                     ) {
 
@@ -729,10 +662,10 @@ fun PokemonDetailPage(
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
                                         "ID: #${pokemon.id.toString().padStart(4, '0')}",
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
-                                    Text("Height: ${pokemon.height / 10.0} m", color = Color.White)
-                                    Text("Weight: ${pokemon.weight / 10.0} kg", color = Color.White)
+                                    Text("Height: ${pokemon.height / 10.0} m", color = MaterialTheme.colorScheme.onSurface)
+                                    Text("Weight: ${pokemon.weight / 10.0} kg", color = MaterialTheme.colorScheme.onSurface)
                                 }
                             }
                         }
@@ -745,7 +678,7 @@ fun PokemonDetailPage(
                                         "Types",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 
@@ -756,27 +689,13 @@ fun PokemonDetailPage(
                                                 label = {
                                                     Text(
                                                         it.type.name.uppercase(),
-                                                        color = Color.White
+                                                        color = MaterialTheme.colorScheme.onSurface
                                                     )
                                                 },
                                                 colors = AssistChipDefaults.assistChipColors(
-                                                    containerColor = containerColor,
-                                                    labelColor = Color.White
-                                                ),
-                                                modifier = Modifier
-                                                    .pointerInput(Unit) {
-                                                        detectTapGestures(
-                                                            onPress = {
-                                                                pressed.value = true
-                                                                try {
-                                                                    // Wait for the press to finish
-                                                                    awaitRelease()
-                                                                } finally {
-                                                                    pressed.value = false
-                                                                }
-                                                            }
-                                                        )
-                                                    }
+                                                    containerColor = MaterialTheme.colorScheme.surface,
+                                                    labelColor = MaterialTheme.colorScheme.onSurface
+                                                )
                                             )
                                         }
                                     }
@@ -794,14 +713,14 @@ fun PokemonDetailPage(
                                             "Description",
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color.White
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
                                             text = descriptionText,
                                             style = MaterialTheme.typography.bodyMedium,
                                             lineHeight = 20.sp,
-                                            color = Color.White.copy(alpha = 0.9f)
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
                                         )
                                     }
                                 }
@@ -816,7 +735,7 @@ fun PokemonDetailPage(
                                         "Base Stats",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
 
                                     Spacer(modifier = Modifier.height(12.dp))
@@ -844,13 +763,13 @@ fun PokemonDetailPage(
                                                     text = stat.stat.name.replace("-", " ")
                                                         .replaceFirstChar { it.uppercase() },
                                                     style = MaterialTheme.typography.bodyMedium,
-                                                    color = Color.White.copy(alpha = 0.9f),
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                                                     modifier = Modifier.weight(1f)
                                                 )
                                                 Text(
                                                     text = stat.base_stat.toString(),
                                                     style = MaterialTheme.typography.labelMedium,
-                                                    color = Color.White.copy(alpha = 0.7f),
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                                     modifier = Modifier.width(40.dp),
                                                     textAlign = TextAlign.End
                                                 )
@@ -863,7 +782,7 @@ fun PokemonDetailPage(
                                                     .fillMaxWidth()
                                                     .height(10.dp)
                                                     .clip(RoundedCornerShape(50))
-                                                    .background(Color.White.copy(alpha = 0.1f))
+                                                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                                             ) {
                                                 Box(
                                                     modifier = Modifier
@@ -914,12 +833,12 @@ fun PokemonDetailPage(
                                             Text(
                                                 text = "Moves",
                                                 fontWeight = FontWeight.Bold,
-                                                color = Color.White,
+                                                color = MaterialTheme.colorScheme.onSurface,
                                                 style = MaterialTheme.typography.titleMedium
                                             )
                                             Text(
                                                 text = "${learnableMoves.size} total",
-                                                color = Color.White.copy(alpha = 0.6f),
+                                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                                 style = MaterialTheme.typography.bodySmall
                                             )
                                         }
@@ -947,7 +866,7 @@ fun PokemonDetailPage(
                                                         text = move.move.name
                                                             .replace("-", " ")
                                                             .replaceFirstChar { it.uppercase() },
-                                                        color = Color.White,
+                                                        color = MaterialTheme.colorScheme.onSurface,
                                                         style = MaterialTheme.typography.bodyMedium,
                                                         modifier = Modifier.weight(1f)
                                                     )
@@ -960,7 +879,7 @@ fun PokemonDetailPage(
                                                     ) {
                                                         Text(
                                                             text = if (level > 0) "Lv. $level" else "Start",
-                                                            color = Color.White,
+                                                            color = MaterialTheme.colorScheme.onSurface,
                                                             style = MaterialTheme.typography.labelMedium,
                                                             fontWeight = FontWeight.Bold
                                                         )
@@ -1008,7 +927,7 @@ fun PokemonDetailPage(
                                         Text(
                                             text = "Other Forms",
                                             fontWeight = FontWeight.Bold,
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                         Spacer(modifier = Modifier.height(12.dp))
@@ -1034,12 +953,12 @@ fun PokemonDetailPage(
                                                                 " "
                                                             )
                                                                 .replaceFirstChar { it.uppercase() },
-                                                            color = Color.White
+                                                            color = MaterialTheme.colorScheme.onSurface
                                                         )
                                                     },
                                                     colors = AssistChipDefaults.assistChipColors(
                                                         containerColor = bgColor.copy(alpha = 0.3f),
-                                                        labelColor = Color.White
+                                                        labelColor = MaterialTheme.colorScheme.onSurface
                                                     )
                                                 )
                                             }
@@ -1066,13 +985,13 @@ fun PokemonDetailPage(
                         ) {
                             Text(
                                 text = "No Pokémon found",
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.headlineSmall
                             )
 
                             Text(
                                 text = "\"$missingName\" doesn’t exist.\nCheck spelling or try suggestions.",
-                                color = Color.White.copy(alpha = 0.7f),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 textAlign = TextAlign.Center
                             )
 

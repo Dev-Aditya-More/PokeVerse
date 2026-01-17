@@ -51,7 +51,6 @@ import coil.request.ImageRequest
 import com.aditya1875.pokeverse.data.remote.model.PokemonResult
 import kotlinx.coroutines.delay
 
-// Improved Pokemon Card with Sprite
 @Composable
 fun ImprovedPokemonCard(
     pokemon: PokemonResult,
@@ -94,7 +93,7 @@ fun ImprovedPokemonCard(
             },
         elevation = CardDefaults.cardElevation(6.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1E1E)
+            containerColor = MaterialTheme.colorScheme.surface // THEME-AWARE
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -104,8 +103,8 @@ fun ImprovedPokemonCard(
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
-                            Color(0xFF0F0F0F),
-                            Color(0xFF1A1A1A)
+                            MaterialTheme.colorScheme.surfaceVariant, // THEME-AWARE
+                            MaterialTheme.colorScheme.surface // THEME-AWARE
                         )
                     )
                 )
@@ -120,8 +119,8 @@ fun ImprovedPokemonCard(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFF3A3A3A),
-                                Color(0xFF2A2A2A)
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), // THEME-AWARE
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.5f) // THEME-AWARE
                             )
                         )
                     ),
@@ -148,7 +147,7 @@ fun ImprovedPokemonCard(
                 Text(
                     text = pokemon.name.replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface, // THEME-AWARE
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )
@@ -158,7 +157,7 @@ fun ImprovedPokemonCard(
                 Text(
                     text = "#${pokemonId.toString().padStart(4, '0')}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF9E9E9E),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant, // THEME-AWARE
                     fontSize = 14.sp
                 )
             }
@@ -168,6 +167,7 @@ fun ImprovedPokemonCard(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                // Team Button
                 IconButton(
                     onClick = {
                         if (isInTeam) {
@@ -185,15 +185,16 @@ fun ImprovedPokemonCard(
                         imageVector = if (isInTeam) Icons.Default.Remove else Icons.Default.Add,
                         contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
                         tint = if (isInTeam) {
-                            Color.Red
+                            MaterialTheme.colorScheme.error
                         } else {
-                            if (teamSize >= 6) Color.White.copy(alpha = 0.3f)
-                            else Color.White.copy(alpha = 0.7f)
+                            if (teamSize >= 6) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         },
                         modifier = Modifier.size(24.dp)
                     )
                 }
 
+                // Favorites Button
                 IconButton(
                     onClick = {
                         if (isInFavorites) {
@@ -207,7 +208,11 @@ fun ImprovedPokemonCard(
                     Icon(
                         imageVector = if (isInFavorites) Icons.Default.Star else Icons.Default.StarBorder,
                         contentDescription = if (isInFavorites) "Remove from Favorites" else "Add to Favorites",
-                        tint = if (isInFavorites) Color(0xFFFFC107) else Color.White.copy(alpha = 0.7f),
+                        tint = if (isInFavorites) {
+                            MaterialTheme.colorScheme.secondary
+                        } else {
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        },
                         modifier = Modifier.size(24.dp)
                     )
                 }
