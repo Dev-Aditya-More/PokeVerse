@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -15,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -28,10 +28,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import com.aditya1875.pokeverse.components.PokemonNotFoundScreen
+import com.aditya1875.pokeverse.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.di.appModule
 import com.aditya1875.pokeverse.screens.analysis.TeamAnalysisScreen
 import com.aditya1875.pokeverse.screens.detail.PokemonDetailScreen
@@ -40,7 +38,9 @@ import com.aditya1875.pokeverse.screens.onboarding.IntroScreen
 import com.aditya1875.pokeverse.screens.settings.SettingsScreen
 import com.aditya1875.pokeverse.screens.splash.SplashScreen
 import com.aditya1875.pokeverse.screens.team.DreamTeam
-import com.aditya1875.pokeverse.ui.theme.PokeVerseTheme
+import com.aditya1875.pokeverse.screens.theme.ThemeSelectorScreen
+import com.aditya1875.pokeverse.ui.theme.AppTheme
+import com.aditya1875.pokeverse.ui.theme.PokeverseTheme
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
@@ -48,6 +48,7 @@ import com.aditya1875.pokeverse.utils.WithBottomBar
 import com.google.firebase.messaging.FirebaseMessaging
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.context.GlobalContext.startKoin
 
 class MainActivity : ComponentActivity() {
@@ -72,10 +73,23 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
+            val themePreferences = koinInject<ThemePreferences>()
+            val selectedTheme by themePreferences.selectedTheme.collectAsState(
+                initial = AppTheme.CHARIZARD
+            )
+
+            var currentTheme by remember { mutableStateOf(selectedTheme) }
+
+            LaunchedEffect(selectedTheme) {
+                currentTheme = selectedTheme
+            }
+
             val startDestination = remember { mutableStateOf("splash") }
             val context = LocalContext.current
 
-            PokeVerseTheme {
+            PokeverseTheme(
+                selectedTheme = currentTheme,
+            ) {
                 val viewModel: PokemonViewModel = koinViewModel()
                 val navController = rememberNavController()
 
@@ -90,13 +104,13 @@ class MainActivity : ComponentActivity() {
                         else -> "home"
                     }
                 }
-                var selectedTab by rememberSaveable { mutableStateOf(0) }
+
+                var selectedTab by rememberSaveable { mutableIntStateOf(0) }
                 var teamName by rememberSaveable { mutableStateOf("My Team") }
                 var favoritesName by rememberSaveable { mutableStateOf("My Favourites") }
 
                 val selectedName =
                     if (selectedTab == 0) teamName else favoritesName
-
 
                 NavHost(
                     navController = navController,
@@ -109,6 +123,7 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(navController)
                         }
                     }
+
                     composable("dream_team") {
                         WithBottomBar(
                             navController = navController,
@@ -129,6 +144,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     }
+
                     composable("team_analysis") {
                         TeamAnalysisScreen(navController = navController)
                     }
@@ -147,6 +163,15 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(navController)
                         }
                     }
+
+                    composable("theme_selector") {
+                        ThemeSelectorScreen(
+                            navController = navController,
+                            onThemeSelected ={ theme ->
+                                currentTheme = theme
+                            }
+                        )
+                    }
                 }
 
                 LaunchedEffect(navController) {
@@ -158,6 +183,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
         FirebaseMessaging.getInstance().token
             .addOnCompleteListener { task ->
                 if (!task.isSuccessful) {

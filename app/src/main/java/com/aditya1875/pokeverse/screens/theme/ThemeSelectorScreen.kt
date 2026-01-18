@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.screens.themeSelector
+package com.aditya1875.pokeverse.screens.theme
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*

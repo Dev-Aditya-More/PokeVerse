@@ -13,10 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 import java.util.UUID
 
-/**
- * Singleton TTS Manager - Initialized once, reused everywhere
- * Much faster than creating new TTS instance per screen
- */
 class TTSManager private constructor(context: Context) {
 
     companion object {
@@ -53,7 +49,17 @@ class TTSManager private constructor(context: Context) {
                         Log.e("TTS", "Language not supported")
                         _isReady.value = false
                     } else {
-                        // Optimized settings for Pokemon descriptions
+
+                        val voices = engine.voices
+
+                        val preferred = voices.firstOrNull {
+                            it.name.contains("en-us-x-iom")
+                        }
+
+                        if (preferred != null) {
+                            engine.voice = preferred
+                        }
+
                         engine.setPitch(1.2f)  // Slightly higher pitch
                         engine.setSpeechRate(1.0f)  // Normal speed (faster than 0.9f)
 
