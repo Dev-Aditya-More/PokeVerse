@@ -36,28 +36,29 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 
-
 @Composable
 fun TeamContent(
     team: List<TeamMemberEntity>,
     navController: NavController,
     onRemove: (TeamMemberEntity) -> Unit,
-    accentColor: Color
+    accentColor: Color? = null
 ) {
+    val progressColor = accentColor ?: MaterialTheme.colorScheme.primary
+
     Column(modifier = Modifier.fillMaxSize()) {
         if (team.isEmpty()) {
             EmptyStateCard(
-                icon = Icons.Default.Add,
+                icon = Icons.Default.Star,
                 title = "No Team Members",
                 subtitle = "Add Pokemon to your team from the home screen",
-                color = Color(0xFFFFC107)
+                color = MaterialTheme.colorScheme.secondary
             )
         } else {
             // Progress Section
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF2A2A2A)
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -74,14 +75,14 @@ fun TeamContent(
                     ) {
                         Text(
                             text = "Team Progress",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold
                         )
 
                         Text(
                             text = "${team.size}/6",
-                            color = accentColor,
+                            color = progressColor,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -94,7 +95,7 @@ fun TeamContent(
                             team.size < 6 -> "Add ${6 - team.size} more Pokémon to complete your team"
                             else -> "Team complete! Ready for battle"
                         },
-                        color = Color(0xFFAAAAAA),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center
                     )
@@ -104,7 +105,7 @@ fun TeamContent(
                     VibrantProgressBar(
                         progress = team.size / 6f,
                         modifier = Modifier.fillMaxWidth(),
-                        accentColor = accentColor
+                        accentColor = progressColor
                     )
                 }
             }
@@ -117,8 +118,8 @@ fun TeamContent(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF2196F3),
-                    contentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    contentColor = MaterialTheme.colorScheme.onTertiary
                 ),
                 contentPadding = PaddingValues(vertical = 14.dp)
             ) {

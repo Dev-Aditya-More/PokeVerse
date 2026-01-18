@@ -14,10 +14,10 @@ android {
     defaultConfig {
         applicationId = "com.aditya1875.pokeverse"
         minSdk = 25
-        targetSdk = 36
+        targetSdk = 37
 
         versionCode = 36
-        versionName = "1.3.6"
+        versionName = "1.3.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

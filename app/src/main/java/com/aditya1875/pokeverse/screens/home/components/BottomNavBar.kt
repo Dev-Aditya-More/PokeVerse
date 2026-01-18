@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
@@ -34,45 +35,45 @@ fun BottomNavigationBar(
     selectedTab: Int,
     onTabChange: (Int) -> Unit
 ) {
-
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination?.route
 
     BottomAppBar(
-        containerColor = Color.Black,
-        contentColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         val items = listOf(
-            Triple("home", Icons.Default.Home, Color(0xFFEF5350)),
-            Triple("dream_team",  Icons.Default.Star, Color(0xFFFFD54F)),
-            Triple("settings", Icons.Default.Settings, Color(0xFF42A5F5))
+            Triple("home", Icons.Default.Home, MaterialTheme.colorScheme.primary),
+            Triple("dream_team", Icons.Default.Star, MaterialTheme.colorScheme.secondary),
+            Triple("settings", Icons.Default.Settings, MaterialTheme.colorScheme.tertiary)
         )
 
         items.forEach { (route, icon, accentColor) ->
-
-            val resolvedIcon =
-                when (route) {
-                    "dream_team" if selectedTab == 1 -> Icons.Default.Star
-                    "dream_team" -> Icons.Default.Add
-                    else -> icon
-                }
+            val resolvedIcon = when (route) {
+                "dream_team" if selectedTab == 1 -> Icons.Default.Star
+                "dream_team" -> Icons.Default.Add
+                else -> icon
+            }
 
             val selected = currentDestination == route
 
             val iconTint by animateColorAsState(
-                targetValue = if (selected) accentColor else Color.Gray,
-                animationSpec = tween(durationMillis = 300)
+                targetValue = if (selected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
+                animationSpec = tween(durationMillis = 300),
+                label = "icon_tint"
             )
 
             val textAlpha by animateFloatAsState(
                 targetValue = if (selected) 1f else 0f,
-                animationSpec = tween(durationMillis = 250)
+                animationSpec = tween(durationMillis = 250),
+                label = "text_alpha"
             )
 
             val bgColor by animateColorAsState(
                 targetValue = if (selected) accentColor.copy(alpha = 0.15f)
                 else Color.Transparent,
-                animationSpec = tween(durationMillis = 350)
+                animationSpec = tween(durationMillis = 350),
+                label = "bg_color"
             )
 
             NavigationBarItem(
@@ -103,13 +104,8 @@ fun BottomNavigationBar(
                 },
                 label = {
                     Text(
-                        text = when (route) {
-                            "home" -> ""
-                            "dream_team" -> ""
-                            "settings" -> ""
-                            else -> ""
-                        },
-                        color = Color.White.copy(alpha = textAlpha),
+                        text = "",
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = textAlpha),
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.alpha(textAlpha)

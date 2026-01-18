@@ -60,7 +60,6 @@ fun SuggestionRow(
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Sprite
         Box(
             modifier = Modifier
                 .size(48.dp)
@@ -68,7 +67,7 @@ fun SuggestionRow(
                 .background(
                     Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFF802525).copy(alpha = 0.2f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                             Color.Transparent
                         )
                     )
@@ -92,26 +91,24 @@ fun SuggestionRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Base name
                 Text(
                     text = searchResult.baseName.replaceFirstChar { it.uppercase() },
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.SemiBold
                     )
                 )
 
-                // Form label badge
                 searchResult.formLabel?.let { formLabel ->
                     Surface(
                         shape = RoundedCornerShape(4.dp),
-                        color = Color(0xFF802525).copy(alpha = 0.3f),
-                        border = BorderStroke(1.dp, Color(0xFF802525).copy(alpha = 0.5f))
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                     ) {
                         Text(
                             text = formLabel,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            color = Color(0xFFFF6B6B),
+                            color = MaterialTheme.colorScheme.primary,
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Medium
@@ -124,7 +121,7 @@ fun SuggestionRow(
             if (pokemonId != null) {
                 Text(
                     text = "#${pokemonId.toString().padStart(4, '0')}",
-                    color = Color.White.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -133,7 +130,7 @@ fun SuggestionRow(
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = "Navigate",
-            tint = Color.White.copy(alpha = 0.4f),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
         )
     }

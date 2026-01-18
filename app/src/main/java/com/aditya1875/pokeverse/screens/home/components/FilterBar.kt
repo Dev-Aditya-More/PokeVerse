@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -42,19 +43,18 @@ fun FilterBar(
                             imageVector = Icons.Filled.Done,
                             contentDescription = "Selected",
                             modifier = Modifier.size(FilterChipDefaults.IconSize),
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onPrimary // THEME-AWARE
                         )
                     }
                 } else null,
                 modifier = Modifier.padding(vertical = 4.dp),
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = Color(0xFF802525),
-                    selectedLabelColor = Color.White
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer, // THEME-AWARE
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer // THEME-AWARE
                 )
             )
         }
 
-        // Region chips
         items(Region.entries.toTypedArray()) { region ->
             val selected = currentFilter.selectedRegion == region
             FilterChip(
@@ -67,19 +67,20 @@ fun FilterBar(
                             imageVector = Icons.Filled.Done,
                             contentDescription = "Selected",
                             modifier = Modifier.size(FilterChipDefaults.IconSize),
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 } else null,
                 modifier = Modifier.padding(vertical = 4.dp),
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = Color(0xFF802525),
-                    selectedLabelColor = Color.White
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }
     }
 }
+
 
 @Preview
 @Composable

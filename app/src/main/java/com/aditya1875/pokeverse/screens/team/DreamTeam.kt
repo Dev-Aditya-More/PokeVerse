@@ -31,6 +31,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -64,22 +65,18 @@ fun DreamTeam(
     navController: NavController,
     team: List<TeamMemberEntity>,
     onRemove: (TeamMemberEntity) -> Unit,
-    selectedName : String,
-    onNameChange : (String) -> Unit,
-    selectedTab : Int,
-    onTabChange : (Int) -> Unit,
+    selectedName: String,
+    onNameChange: (String) -> Unit,
+    selectedTab: Int,
+    onTabChange: (Int) -> Unit,
     viewModel: PokemonViewModel = koinViewModel()
 ) {
-    val backgroundColor = Color(0xFF1C1C1C)
-    val accentRed = Color(0xFFDC3545)
-
     var isEditingName by rememberSaveable { mutableStateOf(false) }
-
     val haptic = LocalHapticFeedback.current
     val favorites by viewModel.favorites.collectAsStateWithLifecycle()
 
     Scaffold(
-        containerColor = backgroundColor,
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxSize()
     ) { padding ->
 
@@ -87,12 +84,12 @@ fun DreamTeam(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .background(backgroundColor)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             when {
                 viewModel.isLoading -> {
                     Box(Modifier.fillMaxSize(), Alignment.Center) {
-                        CircularProgressIndicator(color = accentRed)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     }
                 }
 
@@ -113,7 +110,7 @@ fun DreamTeam(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFF2A2A2A)
+                                containerColor = MaterialTheme.colorScheme.primary
                             ),
                             shape = RoundedCornerShape(12.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -130,16 +127,16 @@ fun DreamTeam(
                                         value = selectedName,
                                         onValueChange = onNameChange,
                                         textStyle = LocalTextStyle.current.copy(
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onPrimary,
                                             fontSize = 20.sp,
                                             fontWeight = FontWeight.SemiBold
                                         ),
                                         singleLine = true,
                                         modifier = Modifier.weight(1f),
                                         colors = OutlinedTextFieldDefaults.colors(
-                                            focusedBorderColor = accentRed,
-                                            unfocusedBorderColor = Color(0xFF3A3A3A),
-                                            cursorColor = accentRed
+                                            focusedBorderColor = MaterialTheme.colorScheme.onPrimary,
+                                            unfocusedBorderColor = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
+                                            cursorColor = MaterialTheme.colorScheme.onPrimary
                                         )
                                     )
 
@@ -149,14 +146,14 @@ fun DreamTeam(
                                     }) {
                                         Icon(
                                             imageVector = Icons.Default.Check,
-                                            tint = Color(0xFF4CAF50),
+                                            tint = MaterialTheme.colorScheme.secondary,
                                             contentDescription = "Confirm"
                                         )
                                     }
                                 } else {
                                     Text(
                                         text = selectedName,
-                                        color = Color.White,
+                                        color = MaterialTheme.colorScheme.onPrimary,
                                         fontSize = 24.sp,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier
@@ -168,7 +165,7 @@ fun DreamTeam(
                                         Icon(
                                             imageVector = Icons.Default.Edit,
                                             contentDescription = "Edit team name",
-                                            tint = Color(0xFF9E9EB0)
+                                            tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                                         )
                                     }
                                 }
@@ -181,7 +178,7 @@ fun DreamTeam(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = Color(0xFF2A2A2A)
+                                containerColor = MaterialTheme.colorScheme.surface
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -195,7 +192,7 @@ fun DreamTeam(
                                     text = "Team (${team.size})",
                                     icon = Icons.Default.Add,
                                     isSelected = selectedTab == 0,
-                                    color = Color(0xFFA64034),
+                                    color = MaterialTheme.colorScheme.primary,
                                     onClick = { onTabChange(0) },
                                     modifier = Modifier.weight(1f)
                                 )
@@ -207,7 +204,7 @@ fun DreamTeam(
                                     text = "Favorites (${favorites.size})",
                                     icon = Icons.Default.Star,
                                     isSelected = selectedTab == 1,
-                                    color = Color(0xFFFFC107),
+                                    color = MaterialTheme.colorScheme.secondary,
                                     onClick = { onTabChange(1) },
                                     modifier = Modifier.weight(1f)
                                 )
@@ -230,7 +227,7 @@ fun DreamTeam(
                                     team = team,
                                     navController = navController,
                                     onRemove = onRemove,
-                                    accentColor = accentRed
+                                    accentColor = MaterialTheme.colorScheme.primary
                                 )
                                 1 -> FavoritesContent(
                                     favorites = favorites,

@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.di
 import androidx.room.Room
 import com.aditya1875.pokeverse.data.local.TeamDatabase
 import com.aditya1875.pokeverse.data.local.PokemonDatabase
+import com.aditya1875.pokeverse.data.preferences.ThemePreferences
 import org.koin.androidx.viewmodel.dsl.viewModel
 import com.aditya1875.pokeverse.data.remote.PokeApi
 import com.aditya1875.pokeverse.data.repository.PokemonRepoImpl
@@ -38,6 +39,7 @@ val appModule = module {
     single<PokemonRepo> {
         PokemonRepoImpl(get())
     }
+    single { ThemePreferences(get()) }
 
     single { PokemonSearchRepository(api = get()) }
 

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,14 +40,14 @@ fun FavoritesContent(
                 icon = Icons.Default.Star,
                 title = "No Favorites",
                 subtitle = "Add Pokemon to your favorites from the home screen",
-                color = Color(0xFFFFC107)
+                color = MaterialTheme.colorScheme.secondary // THEME-AWARE (yellow)
             )
         } else {
             // Favorites count card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF2A2A2A)
+                    containerColor = MaterialTheme.colorScheme.surface // THEME-AWARE
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -59,14 +60,14 @@ fun FavoritesContent(
                 ) {
                     Text(
                         text = "Total Favorites",
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onSurface, // THEME-AWARE
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold
                     )
 
                     Text(
                         text = favorites.size.toString(),
-                        color = Color(0xFFFFC107),
+                        color = MaterialTheme.colorScheme.secondary, // THEME-AWARE (yellow)
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
