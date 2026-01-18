@@ -59,7 +59,7 @@ fun SettingsCard(
                     Icon(
                         icon,
                         contentDescription = null,
-                        tint = iconTint ?: MaterialTheme.colorScheme.primary, // Use theme if not specified
+                        tint = iconTint ?: MaterialTheme.colorScheme.primary,
                         modifier = Modifier.width(iconSize)
                     )
                     Spacer(modifier = Modifier.width(8.dp))

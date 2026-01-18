@@ -24,7 +24,7 @@ class ThemePreferences(private val context: Context) {
             try {
                 AppTheme.valueOf(themeName)
             } catch (e: IllegalArgumentException) {
-                AppTheme.CHARIZARD
+                AppTheme.POKEVERSE
             }
         }
 
