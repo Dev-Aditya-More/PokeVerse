@@ -57,15 +57,13 @@ import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicato
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeamAnalysisScreen(
     navController: NavController,
     viewModel: PokemonViewModel = koinViewModel()
 ) {
     val team by viewModel.team.collectAsStateWithLifecycle()
-    val backgroundColor = Color(0xFF1C1C1C)
-    val accentRed = Color(0xFFDC3545)
 
     var teamWithTypes by remember { mutableStateOf<List<TeamMemberWithTypes>>(emptyList()) }
     var analysis by remember { mutableStateOf<TeamAnalysis?>(null) }
@@ -84,7 +82,6 @@ fun TeamAnalysisScreen(
         errorMessage = null
 
         try {
-            // Fetch Pokemon data with types
             val withTypes = mutableListOf<TeamMemberWithTypes>()
 
             team.forEach { member ->
@@ -101,7 +98,6 @@ fun TeamAnalysisScreen(
                     )
                 } catch (e: Exception) {
                     Log.e("TeamAnalysis", "Failed to fetch data for ${member.name}", e)
-                    // Add with default type if API fails
                     withTypes.add(
                         TeamMemberWithTypes(
                             name = member.name,
@@ -113,8 +109,6 @@ fun TeamAnalysisScreen(
             }
 
             teamWithTypes = withTypes
-
-            // Perform analysis (this is safe - no compose calls)
             analysis = TeamAnalyzer.analyzeTeam(withTypes)
 
             Log.d("TeamAnalysis", "Analysis complete: score=${analysis?.coverageScore}")
@@ -128,21 +122,26 @@ fun TeamAnalysisScreen(
     }
 
     Scaffold(
-        containerColor = backgroundColor,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Team Analysis", color = Color.White) },
+                title = {
+                    Text(
+                        "Team Analysis",
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Black
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         }
@@ -166,11 +165,11 @@ fun TeamAnalysisScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        CircularProgressIndicator(color = accentRed)
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         Spacer(Modifier.height(16.dp))
                         Text(
                             "Analyzing your team...",
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -187,27 +186,28 @@ fun TeamAnalysisScreen(
                         Icon(
                             Icons.Default.Warning,
                             contentDescription = null,
-                            tint = accentRed,
+                            tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(Modifier.height(16.dp))
                         Text(
                             "Analysis Failed",
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
                             errorMessage ?: "Unknown error",
-                            color = Color.White.copy(alpha = 0.7f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
                         )
                         Spacer(Modifier.height(24.dp))
                         Button(
                             onClick = { navController.popBackStack() },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = accentRed
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             )
                         ) {
                             Text("Go Back")
@@ -219,7 +219,7 @@ fun TeamAnalysisScreen(
                     AnalysisContent(
                         analysis = analysis!!,
                         teamWithTypes = teamWithTypes,
-                        accentColor = accentRed
+                        accentColor = MaterialTheme.colorScheme.primary
                     )
                 }
             }

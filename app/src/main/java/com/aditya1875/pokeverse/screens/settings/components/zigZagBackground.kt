@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.screens.settings.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -9,7 +10,8 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 fun Modifier.zigZagBackground(
     zigZagHeight: Float = 20f,
     steps: Int = 20,
-    lineColor: Color = Color.Gray.copy(alpha = 0.3f),
+    lineColor: Color? = null,
+    outlineColor : Color,
     strokeWidth: Float = 4f
 ): Modifier = this.then(
     Modifier.drawBehind {
@@ -30,9 +32,12 @@ fun Modifier.zigZagBackground(
             }
         }
 
+        // Use theme outline color if not specified
+        val color = lineColor ?: outlineColor
+
         drawPath(
             path = path,
-            color = lineColor,
+            color = color,
             style = Stroke(width = strokeWidth)
         )
     }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -22,7 +23,7 @@ import androidx.compose.ui.unit.dp
 fun VibrantProgressBar(
     progress: Float,
     modifier: Modifier = Modifier,
-    accentColor: Color = Color(0xFFDC3545)
+    accentColor: Color? = null // Make optional, use theme color if null
 ) {
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
@@ -33,18 +34,20 @@ fun VibrantProgressBar(
         label = "progress"
     )
 
+    val progressColor = accentColor ?: MaterialTheme.colorScheme.primary
+
     Box(
         modifier = modifier
             .height(10.dp)
             .clip(RoundedCornerShape(5.dp))
-            .background(Color(0xFF1A1A1A)) // Dark gray background
+            .background(MaterialTheme.colorScheme.surfaceVariant) // THEME-AWARE
     ) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(animatedProgress)
                 .clip(RoundedCornerShape(5.dp))
-                .background(accentColor) // Red accent for progress
+                .background(progressColor) // Use theme-aware color
         )
     }
 }

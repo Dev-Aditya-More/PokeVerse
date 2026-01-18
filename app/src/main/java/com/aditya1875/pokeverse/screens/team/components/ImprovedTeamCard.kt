@@ -58,7 +58,6 @@ fun ImprovedTeamCard(
     type: String
 ) {
     val pokemonId = remember {
-        // Extract ID from imageUrl or name
         pokemon.name.hashCode().absoluteValue % 1000
     }
 
@@ -83,7 +82,7 @@ fun ImprovedTeamCard(
             },
         elevation = CardDefaults.cardElevation(6.dp),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1E1E)
+            containerColor = MaterialTheme.colorScheme.surface // THEME-AWARE
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -93,8 +92,8 @@ fun ImprovedTeamCard(
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
-                            Color(0xFF0F0F0F),
-                            Color(0xFF1A1A1A)
+                            MaterialTheme.colorScheme.surfaceVariant, // THEME-AWARE
+                            MaterialTheme.colorScheme.surface // THEME-AWARE
                         )
                     )
                 )
@@ -109,8 +108,8 @@ fun ImprovedTeamCard(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                Color(0xFF3A3A3A),
-                                Color(0xFF2A2A2A)
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), // THEME-AWARE
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.5f) // THEME-AWARE
                             )
                         )
                     ),
@@ -137,7 +136,7 @@ fun ImprovedTeamCard(
                 Text(
                     text = pokemon.name.replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.onSurface, // THEME-AWARE
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )
@@ -146,16 +145,16 @@ fun ImprovedTeamCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.Add,
+                        imageVector = Icons.Default.Star, // Changed from Add to Star for team
                         contentDescription = null,
-                        tint = Color.White.copy(0.9f),
+                        tint = MaterialTheme.colorScheme.secondary, // THEME-AWARE (yellow in your themes)
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
                         text = "Team Member",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF9E9E9E),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, // THEME-AWARE
                         fontSize = 12.sp
                     )
                 }
@@ -169,7 +168,7 @@ fun ImprovedTeamCard(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Remove",
-                    tint = Color(0xFFFF4444),
+                    tint = MaterialTheme.colorScheme.error, // THEME-AWARE
                     modifier = Modifier.size(24.dp)
                 )
             }
