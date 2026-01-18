@@ -19,10 +19,39 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-// ============================================
+// POKEVERSE CLASSIC
+
+private val PokeverseClassicDark = darkColorScheme(
+    primary = Color(0xFFB63A3A),            // Muted Pokeverse Red
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFF8E2B2B),
+    onPrimaryContainer = Color(0xFFFFDAD6),
+
+    secondary = Color(0xFF3A3A3A),          // Neutral Dark
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFF2A2A2A),
+    onSecondaryContainer = Color(0xFFE0E0E0),
+
+    tertiary = Color(0xFF5A5A5A),           // Subtle highlights
+    onTertiary = Color.White,
+
+    background = Color(0xFF0E0E0E),         // Near-black (NOT pure black)
+    onBackground = Color(0xFFEDEDED),
+
+    surface = Color(0xFF1A1A1A),
+    onSurface = Color(0xFFEDEDED),
+    surfaceVariant = Color(0xFF242424),
+    onSurfaceVariant = Color(0xFFCFCFCF),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF3A3A3A),
+    outlineVariant = Color(0xFF2A2A2A),
+)
+
 // CHARIZARD THEME (Fire/Flying)
-// Fiery orange and red with hints of blue wings
-// ============================================
+
 private val CharizardDark = darkColorScheme(
     primary = Color(0xFFFF6D00),           // Charizard Orange
     onPrimary = Color.White,
@@ -54,10 +83,8 @@ private val CharizardDark = darkColorScheme(
     outlineVariant = Color(0xFF3D2317),
 )
 
-// ============================================
-// VENUSAUR THEME (Grass/Poison)
-// Vibrant green with teal accents
-// ============================================
+// VENUSAUR THEME
+
 private val VenusaurDark = darkColorScheme(
     primary = Color(0xFF4CAF50),           // Grass Green
     onPrimary = Color.White,
@@ -89,10 +116,8 @@ private val VenusaurDark = darkColorScheme(
     outlineVariant = Color(0xFF263626),
 )
 
-// ============================================
-// BLASTOISE THEME (Water)
-// Ocean blue with turquoise accents
-// ============================================
+// BLASTOISE THEME
+
 private val BlastoiseDark = darkColorScheme(
     primary = Color(0xFF2196F3),           // Ocean Blue
     onPrimary = Color.White,
@@ -124,26 +149,24 @@ private val BlastoiseDark = darkColorScheme(
     outlineVariant = Color(0xFF1E2C3A),
 )
 
-// ============================================
 // THEME ENUM
-// ============================================
+
 enum class AppTheme {
+    POKEVERSE,
     CHARIZARD,
     VENUSAUR,
     BLASTOISE
 }
 
-// ============================================
 // MAIN THEME COMPOSABLE
-// ============================================
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PokeverseTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    selectedTheme: AppTheme = AppTheme.CHARIZARD,
+    selectedTheme: AppTheme = AppTheme.POKEVERSE,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when (selectedTheme) {
+        AppTheme.POKEVERSE -> PokeverseClassicDark
         AppTheme.CHARIZARD -> CharizardDark
         AppTheme.VENUSAUR -> VenusaurDark
         AppTheme.BLASTOISE -> BlastoiseDark
@@ -154,7 +177,9 @@ fun PokeverseTheme(
         SideEffect {
             val window = (view.context as Activity).window
             window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+            WindowCompat
+                .getInsetsController(window, view)
+                .isAppearanceLightStatusBars = false
         }
     }
 

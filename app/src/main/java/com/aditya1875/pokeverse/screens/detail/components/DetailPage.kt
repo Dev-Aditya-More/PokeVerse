@@ -3,8 +3,6 @@ package com.aditya1875.pokeverse.screens.detail.components
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -12,11 +10,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -30,12 +23,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -45,7 +35,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Shuffle
@@ -80,7 +69,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -90,26 +78,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import coil.ImageLoader
-import coil.compose.AsyncImage
-import coil.decode.ImageDecoderDecoder
-import coil.decode.SvgDecoder
-import coil.request.ImageRequest
-import coil.size.Size
-import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.data.remote.model.PokemonResult
 import com.aditya1875.pokeverse.screens.detail.GlossyCard
 import com.aditya1875.pokeverse.screens.detail.getPokemonBackgroundColor
-import com.aditya1875.pokeverse.screens.settings.components.ResponsiveMetaballSwitch
-import com.aditya1875.pokeverse.specialscreens.ParticleBackground
-import com.aditya1875.pokeverse.specialscreens.getParticleTypeFor
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
 import com.aditya1875.pokeverse.utils.UiError
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -147,21 +121,16 @@ fun PokemonDetailPage(
     )
 
     var showLoader by remember { mutableStateOf(false) }
-    val name =
-        pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "This Pokémon"
+    val name = pokemon?.name?.replaceFirstChar { it.uppercase() } ?: "This Pokémon"
     val type = pokemon?.types?.firstOrNull()?.type?.name ?: "unknown type"
-    val descriptionText =
-        pokemon?.id?.let { viewModel.getLocalDescription(it) } ?: ""
-    val cleanText =
-        descriptionText.replace(Regex("[^\\x00-\\x7F]"), " ")
-            .replace("\n", " ")
-            .trim()
+    val descriptionText = pokemon?.id?.let { viewModel.getLocalDescription(it) } ?: ""
+    val cleanText = descriptionText.replace(Regex("[^\\x00-\\x7F]"), " ")
+        .replace("\n", " ")
+        .trim()
     val speechText = "$name. A $type type Pokémon. $cleanText"
 
     var isSpriteChanged by rememberSaveable { mutableStateOf(false) }
-
     val evolutionUi = uiState.evolutionUi
-
     val listState = rememberLazyListState()
 
     LaunchedEffect(uiState.pokemon?.name) {
@@ -186,8 +155,8 @@ fun PokemonDetailPage(
         "Toxtricity-gmax" to Color(0xFF8E24AA),
     )
 
-    val bgColor =
-        gmaxPokemonColors[currentNameForBg] ?: getPokemonBackgroundColor(currentNameForBg, typeList)
+    val bgColor = gmaxPokemonColors[currentNameForBg]
+        ?: getPokemonBackgroundColor(currentNameForBg, typeList)
 
     val spriteVisible by remember {
         derivedStateOf {
@@ -197,7 +166,6 @@ fun PokemonDetailPage(
 
     var isShinyEnabled by rememberSaveable { mutableStateOf(false) }
     var currentSpriteSource by rememberSaveable { mutableStateOf("official-artwork") }
-
     var currentSpriteUrl by rememberSaveable {
         mutableStateOf(
             pokemon?.sprites?.other?.officialArtwork?.frontDefault
@@ -250,216 +218,7 @@ fun PokemonDetailPage(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .windowInsetsPadding(WindowInsets.systemBars)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f)
-                .align(Alignment.TopCenter)
-                .zIndex(1f)
-        ) {
-            // background radial glow
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val gradientBrush = Brush.radialGradient(
-                    colors = listOf(
-                        bgColor.copy(alpha = 0.55f),
-                        bgColor.copy(alpha = 0.1f),
-                        Color.Transparent
-                    ),
-                    center = center,
-                    radius = size.maxDimension * 0.7f
-                )
-                drawCircle(
-                    brush = gradientBrush,
-                    radius = size.maxDimension * 0.7f,
-                    center = center
-                )
-            }
-
-            LayeredWaveformVisualizer(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .fillMaxWidth()
-                    .height(140.dp)
-                    .zIndex(0f), // ensure behind
-                color = bgColor,
-                isSpeaking = isSpeaking
-            )
-
-            if (specialEffectsEnabled && spriteVisible && spriteEffectsEnabled) {
-                val particleType = getParticleTypeFor(typeList)
-                ParticleBackground(particleType, pokemon?.name.toString())
-            }
-
-
-            if (evolutionUi != null) {
-                AnimatedVisibility(
-                    visible = spriteVisible,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    EvolutionChainRow(
-                        evolution = evolutionUi,
-                        onPokemonClick = { name ->
-                            viewModel.fetchPokemonData(name)
-                        },
-                        modifier = Modifier.zIndex(10f)
-                    )
-                }
-            }
-
-            val pressScale = remember { Animatable(1f) }
-            val context = LocalContext.current
-            val imageLoader = ImageLoader.Builder(context)
-                .components {
-                    add(ImageDecoderDecoder.Factory())
-                }
-                .build()
-
-            val animatedAlpha by animateFloatAsState(
-                targetValue = if (showLoader || !spriteVisible) 0f else 1f,
-                animationSpec = tween(
-                    durationMillis = 250,
-                    easing = FastOutSlowInEasing
-                ),
-                label = "SpriteFade"
-            )
-
-            var spriteLoaded by remember { mutableStateOf(false) }
-            var spriteError by remember { mutableStateOf(false) }
-
-            Box(
-                modifier = Modifier
-                    .size(220.dp)
-                    .align(Alignment.Center)
-                    .zIndex(4f)
-            ) {
-                // Check if sprite URL is available
-                val hasValidSprite = currentSpriteUrl != null && !spriteError
-
-                if (hasValidSprite) {
-                    AsyncImage(
-                        model = ImageRequest.Builder(context)
-                            .data(currentSpriteUrl)
-                            .decoderFactory(SvgDecoder.Factory())
-                            .crossfade(true)
-                            .allowHardware(false)
-                            .size(Size.ORIGINAL)
-                            .build(),
-                        contentDescription = pokemon?.name,
-                        contentScale = ContentScale.Fit,
-                        imageLoader = imageLoader,
-                        onLoading = {
-                            showLoader = true
-                            spriteLoaded = false
-                            spriteError = false
-                        },
-                        onSuccess = {
-                            showLoader = false
-                            isSpriteChanged = false
-                            spriteLoaded = true
-                            spriteError = false
-                        },
-                        onError = {
-                            showLoader = false
-                            spriteLoaded = false
-                            spriteError = true
-                        },
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                alpha = animatedAlpha
-                                scaleX = pressScale.value
-                                scaleY = pressScale.value
-                            }
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onPress = {
-                                        pressScale.animateTo(1.1f, tween(150))
-                                        spriteEffectsEnabledState.value = true
-                                        tryAwaitRelease()
-                                        pressScale.animateTo(1.0f, tween(150))
-                                        spriteEffectsEnabledState.value = false
-                                    }
-                                )
-                            }
-                    )
-                } else {
-                    // Show placeholder when sprite is not available
-                    SpritePlaceholder(
-                        isShiny = isShinyEnabled,
-                        bgColor = bgColor,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                alpha = if (!spriteVisible) 0f else 1f
-                                scaleX = pressScale.value
-                                scaleY = pressScale.value
-                            }
-                    )
-
-                    // Mark as loaded so toggle appears
-                    LaunchedEffect(Unit) {
-                        spriteLoaded = true
-                    }
-                }
-
-            AnimatedVisibility(
-                visible = showLoader,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                LottieAnimation(
-                    composition = rememberLottieComposition(
-                        LottieCompositionSpec.RawRes(R.raw.shine)
-                    ).value,
-                    iterations = LottieConstants.IterateForever,
-                    modifier = Modifier
-                        .size(200.dp)
-                        .align(Alignment.Center)
-                )
-            }
-
-        }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            AnimatedVisibility(
-                visible = spriteLoaded && spriteVisible,
-                enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 }),
-                exit = fadeOut() + slideOutVertically(targetOffsetY = { it / 2 }),
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .offset(y = 140.dp)
-                    .zIndex(4f)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = null,
-                        tint = if (isShinyEnabled) Color(0xFFFFD700) else Color.White.copy(alpha = 0.5f),
-                        modifier = Modifier.size(18.dp)
-                    )
-
-                    Text(
-                        text = if (isShinyEnabled) "Shiny" else "Default",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    ResponsiveMetaballSwitch(
-                        checked = isShinyEnabled,
-                        onCheckedChange = { isShinyEnabled = it }
-                    )
-                }
-            }
-        }
-
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -559,21 +318,21 @@ fun PokemonDetailPage(
                         ){
                             Icon(
                                 imageVector = if (isSpeaking) {
-                                    Icons.AutoMirrored.Filled.VolumeOff // Stop icon
+                                    Icons.AutoMirrored.Filled.VolumeOff
                                 } else {
-                                    Icons.AutoMirrored.Filled.VolumeUp // Play icon
+                                    Icons.AutoMirrored.Filled.VolumeUp
                                 },
                                 contentDescription = if (isSpeaking) "Stop" else "Speak",
                                 tint = if (isSpeaking) {
-                                    MaterialTheme.colorScheme.primary // Highlighted
+                                    MaterialTheme.colorScheme.primary
                                 } else {
                                     MaterialTheme.colorScheme.onPrimary
                                 }
                             )
                         }
 
-                        val context = LocalContext.current
-                        val isInFavorites by viewModel.isInFavorites(pokemon?.name ?: "").collectAsStateWithLifecycle(initialValue = false)
+                        val isInFavorites by viewModel.isInFavorites(pokemon?.name ?: "")
+                            .collectAsStateWithLifecycle(initialValue = false)
 
                         PokemonActionsMenu(
                             pokemon = pokemon,
@@ -610,7 +369,6 @@ fun PokemonDetailPage(
                                 }
                             }
                         )
-
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent
@@ -634,7 +392,6 @@ fun PokemonDetailPage(
                             .background(MaterialTheme.colorScheme.background),
                         contentAlignment = Alignment.Center
                     ) {
-
                         LoadingIndicator(
                             modifier = Modifier.size(95.dp),
                             color = bgColor
@@ -651,9 +408,31 @@ fun PokemonDetailPage(
                             .padding(horizontal = 16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-
                         item {
-                            Spacer(modifier = Modifier.height(315.dp))
+                            PokemonDetailHeader(
+                                pokemon = pokemon,
+                                bgColor = bgColor,
+                                specialEffectsEnabled = specialEffectsEnabled,
+                                spriteEffectsEnabled = spriteEffectsEnabled,
+                                spriteEffectsEnabledState = spriteEffectsEnabledState,
+                                isSpeaking = isSpeaking,
+                                spriteVisible = spriteVisible,
+                                evolutionUi = evolutionUi,
+                                onPokemonClick = { name ->
+                                    viewModel.fetchPokemonData(name)
+                                },
+                                isShinyEnabled = isShinyEnabled,
+                                onShinyToggle = { isShinyEnabled = it },
+                                currentSpriteUrl = currentSpriteUrl,
+                                onSpriteLoaded = { loaded ->
+                                    showLoader = !loaded
+                                },
+                                onSpriteError = { /* handle error if needed */ },
+                                showLoader = showLoader,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .aspectRatio(1f)
+                            )
                         }
 
                         // Basic Info
@@ -681,9 +460,7 @@ fun PokemonDetailPage(
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-
                                         pokemon.types.forEach {
-
                                             AssistChip(
                                                 onClick = {},
                                                 label = {
@@ -990,7 +767,7 @@ fun PokemonDetailPage(
                             )
 
                             Text(
-                                text = "\"$missingName\" doesn’t exist.\nCheck spelling or try suggestions.",
+                                text = "\"$missingName\" doesn't exist.\nCheck spelling or try suggestions.",
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 textAlign = TextAlign.Center
                             )

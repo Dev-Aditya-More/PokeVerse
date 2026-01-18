@@ -46,7 +46,7 @@ fun ThemeSelectorScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Choose Your Starter",
+                        "Choose Your Vibe",
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
@@ -170,6 +170,19 @@ data class StarterTheme(
 
 fun getStarterThemes(): List<StarterTheme> = listOf(
     StarterTheme(
+        theme = AppTheme.POKEVERSE,
+        pokemonName = "Pokeverse Classic",
+        pokemonNumber = "Default",
+        type = "Brand Theme",
+        emoji = "⭐",
+        description = "The original Pokeverse look and feel",
+        colors = listOf(
+            Color(0xFFB63A3A), // Pokeverse Red
+            Color(0xFF1A1A1A), // Surface
+            Color(0xFF0E0E0E)  // Background
+        )
+    ),
+    StarterTheme(
         theme = AppTheme.CHARIZARD,
         pokemonName = "Charizard",
         pokemonNumber = "#006",
@@ -259,6 +272,17 @@ fun StarterThemeCard(
             ) {
                 // Pokemon Info
                 Column(modifier = Modifier.weight(1f)) {
+
+                    if (starterTheme.theme == AppTheme.POKEVERSE) {
+                        Text(
+                            text = "Recommended",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(4.dp))
+                    }
+
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = starterTheme.emoji,

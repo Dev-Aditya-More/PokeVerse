@@ -132,7 +132,7 @@ fun PokemonActionsMenu(
                         Icon(
                             imageVector = if (isInFavorites) Icons.Default.Star else Icons.Default.StarBorder,
                             contentDescription = null,
-                            tint = if (isInFavorites) Color(0xFFFFC107) else Color.White,
+                            tint = if (isInFavorites) MaterialTheme.colorScheme.primary.copy(0.9f) else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(12.dp))

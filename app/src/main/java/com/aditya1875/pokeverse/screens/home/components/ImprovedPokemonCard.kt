@@ -93,7 +93,7 @@ fun ImprovedPokemonCard(
             },
         elevation = CardDefaults.cardElevation(6.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface // THEME-AWARE
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -103,8 +103,8 @@ fun ImprovedPokemonCard(
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant, // THEME-AWARE
-                            MaterialTheme.colorScheme.surface // THEME-AWARE
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            MaterialTheme.colorScheme.surface
                         )
                     )
                 )
@@ -119,8 +119,8 @@ fun ImprovedPokemonCard(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), // THEME-AWARE
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.5f) // THEME-AWARE
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                             )
                         )
                     ),
@@ -209,7 +209,7 @@ fun ImprovedPokemonCard(
                         imageVector = if (isInFavorites) Icons.Default.Star else Icons.Default.StarBorder,
                         contentDescription = if (isInFavorites) "Remove from Favorites" else "Add to Favorites",
                         tint = if (isInFavorites) {
-                            MaterialTheme.colorScheme.secondary
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
                         } else {
                             MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         },

@@ -168,6 +168,7 @@ fun SettingsScreen(navController: NavController) {
                 SettingsCard(
                     title = "Theme",
                     icon = Icons.Default.Palette,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
                     iconSize = 25.dp,
                     expanded = themeExpanded,
                     onExpandToggle = {

@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -46,6 +47,7 @@ import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.aditya1875.pokeverse.utils.WithBottomBar
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -58,9 +60,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            requestNotificationPermission()
-        }
+        requestNotificationPermission()
 
         NotificationUtils.createNotificationChannel(this)
 
@@ -75,10 +75,10 @@ class MainActivity : ComponentActivity() {
 
             val themePreferences = koinInject<ThemePreferences>()
             val selectedTheme by themePreferences.selectedTheme.collectAsState(
-                initial = AppTheme.CHARIZARD
+                initial = AppTheme.POKEVERSE
             )
 
-            var currentTheme by remember { mutableStateOf(selectedTheme) }
+            var currentTheme by rememberSaveable { mutableStateOf(selectedTheme) }
 
             LaunchedEffect(selectedTheme) {
                 currentTheme = selectedTheme
@@ -111,6 +111,8 @@ class MainActivity : ComponentActivity() {
 
                 val selectedName =
                     if (selectedTab == 0) teamName else favoritesName
+
+                val scope = rememberCoroutineScope()
 
                 NavHost(
                     navController = navController,
@@ -168,7 +170,9 @@ class MainActivity : ComponentActivity() {
                         ThemeSelectorScreen(
                             navController = navController,
                             onThemeSelected ={ theme ->
-                                currentTheme = theme
+                                scope.launch {
+                                    themePreferences.setTheme(theme)
+                                }
                             }
                         )
                     }
