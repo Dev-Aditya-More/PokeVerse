@@ -24,6 +24,15 @@
 | ![4](fastlane/metadata/android/en-US/images/phoneScreenshots/4.png) | ![5](fastlane/metadata/android/en-US/images/phoneScreenshots/5.png) | ![6](fastlane/metadata/android/en-US/images/phoneScreenshots/6.png) 
 | ![3](fastlane/metadata/android/en-US/images/phoneScreenshots/3.png)
 
+---  
+
+## Current Screenshots
+
+| ![1](images/1.png) | ![2](images/2.png) |
+|:-------------------------------------------------------------------:|
+| ![3](images/3.png) | ![4](images/4.png) | 
+![5](images/5.png) |
+
 ---
 
 ## ✨ Features
