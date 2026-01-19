@@ -143,17 +143,17 @@ fun GhostParticles(
                 // Draw multiple overlapping ellipses for wispy shape
                 drawOval(
                     color = baseColor.copy(alpha = alpha),
-                    size = androidx.compose.ui.geometry.Size(size, size * 0.5f),
-                    topLeft = Offset((-size / 2).toFloat(), (-size * 0.25f).toFloat())
+                    size = Size(size, size * 0.5f),
+                    topLeft = Offset((-size / 2), (-size * 0.25f))
                 )
                 drawOval(
                     color = baseColor.copy(alpha = alpha * 0.7f),
-                    size = androidx.compose.ui.geometry.Size(size * 0.7f, size * 0.35f),
+                    size = Size(size * 0.7f, size * 0.35f),
                     topLeft = Offset(-size * 0.35f, -size * 0.175f)
                 )
                 drawOval(
                     color = baseColor.copy(alpha = alpha * 0.4f),
-                    size = androidx.compose.ui.geometry.Size(size * 0.5f, size * 0.25f),
+                    size = Size(size * 0.5f, size * 0.25f),
                     topLeft = Offset(-size * 0.25f, -size * 0.125f)
                 )
             }

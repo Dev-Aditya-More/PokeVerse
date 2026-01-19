@@ -173,13 +173,19 @@ fun PokeverseTheme(
     }
 
     val view = LocalView.current
+
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat
-                .getInsetsController(window, view)
-                .isAppearanceLightStatusBars = false
+
+            // Let content draw behind system bars
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+
+            // Make status bar transparent
+            window.statusBarColor = Color.Transparent.toArgb()
+
+            val controller = WindowCompat.getInsetsController(window, view)
+            controller.isAppearanceLightStatusBars = false // dark icons? true
         }
     }
 

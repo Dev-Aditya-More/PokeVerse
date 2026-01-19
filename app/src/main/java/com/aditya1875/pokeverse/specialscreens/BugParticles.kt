@@ -52,8 +52,8 @@ fun BugParticles(
         val heightPx = size.height
 
         particles.forEach { p ->
-            val xPos = p.x * widthPx + 5 * sin((alphaAnim.value * 2 * Math.PI + p.x * 10).toDouble()).toFloat()
-            val yPos = p.y * heightPx + 5 * cos((alphaAnim.value * 3 * Math.PI + p.y * 10).toDouble()).toFloat()
+            val xPos = p.x * widthPx + 5 * sin((alphaAnim.value * 2 * Math.PI + p.x * 10)).toFloat()
+            val yPos = p.y * heightPx + 5 * cos((alphaAnim.value * 3 * Math.PI + p.y * 10)).toFloat()
             val alpha = p.baseAlpha * (0.5f + 0.5f * sin(alphaAnim.value * 2 * Math.PI * 2 + p.x * 20))
 
             val size = baseSizePx * p.sizeFactor

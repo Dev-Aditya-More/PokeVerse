@@ -62,7 +62,7 @@ fun IceParticles(
             val yPos = ((p.y + time * fallSpeed) % 1f) * heightPx
             // Horizontal sway using sine wave, amplitude ~10px
             val swayAmplitude = 10f
-            val xPos = (p.x * widthPx) + swayAmplitude * sin((time * 2 * Math.PI + p.swayPhase).toDouble()).toFloat()
+            val xPos = (p.x * widthPx) + swayAmplitude * sin((time * 2 * Math.PI + p.swayPhase)).toFloat()
 
             val size = baseSizePx * p.sizeFactor
             drawCircle(

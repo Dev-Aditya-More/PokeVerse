@@ -10,7 +10,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullSensor"
             android:exported="true"
             android:theme="@style/Theme.PokeVerse">
 
@@ -19,7 +19,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-        </activity
+        </activity>
 
     </application>
 </manifest>
