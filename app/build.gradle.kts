@@ -14,22 +14,36 @@ android {
     defaultConfig {
         applicationId = "com.aditya1875.pokeverse"
         minSdk = 25
-        targetSdk = 37
+        targetSdk = 36
 
-        versionCode = 37
-        versionName = "1.3.8"
+        versionCode = 39
+        versionName = "1.3.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file(properties["RELEASE_STORE_FILE"] ?: "")
-            storePassword = properties["RELEASE_STORE_PASSWORD"] as String?
-            keyAlias = properties["RELEASE_KEY_ALIAS"] as String?
-            keyPassword = properties["RELEASE_KEY_PASSWORD"] as String?
+            storeFile = file(
+                System.getenv("RELEASE_STORE_FILE")
+                    ?: project.findProperty("RELEASE_STORE_FILE") as String?
+                    ?: ""
+            )
+
+            storePassword =
+                System.getenv("RELEASE_STORE_PASSWORD")
+                    ?: project.findProperty("RELEASE_STORE_PASSWORD") as String?
+
+            keyAlias =
+                System.getenv("RELEASE_KEY_ALIAS")
+                    ?: project.findProperty("RELEASE_KEY_ALIAS") as String?
+
+            keyPassword =
+                System.getenv("RELEASE_KEY_PASSWORD")
+                    ?: project.findProperty("RELEASE_KEY_PASSWORD") as String?
         }
     }
+
 
     buildTypes {
         getByName("release") {

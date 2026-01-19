@@ -66,6 +66,9 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        FirebaseMessaging.getInstance()
+            .subscribeToTopic("theme_updates")
+
         startKoin {
             androidContext(this@MainActivity)
             modules(appModule)
@@ -188,16 +191,15 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        FirebaseMessaging.getInstance().token
+        FirebaseMessaging.getInstance()
+            .subscribeToTopic("theme_updates")
             .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                    return@addOnCompleteListener
+                if (task.isSuccessful) {
+                    Log.d("FCM", "Subscribed to theme_updates topic")
+                } else {
+                    Log.e("FCM", "Topic subscription failed", task.exception)
                 }
-                val token = task.result
-                Log.d("FCM", "FCM Token: $token")
             }
-
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)

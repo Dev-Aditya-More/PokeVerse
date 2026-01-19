@@ -58,7 +58,7 @@ fun PoisonParticles(
             // Wrap early: if above -bufferPx, wrap to bottom + bufferPx
             if (yPos < -bufferPx) yPos += heightPx + bufferPx
 
-            val xPos = p.x * widthPx + 5 * sin((time * 2 * Math.PI + p.x * 10).toDouble()).toFloat()
+            val xPos = p.x * widthPx + 5 * sin((time * 2 * Math.PI + p.x * 10)).toFloat()
             val size = baseSizePx * p.sizeFactor
 
             drawCircle(

@@ -38,7 +38,7 @@ import com.aditya1875.pokeverse.screens.onboarding.IntroScreen
 import com.aditya1875.pokeverse.screens.settings.SettingsScreen
 import com.aditya1875.pokeverse.screens.splash.SplashScreen
 import com.aditya1875.pokeverse.screens.team.DreamTeam
-import com.aditya1875.pokeverse.screens.themeSelector.ThemeSelectorScreen
+import com.aditya1875.pokeverse.screens.theme.ThemeSelectorScreen
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager

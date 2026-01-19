@@ -1,7 +1,5 @@
 import org.gradle.api.initialization.resolve.RepositoriesMode.FAIL_ON_PROJECT_REPOS
 
-include(":shared")
-
 
 pluginManagement {
     repositories {
@@ -28,3 +26,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "PokeVerse"
 include(":app")
+
