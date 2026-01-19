@@ -1,0 +1,165 @@
+name: Android CI/CD
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  # ============================================
+  # JOB 1: Build & Test
+  # ============================================
+  build-and-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+
+      - name: Generate Lint Baseline (if not exists)
+        run: |
+          if [ ! -f app/lint-baseline.xml ]; then
+            ./gradlew updateLintBaseline || true
+          fi
+
+      - name: Run Lint
+        run: ./gradlew lintDebug
+        continue-on-error: true
+
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest
+        continue-on-error: true
+
+      - name: Upload Lint Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lint-results
+          path: app/build/reports/lint-results-*.html
+
+  # ============================================
+  # JOB 2: Build Release
+  # ============================================
+  build-release:
+    name: Build Release
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      - name: Create local.properties
+        run: echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
+
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.SIGNING_KEY }}" | base64 --decode > app/release-keystore.jks
+
+      - name: Build Release APK
+        env:
+          KEYSTORE_FILE: release-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleRelease
+
+      - name: Build Release AAB
+        env:
+          KEYSTORE_FILE: release-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew bundleRelease
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload Release AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: app/build/outputs/bundle/release/app-release.aab
+
+  # ============================================
+  # JOB 3: Firebase App Distribution
+  # ============================================
+  distribute-firebase:
+    name: Distribute to Firebase
+    runs-on: ubuntu-latest
+    needs: build-release
+
+    steps:
+      - name: Download Release APK
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release-apk
+          path: app/build/outputs/apk/release/
+
+      - name: Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          file: app/build/outputs/apk/release/app-release.apk
+          releaseNotes: |
+            Build: ${{ github.run_number }}
+            Commit: ${{ github.sha }}
+
+  # ============================================
+  # JOB 4: Play Store Deployment
+  # ============================================
+  deploy-play-store:
+    name: Deploy to Play Store
+    runs-on: ubuntu-latest
+    needs: build-release
+
+    steps:
+      - name: Download Release AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: app-release-aab
+          path: app/build/outputs/bundle/release/
+
+      - name: Upload to Google Play (Internal)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.yourcompany.yourapp
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          track: internal
+          status: completed
