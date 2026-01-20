@@ -18,12 +18,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,21 +41,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.screens.analysis.components.AnalysisContent
+import com.aditya1875.pokeverse.screens.analysis.components.ErrorView
 import com.aditya1875.pokeverse.screens.analysis.components.PokemonTypeData
 import com.aditya1875.pokeverse.screens.analysis.components.TeamAnalysis
 import com.aditya1875.pokeverse.screens.analysis.components.TeamAnalyzer
 import com.aditya1875.pokeverse.screens.analysis.components.TeamMemberWithTypes
 import com.aditya1875.pokeverse.screens.analysis.components.TypeDiversity
-import com.aditya1875.pokeverse.screens.detail.components.CustomProgressIndicator
+import com.aditya1875.pokeverse.screens.analysis.components.LoadingView
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TeamAnalysisScreen(
     navController: NavController,
@@ -122,13 +120,15 @@ fun TeamAnalysisScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = Color(0xFF0F0F0F),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         "Team Analysis",
-                        color = MaterialTheme.colorScheme.onSurface
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
                     )
                 },
                 navigationIcon = {
@@ -136,12 +136,12 @@ fun TeamAnalysisScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = Color.White
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = Color(0xFF1A1A1A)
                 )
             )
         }
@@ -158,68 +158,17 @@ fun TeamAnalysisScreen(
                 }
 
                 isLoading -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                        Spacer(Modifier.height(16.dp))
-                        Text(
-                            "Analyzing your team...",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
+                    LoadingView()
                 }
 
                 errorMessage != null -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Warning,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Text(
-                            "Analysis Failed",
-                            color = MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            errorMessage ?: "Unknown error",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(Modifier.height(24.dp))
-                        Button(
-                            onClick = { navController.popBackStack() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            )
-                        ) {
-                            Text("Go Back")
-                        }
-                    }
+                    ErrorView(errorMessage!!, navController)
                 }
 
                 analysis != null -> {
                     AnalysisContent(
                         analysis = analysis!!,
-                        teamWithTypes = teamWithTypes,
-                        accentColor = MaterialTheme.colorScheme.primary
+                        teamWithTypes = teamWithTypes
                     )
                 }
             }

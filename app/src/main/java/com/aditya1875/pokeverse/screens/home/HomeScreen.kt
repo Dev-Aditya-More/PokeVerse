@@ -451,12 +451,8 @@ fun HomeScreen(navController: NavHostController) {
                                             }
                                         }
 
-                                        var isFavorite by remember { mutableStateOf(false) }
-                                        val isFavoriteDb by viewModel.isInFavorites(pokemon.name).collectAsState(initial = false)
-
-                                        LaunchedEffect(isFavoriteDb) {
-                                            isFavorite = isFavoriteDb
-                                        }
+                                        val isFavorite by viewModel.isInFavorites(pokemon.name)
+                                            .collectAsStateWithLifecycle(false)
 
                                         val isInTeam by viewModel.isInTeam(pokemon.name)
                                             .collectAsStateWithLifecycle(false)
@@ -464,7 +460,7 @@ fun HomeScreen(navController: NavHostController) {
                                         ImprovedPokemonCard(
                                             pokemon = pokemon,
                                             isInTeam = isInTeam,
-                                            isInFavorites = isFavoriteDb,
+                                            isInFavorites = isFavorite,
                                             teamSize = team.size,
                                             onAddToTeam = { viewModel.addToTeam(pokemon) },
                                             onRemoveFromTeam = { viewModel.removeFromTeamByName(pokemon.name) },

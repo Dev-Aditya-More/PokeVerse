@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.screens.detail.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -60,6 +62,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun PokemonDetailHeader(
     pokemon: PokemonResponse?,
