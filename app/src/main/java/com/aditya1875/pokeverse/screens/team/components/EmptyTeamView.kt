@@ -105,14 +105,14 @@ fun EmptyTeamView(
                 text = "Your Team is Empty",
                 fontWeight = FontWeight.Bold,
                 fontSize = 26.sp,
-                color = MaterialTheme.colorScheme.onSurface // THEME-AWARE
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = "Build a balanced team.\nMix types for better coverage.",
-                color = MaterialTheme.colorScheme.onSurfaceVariant, // THEME-AWARE
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp
@@ -135,8 +135,8 @@ fun EmptyTeamView(
                     .fillMaxWidth(0.8f)
                     .height(54.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary, // THEME-AWARE
-                    contentColor = MaterialTheme.colorScheme.onPrimary // THEME-AWARE
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 elevation = ButtonDefaults.buttonElevation(
                     defaultElevation = 4.dp
@@ -179,7 +179,7 @@ fun EmptyStateCard(
             .fillMaxWidth()
             .padding(vertical = 32.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface // THEME-AWARE
+            containerColor = MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp)
     ) {
@@ -201,7 +201,7 @@ fun EmptyStateCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface, // THEME-AWARE
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Bold
             )
 
@@ -210,7 +210,7 @@ fun EmptyStateCard(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, // THEME-AWARE
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }

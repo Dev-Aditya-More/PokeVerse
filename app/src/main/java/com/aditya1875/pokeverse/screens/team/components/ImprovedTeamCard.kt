@@ -92,8 +92,8 @@ fun ImprovedTeamCard(
                 .background(
                     Brush.horizontalGradient(
                         colors = listOf(
-                            MaterialTheme.colorScheme.surfaceVariant, // THEME-AWARE
-                            MaterialTheme.colorScheme.surface // THEME-AWARE
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            MaterialTheme.colorScheme.surface
                         )
                     )
                 )
@@ -108,8 +108,8 @@ fun ImprovedTeamCard(
                     .background(
                         Brush.radialGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f), // THEME-AWARE
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.5f) // THEME-AWARE
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                                MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
                             )
                         )
                     ),
@@ -136,7 +136,7 @@ fun ImprovedTeamCard(
                 Text(
                     text = pokemon.name.replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface, // THEME-AWARE
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )
@@ -145,9 +145,9 @@ fun ImprovedTeamCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Default.Star, // Changed from Add to Star for team
+                        imageVector = Icons.Default.Add,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary, // THEME-AWARE (yellow in your themes)
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(4.dp))
@@ -168,7 +168,7 @@ fun ImprovedTeamCard(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = "Remove",
-                    tint = MaterialTheme.colorScheme.error, // THEME-AWARE
+                    tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(24.dp)
                 )
             }

@@ -43,14 +43,14 @@ fun FilterBar(
                             imageVector = Icons.Filled.Done,
                             contentDescription = "Selected",
                             modifier = Modifier.size(FilterChipDefaults.IconSize),
-                            tint = MaterialTheme.colorScheme.onPrimary // THEME-AWARE
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 } else null,
                 modifier = Modifier.padding(vertical = 4.dp),
                 colors = FilterChipDefaults.filterChipColors(
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer, // THEME-AWARE
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer // THEME-AWARE
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             )
         }

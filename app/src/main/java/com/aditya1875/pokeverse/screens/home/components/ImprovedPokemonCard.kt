@@ -147,7 +147,7 @@ fun ImprovedPokemonCard(
                 Text(
                     text = pokemon.name.replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.onSurface, // THEME-AWARE
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
                 )
@@ -157,7 +157,7 @@ fun ImprovedPokemonCard(
                 Text(
                     text = "#${pokemonId.toString().padStart(4, '0')}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, // THEME-AWARE
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 14.sp
                 )
             }

@@ -40,14 +40,14 @@ fun FavoritesContent(
                 icon = Icons.Default.Star,
                 title = "No Favorites",
                 subtitle = "Add Pokemon to your favorites from the home screen",
-                color = MaterialTheme.colorScheme.secondary // THEME-AWARE (yellow)
+                color = MaterialTheme.colorScheme.secondary
             )
         } else {
             // Favorites count card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface // THEME-AWARE
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -60,14 +60,14 @@ fun FavoritesContent(
                 ) {
                     Text(
                         text = "Total Favorites",
-                        color = MaterialTheme.colorScheme.onSurface, // THEME-AWARE
+                        color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold
                     )
 
                     Text(
                         text = favorites.size.toString(),
-                        color = MaterialTheme.colorScheme.secondary, // THEME-AWARE (yellow)
+                        color = MaterialTheme.colorScheme.secondary,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )

@@ -24,22 +24,22 @@ fun EvolutionChainRow(
     ) {
 
         // LEFT (previous)
-        evolution.previous?.let { prev ->
+        evolution.previous?.let {
             EvolutionSideItem(
-                name = prev.name,
                 direction = ArrowDirection.LEFT,
                 modifier = Modifier.align(Alignment.CenterStart),
-                onClick = onPokemonClick
+                onClick = onPokemonClick,
+                name = evolution.previous.name
             )
         }
 
         // RIGHT (next)
-        evolution.next?.let { next ->
+        evolution.next?.let {
             EvolutionSideItem(
-                name = next.name,
                 direction = ArrowDirection.RIGHT,
                 modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = onPokemonClick
+                onClick = onPokemonClick,
+                name = evolution.next.name
             )
         }
     }
