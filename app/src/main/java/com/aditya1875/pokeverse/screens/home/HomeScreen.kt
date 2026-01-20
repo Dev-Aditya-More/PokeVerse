@@ -55,6 +55,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -450,39 +451,20 @@ fun HomeScreen(navController: NavHostController) {
                                             }
                                         }
 
-                                        val isFavorite by viewModel.isInFavorites(pokemon.name)
-                                            .collectAsStateWithLifecycle(false)
+                                        var isFavorite by remember { mutableStateOf(false) }
+                                        val isFavoriteDb by viewModel.isInFavorites(pokemon.name).collectAsState(initial = false)
+
+                                        LaunchedEffect(isFavoriteDb) {
+                                            isFavorite = isFavoriteDb
+                                        }
+
                                         val isInTeam by viewModel.isInTeam(pokemon.name)
                                             .collectAsStateWithLifecycle(false)
-
-                                        var isVisible by remember { mutableStateOf(false) }
-
-                                        val alphaa by animateFloatAsState(
-                                            targetValue = if (isVisible) 1f else 0f,
-                                            animationSpec = tween(
-                                                durationMillis = 400,
-                                                delayMillis = index
-                                            ),
-                                            label = "alphaAnim"
-                                        )
-
-                                        val transY by animateDpAsState(
-                                            targetValue = if (isVisible) 0.dp else 20.dp,
-                                            animationSpec = tween(
-                                                durationMillis = 400,
-                                                delayMillis = index.toInt()
-                                            ),
-                                            label = "slideAnim"
-                                        )
-
-                                        LaunchedEffect(Unit) {
-                                            isVisible = true
-                                        }
 
                                         ImprovedPokemonCard(
                                             pokemon = pokemon,
                                             isInTeam = isInTeam,
-                                            isInFavorites = isFavorite,
+                                            isInFavorites = isFavoriteDb,
                                             teamSize = team.size,
                                             onAddToTeam = { viewModel.addToTeam(pokemon) },
                                             onRemoveFromTeam = { viewModel.removeFromTeamByName(pokemon.name) },

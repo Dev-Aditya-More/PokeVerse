@@ -97,9 +97,11 @@ class MainActivity : ComponentActivity() {
                     val introSeen = ScreenStateManager.isIntroSeen(this@MainActivity)
                     val lastRoute = ScreenStateManager.getLastRoute(this@MainActivity)
 
+                    val validStartRoutes = setOf("home", "dream_team", "settings")
+
                     startDestination.value = when {
                         !introSeen -> "intro"
-                        !lastRoute.isNullOrBlank() -> lastRoute
+                        !lastRoute.isNullOrBlank() && lastRoute in validStartRoutes -> lastRoute
                         else -> "home"
                     }
                 }
@@ -176,7 +178,18 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(navController) {
                     navController.currentBackStackEntryFlow.collect { entry ->
                         entry.destination.route?.let { route ->
-                            ScreenStateManager.saveCurrentRoute(context, route)
+                            val routeToSave = when {
+                                route.startsWith("pokemon_detail/") -> "home"
+                                route == "splash" -> null
+                                route == "intro" -> null
+                                route == "theme_selector" -> "settings"
+                                route == "team_analysis" -> "dream_team"
+                                else -> route
+                            }
+
+                            routeToSave?.let {
+                                ScreenStateManager.saveCurrentRoute(context, it)
+                            }
                         }
                     }
                 }
