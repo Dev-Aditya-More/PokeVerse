@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.screens.analysis.components
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,83 +20,132 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 @Composable
-fun OverallScoreCard(score: Int, accentColor: Color) {
+fun OverallScoreCard(score: Int) {
+    val scoreColor = when {
+        score >= 80 -> Color(0xFF00E676)
+        score >= 60 -> Color(0xFF00BCD4)
+        score >= 40 -> Color(0xFFFFA726)
+        else -> Color(0xFFFF6B6B)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-        shape = RoundedCornerShape(16.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        shape = RoundedCornerShape(20.dp)
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .background(
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            scoreColor.copy(alpha = 0.15f),
+                            scoreColor.copy(alpha = 0.05f)
+                        )
+                    )
+                )
+                .border(
+                    width = 1.dp,
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(
+                            scoreColor.copy(alpha = 0.3f),
+                            scoreColor.copy(alpha = 0.1f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(20.dp)
+                )
         ) {
-            Text(
-                text = "Team Rating",
-                style = MaterialTheme.typography.titleLarge,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            // Circular score indicator
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(150.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                CircularProgressIndicator(
-                    progress = { score / 100f },
-                    modifier = Modifier.fillMaxSize(),
-                    color = when {
-                        score >= 80 -> Color(0xFF4CAF50)
-                        score >= 60 -> Color(0xFFFFC107)
-                        else -> accentColor
-                    },
-                    strokeWidth = 12.dp,
-                    trackColor = Color(0xFF3A3A3A)
+                Text(
+                    text = "TEAM RATING",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = Color.White.copy(alpha = 0.6f),
+                    letterSpacing = 2.sp,
+                    fontWeight = FontWeight.Bold
                 )
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "$score",
-                        style = MaterialTheme.typography.displayLarge,
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold
+                Spacer(Modifier.height(20.dp))
+
+                // Circular score with animation potential
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(160.dp)
+                ) {
+                    // Background circle
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        drawCircle(
+                            color = Color.White.copy(alpha = 0.05f),
+                            radius = size.minDimension / 2,
+                            style = Stroke(width = 16.dp.toPx())
+                        )
+                    }
+
+                    // Progress circle
+                    CircularProgressIndicator(
+                        progress = { score / 100f },
+                        modifier = Modifier.fillMaxSize(),
+                        color = scoreColor,
+                        strokeWidth = 16.dp,
+                        trackColor = Color.Transparent
                     )
-                    Text(
-                        text = when {
-                            score >= 80 -> "Excellent"
-                            score >= 60 -> "Good"
-                            score >= 40 -> "Fair"
-                            else -> "Needs Work"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.7f)
-                    )
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "$score",
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontSize = 56.sp
+                            ),
+                            color = Color.White,
+                            fontWeight = FontWeight.Black
+                        )
+                        Text(
+                            text = when {
+                                score >= 80 -> "EXCELLENT"
+                                score >= 60 -> "GOOD"
+                                score >= 40 -> "FAIR"
+                                else -> "POOR"
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            color = scoreColor,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 1.5.sp
+                        )
+                    }
                 }
+
+                Spacer(Modifier.height(20.dp))
+
+                Text(
+                    text = when {
+                        score >= 80 -> "🔥 Battle-ready team with exceptional balance"
+                        score >= 60 -> "💪 Strong foundation with minor improvements needed"
+                        score >= 40 -> "⚡ Solid core but requires optimization"
+                        else -> "🛠️ Team needs significant restructuring"
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.8f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
             }
-
-            Spacer(Modifier.height(16.dp))
-
-            Text(
-                text = when {
-                    score >= 80 -> "Your team is battle-ready! 🔥"
-                    score >= 60 -> "Solid team with room to improve 💪"
-                    score >= 40 -> "Consider the recommendations below ⚡"
-                    else -> "Your team needs significant changes 🛠️"
-                },
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.8f),
-                textAlign = TextAlign.Center
-            )
         }
     }
 }

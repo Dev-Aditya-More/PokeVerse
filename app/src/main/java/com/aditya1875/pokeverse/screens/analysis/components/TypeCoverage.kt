@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -26,115 +27,137 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun TypeCoverageCard(
-    coverage: Map<String, Int>,
-    accentColor: Color
-) {
+fun TypeCoverageCard(coverage: Map<String, Int>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-        shape = RoundedCornerShape(12.dp)
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF1E1E1E)
+        ),
+        shape = RoundedCornerShape(20.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(24.dp)
         ) {
-            Text(
-                text = "Offensive Type Coverage",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            Color(0xFFFF5722).copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(10.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "⚔️",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "Offensive Coverage",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Super effective matchups",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.5f)
+                    )
+                }
+            }
 
-            Text(
-                text = "How many Pokemon can hit each type super effectively",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.White.copy(alpha = 0.6f),
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            Spacer(Modifier.height(20.dp))
 
-            Spacer(Modifier.height(16.dp))
-
-            // Sort by coverage count
             val sortedCoverage = coverage.entries.sortedByDescending { it.value }
 
             sortedCoverage.forEach { (type, count) ->
-                TypeCoverageRow(
-                    type = type,
-                    count = count,
-                    maxCount = 6,
-                    accentColor = accentColor
-                )
-                Spacer(Modifier.height(8.dp))
+                TypeCoverageRow(type = type, count = count)
+                Spacer(Modifier.height(12.dp))
             }
         }
     }
 }
 
-
 @Composable
-fun TypeCoverageRow(
-    type: String,
-    count: Int,
-    maxCount: Int,
-    accentColor: Color
-) {
+fun TypeCoverageRow(type: String, count: Int) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Type badge
         Surface(
-            shape = RoundedCornerShape(6.dp),
+            shape = RoundedCornerShape(8.dp),
             color = PokemonTypeData.getTypeColor(type),
-            modifier = Modifier.width(80.dp)
+            modifier = Modifier.width(90.dp)
         ) {
             Text(
                 text = type.replaceFirstChar { it.uppercase() },
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 color = Color.White,
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
         }
 
-        Spacer(Modifier.width(12.dp))
+        Spacer(Modifier.width(16.dp))
 
-        // Progress bar
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(20.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFF1A1A1A))
+                .height(24.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color(0xFF0A0A0A))
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth((count.toFloat() / maxCount).coerceAtMost(1f))
-                    .clip(RoundedCornerShape(10.dp))
+                    .fillMaxWidth((count.toFloat() / 6f).coerceAtMost(1f))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(
                         when {
-                            count == 0 -> Color(0xFF555555)
-                            count >= 3 -> Color(0xFF4CAF50)
-                            count >= 2 -> Color(0xFFFFC107)
-                            else -> accentColor
+                            count == 0 -> Color(0xFF333333)
+                            count >= 3 -> Color(0xFF00E676)
+                            count >= 2 -> Color(0xFF00BCD4)
+                            else -> Color(0xFFFF9800)
                         }
                     )
             )
         }
 
-        Spacer(Modifier.width(8.dp))
+        Spacer(Modifier.width(12.dp))
 
-        Text(
-            text = count.toString(),
-            color = Color.White,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.width(24.dp),
-            textAlign = TextAlign.End
-        )
+        Box(
+            modifier = Modifier
+                .background(
+                    when {
+                        count == 0 -> Color(0xFF333333)
+                        count >= 3 -> Color(0xFF00E676).copy(alpha = 0.2f)
+                        count >= 2 -> Color(0xFF00BCD4).copy(alpha = 0.2f)
+                        else -> Color(0xFFFF9800).copy(alpha = 0.2f)
+                    },
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+        ) {
+            Text(
+                text = count.toString(),
+                color = when {
+                    count == 0 -> Color.White.copy(alpha = 0.5f)
+                    count >= 3 -> Color(0xFF00E676)
+                    count >= 2 -> Color(0xFF00BCD4)
+                    else -> Color(0xFFFF9800)
+                },
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
     }
 }
