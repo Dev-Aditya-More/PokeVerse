@@ -67,7 +67,7 @@
 
   - [x] 🗃️ Offline Support (Caching)
 
-  - [ ] 🔄 Evolution Chain View
+  - [x] 🔄 Evolution Chain View
   
 ---
 
