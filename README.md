@@ -92,6 +92,12 @@ Data is fetched from ![PokeAPI](https://pokeapi.co/)
 
 ---
 
+## Get us a Coffee
+
+[![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-donate-yellow.svg)](https://buymeacoffee.com/aditya1875q)
+
+---
+
 ## Follow us on
 
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/Pokeverse_App.svg?style=social&label=Follow%20%40Pokeverse_App)](https://twitter.com/Pokeverse_App)
