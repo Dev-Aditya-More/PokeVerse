@@ -22,8 +22,8 @@ import kotlin.random.Random
 @Composable
 fun PsychicParticles(
     modifier: Modifier = Modifier,
-    maxParticles: Int = 40,
-    spawnRateMillis: Long = 80L
+    maxParticles: Int = 45,
+    spawnRateMillis: Long = 90L
 ) {
     data class Particle(
         var x: Float,
@@ -33,43 +33,51 @@ fun PsychicParticles(
         val angleOffset: Float,
         val lifetime: Long,
         val createdAt: Long,
-        val horizontalDrift: Float
+        val horizontalDrift: Float,
+        val orbitalSpeed: Float,
+        val orbitalRadius: Float
     )
 
     val density = LocalDensity.current
     val particles = remember { mutableStateListOf<Particle>() }
     val rnd = remember { Random(System.currentTimeMillis()) }
 
-    // Spawn particles gently across the screen
+    // Spawn particles around center where Pokemon is
     LaunchedEffect(Unit) {
         while (true) {
             if (particles.size < maxParticles) {
                 val angleOffset = rnd.nextFloat() * 360f
                 particles += Particle(
-                    x = 0.5f + (rnd.nextFloat() - 0.5f) * 0.6f, // slightly centered
-                    y = 0.5f + (rnd.nextFloat() - 0.5f) * 0.8f,
+                    // Spawn around center in circular pattern
+                    x = 0.5f + (rnd.nextFloat() - 0.5f) * 0.5f,
+                    y = 0.5f + (rnd.nextFloat() - 0.5f) * 0.5f,
 
-                    // smaller and subtler radii
-                    radius = rnd.nextFloat() * 8.dp.toPxCustom(density) + 4.dp.toPxCustom(density),
+                    // Varied sizes for depth
+                    radius = rnd.nextFloat() * 10.dp.toPxCustom(density) + 5.dp.toPxCustom(density),
 
-                    // mix in soft violet to pink tones
+                    // Ethereal psychic colors with varied opacity
                     color = listOf(
-                        Color(0xFF9B59B6).copy(alpha = 0.25f),
-                        Color(0xFFBB86FC).copy(alpha = 0.2f),
-                        Color(0xFFCE93D8).copy(alpha = 0.18f)
+                        Color(0xFF9B59B6), // amethyst
+                        Color(0xFFBB86FC), // light purple
+                        Color(0xFFCE93D8), // lavender
+                        Color(0xFFBA68C8), // medium purple
+                        Color(0xFFAB47BC), // deep purple
+                        Color(0xFFE1BEE7)  // pale lavender
                     ).random(),
 
                     angleOffset = angleOffset,
-                    lifetime = rnd.nextLong(3000L, 5000L),
+                    lifetime = rnd.nextLong(2500L, 4000L),
                     createdAt = System.currentTimeMillis(),
-                    horizontalDrift = (rnd.nextFloat() - 0.5f) * 0.0004f // calmer drift
+                    horizontalDrift = (rnd.nextFloat() - 0.5f) * 0.0003f,
+                    orbitalSpeed = (rnd.nextFloat() - 0.5f) * 0.002f,
+                    orbitalRadius = rnd.nextFloat() * 0.08f + 0.02f
                 )
             }
             delay(spawnRateMillis)
         }
     }
 
-    // Animate the particles’ movement
+    // Animate with ethereal orbital motion
     LaunchedEffect(Unit) {
         var lastTime = System.currentTimeMillis()
         while (true) {
@@ -86,19 +94,24 @@ fun PsychicParticles(
                     continue
                 }
 
-                // Gentle oscillation and upward drift
-                val waveX = sin((age + p.angleOffset) / 1000.0) * 0.0012f
-                val waveY = cos((age + p.angleOffset) / 900.0) * 0.001f
+                // Orbital motion around spawn point - creates swirling psychic energy
+                val orbitalAngle = age * p.orbitalSpeed + p.angleOffset
+                val orbitalX = cos(orbitalAngle) * p.orbitalRadius
+                val orbitalY = sin(orbitalAngle) * p.orbitalRadius
 
-                p.x += (waveX + p.horizontalDrift).toFloat()
-                p.y -= (0.00025f + waveY).toFloat()
+                // Gentle wave motion
+                val waveX = sin((age + p.angleOffset) / 1200.0) * 0.001f
+                val waveY = cos((age + p.angleOffset) / 1000.0) * 0.0008f
+
+                p.x += (orbitalX + waveX + p.horizontalDrift).toFloat()
+                p.y += (orbitalY + waveY - 0.0002f).toFloat() // slight upward drift
             }
 
             delay(16L)
         }
     }
 
-    // Draw them softly and ethereally
+    // Draw with layered ethereal glow
     Canvas(modifier = modifier.fillMaxSize()) {
         val w = size.width
         val h = size.height
@@ -106,13 +119,57 @@ fun PsychicParticles(
 
         particles.forEach { p ->
             val t = ((now - p.createdAt) / p.lifetime.toFloat()).coerceIn(0f, 1f)
-            val alpha = (1f - t).coerceIn(0f, 1f)
 
+            // Fade in smoothly, fade out gradually
+            val fadeIn = (t * 6f).coerceIn(0f, 1f)
+            val fadeOut = (1f - t)
+            val alpha = (fadeIn * fadeOut).coerceIn(0f, 1f)
+
+            // Pulsing effect for psychic energy
+            val pulse = (sin(now * 0.002 + p.angleOffset) * 0.5 + 0.5).toFloat()
+            val radiusMultiplier = 1f + pulse * 0.2f
+
+            val centerPos = Offset(p.x * w, p.y * h)
+            val currentRadius = p.radius * (0.9f + t * 0.1f) * radiusMultiplier
+
+            // Large outer aura - very soft
             drawCircle(
-                color = p.color.copy(alpha = alpha * 0.8f),
-                radius = p.radius * (1f - 0.2f * t), // shrink slowly, subtle fade
-                center = Offset(p.x * w, p.y * h),
-                blendMode = BlendMode.Plus // additive glow feel
+                color = p.color.copy(alpha = alpha * 0.08f),
+                radius = currentRadius * 3.5f,
+                center = centerPos,
+                blendMode = BlendMode.Plus
+            )
+
+            // Medium aura
+            drawCircle(
+                color = p.color.copy(alpha = alpha * 0.15f),
+                radius = currentRadius * 2.2f,
+                center = centerPos,
+                blendMode = BlendMode.Plus
+            )
+
+            // Inner glow
+            drawCircle(
+                color = p.color.copy(alpha = alpha * 0.35f),
+                radius = currentRadius * 1.3f,
+                center = centerPos,
+                blendMode = BlendMode.Plus
+            )
+
+            // Core particle
+            drawCircle(
+                color = p.color.copy(alpha = alpha * 0.6f),
+                radius = currentRadius,
+                center = centerPos,
+                blendMode = BlendMode.Plus
+            )
+
+            // Bright psychic center
+            drawCircle(
+                color = Color.White.copy(alpha = alpha * 0.3f),
+                radius = currentRadius * 0.4f,
+                center = centerPos,
+                blendMode = BlendMode.Plus
             )
         }
     }

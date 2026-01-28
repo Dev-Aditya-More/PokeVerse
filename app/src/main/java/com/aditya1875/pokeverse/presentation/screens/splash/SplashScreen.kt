@@ -23,10 +23,23 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import android.view.animation.OvershootInterpolator
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.presentation.screens.splash.components.CardShader
 import com.aditya1875.pokeverse.presentation.screens.splash.components.SmokeShader
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview(showBackground = true)
@@ -36,12 +49,38 @@ fun SplashScreen(
     getNext: (context: Context) -> String = { "home" }
 ) {
     val context = LocalContext.current
-    val scale = remember { Animatable(0.8f) }
+    val scale = remember { Animatable(0.5f) }
+    val alpha = remember { Animatable(0f) }
 
     LaunchedEffect(Unit) {
+        // Fade in and scale up animation
+        launch {
+            alpha.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(800, easing = FastOutSlowInEasing)
+            )
+        }
+
+        scale.animateTo(
+            targetValue = 1.05f,
+            animationSpec = tween(
+                durationMillis = 1200,
+                easing = { OvershootInterpolator(1.5f).getInterpolation(it) }
+            )
+        )
+
+        // Subtle breathing effect
         scale.animateTo(
             targetValue = 1f,
-            animationSpec = tween(2000, easing = { OvershootInterpolator(2f).getInterpolation(it) })
+            animationSpec = tween(600, easing = FastOutSlowInEasing)
+        )
+
+        delay(1700)
+
+        // Fade out before navigation
+        alpha.animateTo(
+            targetValue = 0f,
+            animationSpec = tween(300, easing = FastOutLinearInEasing)
         )
 
         val next = getNext(context)
@@ -50,24 +89,64 @@ fun SplashScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF802525)), // Fallback background color
+        contentAlignment = Alignment.Center
+    ) {
         // Full-screen shader background
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             CardShader(SmokeShader().shader, SmokeShader().speed)
-        } else null
+        }
+
+        // Subtle gradient overlay for depth
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color(0xFF802525).copy(alpha = 0.3f)
+                        ),
+                        center = Offset(0.5f, 0.5f),
+                        radius = 1000f
+                    )
+                )
+        )
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.alpha(alpha.value)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.mysplash2),
-                contentDescription = "Logo",
-                modifier = Modifier
-                    .size(450.dp)
-                    .scale(scale.value)
-            )
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(500.dp)
+                        .scale(scale.value)
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    Color.White.copy(alpha = 0.4f),
+                                    Color.Transparent
+                                )
+                            ),
+                            shape = CircleShape
+                        )
+                )
+
+                Image(
+                    painter = painterResource(id = R.drawable.mysplash2),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .size(450.dp)
+                        .scale(scale.value)
+                )
+            }
         }
     }
 }

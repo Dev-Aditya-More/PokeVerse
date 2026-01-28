@@ -767,6 +767,11 @@ fun PokemonDetailPage(
                                 }
                             }
                         }
+
+                        item {
+
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                 }
 

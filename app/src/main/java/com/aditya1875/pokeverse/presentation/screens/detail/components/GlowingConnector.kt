@@ -48,7 +48,6 @@ fun EvolutionConnector(
                 cap = StrokeCap.Round
             )
 
-            // animated main line (use a moving alpha or gradient)
             val bright = Color.White.copy(alpha = 0.9f)
             val dim = Color.White.copy(alpha = 0.25f)
             val brush = Brush.horizontalGradient(

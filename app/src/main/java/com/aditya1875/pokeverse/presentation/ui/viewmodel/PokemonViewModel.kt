@@ -70,7 +70,7 @@ class PokemonViewModel(
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val searchUiState: StateFlow<SearchUiState> = _searchQuery
-        .debounce(300) // Wait 300ms after typing stops
+        .debounce(300)
         .onEach { _isSearching.value = it.isNotBlank() }
         .flatMapLatest { query ->
             flow {

@@ -7,7 +7,6 @@ import com.aditya1875.pokeverse.utils.PokemonSearchHelper
 import com.aditya1875.pokeverse.utils.SearchResult
 
 class PokemonSearchRepository(private val api: PokeApi) {
-
     private var allPokemonCache: List<PokemonResult>? = null
     private var cacheTimestamp: Long = 0
     private val CACHE_DURATION = 30 * 60 * 1000L // 30 minutes

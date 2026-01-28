@@ -18,7 +18,7 @@ fun EvolutionChainRow(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 12.dp)
+            .padding(horizontal = 3.dp)
             .then(modifier),
         contentAlignment = Alignment.Center
     ) {

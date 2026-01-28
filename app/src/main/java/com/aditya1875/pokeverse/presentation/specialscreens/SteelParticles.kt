@@ -23,7 +23,7 @@ import kotlin.random.Random
 fun SteelParticles(
     modifier: Modifier = Modifier,
     maxParticles: Int = 45,
-    spawnRateMillis: Long = 60L
+    spawnRateMillis: Long = 70L
 ) {
     data class MetalFlake(
         var x: Float,
@@ -41,15 +41,17 @@ fun SteelParticles(
     val rnd = remember { Random(System.currentTimeMillis()) }
     val density = LocalDensity.current
 
-    // Spawner: adds small metallic flakes
     LaunchedEffect(Unit) {
         while (true) {
             if (flakes.size < maxParticles) {
                 flakes += MetalFlake(
                     x = 0.3f + (rnd.nextFloat() - 0.5f) * 0.9f,
                     y = 0.5f + (rnd.nextFloat() - 0.5f) * 0.9f,
-                    width = rnd.nextFloat() * 30.dp.toPxCustom(density) + 24.dp.toPxCustom(density),
-                    height = rnd.nextFloat() * 20.dp.toPxCustom(density) + 14.dp.toPxCustom(density),
+                    width = rnd.nextFloat() * 8.dp.toPxCustom(density)
+                            + 6.dp.toPxCustom(density),
+
+                    height = rnd.nextFloat() * 5.dp.toPxCustom(density)
+                            + 3.dp.toPxCustom(density),
                     rotationSpeed = (rnd.nextFloat() - 0.5f) * 120f,
                     color = listOf(
                         Color(0xFFB0B0B0), // steel gray
