@@ -8,11 +8,13 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -21,90 +23,88 @@ import kotlin.random.Random
 fun DragonParticles(
     modifier: Modifier = Modifier,
     maxParticles: Int = 35,
-    spawnRateMillis: Long = 100L
+    spawnRateMillis: Long = 120L
 ) {
     data class Particle(
-        var x: Float,
-        var y: Float,
+        val baseX: Float,
+        val baseY: Float,
         val radius: Float,
         val color: Color,
-        val angleOffset: Float,
-        val curlSpeed: Float,
+        val phaseX: Float,
+        val phaseY: Float,
         val lifetime: Long,
-        val createdAt: Long
+        val createdAt: Long,
+        val pulseSpeed: Float
     )
 
     val density = LocalDensity.current
     val particles = remember { mutableStateListOf<Particle>() }
     val rnd = remember { Random(System.currentTimeMillis()) }
 
-    // Particle spawner
     LaunchedEffect(Unit) {
         while (true) {
             if (particles.size < maxParticles) {
                 particles += Particle(
-                    x = 0.3f + (rnd.nextFloat() - 0.5f) * 0.9f,
-                    y = 0.5f + (rnd.nextFloat() - 0.5f) * 0.9f,
-
-                    // bigger base sizes — gentle, wave-like orbs
-                    radius = rnd.nextFloat() * 20.dp.toPxCustom(density) + 10.dp.toPxCustom(density),
+                    baseX = rnd.nextFloat(),
+                    baseY = 0.4f + rnd.nextFloat() * 0.6f,
+                    radius = rnd.nextFloat() * 16.dp.toPxCustom(density)
+                            + 10.dp.toPxCustom(density),
                     color = listOf(
-                        Color(0xFFB22222), // firebrick red
-                        Color(0xFFFFD700), // gold
-                        Color(0xFF8A2BE2)  // blueviolet
+                        Color(0xFFFF4500),
+                        Color(0xFFFF6347),
+                        Color(0xFFFFD700),
+                        Color(0xFFDC143C)
                     ).random(rnd),
-                    angleOffset = rnd.nextFloat() * 360f,
-                    curlSpeed = rnd.nextFloat() * 0.03f + 0.01f,
-                    lifetime = rnd.nextLong(800L, 1200L),
-                    createdAt = System.currentTimeMillis()
+                    phaseX = rnd.nextFloat() * 10f,
+                    phaseY = rnd.nextFloat() * 10f,
+                    lifetime = rnd.nextLong(1400L, 2200L),
+                    createdAt = System.currentTimeMillis(),
+                    pulseSpeed = rnd.nextFloat() * 0.002f + 0.0006f
                 )
             }
             delay(spawnRateMillis)
         }
     }
 
-    // Physics updater: curling + floating
-    LaunchedEffect(Unit) {
-        var lastTime = System.currentTimeMillis()
-        while (true) {
-            val now = System.currentTimeMillis()
-            val dt = (now - lastTime) / 1000f
-            lastTime = now
-
-            val it = particles.listIterator()
-            while (it.hasNext()) {
-                val p = it.next()
-                val age = now - p.createdAt
-                if (age > p.lifetime) {
-                    it.remove()
-                    continue
-                }
-
-                // Curling motion
-                val curl = sin((age + p.angleOffset) / 300.0) * p.curlSpeed
-                p.x += curl.toFloat()
-                p.y -= 0.0006f // slow upward drift
-            }
-
-            delay(16L)
-        }
-    }
-
-    // Draw particles
     Canvas(modifier = modifier.fillMaxSize()) {
         val w = size.width
         val h = size.height
         val now = System.currentTimeMillis()
 
+        particles.removeAll { now - it.createdAt > it.lifetime }
+
         particles.forEach { p ->
             val t = ((now - p.createdAt) / p.lifetime.toFloat()).coerceIn(0f, 1f)
-            val alpha = (1f - t).coerceIn(0f, 1f)
+
+            val x =
+                p.baseX +
+                        0.02f * sin(t * 2 * Math.PI + p.phaseX).toFloat()
+
+            val y =
+                p.baseY -
+                        t * 0.4f +
+                        0.02f * cos(t * 2 * Math.PI + p.phaseY).toFloat()
+
+            val fade = (t * (1f - t) * 4f).coerceIn(0f, 1f)
+            val pulse = sin(now * p.pulseSpeed)
+            val radius = p.radius * (1f + pulse * 0.05f)
+
+            val center = Offset(x * w, y * h)
 
             drawCircle(
-                color = p.color.copy(alpha = alpha),
-                radius = p.radius * (1f - t),
-                center = Offset(p.x * w, p.y * h)
+                color = p.color.copy(alpha = fade * 0.35f),
+                radius = radius * 1.5f,
+                center = center,
+                blendMode = BlendMode.Plus
+            )
+
+            drawCircle(
+                color = p.color.copy(alpha = fade),
+                radius = radius,
+                center = center,
+                blendMode = BlendMode.Plus
             )
         }
     }
 }
+

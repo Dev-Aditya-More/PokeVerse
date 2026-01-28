@@ -24,8 +24,8 @@ import kotlin.random.Random
 @Composable
 fun FightingParticles(
     modifier: Modifier = Modifier,
-    maxParticles: Int = 45,
-    spawnRateMillis: Long = 40L
+    maxParticles: Int = 35,
+    spawnRateMillis: Long = 60L
 ) {
     val density = LocalDensity.current
 

@@ -23,7 +23,7 @@ import kotlin.random.Random
 fun BugParticles(
     modifier: Modifier = Modifier,
     particleCount: Int = 40,
-    color: Color = Color(0xFFBFFF00).copy(alpha = 0.6f) // yellow-green glow
+    color: Color = Color(0xFFBFFF00).copy(alpha = 0.6f)
 ) {
     val density = LocalDensity.current
     val baseSizePx = with(density) { 6.dp.toPx() }
