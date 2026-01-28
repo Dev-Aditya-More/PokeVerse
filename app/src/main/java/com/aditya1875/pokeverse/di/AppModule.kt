@@ -10,8 +10,8 @@ import com.aditya1875.pokeverse.data.repository.PokemonRepoImpl
 import com.aditya1875.pokeverse.domain.repository.DescriptionRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonSearchRepository
-import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
-import com.aditya1875.pokeverse.ui.viewmodel.SettingsViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import com.aditya1875.pokeverse.utils.TeamMapper
 import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
