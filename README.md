@@ -1,6 +1,6 @@
 # PokéVerse
 
-> Explore, collect, and manage your Pokémon universe in one app!
+> Explore the legends like never before! ✨🚀
 
 
 
@@ -10,21 +10,28 @@
 
 ---
 
-## Get from (github for the best experience)
+## Get from
 
-> [<img src="https://f-droid.org/badge/get-it-on.png"
-    alt="Get it on F-Droid"
-    height="80">](https://f-droid.org/packages/com.aditya1875.pokeverse)
+<a href='https://indusapp.store/5pzliyk1'><img alt='Get it on Indus Appstore' src='https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-black-background-english.png' height="80"/></a>
 [<img src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea" height="80">](https://github.com/Dev-Aditya-More/PokeVerse/releases)
 
 ---
 
-## 📱 Assets
+## Screenshots (Play Store)
 
 | ![1](fastlane/metadata/android/en-US/images/phoneScreenshots/1.png) | ![2](fastlane/metadata/android/en-US/images/phoneScreenshots/2.png) |
 |:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
-| ![3](fastlane/metadata/android/en-US/images/phoneScreenshots/3.png) | ![4](fastlane/metadata/android/en-US/images/phoneScreenshots/4.png) |
-| ![5](fastlane/metadata/android/en-US/images/phoneScreenshots/5.png) | ![6](fastlane/metadata/android/en-US/images/phoneScreenshots/6.png) | 
+| ![4](fastlane/metadata/android/en-US/images/phoneScreenshots/7.png) | ![5](fastlane/metadata/android/en-US/images/phoneScreenshots/3.png) | ![6](fastlane/metadata/android/en-US/images/phoneScreenshots/4.png) 
+| ![3](fastlane/metadata/android/en-US/images/phoneScreenshots/5.png) | ![3](fastlane/metadata/android/en-US/images/phoneScreenshots/6.png)
+
+---  
+
+## More Screenshots
+
+| ![1](images/1.png) | ![2](images/2.png) |
+|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
+| ![3](images/3.png) | ![4](images/4.png) | 
+![5](images/5.png) |
 
 ---
 
@@ -35,6 +42,9 @@
 
 - ❄️ **Glassmorphic Cards**  
   Detail screen features frosted-glass UI components for stats and metadata.
+
+- ✨ **Exclusive Particle Effects**
+  Get customized particle effects for every single pokemon.
 
 - 🌈 **Dynamic Type-Based Backgrounds**  
   Background colors change based on the Pokémon’s primary type (e.g., Fire → red/orange, Water → blue).
@@ -57,7 +67,7 @@
 
   - [x] 🗃️ Offline Support (Caching)
 
-  - [ ] 🔄 Evolution Chain View
+  - [x] 🔄 Evolution Chain View
   
 ---
 
@@ -79,6 +89,12 @@
 📦 API Source
 
 Data is fetched from ![PokeAPI](https://pokeapi.co/)
+
+---
+
+## Get us a Coffee
+
+[![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-donate-yellow.svg)](https://buymeacoffee.com/aditya1875q)
 
 ---
 
