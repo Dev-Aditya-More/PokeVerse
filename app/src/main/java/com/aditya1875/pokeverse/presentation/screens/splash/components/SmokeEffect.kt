@@ -8,7 +8,8 @@ import com.aditya1875.pokeverse.utils.IShaderScreen
 class SmokeShader @RequiresApi(Build.VERSION_CODES.TIRAMISU) constructor(
     override val name: String = "Smoke",
     override val speed: Float = 0.01f,
-    override val shader: RuntimeShader = RuntimeShader(
+    override val shader: RuntimeShader =
+        RuntimeShader(
         """
             uniform shader composable;
             uniform float2 resolution;
