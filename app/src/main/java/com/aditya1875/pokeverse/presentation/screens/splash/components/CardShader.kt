@@ -39,7 +39,9 @@ fun CardShader(
         } while (true)
     }
 
-    val shaderBrush = remember(shader) { ShaderBrush(shader) }
+    val shaderBrush = remember(shaderStr) {
+        ShaderBrush(shaderStr)
+    }
 
     Canvas(
         modifier = Modifier

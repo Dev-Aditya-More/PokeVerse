@@ -95,9 +95,17 @@ fun SplashScreen(
             .background(Color(0xFF802525)), // Fallback background color
         contentAlignment = Alignment.Center
     ) {
-        // Full-screen shader background
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            CardShader(SmokeShader().shader, SmokeShader().speed)
+        val smokeShader = remember {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                SmokeShader()
+            } else null
+        }
+
+        smokeShader?.let {
+            CardShader(
+                shaderStr = it.shader,
+                speed = it.speed
+            )
         }
 
         // Subtle gradient overlay for depth

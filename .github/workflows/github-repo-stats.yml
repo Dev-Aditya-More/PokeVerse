@@ -2,19 +2,18 @@ name: ⭐ github-repo-stats
 
 on:
   schedule:
-    # Run this once per day, towards the end of the day for keeping the most
-    # recent data point most meaningful (hours are interpreted in UTC).
     - cron: "0 23 * * *"
-  workflow_dispatch: # Allow for running this manually.
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  j1:
-    name: github-repo-stats
+  github-repo-stats:
     runs-on: ubuntu-latest
+
     steps:
-      - name: run-ghrs
-        # Use latest release.
+      - name: Run github-repo-stats
         uses: jgehrcke/github-repo-stats@RELEASE
         with:
           ghtoken: ${{ secrets.GHRS_GITHUB_API_TOKEN }}
-
