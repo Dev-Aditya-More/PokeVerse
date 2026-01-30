@@ -21,6 +21,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.toIntSize
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun CardShader(
     shaderStr: RuntimeShader,
@@ -38,7 +39,9 @@ fun CardShader(
         } while (true)
     }
 
-    val shaderBrush = remember(shader) { ShaderBrush(shader) }
+    val shaderBrush = remember(shaderStr) {
+        ShaderBrush(shaderStr)
+    }
 
     Canvas(
         modifier = Modifier
