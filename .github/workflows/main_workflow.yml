@@ -118,7 +118,7 @@ jobs:
           arch: x86_64
           emulator-options: -no-window -noaudio -no-boot-anim
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest
+          script: ./gradlew connectedFossDebugAndroidTest
 
       - name: Upload instrumentation report
         uses: actions/upload-artifact@v4
