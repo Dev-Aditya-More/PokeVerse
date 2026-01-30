@@ -9,7 +9,25 @@ data class PokemonResponse(
     val weight: Int,
     val sprites: Sprites,
     val types: List<TypeSlot>,
-    val stats: List<StatSlot>
+    val stats: List<StatSlot>,
+    val moves: List<Move>
+)
+
+data class Move(
+    val move: NamedApiResource,
+    val version_group_details: List<VersionGroupDetail>
+)
+
+data class VersionGroupDetail(
+    val level_learned_at: Int,
+    val move_learn_method: NamedApiResource,
+    val order: Int?,
+    val version_group: NamedApiResource
+)
+
+data class NamedApiResource(
+    val name: String,
+    val url: String
 )
 
 data class Sprites(

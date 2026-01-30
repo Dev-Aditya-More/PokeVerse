@@ -3,7 +3,7 @@
 
     <style name="Theme.PokeVerse" parent="Theme.AppCompat.DayNight.NoActionBar">
 
-        <item name="background">@color/Gray</item>
+        <item name="android:windowIsTranslucent">true</item>
     </style>
 
 </resources>

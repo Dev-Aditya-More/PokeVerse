@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse.utils
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
@@ -12,10 +13,11 @@ object ScreenStateManager {
 
     val LAST_ROUTE = stringPreferencesKey("last_route")
     val INTRO_SEEN = booleanPreferencesKey("intro_seen")
-
     val FIRST_LAUNCH = booleanPreferencesKey("first_launch")
-
     val SPECIAL_EFFECTS_ENABLED = booleanPreferencesKey("special_effects_enabled")
+
+    val APP_VERSION = intPreferencesKey("app_version")
+    private const val CURRENT_APP_VERSION = 1
 
     suspend fun isFirstLaunch(context: Context): Boolean {
         return context.dataStore.data.first()[FIRST_LAUNCH] ?: true
@@ -38,6 +40,15 @@ object ScreenStateManager {
         return prefs[LAST_ROUTE]
     }
 
+    suspend fun getValidatedLastRoute(context: Context, validRoutes: Set<String>): String? {
+        val lastRoute = getLastRoute(context)
+        return if (lastRoute != null && lastRoute in validRoutes) {
+            lastRoute
+        } else {
+            null
+        }
+    }
+
     suspend fun markIntroSeen(context: Context) {
         context.dataStore.edit { prefs ->
             prefs[INTRO_SEEN] = true
@@ -58,11 +69,31 @@ object ScreenStateManager {
         return context.dataStore.data.first()[SPECIAL_EFFECTS_ENABLED] ?: false
     }
 
-
-    // Read as Flow (optional)
     fun specialEffectsEnabledFlow(context: Context): Flow<Boolean> {
         return context.dataStore.data.map { prefs ->
             prefs[SPECIAL_EFFECTS_ENABLED] ?: false
+        }
+    }
+
+    suspend fun clearNavigationState(context: Context) {
+        context.dataStore.edit { prefs ->
+            prefs.remove(LAST_ROUTE)
+        }
+    }
+
+    suspend fun resetToDefaults(context: Context) {
+        context.dataStore.edit { prefs ->
+            prefs.clear()
+        }
+    }
+
+    suspend fun validateAppState(context: Context): Boolean {
+        return try {
+            context.dataStore.data.first()
+            true
+        } catch (e: Exception) {
+            Log.e("ScreenStateManager", "DataStore corrupted", e)
+            false
         }
     }
 }

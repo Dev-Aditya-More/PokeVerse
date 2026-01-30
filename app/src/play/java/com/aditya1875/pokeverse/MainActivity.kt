@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.RequiresApi
@@ -14,8 +13,13 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
@@ -25,26 +29,28 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
 import com.aditya1875.pokeverse.components.PokemonNotFoundScreen
+import com.aditya1875.pokeverse.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.di.appModule
-import com.aditya1875.pokeverse.notifications.NotificationWorker
-import com.aditya1875.pokeverse.screens.DreamTeam
-import com.aditya1875.pokeverse.screens.HomeScreen
-import com.aditya1875.pokeverse.screens.IntroScreen
-import com.aditya1875.pokeverse.screens.PokemonDetailScreen
-import com.aditya1875.pokeverse.screens.SettingsScreen
-import com.aditya1875.pokeverse.screens.SplashScreen
-import com.aditya1875.pokeverse.ui.theme.PokeVerseTheme
+import com.aditya1875.pokeverse.screens.analysis.TeamAnalysisScreen
+import com.aditya1875.pokeverse.screens.detail.PokemonDetailScreen
+import com.aditya1875.pokeverse.screens.home.HomeScreen
+import com.aditya1875.pokeverse.screens.onboarding.IntroScreen
+import com.aditya1875.pokeverse.screens.settings.SettingsScreen
+import com.aditya1875.pokeverse.screens.splash.SplashScreen
+import com.aditya1875.pokeverse.screens.team.DreamTeam
+import com.aditya1875.pokeverse.screens.theme.ThemeSelectorScreen
+import com.aditya1875.pokeverse.ui.theme.AppTheme
+import com.aditya1875.pokeverse.ui.theme.PokeverseTheme
 import com.aditya1875.pokeverse.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.aditya1875.pokeverse.utils.WithBottomBar
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 import org.koin.core.context.GlobalContext.startKoin
 
 class MainActivity : ComponentActivity() {
@@ -60,6 +66,9 @@ class MainActivity : ComponentActivity() {
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        FirebaseMessaging.getInstance()
+            .subscribeToTopic("theme_updates")
+
         startKoin {
             androidContext(this@MainActivity)
             modules(appModule)
@@ -67,10 +76,23 @@ class MainActivity : ComponentActivity() {
 
         setContent {
 
+            val themePreferences = koinInject<ThemePreferences>()
+            val selectedTheme by themePreferences.selectedTheme.collectAsState(
+                initial = AppTheme.POKEVERSE
+            )
+
+            var currentTheme by rememberSaveable { mutableStateOf(selectedTheme) }
+
+            LaunchedEffect(selectedTheme) {
+                currentTheme = selectedTheme
+            }
+
             val startDestination = remember { mutableStateOf("splash") }
             val context = LocalContext.current
 
-            PokeVerseTheme {
+            PokeverseTheme(
+                selectedTheme = currentTheme,
+            ) {
                 val viewModel: PokemonViewModel = koinViewModel()
                 val navController = rememberNavController()
 
@@ -86,6 +108,15 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                var selectedTab by rememberSaveable { mutableIntStateOf(0) }
+                var teamName by rememberSaveable { mutableStateOf("My Team") }
+                var favoritesName by rememberSaveable { mutableStateOf("My Favourites") }
+
+                val selectedName =
+                    if (selectedTab == 0) teamName else favoritesName
+
+                val scope = rememberCoroutineScope()
+
                 NavHost(
                     navController = navController,
                     startDestination = startDestination.value,
@@ -97,14 +128,30 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(navController)
                         }
                     }
+
                     composable("dream_team") {
-                        WithBottomBar(navController) {
+                        WithBottomBar(
+                            navController = navController,
+                            selectedTab = selectedTab,
+                            onTabChange = { selectedTab = it }
+                        ) {
                             DreamTeam(
                                 navController = navController,
                                 team = viewModel.team.collectAsState().value,
-                                onRemove = { viewModel.removeFromTeam(it) }
+                                onRemove = { viewModel.removeFromTeam(it) },
+                                selectedName = selectedName,
+                                onNameChange = {
+                                    if (selectedTab == 0) teamName = it
+                                    else favoritesName = it
+                                },
+                                onTabChange = { selectedTab = it },
+                                selectedTab = selectedTab
                             )
                         }
+                    }
+
+                    composable("team_analysis") {
+                        TeamAnalysisScreen(navController = navController)
                     }
                     composable("pokemon_detail/{pokemonName}") { backStackEntry ->
                         val pokemonName = backStackEntry.arguments?.getString("pokemonName")
@@ -121,6 +168,17 @@ class MainActivity : ComponentActivity() {
                             SettingsScreen(navController)
                         }
                     }
+
+                    composable("theme_selector") {
+                        ThemeSelectorScreen(
+                            navController = navController,
+                            onThemeSelected ={ theme ->
+                                scope.launch {
+                                    themePreferences.setTheme(theme)
+                                }
+                            }
+                        )
+                    }
                 }
 
                 LaunchedEffect(navController) {
@@ -132,17 +190,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        FirebaseMessaging.getInstance().token
-            .addOnCompleteListener { task ->
-                if (!task.isSuccessful) {
-                    Log.w("FCM", "Fetching FCM registration token failed", task.exception)
-                    return@addOnCompleteListener
-                }
-                val token = task.result
-                Log.d("FCM", "FCM Token: $token")
-                Toast.makeText(this, "FCM token fetched!", Toast.LENGTH_SHORT).show()
-            }
 
+        FirebaseMessaging.getInstance()
+            .subscribeToTopic("theme_updates")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.d("FCM", "Subscribed to theme_updates topic")
+                } else {
+                    Log.e("FCM", "Topic subscription failed", task.exception)
+                }
+            }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -159,6 +216,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Preview(showSystemUi = true)
 @Composable
 private fun SplashScreenPreview() {

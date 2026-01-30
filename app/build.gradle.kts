@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.aboutlibraries)
     id("com.google.devtools.ksp") version "2.1.21-2.0.1"
     id("org.jetbrains.kotlin.plugin.serialization")
-    // don't apply globally — applied conditionally below
 }
 
 android {
@@ -17,20 +16,34 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 26
-        versionName = "1.2.6"
+        versionCode = 41
+        versionName = "1.4.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     signingConfigs {
         create("release") {
-            storeFile = file(properties["RELEASE_STORE_FILE"] ?: "")
-            storePassword = properties["RELEASE_STORE_PASSWORD"] as String?
-            keyAlias = properties["RELEASE_KEY_ALIAS"] as String?
-            keyPassword = properties["RELEASE_KEY_PASSWORD"] as String?
+            storeFile = file(
+                System.getenv("RELEASE_STORE_FILE")
+                    ?: project.findProperty("RELEASE_STORE_FILE") as String?
+                    ?: ""
+            )
+
+            storePassword =
+                System.getenv("RELEASE_STORE_PASSWORD")
+                    ?: project.findProperty("RELEASE_STORE_PASSWORD") as String?
+
+            keyAlias =
+                System.getenv("RELEASE_KEY_ALIAS")
+                    ?: project.findProperty("RELEASE_KEY_ALIAS") as String?
+
+            keyPassword =
+                System.getenv("RELEASE_KEY_PASSWORD")
+                    ?: project.findProperty("RELEASE_KEY_PASSWORD") as String?
         }
     }
+
 
     buildTypes {
         getByName("release") {
@@ -46,8 +59,10 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
     }
     buildFeatures {
         compose = true
@@ -72,9 +87,23 @@ android {
         }
         create("foss") {
             dimension = "distribution"
-            applicationIdSuffix = ".foss"
-            versionNameSuffix = "-foss"
+//            applicationIdSuffix = ".foss"
+//            versionNameSuffix = "-foss"
+            isDefault = true
             buildConfigField("boolean", "USE_FIREBASE", "false")
+        }
+    }
+
+    sourceSets {
+        getByName("play") {
+            java.srcDir("src/play/java")
+            res.srcDir("src/play/res")
+            manifest.srcFile("src/play/AndroidManifest.xml")
+        }
+        getByName("foss") {
+            java.srcDir("src/foss/java")
+            res.srcDir("src/foss/res")
+            manifest.srcFile("src/foss/AndroidManifest.xml")
         }
     }
 }
@@ -93,8 +122,11 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
+    implementation(libs.coil.svg)
+
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.gson)
@@ -102,6 +134,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.compose.animation.core)
+    implementation(libs.androidx.compose.material3)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
@@ -146,8 +180,12 @@ dependencies {
     implementation (libs.androidx.glance.appwidget)
     implementation (libs.androidx.work.runtime.ktx)
     implementation(libs.colorpicker.compose)
+
+    implementation(libs.androidx.material.icons.core)
     // AboutLibraries
     implementation(libs.aboutlibraries.compose.m3)
+
+    implementation(libs.liquid)
     // ui tests
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -160,4 +198,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(kotlin("test"))
+}
+
+// Disable baseline profiles to make builds reproducible
+tasks.whenTaskAdded {
+    if (name.contains("ArtProfile")) {
+        enabled = false
+    }
 }

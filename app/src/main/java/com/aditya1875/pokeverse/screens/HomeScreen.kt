@@ -1,15 +1,10 @@
 package com.aditya1875.pokeverse.screens
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,7 +28,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Button
@@ -41,8 +35,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
@@ -156,24 +148,8 @@ fun HomeScreen(navController: NavHostController) {
                         titleContentColor = Color.White
                     )
                 )
-            },
-            floatingActionButton = {
-                // FAB will float ABOVE LazyColumn automatically
-                val fabVisible by remember { derivedStateOf { listState.firstVisibleItemIndex > 5 } }
-                AnimatedVisibility(
-                    visible = fabVisible,
-                    enter = fadeIn() + scaleIn(),
-                    exit = fadeOut() + scaleOut()
-                ) {
-                    FloatingActionButton(
-                        onClick = { coroutineScope.launch { listState.animateScrollToItem(0) } },
-                        containerColor = Color(0xFF802525),
-                        elevation = FloatingActionButtonDefaults.elevation(8.dp)
-                    ) {
-                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = "Scroll to top", tint = Color.White)
-                    }
-                }
-            },
+            }
+
 
         ) { paddingValues ->
             val focusManager = LocalFocusManager.current
