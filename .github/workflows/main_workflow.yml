@@ -116,8 +116,8 @@ jobs:
           api-level: 30
           target: google_apis
           arch: x86_64
-          emulator-options: -no-window -noaudio -no-boot-anim
-          disable-animations: true
+          emulator-options: -no-window -noaudio -no-boot-anim -delay-adb
+          disable-animations: false
           script: ./gradlew connectedFossDebugAndroidTest
 
       - name: Upload instrumentation report
