@@ -83,53 +83,8 @@ jobs:
           name: unit-test-report
           path: app/build/reports/tests/testDebugUnitTest/
 
-
-#  instrumentation-test:
-#    name: Instrumentation Tests
-#    needs: unit-test
-#    runs-on: ubuntu-latest
-#    timeout-minutes: 40
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#
-#      - name: Setup JDK
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: ${{ env.JAVA_DIST }}
-#          java-version: ${{ env.JAVA_VERSION }}
-#          cache: gradle
-#
-#      - name: Decode google-services.json
-#        env:
-#          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-#        run: |
-#          mkdir -p app
-#          printf "%s" "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
-#
-#      - name: Grant gradlew permission
-#        run: chmod +x ./gradlew
-#
-#      - name: Run instrumentation tests
-#        uses: reactivecircus/android-emulator-runner@v2
-#        with:
-#          api-level: 30
-#          target: google_apis
-#          arch: x86_64
-#          emulator-options: -no-window -noaudio -no-boot-anim -delay-adb
-#          disable-animations: false
-#          script: ./gradlew connectedFossDebugAndroidTest
-#
-#      - name: Upload instrumentation report
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: instrumentation-test-report
-#          path: app/build/reports/androidTests/connected/
-
-
   distribution:
     name: Build Debug APK
-    needs: instrumentation-test
     runs-on: ubuntu-latest
 
     steps:
@@ -160,3 +115,4 @@ jobs:
         with:
           name: debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
+
