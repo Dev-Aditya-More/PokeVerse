@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -119,7 +120,7 @@ fun EmptyTeamView(
 
             Button(
                 onClick = {
-                    navController.navigate("home") {
+                    navController.navigate(Route.BottomBar.Home.route) {
                         popUpTo(navController.graph.findStartDestination().id) {
                             saveState = true
                         }

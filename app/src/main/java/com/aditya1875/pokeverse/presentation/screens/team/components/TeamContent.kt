@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 
 @Composable
 fun TeamContent(
@@ -113,7 +114,7 @@ fun TeamContent(
 
             // Analyze Button
             Button(
-                onClick = { navController.navigate("team_analysis") },
+                onClick = { navController.navigate(Route.Analysis.route) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(

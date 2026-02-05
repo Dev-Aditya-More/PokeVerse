@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.settings.components.ResponsiveMetaballSwitch
 import com.aditya1875.pokeverse.presentation.screens.settings.components.SettingsCard
 import com.aditya1875.pokeverse.presentation.screens.settings.components.zigZagBackground
@@ -183,7 +184,7 @@ fun SettingsScreen(navController: NavController) {
                     trailing = {
                         IconButton(
                             onClick = {
-                                navController.navigate("theme_selector")
+                                navController.navigate(Route.ThemeSelector.route)
                             }
                         ) {
                             Icon(

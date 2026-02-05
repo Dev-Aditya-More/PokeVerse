@@ -48,6 +48,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.data.local.entity.FavouriteEntity
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import kotlinx.coroutines.delay
 import kotlin.math.absoluteValue
 
@@ -74,7 +75,7 @@ fun ImprovedFavoriteCard(
             }
             .clickable {
                 isPressed = true
-                navController.navigate("pokemon_detail/${favorite.name}")
+                navController.navigate(Route.Details.createDetails(favorite.name))
             },
         elevation = CardDefaults.cardElevation(6.dp),
         colors = CardDefaults.cardColors(

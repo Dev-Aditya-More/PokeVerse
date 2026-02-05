@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
@@ -27,35 +25,36 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController,
-    selectedTab: Int,
-    onTabChange: (Int) -> Unit
+    selectedRoute: Route,
+    onRouteChange: (Route) -> Unit
 ) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination?.route
-
     BottomAppBar(
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
     ) {
         val items = listOf(
-            Triple("home", Icons.Default.Home, MaterialTheme.colorScheme.primary),
-            Triple("dream_team", Icons.Default.Star, MaterialTheme.colorScheme.secondary),
-            Triple("settings", Icons.Default.Settings, MaterialTheme.colorScheme.tertiary)
+            Route.BottomBar.Home,
+            Route.BottomBar.Team,
+            Route.BottomBar.Settings
         )
 
-        items.forEach { (route, icon, accentColor) ->
-            val resolvedIcon = when (route) {
-                "dream_team" if selectedTab == 1 -> Icons.Default.Star
-                "dream_team" -> Icons.Default.Add
-                else -> icon
+        items.forEach { routeItem ->
+            val selected = routeItem == selectedRoute
+
+            val accentColor = when (routeItem) {
+                Route.BottomBar.Home -> MaterialTheme.colorScheme.primary
+                Route.BottomBar.Team -> MaterialTheme.colorScheme.secondary
+                Route.BottomBar.Settings -> MaterialTheme.colorScheme.tertiary
             }
 
-            val selected = currentDestination == route
+            val resolvedIcon = when (routeItem) {
+                Route.BottomBar.Team -> if (selected) Icons.Default.Star else Icons.Default.Add
+                else -> routeItem.icon
+            }
 
             val iconTint by animateColorAsState(
                 targetValue = if (selected) accentColor else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -80,7 +79,8 @@ fun BottomNavigationBar(
                 selected = selected,
                 onClick = {
                     if (!selected) {
-                        navController.navigate(route) {
+                        onRouteChange(routeItem)
+                        navController.navigate(routeItem.route) {
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
                             }
@@ -97,7 +97,7 @@ fun BottomNavigationBar(
                     ) {
                         Icon(
                             imageVector = resolvedIcon,
-                            contentDescription = route,
+                            contentDescription = routeItem.route,
                             tint = iconTint
                         )
                     }

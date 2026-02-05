@@ -39,6 +39,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -71,7 +72,7 @@ fun TeamPokemonCard(
             .clickable(
                 onClick = {
                     isPressed = true
-                    navController.navigate("pokemon_detail/${pokemon.name}")
+                    navController.navigate(Route.Details.createDetails(pokemon.name))
                 },
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null

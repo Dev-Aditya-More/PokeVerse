@@ -80,6 +80,7 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.presentation.screens.detail.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.presentation.screens.home.components.FilterBar
 import com.aditya1875.pokeverse.presentation.screens.home.components.ImprovedPokemonCard
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.SearchResult
@@ -193,7 +194,7 @@ fun HomeScreen(navController: NavHostController) {
                         val cleaned = query.trim().lowercase()
                         if (cleaned.length >= 2) {
                             isSearchFocused = false
-                            navController.navigate("pokemon_detail/$cleaned")
+                            navController.navigate(Route.Details.createDetails(cleaned))
                         }
                     }
 
@@ -327,9 +328,7 @@ fun HomeScreen(navController: NavHostController) {
                                                     isSearchFocused = false
                                                     query = ""
                                                     navController.navigate(
-                                                        "pokemon_detail/${
-                                                            searchUiState.suggestions[searchResult].pokemon.name
-                                                        }"
+                                                        Route.Details.createDetails(searchUiState.suggestions[searchResult].pokemon.name)
                                                     )
                                                 }
                                             )
@@ -471,7 +470,7 @@ fun HomeScreen(navController: NavHostController) {
                                                     pokemon.name
                                                 )
                                             },
-                                            onClick = { navController.navigate("pokemon_detail/${pokemon.name}") }
+                                            onClick = { navController.navigate(Route.Details.createDetails(pokemon.name)) }
                                         )
                                     }
 
