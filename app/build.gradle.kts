@@ -137,6 +137,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.animation)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)

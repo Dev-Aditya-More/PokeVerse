@@ -138,15 +138,17 @@ class PokemonViewModel(
     // Pokémon List Loading
     // -------------------------
     fun loadPokemonList(isNewRegion: Boolean = false) {
-        if (isLoading || endReached) return
+        if (isLoading || (endReached && !isNewRegion)) return
 
         val selectedRegion = filters.value.selectedRegion
-        val selectedType = filters.value.selectedType
         val regionRange = selectedRegion?.range
         val regionStart = selectedRegion?.offset ?: 0
         val regionEnd = regionStart + (selectedRegion?.limit ?: Int.MAX_VALUE)
 
-        if (isNewRegion) currentOffset = regionStart
+        if (isNewRegion) {
+            currentOffset = regionStart
+            allPokemonInRegion = emptyList()
+        }
 
         if (!isNetworkAvailable(context)) {
             _uiState.value = PokemonDetailUiState(
@@ -161,53 +163,23 @@ class PokemonViewModel(
         viewModelScope.launch {
             try {
                 val result = repository.getPokemonList(limit = limit, offset = currentOffset)
-                var newList = result.results
-
-                // Filter by region first
-                newList = newList
+                val newList = result.results
                     .map { it to extractIdFromUrl(it.url) }
                     .filter { (_, id) -> regionRange?.contains(id) ?: true }
                     .map { it.first }
 
-                // Filter by type if selected
-                if (selectedType != null) {
-                    newList = newList.filter { pokemonResult ->
-                        try {
-                            val pokemon = repository.getPokemonByName(pokemonResult.name)
-                            pokemon.types.any {
-                                it.type.name.equals(selectedType.name, ignoreCase = true)
-                            }
-                        } catch (e: Exception) {
-                            false // Skip if we can't fetch details
-                        }
-                    }
-                }
-
-                if (selectedType != null) {
-                    newList = newList.filter { pokemonResult ->
-                        val cachedTypes = pokemonTypeCache[pokemonResult.name]
-                        cachedTypes?.any { it.equals(selectedType.name, ignoreCase = true) }
-                            ?: try {
-                                val pokemon = repository.getPokemonByName(pokemonResult.name)
-                                val types = pokemon.types.map { it.type.name }
-                                pokemonTypeCache[pokemonResult.name] = types
-                                types.any { it.equals(selectedType.name, ignoreCase = true) }
-                            } catch (e: Exception) {
-                                false
-                            }
-                    }
-                }
-
-                if (isNewRegion) {
-                    _pokemonList.value = newList
-                } else {
-                    _pokemonList.value += newList
-                }
+                // Add to all Pokemon in region
+                allPokemonInRegion = allPokemonInRegion + newList
 
                 currentOffset += limit
+
+                // Check if we've loaded all Pokemon in the region
                 if (newList.isEmpty() || newList.size < limit || currentOffset >= regionEnd) {
                     endReached = true
                 }
+
+                // Apply current filters (region + type if selected)
+                applyCurrentFilters()
 
                 _uiState.value = PokemonDetailUiState(isLoading = false, error = null)
 
@@ -310,27 +282,77 @@ class PokemonViewModel(
     // -------------------------
     // Filters
     // -------------------------
+    private val typePokemonCache = mutableMapOf<PokemonType, Set<Int>>()
+    private var isTypeDataLoaded = false
+
+    // All Pokemon in current region (for filtering)
+    private var allPokemonInRegion: List<PokemonResult> = emptyList()
+
+    init {
+        // Initialize selected team to default or first team
+        viewModelScope.launch {
+            val defaultTeam = teamDao.getDefaultTeam()
+            _selectedTeamId.value = defaultTeam?.teamId ?: allTeams.value.firstOrNull()?.teamId
+        }
+
+        // Load type data in background
+        loadAllTypeData()
+    }
+
+    private fun loadAllTypeData() {
+        viewModelScope.launch {
+            try {
+                PokemonType.entries.forEach { type ->
+                    try {
+                        val typeResponse = repository.getPokemonByType(type.name.lowercase())
+                        val pokemonIds = typeResponse.pokemon.map {
+                            extractIdFromUrl(it.pokemon.url)
+                        }.toSet()
+                        typePokemonCache[type] = pokemonIds
+                        Log.d("PokeVM", "Loaded ${pokemonIds.size} Pokémon for type ${type.name}")
+                    } catch (e: Exception) {
+                        Log.e("PokeVM", "Failed to load type data for ${type.name}", e)
+                    }
+                }
+                isTypeDataLoaded = true
+                Log.d("PokeVM", "All type data loaded successfully")
+            } catch (e: Exception) {
+                Log.e("PokeVM", "Failed to load type data", e)
+            }
+        }
+    }
+
+    fun setTypeFilter(type: PokemonType?) {
+        _filters.update { it.copy(selectedType = type) }
+        applyCurrentFilters()
+    }
+
     fun setRegionFilter(region: Region?) {
         _filters.update { it.copy(selectedRegion = region) }
 
         currentOffset = region?.offset ?: 0
         endReached = false
         isLoading = false
+        allPokemonInRegion = emptyList()
         _pokemonList.value = emptyList()
 
         loadPokemonList(isNewRegion = true)
     }
 
-    fun setTypeFilter(type: PokemonType?) {
-        _filters.update { it.copy(selectedType = type) }
+    private fun applyCurrentFilters() {
+        val selectedType = _filters.value.selectedType
 
-        // Reset and reload with new filter
-        currentOffset = _filters.value.selectedRegion?.offset ?: 0
-        endReached = false
-        isLoading = false
-        _pokemonList.value = emptyList()
-
-        loadPokemonList(isNewRegion = true)
+        if (selectedType == null) {
+            _pokemonList.value = allPokemonInRegion
+        } else {
+            // Filter by type using cached data
+            val typeIds = typePokemonCache[selectedType] ?: emptySet()
+            _pokemonList.value = allPokemonInRegion.filter { pokemonResult ->
+                val id = extractIdFromUrl(pokemonResult.url)
+                typeIds.contains(id)
+            }
+            Log.d("PokeVM", "Filtered to ${_pokemonList.value.size} ${selectedType.name} types")
+        }
     }
 
     private fun isNetworkAvailable(context: Context): Boolean {

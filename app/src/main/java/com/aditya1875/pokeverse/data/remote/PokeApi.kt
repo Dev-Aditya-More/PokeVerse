@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.data.remote
 import com.aditya1875.pokeverse.data.remote.model.PokemonListResponse
 import com.aditya1875.pokeverse.data.remote.model.PokemonResponse
 import com.aditya1875.pokeverse.data.remote.model.PokemonSpeciesResponse
+import com.aditya1875.pokeverse.data.remote.model.TypeResponse
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionChainResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -23,5 +24,8 @@ interface PokeApi {
 
     @GET("evolution-chain/{id}")
     suspend fun getEvolutionChain(@Path("id") id: Int): EvolutionChainResponse
+
+    @GET("type/{type}")
+    suspend fun getPokemonByType(@Path("type") type: String): TypeResponse
 
 }
