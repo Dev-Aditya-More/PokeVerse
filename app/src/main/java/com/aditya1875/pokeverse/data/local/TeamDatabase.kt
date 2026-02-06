@@ -5,9 +5,14 @@ import androidx.room.RoomDatabase
 import com.aditya1875.pokeverse.data.local.dao.FavouritesDao
 import com.aditya1875.pokeverse.data.local.dao.TeamDao
 import com.aditya1875.pokeverse.data.local.entity.FavouriteEntity
+import com.aditya1875.pokeverse.data.local.entity.TeamEntity
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 
-@Database(entities = [TeamMemberEntity::class, FavouriteEntity::class], version = 2)
+@Database(
+    entities = [TeamEntity::class, TeamMemberEntity::class, FavouriteEntity::class],
+    version = 3, // Increment version
+    exportSchema = false
+)
 abstract class TeamDatabase : RoomDatabase() {
     abstract fun teamDao(): TeamDao
     abstract fun favoritesDao(): FavouritesDao

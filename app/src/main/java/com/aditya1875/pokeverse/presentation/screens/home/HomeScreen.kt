@@ -101,10 +101,8 @@ fun HomeScreen(navController: NavHostController) {
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
-    val team by viewModel.team.collectAsStateWithLifecycle()
-    val teamMembershipMap = remember(team) {
-        team.associate { it.name to true }
-    }
+    val team by viewModel.currentTeamMembers.collectAsStateWithLifecycle()
+
     var isSearchFocused by remember { mutableStateOf(false) }
 
     val shouldLoadMore by remember {
@@ -201,6 +199,7 @@ fun HomeScreen(navController: NavHostController) {
                     FilterBar(
                         currentFilter = filterState,
                         onRegionChange = { viewModel.setRegionFilter(it) },
+                        onTypeChange = { viewModel.setTypeFilter(it) }
                     )
 
                     OutlinedTextField(
@@ -450,7 +449,7 @@ fun HomeScreen(navController: NavHostController) {
                                         val isFavorite by viewModel.isInFavorites(pokemon.name)
                                             .collectAsStateWithLifecycle(false)
 
-                                        val isInTeam by viewModel.isInTeam(pokemon.name)
+                                        val isInTeam by viewModel.isInAnyTeam(pokemon.name)
                                             .collectAsStateWithLifecycle(false)
 
                                         ImprovedPokemonCard(
@@ -458,17 +457,9 @@ fun HomeScreen(navController: NavHostController) {
                                             isInTeam = isInTeam,
                                             isInFavorites = isFavorite,
                                             teamSize = team.size,
-                                            onAddToTeam = { viewModel.addToTeam(pokemon) },
-                                            onRemoveFromTeam = {
-                                                viewModel.removeFromTeamByName(
-                                                    pokemon.name
-                                                )
-                                            },
                                             onAddToFavorites = { viewModel.addToFavorites(pokemon) },
                                             onRemoveFromFavorites = {
-                                                viewModel.removeFromFavoritesByName(
-                                                    pokemon.name
-                                                )
+                                                viewModel.removeFromFavoritesByName(pokemon.name)
                                             },
                                             onClick = { navController.navigate(Route.Details.createDetails(pokemon.name)) }
                                         )

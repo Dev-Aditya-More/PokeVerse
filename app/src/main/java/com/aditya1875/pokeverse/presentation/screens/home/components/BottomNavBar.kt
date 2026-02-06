@@ -30,7 +30,7 @@ import androidx.navigation.NavHostController
 fun BottomNavigationBar(
     navController: NavHostController,
     selectedRoute: Route,
-    onRouteChange: (Route) -> Unit
+    onRouteChange: (Route.BottomBar) -> Unit
 ) {
     BottomAppBar(
         containerColor = MaterialTheme.colorScheme.surface,

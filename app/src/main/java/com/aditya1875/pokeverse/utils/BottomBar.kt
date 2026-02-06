@@ -7,10 +7,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.aditya1875.pokeverse.presentation.screens.home.components.BottomNavigationBar
 import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 
@@ -18,7 +16,7 @@ import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 fun WithBottomBar(
     navController: NavHostController,
     selectedRoute: Route = Route.BottomBar.Home,
-    onRouteChange: (Route) -> Unit = {},
+    onRouteChange: (Route.BottomBar) -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(

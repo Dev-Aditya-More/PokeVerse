@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.presentation.screens.home.components
 
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -18,9 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
 import androidx.compose.material3.Card
@@ -39,17 +38,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.data.remote.model.PokemonResult
+import com.aditya1875.pokeverse.presentation.screens.team.components.CreateTeamDialog
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import kotlinx.coroutines.delay
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ImprovedPokemonCard(
@@ -57,11 +59,10 @@ fun ImprovedPokemonCard(
     isInTeam: Boolean,
     isInFavorites: Boolean,
     teamSize: Int,
-    onAddToTeam: () -> Unit,
-    onRemoveFromTeam: () -> Unit,
     onAddToFavorites: () -> Unit,
     onRemoveFromFavorites: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    viewModel: PokemonViewModel = koinViewModel()
 ) {
     val pokemonId = remember(pokemon.url) {
         pokemon.url.trimEnd('/')
@@ -78,6 +79,14 @@ fun ImprovedPokemonCard(
         animationSpec = tween(durationMillis = 100),
         label = "cardScale"
     )
+
+    // Bottom sheet state
+    var showTeamBottomSheet by remember { mutableStateOf(false) }
+    var showCreateTeamDialog by remember { mutableStateOf(false) }
+    var teamCreationError by remember { mutableStateOf<String?>(null) }
+
+    val allTeamsWithMembers by viewModel.allTeamsWithMembers.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     Card(
         modifier = Modifier
@@ -167,28 +176,54 @@ fun ImprovedPokemonCard(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Team Button
                 IconButton(
                     onClick = {
-                        if (isInTeam) {
-                            onRemoveFromTeam()
-                        } else {
-                            if (teamSize < 6) {
-                                onAddToTeam()
+                        when {
+                            allTeamsWithMembers.isEmpty() -> {
+                                Toast.makeText(context, "Please create a team first", Toast.LENGTH_SHORT).show()
+                            }
+                            allTeamsWithMembers.size == 1 -> {
+                                val team = allTeamsWithMembers.first()
+                                viewModel.togglePokemonInTeam(
+                                    pokemonResult = pokemon,
+                                    teamId = team.team.teamId,
+                                    onResult = { result ->
+                                        when (result) {
+                                            is PokemonViewModel.TeamAdditionResult.Success -> {
+                                                val message = if (isInTeam)
+                                                    "Removed from ${result.teamName}"
+                                                else
+                                                    "Added to ${result.teamName}"
+                                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                            }
+                                            is PokemonViewModel.TeamAdditionResult.TeamFull -> {
+                                                Toast.makeText(context, "Team is full! Create a new team.", Toast.LENGTH_SHORT).show()
+                                            }
+                                            is PokemonViewModel.TeamAdditionResult.AlreadyInTeam -> {
+                                                Toast.makeText(context, "Already in team", Toast.LENGTH_SHORT).show()
+                                            }
+                                            is PokemonViewModel.TeamAdditionResult.Error -> {
+                                                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                            else -> {
+                                // Multiple teams - show bottom sheet
+                                showTeamBottomSheet = true
                             }
                         }
                     },
-                    enabled = isInTeam || teamSize < 6,
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
-                        imageVector = if (isInTeam) Icons.Default.Remove else Icons.Default.Add,
-                        contentDescription = if (isInTeam) "Remove from Team" else "Add to Team",
+                        imageVector = if (isInTeam) Icons.Default.Check else Icons.Default.Add,
+                        contentDescription = if (isInTeam) "In Team" else "Add to Team",
                         tint = if (isInTeam) {
-                            MaterialTheme.colorScheme.error
+                            MaterialTheme.colorScheme.primary
                         } else {
-                            if (teamSize >= 6) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         },
                         modifier = Modifier.size(24.dp)
                     )
@@ -218,6 +253,67 @@ fun ImprovedPokemonCard(
                 }
             }
         }
+    }
+
+    // Team Selection Bottom Sheet
+    if (showTeamBottomSheet) {
+        AddToTeamBottomSheet(
+            pokemonName = pokemon.name,
+            allTeamsWithMembers = allTeamsWithMembers,
+            onDismiss = { showTeamBottomSheet = false },
+            onTeamSelected = { teamId ->
+                viewModel.togglePokemonInTeam(
+                    pokemonResult = pokemon,
+                    teamId = teamId,
+                    onResult = { result ->
+                        when (result) {
+                            is PokemonViewModel.TeamAdditionResult.Success -> {
+                                val message = if (result.wasAdded)
+                                    "Added to ${result.teamName}!"
+                                else
+                                    "Removed from ${result.teamName}"
+                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                            }
+                            is PokemonViewModel.TeamAdditionResult.TeamFull -> {
+                                Toast.makeText(context, "Team is full!", Toast.LENGTH_SHORT).show()
+                            }
+                            is PokemonViewModel.TeamAdditionResult.Error -> {
+                                Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                            }
+                            else -> {}
+                        }
+                    }
+                )
+            },
+            onCreateNewTeam = {
+                showTeamBottomSheet = false
+                showCreateTeamDialog = true
+            }
+        )
+    }
+
+    // Create Team Dialog
+    if (showCreateTeamDialog) {
+        CreateTeamDialog(
+            onCreateTeam = { teamName ->
+                viewModel.createTeam(
+                    teamName = teamName,
+                    onSuccess = {
+                        showCreateTeamDialog = false
+                        teamCreationError = null
+                        Toast.makeText(context, "Team \"$teamName\" created!", Toast.LENGTH_SHORT).show()
+                    },
+                    onError = { error ->
+                        teamCreationError = error
+                    }
+                )
+            },
+            onDismiss = {
+                showCreateTeamDialog = false
+                teamCreationError = null
+            },
+            errorMessage = teamCreationError
+        )
     }
 
     LaunchedEffect(isPressed) {

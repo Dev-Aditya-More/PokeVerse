@@ -95,13 +95,12 @@ class MainActivity : ComponentActivity() {
             PokeverseTheme(
                 selectedTheme = currentTheme,
             ) {
-                val viewModel: PokemonViewModel = koinViewModel()
                 val navController = rememberNavController()
 
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                val selectedRoute = when (currentRoute) {
+                var selectedRoute = when (currentRoute) {
                     Route.BottomBar.Home.route -> Route.BottomBar.Home
                     Route.BottomBar.Team.route -> Route.BottomBar.Team
                     Route.BottomBar.Settings.route -> Route.BottomBar.Settings
@@ -143,18 +142,15 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Route.BottomBar.Team.route) {
-                        WithBottomBar(navController) {
+                        WithBottomBar(
+                            navController,
+                            selectedRoute = selectedRoute,
+                            onRouteChange = {
+                                selectedRoute = it
+                            }
+                        ) {
                             DreamTeam(
-                                navController = navController,
-                                team = viewModel.team.collectAsState().value,
-                                onRemove = { viewModel.removeFromTeam(it) },
-                                selectedName = selectedName,
-                                onNameChange = {
-                                    if (selectedTab == 0) teamName = it
-                                    else favoritesName = it
-                                },
-                                onTabChange = { selectedTab = it },
-                                selectedTab = selectedTab
+                                navController = navController
                             )
                         }
                     }
@@ -175,7 +171,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(Route.BottomBar.Settings.route) {
-                        WithBottomBar(navController) {
+                        WithBottomBar(
+                            navController,
+                            selectedRoute = selectedRoute,
+                            onRouteChange = {
+                                selectedRoute = it
+                            }
+                        ) {
                             SettingsScreen(navController)
                         }
                     }
