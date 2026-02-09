@@ -266,6 +266,9 @@ fun HomeScreen(navController: NavHostController) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
+                            .onFocusChanged { focusState ->
+                                isSearchFocused = focusState.isFocused
+                            }
                     )
 
 
