@@ -80,6 +80,19 @@
   - [x] 🗃️ Offline Support (Caching)
 
   - [x] 🔄 Evolution Chain View
+
+  
+#### 🚀 Coming Soon
+
+- [ ] 🧩 Advanced Filters (Types, Egg Groups, Regions, Generations)  
+
+- [ ] 🌍 Proper Region Pokédex (Kanto, Johto, Hisui, etc.)  
+
+- [ ] ⚔️ Detailed Moves & Movesets (TMs, Egg Moves, Tutors)  
+- [x] 🧠 Smarter Team Builder (Type coverage & weaknesses)  
+- [ ] 🎨 Clean Welcome Screen
+- [ ] 🏷️ Better Sorting (Stats, Name, Dex No, Type)  
+- [ ] 📱 UI & Performance Improvements  
   
 ---
 
