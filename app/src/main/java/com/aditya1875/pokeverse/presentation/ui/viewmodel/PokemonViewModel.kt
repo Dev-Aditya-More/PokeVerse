@@ -11,11 +11,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.data.local.dao.FavouritesDao
 import com.aditya1875.pokeverse.data.local.dao.TeamDao
+import com.aditya1875.pokeverse.data.local.dao.TeamWithMembers
 import com.aditya1875.pokeverse.data.local.entity.FavouriteEntity
+import com.aditya1875.pokeverse.data.local.entity.TeamEntity
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 import com.aditya1875.pokeverse.data.remote.model.PokemonFilter
 import com.aditya1875.pokeverse.data.remote.model.PokemonResponse
 import com.aditya1875.pokeverse.data.remote.model.PokemonResult
+import com.aditya1875.pokeverse.data.remote.model.PokemonType
 import com.aditya1875.pokeverse.data.remote.model.PokemonVariety
 import com.aditya1875.pokeverse.data.remote.model.Region
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionChainUi
@@ -31,9 +34,13 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -54,6 +61,8 @@ class PokemonViewModel(
     val showTagline: StateFlow<Boolean> = _showTagline
     private val _isSearching = MutableStateFlow(false)
     val isSearching: StateFlow<Boolean> = _isSearching
+
+    private val pokemonTypeCache = mutableMapOf<String, List<String>>()
 
     private val _pokemonList = MutableStateFlow<List<PokemonResult>>(emptyList())
     val pokemonList: StateFlow<List<PokemonResult>> = _pokemonList
@@ -129,16 +138,18 @@ class PokemonViewModel(
     // Pokémon List Loading
     // -------------------------
     fun loadPokemonList(isNewRegion: Boolean = false) {
-        if (isLoading || endReached) return
+        if (isLoading || (endReached && !isNewRegion)) return
 
         val selectedRegion = filters.value.selectedRegion
         val regionRange = selectedRegion?.range
         val regionStart = selectedRegion?.offset ?: 0
         val regionEnd = regionStart + (selectedRegion?.limit ?: Int.MAX_VALUE)
 
-        if (isNewRegion) currentOffset = regionStart
+        if (isNewRegion) {
+            currentOffset = regionStart
+            allPokemonInRegion = emptyList()
+        }
 
-        // --- NEW: Check for connectivity ---
         if (!isNetworkAvailable(context)) {
             _uiState.value = PokemonDetailUiState(
                 error = UiError.Network("No Internet Connection"),
@@ -148,30 +159,28 @@ class PokemonViewModel(
             return
         }
 
-        // Proceed only if online
         isLoading = true
         viewModelScope.launch {
             try {
                 val result = repository.getPokemonList(limit = limit, offset = currentOffset)
                 val newList = result.results
-
-                val filteredList = newList
                     .map { it to extractIdFromUrl(it.url) }
                     .filter { (_, id) -> regionRange?.contains(id) ?: true }
                     .map { it.first }
 
-                if (isNewRegion) {
-                    _pokemonList.value = filteredList
-                } else {
-                    _pokemonList.value += filteredList
-                }
+                // Add to all Pokemon in region
+                allPokemonInRegion = allPokemonInRegion + newList
 
                 currentOffset += limit
+
+                // Check if we've loaded all Pokemon in the region
                 if (newList.isEmpty() || newList.size < limit || currentOffset >= regionEnd) {
                     endReached = true
                 }
 
-                // reset any previous error
+                // Apply current filters (region + type if selected)
+                applyCurrentFilters()
+
                 _uiState.value = PokemonDetailUiState(isLoading = false, error = null)
 
             } catch (e: UnknownHostException) {
@@ -264,36 +273,86 @@ class PokemonViewModel(
 
     private fun PokemonResponse.toEntity(): TeamMemberEntity {
         return TeamMemberEntity(
+            teamId = "",
             name = this.name,
             imageUrl = this.sprites.front_default ?: ""
         )
     }
 
-    fun removeFromTeam(pokemon: TeamMemberEntity) = viewModelScope.launch {
-        teamDao.removeFromTeam(pokemon)
-    }
-
-    fun removeFromTeamByName(name: String) = viewModelScope.launch {
-        teamDao.removeFromTeamByName(name)
-    }
-
-    fun isInTeam(name: String): Flow<Boolean> = teamDao.isInTeam(name)
-
-    val team: StateFlow<List<TeamMemberEntity>> = teamDao.getTeam()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
-
     // -------------------------
     // Filters
     // -------------------------
+    private val typePokemonCache = mutableMapOf<PokemonType, Set<Int>>()
+    private var isTypeDataLoaded = false
+
+    // All Pokemon in current region (for filtering)
+    private var allPokemonInRegion: List<PokemonResult> = emptyList()
+
+    init {
+        // Initialize selected team to default or first team
+        viewModelScope.launch {
+            val defaultTeam = teamDao.getDefaultTeam()
+            _selectedTeamId.value = defaultTeam?.teamId ?: allTeams.value.firstOrNull()?.teamId
+        }
+
+        // Load type data in background
+        loadAllTypeData()
+    }
+
+    private fun loadAllTypeData() {
+        viewModelScope.launch {
+            try {
+                PokemonType.entries.forEach { type ->
+                    try {
+                        val typeResponse = repository.getPokemonByType(type.name.lowercase())
+                        val pokemonIds = typeResponse.pokemon.map {
+                            extractIdFromUrl(it.pokemon.url)
+                        }.toSet()
+                        typePokemonCache[type] = pokemonIds
+                        Log.d("PokeVM", "Loaded ${pokemonIds.size} Pokémon for type ${type.name}")
+                    } catch (e: Exception) {
+                        Log.e("PokeVM", "Failed to load type data for ${type.name}", e)
+                    }
+                }
+                isTypeDataLoaded = true
+                Log.d("PokeVM", "All type data loaded successfully")
+            } catch (e: Exception) {
+                Log.e("PokeVM", "Failed to load type data", e)
+            }
+        }
+    }
+
+    fun setTypeFilter(type: PokemonType?) {
+        _filters.update { it.copy(selectedType = type) }
+        applyCurrentFilters()
+    }
+
     fun setRegionFilter(region: Region?) {
         _filters.update { it.copy(selectedRegion = region) }
 
         currentOffset = region?.offset ?: 0
         endReached = false
         isLoading = false
+        allPokemonInRegion = emptyList()
         _pokemonList.value = emptyList()
 
         loadPokemonList(isNewRegion = true)
+    }
+
+    private fun applyCurrentFilters() {
+        val selectedType = _filters.value.selectedType
+
+        if (selectedType == null) {
+            _pokemonList.value = allPokemonInRegion
+        } else {
+            // Filter by type using cached data
+            val typeIds = typePokemonCache[selectedType] ?: emptySet()
+            _pokemonList.value = allPokemonInRegion.filter { pokemonResult ->
+                val id = extractIdFromUrl(pokemonResult.url)
+                typeIds.contains(id)
+            }
+            Log.d("PokeVM", "Filtered to ${_pokemonList.value.size} ${selectedType.name} types")
+        }
     }
 
     private fun isNetworkAvailable(context: Context): Boolean {
@@ -365,6 +424,282 @@ class PokemonViewModel(
     }
 
     fun isInFavorites(name: String): Flow<Boolean> = favouritesDao.isInFavorites(name)
+
+    private val _selectedTeamId = MutableStateFlow<String?>(null)
+    val selectedTeamId: StateFlow<String?> = _selectedTeamId
+
+    val allTeams: StateFlow<List<TeamEntity>> = teamDao.getAllTeams()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val allTeamsWithMembers: StateFlow<List<TeamWithMembers>> = teamDao.getAllTeamsWithMembers()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    // Current selected team (defaults to first team if none selected)
+    val currentTeam: StateFlow<TeamEntity?> = combine(
+        allTeams,
+        selectedTeamId
+    ) { teams, selectedId ->
+        teams.firstOrNull { it.teamId == selectedId } ?: teams.firstOrNull()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    // Members of current team
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentTeamMembers: StateFlow<List<TeamMemberEntity>> = currentTeam
+        .flatMapLatest { team ->
+            if (team != null) {
+                teamDao.getTeamMembers(team.teamId)
+            } else {
+                flowOf(emptyList())
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    init {
+        // Initialize selected team to default or first team
+        viewModelScope.launch {
+            val defaultTeam = teamDao.getDefaultTeam()
+            _selectedTeamId.value = defaultTeam?.teamId ?: allTeams.value.firstOrNull()?.teamId
+        }
+    }
+
+    // ========== TEAM MANAGEMENT ==========
+
+    fun selectTeam(teamId: String) {
+        _selectedTeamId.value = teamId
+    }
+
+    fun createTeam(teamName: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                if (teamDao.isTeamNameExists(teamName)) {
+                    onError("A team with this name already exists!")
+                    return@launch
+                }
+
+                val newTeam = TeamEntity(
+                    teamName = teamName.trim(),
+                    isDefault = false
+                )
+
+                teamDao.createTeam(newTeam)
+                _selectedTeamId.value = newTeam.teamId
+                onSuccess()
+            } catch (e: Exception) {
+                Log.e("PokeVM", "Failed to create team", e)
+                onError("Failed to create team: ${e.localizedMessage}")
+            }
+        }
+    }
+
+    fun updateTeamName(teamId: String, newName: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val team = teamDao.getTeamByIdOnce(teamId)
+                if (team == null) {
+                    onError("Team not found")
+                    return@launch
+                }
+
+                // Check if new name already exists (excluding current team)
+                if (team.teamName.lowercase() != newName.lowercase() &&
+                    teamDao.isTeamNameExists(newName)) {
+                    onError("A team with this name already exists!")
+                    return@launch
+                }
+
+                teamDao.updateTeam(team.copy(teamName = newName.trim()))
+                onSuccess()
+            } catch (e: Exception) {
+                Log.e("PokeVM", "Failed to update team name", e)
+                onError("Failed to update team name")
+            }
+        }
+    }
+
+    fun deleteTeam(teamId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val team = teamDao.getTeamByIdOnce(teamId)
+                if (team == null) {
+                    onError("Team not found")
+                    return@launch
+                }
+
+                if (team.isDefault) {
+                    onError("Cannot delete default team")
+                    return@launch
+                }
+
+                teamDao.deleteTeam(team)
+
+                // Select another team after deletion
+                val remainingTeams = allTeams.value.filter { it.teamId != teamId }
+                _selectedTeamId.value = remainingTeams.firstOrNull()?.teamId
+
+                onSuccess()
+            } catch (e: Exception) {
+                Log.e("PokeVM", "Failed to delete team", e)
+                onError("Failed to delete team")
+            }
+        }
+    }
+
+    // ========== SMART POKEMON ADDITION ==========
+
+    /**
+     * Smartly adds a Pokemon to a team.
+     * - If only one team exists, add to that team
+     * - If multiple teams exist, find first team with space
+     * - If all teams are full, show error
+     */
+    fun addToTeamSmart(
+        pokemonResult: PokemonResult,
+        onSuccess: (teamName: String) -> Unit,
+        onTeamFull: () -> Unit,
+        onMultipleTeamsAvailable: (List<TeamEntity>) -> Unit
+    ) = viewModelScope.launch {
+        try {
+            val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
+            val teams = allTeams.value
+
+            when {
+                teams.isEmpty() -> {
+                    // No teams exist - create default
+                    val defaultTeam = TeamEntity(teamName = "My Team", isDefault = true)
+                    teamDao.createTeam(defaultTeam)
+                    addPokemonToTeam(pokemonResponse, defaultTeam.teamId)
+                    onSuccess(defaultTeam.teamName)
+                }
+
+                teams.size == 1 -> {
+                    // Only one team - add to it or show full message
+                    val team = teams.first()
+                    val memberCount = teamDao.getTeamMemberCountOnce(team.teamId)
+
+                    if (memberCount >= 6) {
+                        onTeamFull()
+                    } else {
+                        addPokemonToTeam(pokemonResponse, team.teamId)
+                        onSuccess(team.teamName)
+                    }
+                }
+
+                else -> {
+                    // Multiple teams - find first available
+                    val availableTeamId = teamDao.getFirstAvailableTeamId()
+
+                    if (availableTeamId != null) {
+                        val team = teamDao.getTeamByIdOnce(availableTeamId)
+                        addPokemonToTeam(pokemonResponse, availableTeamId)
+                        onSuccess(team?.teamName ?: "Team")
+                    } else {
+                        // All teams full
+                        onTeamFull()
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("PokeVM", "Failed to add Pokemon to team", e)
+        }
+    }
+
+    private suspend fun addPokemonToTeam(pokemonResponse: PokemonResponse, teamId: String) {
+        val entity = TeamMemberEntity(
+            teamId = teamId,
+            name = pokemonResponse.name,
+            imageUrl = pokemonResponse.sprites.front_default ?: ""
+        )
+        teamDao.addToTeam(entity)
+    }
+
+    fun addToSpecificTeam(pokemonResult: PokemonResult, teamId: String) = viewModelScope.launch {
+        val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
+        addPokemonToTeam(pokemonResponse, teamId)
+    }
+
+    fun removeFromTeam(pokemon: TeamMemberEntity) = viewModelScope.launch {
+        teamDao.removeFromTeam(pokemon)
+    }
+
+    fun removeFromTeamByName(name: String, teamId: String) = viewModelScope.launch {
+        teamDao.removeFromTeamByName(name, teamId)
+    }
+
+    fun isInTeam(name: String, teamId: String): Flow<Boolean> = teamDao.isInTeam(name, teamId)
+
+    fun isInAnyTeam(name: String): Flow<Boolean> = allTeamsWithMembers
+        .map { teams ->
+            teams.any { team ->
+                team.members.any { it.name.equals(name, ignoreCase = true) }
+            }
+        }
+
+    @Deprecated("Use currentTeamMembers instead")
+    val team: StateFlow<List<TeamMemberEntity>> = currentTeamMembers
+
+    sealed class TeamAdditionResult {
+        data class Success(val teamName: String, val wasAdded: Boolean) : TeamAdditionResult() // Add wasAdded flag
+        object TeamFull : TeamAdditionResult()
+        object AlreadyInTeam : TeamAdditionResult()
+        data class Error(val message: String) : TeamAdditionResult()
+    }
+
+    fun togglePokemonInTeam(
+        pokemonResult: PokemonResult,
+        teamId: String,
+        onResult: (TeamAdditionResult) -> Unit
+    ) = viewModelScope.launch {
+        try {
+            val team = teamDao.getTeamByIdOnce(teamId)
+            if (team == null) {
+                onResult(TeamAdditionResult.Error("Team not found"))
+                return@launch
+            }
+
+            val members = teamDao.getTeamMembers(teamId).first()
+            val isInTeam = members.any { it.name.equals(pokemonResult.name, ignoreCase = true) }
+
+            if (isInTeam) {
+                // Remove from team
+                teamDao.removeFromTeamByName(pokemonResult.name, teamId)
+                onResult(TeamAdditionResult.Success(team.teamName, wasAdded = false)) // FIXED
+            } else {
+                // Check if team is full
+                if (members.size >= 6) {
+                    onResult(TeamAdditionResult.TeamFull)
+                    return@launch
+                }
+
+                // Add to team
+                val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
+                val entity = TeamMemberEntity(
+                    teamId = teamId,
+                    name = pokemonResponse.name,
+                    imageUrl = pokemonResponse.sprites.front_default ?: ""
+                )
+                teamDao.addToTeam(entity)
+                onResult(TeamAdditionResult.Success(team.teamName, wasAdded = true)) // FIXED
+            }
+        } catch (e: Exception) {
+            Log.e("PokeVM", "Failed to toggle Pokemon in team", e)
+            onResult(TeamAdditionResult.Error(e.localizedMessage ?: "Unknown error"))
+        }
+    }
+
+    // Check if Pokemon is in specific team
+    fun isInSpecificTeam(pokemonName: String, teamId: String): Flow<Boolean> {
+        return teamDao.isInTeam(pokemonName, teamId)
+    }
+
+    fun getTeamsForPokemon(pokemonName: String): Flow<List<TeamEntity>> {
+        return allTeamsWithMembers.map { teams ->
+            teams.filter { teamWithMembers ->
+                teamWithMembers.members.any {
+                    it.name.equals(pokemonName, ignoreCase = true)
+                }
+            }.map { it.team }
+        }
+    }
 }
 
 

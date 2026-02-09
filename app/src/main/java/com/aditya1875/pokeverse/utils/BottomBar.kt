@@ -10,25 +10,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.presentation.screens.home.components.BottomNavigationBar
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 
 @Composable
 fun WithBottomBar(
     navController: NavHostController,
-    selectedTab: Int = 0,
-    onTabChange: (Int) -> Unit = {},
+    selectedRoute: Route = Route.BottomBar.Home,
+    onRouteChange: (Route.BottomBar) -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = { BottomNavigationBar(
-            navController,
-            selectedTab,
-            onTabChange
-        ) }
+        bottomBar = {
+            BottomNavigationBar(
+                navController = navController,
+                selectedRoute = selectedRoute,
+                onRouteChange = onRouteChange
+            )
+        }
     ) { padding ->
-        Box(modifier = Modifier
-            .padding(padding)
-            .consumeWindowInsets(padding)
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .consumeWindowInsets(padding)
         ) {
             content(padding)
         }

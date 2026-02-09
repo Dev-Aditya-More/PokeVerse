@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -54,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.settings.components.ResponsiveMetaballSwitch
 import com.aditya1875.pokeverse.presentation.screens.settings.components.SettingsCard
 import com.aditya1875.pokeverse.presentation.screens.settings.components.zigZagBackground
@@ -123,11 +125,13 @@ fun SettingsScreen(navController: NavController) {
                 ) {
                     Text(
                         "Crafted with ❤️ using Jetpack Compose",
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
                         "Version ${BuildConfig.VERSION_NAME}",
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
 
@@ -157,14 +161,14 @@ fun SettingsScreen(navController: NavController) {
                     if (!supportsShaders) {
                         Text(
                             text = "Enhanced visual effects require Android 13 or newer.",
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             style = MaterialTheme.typography.bodyMedium
                         )
                     } else {
                         Text(
                             "You'll see particle effects in Pokémon details.\nTry pressing the Pokémon sprite!",
-                            color = MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.bodyLarge
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                            style = MaterialTheme.typography.bodyMedium
                         )
                     }
                 }
@@ -183,7 +187,7 @@ fun SettingsScreen(navController: NavController) {
                     trailing = {
                         IconButton(
                             onClick = {
-                                navController.navigate("theme_selector")
+                                navController.navigate(Route.ThemeSelector.route)
                             }
                         ) {
                             Icon(
@@ -195,7 +199,39 @@ fun SettingsScreen(navController: NavController) {
                 ) {
                     Text(
                         "Choose your starter theme",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                val context = LocalContext.current
+
+                var shareExpanded by rememberSaveable { mutableStateOf(false) }
+
+                SettingsCard(
+                    title = "Share Pokeverse",
+                    icon = Icons.Default.Share,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = shareExpanded,
+                    onExpandToggle = {
+                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "Hey mate, Check out Pokeverse — a clean Pokédex app for Pokémon fans:\n" +
+                                        "https://play.google.com/store/apps/details?id=${context.packageName}"
+                            )
+                        }
+                        context.startActivity(
+                            Intent.createChooser(shareIntent, "Share Pokeverse via")
+                        )
+
+                        shareExpanded = !shareExpanded
+                    }
+                ) {
+                    Text(
+                        "Tell your friends about Pokeverse!",
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
@@ -318,5 +354,10 @@ fun SettingsScreen(navController: NavController) {
     }
 }
 
-
-data class SocialLink(val name: String, val url: String, val icon: ImageVector, val size: Dp = 28.dp, val color: Color)
+data class SocialLink(
+    val name: String,
+    val url: String,
+    val icon: ImageVector,
+    val size: Dp = 28.dp,
+    val color: Color
+)

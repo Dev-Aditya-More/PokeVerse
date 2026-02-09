@@ -36,6 +36,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.splash.components.CardShader
 import com.aditya1875.pokeverse.presentation.screens.splash.components.SmokeShader
 import kotlinx.coroutines.delay
@@ -85,7 +86,7 @@ fun SplashScreen(
 
         val next = getNext(context)
         navController.navigate(next) {
-            popUpTo("splash") { inclusive = true }
+            popUpTo(Route.Splash.route) { inclusive = true }
         }
     }
 

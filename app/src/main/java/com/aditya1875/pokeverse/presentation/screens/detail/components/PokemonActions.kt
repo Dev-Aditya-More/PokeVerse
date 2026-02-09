@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
@@ -35,20 +36,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.data.local.dao.TeamWithMembers
+import com.aditya1875.pokeverse.data.local.entity.TeamEntity
 import com.aditya1875.pokeverse.data.remote.model.PokemonResponse
 
 @Composable
 fun PokemonActionsMenu(
     pokemon: PokemonResponse?,
-    isInTeam: Boolean,
+    teamsContainingPokemon: List<TeamEntity>,
+    allTeamsWithMembers: List<TeamWithMembers>,
     isInFavorites: Boolean,
-    teamSize: Int,
-    onAddToTeam: () -> Unit,
-    onRemoveFromTeam: () -> Unit,
+    onManageTeams: () -> Unit,
     onAddToFavorites: () -> Unit,
     onRemoveFromFavorites: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val isInAnyTeam = teamsContainingPokemon.isNotEmpty()
 
     Box {
         IconButton(onClick = { expanded = true }) {
@@ -66,7 +69,6 @@ fun PokemonActionsMenu(
                 .background(Color(0xFF2A2A2A))
                 .width(220.dp)
         ) {
-            // Team Option
             DropdownMenuItem(
                 text = {
                     Row(
@@ -74,23 +76,29 @@ fun PokemonActionsMenu(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(
-                            imageVector = if (isInTeam) Icons.Default.Remove else Icons.Default.Add,
+                            imageVector = if (isInAnyTeam)
+                                Icons.Default.Edit
+                            else
+                                Icons.Default.Add,
                             contentDescription = null,
-                            tint = if (isInTeam) Color.Red else Color.White,
+                            tint = if (isInAnyTeam)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                Color.White,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = if (isInTeam) "Remove from Team" else "Add to Team",
+                                text = if (isInAnyTeam) "Manage Teams" else "Add to Team",
                                 color = Color.White,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
-                            if (!isInTeam && teamSize >= 6) {
+                            if (isInAnyTeam) {
                                 Text(
-                                    text = "Team is full (6/6)",
-                                    color = Color.Red.copy(alpha = 0.7f),
+                                    text = "In ${teamsContainingPokemon.size} team(s)",
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontSize = 11.sp
                                 )
@@ -100,18 +108,10 @@ fun PokemonActionsMenu(
                 },
                 onClick = {
                     expanded = false
-                    if (isInTeam) {
-                        onRemoveFromTeam()
-                    } else {
-                        if (teamSize < 6) {
-                            onAddToTeam()
-                        }
-                    }
+                    onManageTeams()
                 },
-                enabled = isInTeam || teamSize < 6,
                 colors = MenuDefaults.itemColors(
-                    textColor = Color.White,
-                    disabledTextColor = Color.White.copy(alpha = 0.4f)
+                    textColor = Color.White
                 )
             )
 
@@ -120,7 +120,7 @@ fun PokemonActionsMenu(
                 thickness = 1.dp
             )
 
-            // Favorites Option
+            // Favorites Option (unchanged)
             DropdownMenuItem(
                 text = {
                     Row(
@@ -128,14 +128,23 @@ fun PokemonActionsMenu(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Icon(
-                            imageVector = if (isInFavorites) Icons.Default.Star else Icons.Default.StarBorder,
+                            imageVector = if (isInFavorites)
+                                Icons.Default.Star
+                            else
+                                Icons.Default.StarBorder,
                             contentDescription = null,
-                            tint = if (isInFavorites) MaterialTheme.colorScheme.primary.copy(0.9f) else MaterialTheme.colorScheme.onSurface,
+                            tint = if (isInFavorites)
+                                MaterialTheme.colorScheme.primary.copy(0.9f)
+                            else
+                                Color.White,
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            text = if (isInFavorites) "Remove from Favorites" else "Add to Favorites",
+                            text = if (isInFavorites)
+                                "Remove from Favorites"
+                            else
+                                "Add to Favorites",
                             color = Color.White,
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium

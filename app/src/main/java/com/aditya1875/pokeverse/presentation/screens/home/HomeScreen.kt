@@ -2,12 +2,16 @@ package com.aditya1875.pokeverse.presentation.screens.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,6 +36,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -80,6 +85,7 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.presentation.screens.detail.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.presentation.screens.home.components.FilterBar
 import com.aditya1875.pokeverse.presentation.screens.home.components.ImprovedPokemonCard
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.SearchResult
@@ -100,17 +106,20 @@ fun HomeScreen(navController: NavHostController) {
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
-    val team by viewModel.team.collectAsStateWithLifecycle()
-    val teamMembershipMap = remember(team) {
-        team.associate { it.name to true }
-    }
+    val team by viewModel.currentTeamMembers.collectAsStateWithLifecycle()
+
     var isSearchFocused by remember { mutableStateOf(false) }
+
+    var showFilters by rememberSaveable { mutableStateOf(false) }
 
     val shouldLoadMore by remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
             val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisibleItemIndex >= pokemonList.size - 5 && !isLoading && !endReached
+
+            lastVisibleItemIndex >= pokemonList.size - 5 &&
+                    !isLoading &&
+                    !endReached
         }
     }
 
@@ -188,19 +197,29 @@ fun HomeScreen(navController: NavHostController) {
                             interactionSource = remember { MutableInteractionSource() }
                         ) { focusManager.clearFocus() }
                 ) {
-                    val filterState by viewModel.filters.collectAsStateWithLifecycle()
-                    val performSearch = {
-                        val cleaned = query.trim().lowercase()
-                        if (cleaned.length >= 2) {
-                            isSearchFocused = false
-                            navController.navigate("pokemon_detail/$cleaned")
-                        }
+
+                    AnimatedVisibility(
+                        visible = showFilters,
+                        enter = slideInVertically(
+                            initialOffsetY = { -it / 2 }
+                        ) + fadeIn(
+                            animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing)
+                        ),
+                        exit = slideOutVertically(
+                            targetOffsetY = { -it / 2 }
+                        ) + fadeOut(
+                            animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing)
+                        )
+                    ) {
+                        val filterState by viewModel.filters.collectAsStateWithLifecycle()
+
+                        FilterBar(
+                            currentFilter = filterState,
+                            onRegionChange = { viewModel.setRegionFilter(it) },
+                            onTypeChange = { viewModel.setTypeFilter(it) }
+                        )
                     }
 
-                    FilterBar(
-                        currentFilter = filterState,
-                        onRegionChange = { viewModel.setRegionFilter(it) },
-                    )
 
                     OutlinedTextField(
                         value = query,
@@ -208,14 +227,20 @@ fun HomeScreen(navController: NavHostController) {
                             query = it
                             viewModel.onSearchQueryChanged(it)
                         },
-                        label = {
-                            Text(
-                                "Search a Pokémon",
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        },
+                        label = { Text("Search a Pokémon") },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+                        leadingIcon = {
+                            IconButton(onClick = { showFilters = !showFilters }) {
+                                Icon(
+                                    imageVector = Icons.Default.FilterList,
+                                    contentDescription = "Filters",
+                                    tint = if (showFilters)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        },
                         trailingIcon = {
                             when {
                                 isSearching -> {
@@ -230,46 +255,22 @@ fun HomeScreen(navController: NavHostController) {
                                         query = ""
                                         viewModel.onSearchQueryChanged("")
                                     }) {
-                                        Icon(
-                                            Icons.Default.Close,
-                                            "Clear",
-                                            tint = MaterialTheme.colorScheme.onSurface
-                                        )
+                                        Icon(Icons.Default.Close, "Clear")
                                     }
                                 }
                                 else -> {
-                                    Icon(
-                                        Icons.Default.Search,
-                                        "Search",
-                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                    )
+                                    Icon(Icons.Default.Search, "Search")
                                 }
-                            }
-                        },
-                        keyboardActions = KeyboardActions {
-                            coroutineScope.launch {
-                                performSearch()
-                                delay(150)
-                                keyboardController?.hide()
                             }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(8.dp)
-                            .padding(bottom = 4.dp)
                             .onFocusChanged { focusState ->
                                 isSearchFocused = focusState.isFocused
-                            },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                            unfocusedTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                            focusedTrailingIconColor = MaterialTheme.colorScheme.primary,
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        )
+                            }
                     )
+
 
                     AnimatedVisibility(
                         visible = isSearchFocused &&
@@ -327,9 +328,7 @@ fun HomeScreen(navController: NavHostController) {
                                                     isSearchFocused = false
                                                     query = ""
                                                     navController.navigate(
-                                                        "pokemon_detail/${
-                                                            searchUiState.suggestions[searchResult].pokemon.name
-                                                        }"
+                                                        Route.Details.createDetails(searchUiState.suggestions[searchResult].pokemon.name)
                                                     )
                                                 }
                                             )
@@ -451,7 +450,7 @@ fun HomeScreen(navController: NavHostController) {
                                         val isFavorite by viewModel.isInFavorites(pokemon.name)
                                             .collectAsStateWithLifecycle(false)
 
-                                        val isInTeam by viewModel.isInTeam(pokemon.name)
+                                        val isInTeam by viewModel.isInAnyTeam(pokemon.name)
                                             .collectAsStateWithLifecycle(false)
 
                                         ImprovedPokemonCard(
@@ -459,19 +458,11 @@ fun HomeScreen(navController: NavHostController) {
                                             isInTeam = isInTeam,
                                             isInFavorites = isFavorite,
                                             teamSize = team.size,
-                                            onAddToTeam = { viewModel.addToTeam(pokemon) },
-                                            onRemoveFromTeam = {
-                                                viewModel.removeFromTeamByName(
-                                                    pokemon.name
-                                                )
-                                            },
                                             onAddToFavorites = { viewModel.addToFavorites(pokemon) },
                                             onRemoveFromFavorites = {
-                                                viewModel.removeFromFavoritesByName(
-                                                    pokemon.name
-                                                )
+                                                viewModel.removeFromFavoritesByName(pokemon.name)
                                             },
-                                            onClick = { navController.navigate("pokemon_detail/${pokemon.name}") }
+                                            onClick = { navController.navigate(Route.Details.createDetails(pokemon.name)) }
                                         )
                                     }
 

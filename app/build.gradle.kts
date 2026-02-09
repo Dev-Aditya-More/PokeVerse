@@ -16,8 +16,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 43
-        versionName = "1.4.3"
+        versionCode = 45
+        versionName = "1.4.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -123,6 +123,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    implementation(libs.bottombar)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.coil.svg)
@@ -136,6 +137,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.animation.core)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.animation)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)

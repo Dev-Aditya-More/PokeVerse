@@ -28,6 +28,7 @@ import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.aditya1875.pokeverse.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.di.appModule
@@ -35,6 +36,7 @@ import com.aditya1875.pokeverse.presentation.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.presentation.screens.analysis.TeamAnalysisScreen
 import com.aditya1875.pokeverse.presentation.screens.detail.PokemonDetailScreen
 import com.aditya1875.pokeverse.presentation.screens.home.HomeScreen
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.onboarding.IntroScreen
 import com.aditya1875.pokeverse.presentation.screens.settings.SettingsScreen
 import com.aditya1875.pokeverse.presentation.screens.splash.SplashScreen
@@ -93,8 +95,17 @@ class MainActivity : ComponentActivity() {
             PokeverseTheme(
                 selectedTheme = currentTheme,
             ) {
-                val viewModel: PokemonViewModel = koinViewModel()
                 val navController = rememberNavController()
+
+                val navBackStackEntry by navController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
+                var selectedRoute = when (currentRoute) {
+                    Route.BottomBar.Home.route -> Route.BottomBar.Home
+                    Route.BottomBar.Team.route -> Route.BottomBar.Team
+                    Route.BottomBar.Settings.route -> Route.BottomBar.Settings
+                    else -> Route.BottomBar.Home
+                }
 
                 LaunchedEffect(Unit) {
 
@@ -102,9 +113,9 @@ class MainActivity : ComponentActivity() {
                     val lastRoute = ScreenStateManager.getLastRoute(this@MainActivity)
 
                     startDestination.value = when {
-                        !introSeen -> "intro"
+                        !introSeen -> Route.Onboarding.route
                         !lastRoute.isNullOrBlank() -> lastRoute
-                        else -> "home"
+                        else -> Route.BottomBar.Home.route
                     }
                 }
 
@@ -121,58 +132,60 @@ class MainActivity : ComponentActivity() {
                     navController = navController,
                     startDestination = startDestination.value,
                 ) {
-                    composable("splash") { SplashScreen(navController) }
-                    composable("intro") { IntroScreen(navController) }
-                    composable("home") {
+                    composable(Route.Splash.route) { SplashScreen(navController) }
+                    composable(Route.Onboarding.route) { IntroScreen(navController) }
+
+                    composable(Route.BottomBar.Home.route) {
                         WithBottomBar(navController) {
                             HomeScreen(navController)
                         }
                     }
 
-                    composable("dream_team") {
+                    composable(Route.BottomBar.Team.route) {
                         WithBottomBar(
-                            navController = navController,
-                            selectedTab = selectedTab,
-                            onTabChange = { selectedTab = it }
+                            navController,
+                            selectedRoute = selectedRoute,
+                            onRouteChange = {
+                                selectedRoute = it
+                            }
                         ) {
                             DreamTeam(
-                                navController = navController,
-                                team = viewModel.team.collectAsState().value,
-                                onRemove = { viewModel.removeFromTeam(it) },
-                                selectedName = selectedName,
-                                onNameChange = {
-                                    if (selectedTab == 0) teamName = it
-                                    else favoritesName = it
-                                },
-                                onTabChange = { selectedTab = it },
-                                selectedTab = selectedTab
+                                navController = navController
                             )
                         }
                     }
 
-                    composable("team_analysis") {
+                    composable(Route.Analysis.route) {
                         TeamAnalysisScreen(navController = navController)
                     }
-                    composable("pokemon_detail/{pokemonName}") { backStackEntry ->
+
+                    composable(Route.Details.route) { backStackEntry ->
                         val pokemonName = backStackEntry.arguments?.getString("pokemonName")
                         if (pokemonName != null) {
                             PokemonDetailScreen(pokemonName, navController)
                         } else {
                             PokemonNotFoundScreen(
-                                onRetryClick = { navController.navigate("home") }
+                                onRetryClick = { navController.navigate(Route.BottomBar.Home.route) }
                             )
                         }
                     }
-                    composable("settings") {
-                        WithBottomBar(navController) {
+
+                    composable(Route.BottomBar.Settings.route) {
+                        WithBottomBar(
+                            navController,
+                            selectedRoute = selectedRoute,
+                            onRouteChange = {
+                                selectedRoute = it
+                            }
+                        ) {
                             SettingsScreen(navController)
                         }
                     }
 
-                    composable("theme_selector") {
+                    composable(Route.ThemeSelector.route) {
                         ThemeSelectorScreen(
                             navController = navController,
-                            onThemeSelected ={ theme ->
+                            onThemeSelected = { theme ->
                                 scope.launch {
                                     themePreferences.setTheme(theme)
                                 }

@@ -4,6 +4,7 @@ import com.aditya1875.pokeverse.data.remote.PokeApi
 import com.aditya1875.pokeverse.data.remote.model.PokemonListResponse
 import com.aditya1875.pokeverse.data.remote.model.PokemonResponse
 import com.aditya1875.pokeverse.data.remote.model.PokemonSpeciesResponse
+import com.aditya1875.pokeverse.data.remote.model.TypeResponse
 import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionChainResponse
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 
@@ -24,5 +25,9 @@ class PokemonRepoImpl(
 
     override suspend fun getEvolutionChain(id: Int): EvolutionChainResponse {
         return api.getEvolutionChain(id)
+    }
+
+    override suspend fun getPokemonByType(type: String): TypeResponse {
+        return api.getPokemonByType(type)
     }
 }

@@ -30,6 +30,7 @@ import androidx.navigation.NavController
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.presentation.components.NeumorphicButton
 import com.aditya1875.pokeverse.presentation.components.QuoteCarousel
+import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.utils.ScreenStateManager.markIntroSeen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -115,8 +116,8 @@ fun IntroScreen(
                     CoroutineScope(Dispatchers.IO).launch {
                         markIntroSeen(context)
                     }
-                    navController.navigate("home") {
-                        popUpTo("intro") { inclusive = true }
+                    navController.navigate(Route.BottomBar.Home.route) {
+                        popUpTo(Route.Onboarding.route) { inclusive = true }
                     }
                 }
             }

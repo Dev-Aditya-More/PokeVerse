@@ -81,6 +81,8 @@ import androidx.navigation.NavController
 import com.aditya1875.pokeverse.data.remote.model.PokemonResult
 import com.aditya1875.pokeverse.presentation.screens.detail.GlossyCard
 import com.aditya1875.pokeverse.presentation.screens.detail.getPokemonBackgroundColor
+import com.aditya1875.pokeverse.presentation.screens.home.components.AddToTeamBottomSheet
+import com.aditya1875.pokeverse.presentation.screens.team.components.CreateTeamDialog
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
 import com.aditya1875.pokeverse.utils.UiError
@@ -256,9 +258,9 @@ fun PokemonDetailPage(
                         }
                     },
                     actions = {
-                        val team by viewModel.team.collectAsStateWithLifecycle()
-                        val teamMembershipMap = remember(team) { team.associate { it.name to true } }
-                        val isInTeam = teamMembershipMap[pokemon?.name] ?: false
+                        val team by viewModel.currentTeamMembers.collectAsStateWithLifecycle()
+                        val isInTeam by viewModel.isInAnyTeam(pokemon?.name ?: "pikachu")
+                            .collectAsStateWithLifecycle(false)
 
                         IconButton(
                             onClick = {
@@ -335,22 +337,21 @@ fun PokemonDetailPage(
                         val isInFavorites by viewModel.isInFavorites(pokemon?.name ?: "")
                             .collectAsStateWithLifecycle(initialValue = false)
 
+                        val allTeamsWithMembers by viewModel.allTeamsWithMembers.collectAsStateWithLifecycle()
+                        val teamsContainingPokemon by viewModel.getTeamsForPokemon(pokemon?.name ?: "")
+                            .collectAsStateWithLifecycle(initialValue = emptyList())
+
+                        var showTeamBottomSheet by remember { mutableStateOf(false) }
+                        var showCreateTeamDialog by remember { mutableStateOf(false) }
+                        var teamCreationError by remember { mutableStateOf<String?>(null) }
+
                         PokemonActionsMenu(
                             pokemon = pokemon,
-                            isInTeam = isInTeam,
+                            teamsContainingPokemon = teamsContainingPokemon,
+                            allTeamsWithMembers = allTeamsWithMembers,
                             isInFavorites = isInFavorites,
-                            teamSize = team.size,
-                            onAddToTeam = {
-                                pokemon?.let {
-                                    viewModel.addToTeam(it.toEntity())
-                                    Toast.makeText(context, "${it.name.replaceFirstChar { c -> c.uppercase() }} added to team", Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            onRemoveFromTeam = {
-                                pokemon?.let {
-                                    viewModel.removeFromTeamByName(it.name)
-                                    Toast.makeText(context, "Removed from team", Toast.LENGTH_SHORT).show()
-                                }
+                            onManageTeams = {
+                                showTeamBottomSheet = true
                             },
                             onAddToFavorites = {
                                 pokemon?.let { pokemonData ->
@@ -370,6 +371,71 @@ fun PokemonDetailPage(
                                 }
                             }
                         )
+
+                        if (showTeamBottomSheet) {
+                            AddToTeamBottomSheet(
+                                pokemonName = pokemon?.name ?: "",
+                                allTeamsWithMembers = allTeamsWithMembers,
+                                onDismiss = { showTeamBottomSheet = false },
+                                onTeamSelected = { teamId ->
+                                    pokemon?.let { poke ->
+                                        viewModel.togglePokemonInTeam(
+                                            pokemonResult = PokemonResult(
+                                                name = poke.name,
+                                                url = "https://pokeapi.co/api/v2/pokemon/${poke.id}/"
+                                            ),
+                                            teamId = teamId,
+                                            onResult = { result ->
+                                                when (result) {
+                                                    is PokemonViewModel.TeamAdditionResult.Success -> {
+                                                        val message = if (result.wasAdded)
+                                                            "Added to ${result.teamName}!"
+                                                        else
+                                                            "Removed from ${result.teamName}"
+                                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                                    }
+                                                    is PokemonViewModel.TeamAdditionResult.TeamFull -> {
+                                                        Toast.makeText(context, "Team is full!", Toast.LENGTH_SHORT).show()
+                                                    }
+                                                    is PokemonViewModel.TeamAdditionResult.Error -> {
+                                                        Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                                                    }
+                                                    else -> {}
+                                                }
+                                            }
+                                        )
+                                    }
+                                },
+                                onCreateNewTeam = {
+                                    showTeamBottomSheet = false
+                                    showCreateTeamDialog = true
+                                }
+                            )
+                        }
+
+                        if (showCreateTeamDialog) {
+                            CreateTeamDialog(
+                                onCreateTeam = { teamName ->
+                                    viewModel.createTeam(
+                                        teamName = teamName,
+                                        onSuccess = {
+                                            showCreateTeamDialog = false
+                                            teamCreationError = null
+                                            Toast.makeText(context, "Team \"$teamName\" created!", Toast.LENGTH_SHORT).show()
+                                        },
+                                        onError = { error ->
+                                            teamCreationError = error
+                                        }
+                                    )
+                                },
+                                onDismiss = {
+                                    showCreateTeamDialog = false
+                                    teamCreationError = null
+                                },
+                                errorMessage = teamCreationError
+                            )
+                        }
+
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color.Transparent

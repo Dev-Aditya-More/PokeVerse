@@ -155,7 +155,7 @@ class MainActivity : ComponentActivity() {
                             PokemonDetailScreen(pokemonName, navController)
                         } else {
                             PokemonNotFoundScreen(
-                                onRetryClick = { navController.navigate("home") }
+                                onRetryClick = { navController.navigate(Route.Home.route) }
                             )
                         }
                     }
