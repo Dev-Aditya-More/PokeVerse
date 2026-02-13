@@ -10,10 +10,22 @@
 
 ---
 
-## Get from
+> ## Get from
 
-<a href='https://indusapp.store/5pzliyk1'><img alt='Get it on Indus Appstore' src='https://docstore.indusappstore.com/public/external/developerdashboard-static/badge-black-background-english.png' height="80"/></a>
-[<img src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea" height="80">](https://github.com/Dev-Aditya-More/PokeVerse/releases)
+  <a href="https://play.google.com/store/apps/details?id=com.aditya1875.pokeverse.play">
+    <img
+      alt="Get it on Google Play"
+      src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+      height="80"
+      />
+  </a>
+  <a href="https://github.com/Dev-Aditya-More/PokeVerse/releases">
+    <img
+      alt="Get it on GitHub"
+      src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea"
+      height="80"
+    />
+  </a>
 
 ---
 
@@ -25,15 +37,6 @@
 | ![3](fastlane/metadata/android/en-US/images/phoneScreenshots/5.png) | ![3](fastlane/metadata/android/en-US/images/phoneScreenshots/6.png)
 
 ---  
-
-## More Screenshots
-
-| ![1](images/1.png) | ![2](images/2.png) |
-|:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
-| ![3](images/3.png) | ![4](images/4.png) | 
-![5](images/5.png) |
-
----
 
 ## ✨ Features
 
@@ -68,6 +71,19 @@
   - [x] 🗃️ Offline Support (Caching)
 
   - [x] 🔄 Evolution Chain View
+
+  
+#### 🚀 Coming Soon
+
+- [ ] 🧩 Advanced Filters (Types, Egg Groups, Regions, Generations)  
+
+- [ ] 🌍 Proper Region Pokédex (Kanto, Johto, Hisui, etc.)  
+
+- [ ] ⚔️ Detailed Moves & Movesets (TMs, Egg Moves, Tutors)  
+- [x] 🧠 Smarter Team Builder (Type coverage & weaknesses)  
+- [ ] 🎨 Clean Welcome Screen
+- [ ] 🏷️ Better Sorting (Stats, Name, Dex No, Type)  
+- [ ] 📱 UI & Performance Improvements  
   
 ---
 
