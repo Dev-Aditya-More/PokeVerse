@@ -175,6 +175,8 @@ dependencies {
     add("playImplementation", libs.firebase.analytics)
     add("playImplementation", platform(libs.firebase.bom))
     add("playImplementation", libs.firebase.messaging)
+
+    add("playImplementation", libs.billing.ktx)
 //    add("playImplementation", libs.androidx.core.ktx)
 //    add("playImplementation",libs.firebase.common.ktx)
 

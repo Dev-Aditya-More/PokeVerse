@@ -1,5 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application>
+    <uses-permission android:name="com.android.vending.BILLING" />
+    <application android:icon="@mipmap/ic_launcher">
         <service
             android:name=".fcm.PokeVerseFirebaseMessagingService"
             android:exported="false">
@@ -12,7 +13,7 @@
 
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="portrait"
+            android:screenOrientation="fullSensor"
             android:exported="true"
             android:theme="@style/Theme.PokeVerse">
 
