@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.presentation.components.NeumorphicButton
+import com.aditya1875.pokeverse.presentation.components.NeuromorphicButton
 import com.aditya1875.pokeverse.presentation.components.QuoteCarousel
 import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.utils.ScreenStateManager.markIntroSeen
@@ -104,7 +104,7 @@ fun IntroScreen(
             }
 
             // Continue button at bottom
-            NeumorphicButton(
+            NeuromorphicButton(
                 text = "Continue",
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

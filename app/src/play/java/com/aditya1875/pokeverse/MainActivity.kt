@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -25,16 +26,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.aditya1875.pokeverse.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.di.appModule
+import com.aditya1875.pokeverse.di.playModule
 import com.aditya1875.pokeverse.presentation.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.presentation.screens.analysis.TeamAnalysisScreen
 import com.aditya1875.pokeverse.presentation.screens.detail.PokemonDetailScreen
+import com.aditya1875.pokeverse.presentation.screens.game.GameHubScreen
+import com.aditya1875.pokeverse.presentation.screens.game.GameScreen
+import com.aditya1875.pokeverse.presentation.screens.game.components.DifficultyScreen
 import com.aditya1875.pokeverse.presentation.screens.home.HomeScreen
 import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.onboarding.IntroScreen
@@ -44,7 +52,9 @@ import com.aditya1875.pokeverse.presentation.screens.team.DreamTeam
 import com.aditya1875.pokeverse.presentation.screens.theme.ThemeSelectorScreen
 import com.aditya1875.pokeverse.presentation.ui.theme.AppTheme
 import com.aditya1875.pokeverse.presentation.ui.theme.PokeverseTheme
-import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.GameViewModel
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.utils.Difficulty
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.aditya1875.pokeverse.utils.WithBottomBar
@@ -53,6 +63,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import org.koin.core.context.GlobalContext
 import org.koin.core.context.GlobalContext.startKoin
 
 class MainActivity : ComponentActivity() {
@@ -62,6 +73,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        startKoin {
+            androidContext(this@MainActivity)
+            modules(appModule, playModule)
+        }
+
         requestNotificationPermission()
 
         NotificationUtils.createNotificationChannel(this)
@@ -70,11 +86,6 @@ class MainActivity : ComponentActivity() {
 
         FirebaseMessaging.getInstance()
             .subscribeToTopic("theme_updates")
-
-        startKoin {
-            androidContext(this@MainActivity)
-            modules(appModule)
-        }
 
         setContent {
 
@@ -100,11 +111,18 @@ class MainActivity : ComponentActivity() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                var selectedRoute = when (currentRoute) {
-                    Route.BottomBar.Home.route -> Route.BottomBar.Home
-                    Route.BottomBar.Team.route -> Route.BottomBar.Team
-                    Route.BottomBar.Settings.route -> Route.BottomBar.Settings
-                    else -> Route.BottomBar.Home
+                var selectedRoute by remember {
+                    mutableStateOf<Route.BottomBar>(Route.BottomBar.Home)
+                }
+
+                LaunchedEffect(currentRoute) {
+                    selectedRoute = when (currentRoute) {
+                        Route.BottomBar.Home.route -> Route.BottomBar.Home
+                        Route.BottomBar.Team.route -> Route.BottomBar.Team
+                        Route.BottomBar.Game.route -> Route.BottomBar.Game
+                        Route.BottomBar.Settings.route -> Route.BottomBar.Settings
+                        else -> selectedRoute // Keep current if on sub-screen
+                    }
                 }
 
                 LaunchedEffect(Unit) {
@@ -153,6 +171,83 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         }
+                    }
+
+                    composable(Route.BottomBar.Game.route) {
+                        WithBottomBar(
+                            navController = navController,
+                            selectedRoute = selectedRoute,
+                            onRouteChange = { selectedRoute = it }
+                        ) {
+                            GameHubScreen(
+                                onGameSelected = { gameId ->
+                                    when (gameId) {
+                                        // FIXED: navigate to difficulty selection first
+                                        "pokematch" -> navController.navigate(Route.GameDifficulty.route)
+                                    }
+                                },
+                                onSubscribe = { }
+                            )
+                        }
+                    }
+
+                    composable(Route.GameDifficulty.route) {
+                        DifficultyScreen(
+                            onDifficultySelected = { difficulty ->
+                                navController.navigate(Route.GamePlay.createRoute(difficulty.name))
+                            },
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = Route.GamePlay.route,
+                        arguments = listOf(
+                            navArgument("difficulty") {
+                                type = NavType.StringType
+                                defaultValue = "EASY"
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val difficultyName = backStackEntry
+                            .arguments
+                            ?.getString("difficulty") ?: "EASY"
+
+                        val difficulty = try {
+                            Difficulty.valueOf(difficultyName)
+                        } catch (e: IllegalArgumentException) {
+                            Difficulty.EASY
+                        }
+
+                        GameScreen(
+                            difficulty = difficulty,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = "game/play/{difficulty}",
+                        arguments = listOf(
+                            navArgument("difficulty") {
+                                type = NavType.StringType
+                                defaultValue = "EASY"
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val difficultyName = backStackEntry
+                            .arguments
+                            ?.getString("difficulty") ?: "EASY"
+
+                        val difficulty = try {
+                            Difficulty.valueOf(difficultyName)
+                        } catch (e: IllegalArgumentException) {
+                            Difficulty.EASY
+                        }
+
+                        GameScreen(
+                            difficulty = difficulty,
+                            onBack = { navController.popBackStack() }
+                        )
                     }
 
                     composable(Route.Analysis.route) {
@@ -213,6 +308,13 @@ class MainActivity : ComponentActivity() {
                     Log.e("FCM", "Topic subscription failed", task.exception)
                 }
             }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh subscription status every time app comes to foreground
+        val billingViewModel: BillingViewModel by viewModels()
+        billingViewModel.refreshPurchases()
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
