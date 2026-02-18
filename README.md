@@ -79,6 +79,7 @@
 
 - [ ] 🌍 Proper Region Pokédex (Kanto, Johto, Hisui, etc.)  
 
+- [ ] 🎮 Mini games and Subscription
 - [ ] ⚔️ Detailed Moves & Movesets (TMs, Egg Moves, Tutors)  
 - [x] 🧠 Smarter Team Builder (Type coverage & weaknesses)  
 - [ ] 🎨 Clean Welcome Screen
