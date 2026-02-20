@@ -76,9 +76,8 @@
 #### 🚀 Coming Soon
 
 - [ ] 🧩 Advanced Filters (Types, Egg Groups, Regions, Generations)  
-
 - [ ] 🌍 Proper Region Pokédex (Kanto, Johto, Hisui, etc.)  
-
+- [x] 🎮 Mini games and subscription
 - [ ] ⚔️ Detailed Moves & Movesets (TMs, Egg Moves, Tutors)  
 - [x] 🧠 Smarter Team Builder (Type coverage & weaknesses)  
 - [ ] 🎨 Clean Welcome Screen
