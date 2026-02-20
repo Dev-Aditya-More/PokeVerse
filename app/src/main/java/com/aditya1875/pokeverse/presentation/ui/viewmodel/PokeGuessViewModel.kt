@@ -3,6 +3,9 @@ package com.aditya1875.pokeverse.presentation.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.data.billing.BillingManager
+import com.aditya1875.pokeverse.data.billing.IBillingManager
+import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessGameState
@@ -15,8 +18,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class PokeGuessViewModel(
-    private val repository: PokemonRepo
+    private val repository: PokemonRepo,
+    billingManager: IBillingManager
 ) : ViewModel() {
+
+    val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
 
     private val _gameState = MutableStateFlow<GuessGameState>(GuessGameState.Idle)
     val gameState: StateFlow<GuessGameState> = _gameState.asStateFlow()
@@ -26,12 +32,15 @@ class PokeGuessViewModel(
     private var correctAnswers = 0
     private val allQuestions = mutableListOf<PokeGuessQuestion>()
 
+    fun canPlayHard(): Boolean {
+        return subscriptionState.value is SubscriptionState.Premium
+    }
+
     fun startGame(difficulty: GuessDifficulty) {
         viewModelScope.launch {
             _gameState.value = GuessGameState.Loading
 
             try {
-                // Generate questions based on difficulty
                 val questions = generateQuestions(difficulty)
                 allQuestions.clear()
                 allQuestions.addAll(questions)
@@ -39,7 +48,6 @@ class PokeGuessViewModel(
                 currentScore = 0
                 correctAnswers = 0
 
-                // Show first question
                 showQuestion(0, difficulty)
             } catch (e: Exception) {
                 Log.e("PokeGuess", "Failed to generate questions", e)

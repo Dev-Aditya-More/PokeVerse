@@ -3,14 +3,15 @@ package com.aditya1875.pokeverse.presentation.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.data.billing.IBillingManager
 import com.aditya1875.pokeverse.data.billing.PremiumPlan
+import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.utils.CardState
 import com.aditya1875.pokeverse.utils.Difficulty
 import com.aditya1875.pokeverse.utils.GameState
-import com.aditya1875.pokeverse.utils.SubscriptionState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ import kotlinx.coroutines.launch
 
 class MatchViewModel(
     private val repository: PokemonRepo,
-    private val gameScoreDao: GameScoreDao
+    private val gameScoreDao: GameScoreDao,
+    billingManager: IBillingManager
 ) : ViewModel() {
 
     private val _gameState = MutableStateFlow<GameState>(GameState.Idle)
@@ -30,32 +32,20 @@ class MatchViewModel(
     private val _selectedDifficulty = MutableStateFlow(Difficulty.EASY)
     val selectedDifficulty: StateFlow<Difficulty> = _selectedDifficulty
 
+    val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
     val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Subscription state (to be driven by BillingManager later)
-    private val _subscriptionState = MutableStateFlow<SubscriptionState>(SubscriptionState.Free)
-    val subscriptionState: StateFlow<SubscriptionState> = _subscriptionState
-
     private var timerJob: Job? = null
     private var currentDifficulty = Difficulty.EASY
 
     fun canPlayDifficulty(difficulty: Difficulty): Boolean {
         return when (difficulty) {
-            Difficulty.EASY -> true
-            Difficulty.MEDIUM -> true
-            Difficulty.HARD -> _subscriptionState.value is SubscriptionState.Premium
-        }
-    }
-
-    fun setPremiumActive(active: Boolean) {
-        _subscriptionState.value = if (active) {
-            SubscriptionState.Premium(PremiumPlan.MONTHLY)
-        } else {
-            SubscriptionState.Free
+            Difficulty.HARD -> subscriptionState.value is SubscriptionState.Premium
+            else -> true
         }
     }
 

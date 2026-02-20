@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.presentation.screens.game.pokeguess
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -16,17 +17,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.BuildConfig
+import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PremiumBanner
+import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
-import com.aditya1875.pokeverse.utils.SubscriptionState
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,8 +39,9 @@ fun PokeGuessDifficultyScreen(
     onDifficultySelected: (GuessDifficulty) -> Unit,
     onBack: () -> Unit
 ) {
-    val matchViewModel : MatchViewModel = koinViewModel()
-    val subscriptionState by matchViewModel.subscriptionState.collectAsStateWithLifecycle()
+    val viewModel: PokeGuessViewModel = koinViewModel()
+    val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
+
     var showPremiumSheet by remember { mutableStateOf(false) }
 
     val billingViewModel: BillingViewModel = koinViewModel()
@@ -46,7 +51,10 @@ fun PokeGuessDifficultyScreen(
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
     val isBillingReady = monthlyProduct != null || yearlyProduct != null
 
-    val canPlayHard = subscriptionState is SubscriptionState.Premium
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    val isPremium = subscriptionState is SubscriptionState.Premium
 
     Scaffold(
         topBar = {
@@ -76,9 +84,8 @@ fun PokeGuessDifficultyScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                Spacer(Modifier.height(16.dp))
-            }
+            item { Spacer(Modifier.height(16.dp)) }
+
             item {
                 GuessDifficultyCard(
                     difficulty = GuessDifficulty.EASY,
@@ -96,9 +103,9 @@ fun PokeGuessDifficultyScreen(
             item {
                 GuessDifficultyCard(
                     difficulty = GuessDifficulty.HARD,
-                    locked = !canPlayHard
+                    locked = !isPremium
                 ) {
-                    if (canPlayHard) {
+                    if (isPremium) {
                         onDifficultySelected(GuessDifficulty.HARD)
                     } else {
                         showPremiumSheet = true
@@ -106,7 +113,7 @@ fun PokeGuessDifficultyScreen(
                 }
             }
 
-            if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
+            if (BuildConfig.ENABLE_BILLING && !isPremium) {
                 item {
                     PremiumBanner(
                         price = monthly,
@@ -117,6 +124,23 @@ fun PokeGuessDifficultyScreen(
 
             item { Spacer(Modifier.height(16.dp)) }
         }
+    }
+
+    if (showPremiumSheet) {
+        PremiumBottomSheet(
+            onDismiss = { showPremiumSheet = false },
+            onSubscribeMonthly = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseMonthly(it) }
+            },
+            onSubscribeYearly = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseYearly(it) }
+            },
+            monthlyPrice = monthly,
+            yearlyPrice = yearly,
+            isSubscribeEnabled = isBillingReady
+        )
     }
 }
 
