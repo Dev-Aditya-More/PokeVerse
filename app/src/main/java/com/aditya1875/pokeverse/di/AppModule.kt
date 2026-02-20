@@ -4,10 +4,8 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.aditya1875.pokeverse.data.billing.BillingManager
 import com.aditya1875.pokeverse.data.local.TeamDatabase
 import com.aditya1875.pokeverse.data.local.PokemonDatabase
-import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.dao.TeamDao
 import com.aditya1875.pokeverse.data.local.entity.TeamEntity
 import com.aditya1875.pokeverse.data.preferences.ThemePreferences
@@ -17,10 +15,12 @@ import com.aditya1875.pokeverse.data.repository.PokemonRepoImpl
 import com.aditya1875.pokeverse.domain.repository.DescriptionRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonSearchRepository
-import com.aditya1875.pokeverse.presentation.ui.viewmodel.GameViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.QuizViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
-import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.utils.TeamMapper
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -35,6 +35,10 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.UUID
 
 val appModule = module {
+
+    includes(
+        billingModule
+    )
 
     // Retrofit for PokéAPI
     single(named("pokeapi")) {
@@ -60,7 +64,6 @@ val appModule = module {
     // Add a coroutine scope for the callback
     single { CoroutineScope(Dispatchers.IO + SupervisorJob()) }
 
-// Migration from version 2 to 3
     val MIGRATION_2_3 = object : Migration(2, 3) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // Step 1: Create new teams table
@@ -139,6 +142,7 @@ val appModule = module {
                     }
                 }
             })
+            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -157,7 +161,9 @@ val appModule = module {
         SettingsViewModel(androidContext())
     }
 
-    viewModel { GameViewModel(get(), get()) }
+    viewModel { MatchViewModel(get(), get()) }
+
+    viewModel { QuizViewModel(get()) }
 
     single { get<TeamDatabase>().gameScoreDao() }
 
@@ -174,5 +180,8 @@ val appModule = module {
     single { get<PokemonDatabase>().pokemonDao() }
 
     single { Gson() }
+
+    single { SoundManager(get()) }
+    viewModel { PokeGuessViewModel(repository = get()) }
 
 }

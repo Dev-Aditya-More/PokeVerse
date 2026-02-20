@@ -3,36 +3,23 @@ package com.aditya1875.pokeverse.data.billing
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.aditya1875.pokeverse.utils.SubscriptionState
-import com.android.billingclient.api.AcknowledgePurchaseParams
-import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClientStateListener
-import com.android.billingclient.api.BillingFlowParams
-import com.android.billingclient.api.BillingResult
-import com.android.billingclient.api.PendingPurchasesParams
-import com.android.billingclient.api.ProductDetails
-import com.android.billingclient.api.Purchase
-import com.android.billingclient.api.PurchasesUpdatedListener
-import com.android.billingclient.api.QueryProductDetailsParams
-import com.android.billingclient.api.QueryPurchasesParams
-import com.android.billingclient.api.acknowledgePurchase
-import com.android.billingclient.api.queryProductDetails
-import com.android.billingclient.api.queryPurchasesAsync
+import com.android.billingclient.api.*
+import com.android.billingclient.api.BillingClient.BillingResponseCode
+import com.android.billingclient.api.Purchase.PurchaseState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
-// data/billing/BillingManager.kt
 class BillingManager(
-    private val context: Context,
+    context: Context,
     private val coroutineScope: CoroutineScope
-) : PurchasesUpdatedListener {
+) : IBillingManager, PurchasesUpdatedListener {
 
     companion object {
         const val PRODUCT_MONTHLY = "pokeverse_premium_monthly"
-        const val PRODUCT_YEARLY  = "pokeverse_premium_yearly"
+        const val PRODUCT_YEARLY = "pokeverse_premium_yearly"
     }
 
     private var billingClient: BillingClient = BillingClient.newBuilder(context)
@@ -44,26 +31,22 @@ class BillingManager(
         )
         .build()
 
-    // ── State Flows ───────────────────────────────────────────────
-    private val _subscriptionState = MutableStateFlow<SubscriptionState>(
-        SubscriptionState.Loading
-    )
-    val subscriptionState: StateFlow<SubscriptionState> = _subscriptionState
+    private val _subscriptionState = MutableStateFlow<SubscriptionState>(SubscriptionState.Loading)
+    override val subscriptionState: StateFlow<SubscriptionState> = _subscriptionState
 
     private val _monthlyProduct = MutableStateFlow<ProductDetails?>(null)
-    val monthlyProduct: StateFlow<ProductDetails?> = _monthlyProduct
+    override val monthlyProduct: StateFlow<ProductDetails?> = _monthlyProduct
 
     private val _yearlyProduct = MutableStateFlow<ProductDetails?>(null)
-    val yearlyProduct: StateFlow<ProductDetails?> = _yearlyProduct
+    override val yearlyProduct: StateFlow<ProductDetails?> = _yearlyProduct
 
     private val _billingError = MutableStateFlow<String?>(null)
-    val billingError: StateFlow<String?> = _billingError
+    override val billingError: StateFlow<String?> = _billingError
 
-    // ── Connection ────────────────────────────────────────────────
-    fun startConnection() {
+    override fun startConnection() {
         billingClient.startConnection(object : BillingClientStateListener {
             override fun onBillingSetupFinished(result: BillingResult) {
-                if (result.responseCode == BillingClient.BillingResponseCode.OK) {
+                if (result.responseCode == BillingResponseCode.OK) {
                     coroutineScope.launch {
                         queryProducts()
                         queryExistingPurchases()
@@ -75,7 +58,6 @@ class BillingManager(
             }
 
             override fun onBillingServiceDisconnected() {
-                // Retry connection
                 coroutineScope.launch {
                     delay(2000)
                     startConnection()
@@ -84,7 +66,6 @@ class BillingManager(
         })
     }
 
-    // ── Query available products from Play Console ────────────────
     private suspend fun queryProducts() {
         val productList = listOf(
             QueryProductDetailsParams.Product.newBuilder()
@@ -103,89 +84,100 @@ class BillingManager(
 
         val result = billingClient.queryProductDetails(params)
 
-        if (result.billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+        if (result.billingResult.responseCode == BillingResponseCode.OK) {
             result.productDetailsList?.forEach { product ->
                 when (product.productId) {
                     PRODUCT_MONTHLY -> _monthlyProduct.value = product
-                    PRODUCT_YEARLY  -> _yearlyProduct.value  = product
+                    PRODUCT_YEARLY -> _yearlyProduct.value = product
                 }
             }
+        } else {
+            _billingError.value = "Product query failed: ${result.billingResult.debugMessage}"
         }
     }
 
-    // ── Check if user already has active subscription ─────────────
-    suspend fun queryExistingPurchases() {
+    override suspend fun queryExistingPurchases() {
         val params = QueryPurchasesParams.newBuilder()
             .setProductType(BillingClient.ProductType.SUBS)
             .build()
 
         val result = billingClient.queryPurchasesAsync(params)
 
-        val hasActiveSub = result.purchasesList.any { purchase ->
-            purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+        val activePurchase = result.purchasesList.firstOrNull { purchase ->
+            purchase.purchaseState == PurchaseState.PURCHASED &&
                     (purchase.products.contains(PRODUCT_MONTHLY) ||
                             purchase.products.contains(PRODUCT_YEARLY))
         }
 
-        _subscriptionState.value = if (hasActiveSub) {
-            SubscriptionState.Premium
-        } else {
-            SubscriptionState.Free
-        }
+        _subscriptionState.value =
+            if (activePurchase != null) {
+                val plan = when {
+                    activePurchase.products.contains(PRODUCT_YEARLY) -> PremiumPlan.YEARLY
+                    else -> PremiumPlan.MONTHLY
+                }
+                SubscriptionState.Premium(plan)
+            } else {
+                SubscriptionState.Free
+            }
 
-        // Acknowledge any unacknowledged purchases
         result.purchasesList
-            .filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+            .filter { it.purchaseState == PurchaseState.PURCHASED }
             .filter { !it.isAcknowledged }
             .forEach { acknowledgePurchase(it) }
     }
 
-    // ── Launch purchase flow ──────────────────────────────────────
-    fun launchPurchaseFlow(
+    override fun launchPurchaseFlow(
         activity: Activity,
         productDetails: ProductDetails,
         isYearly: Boolean
     ) {
-        val offerToken = productDetails
-            .subscriptionOfferDetails
+        val offerToken = productDetails.subscriptionOfferDetails
             ?.firstOrNull()
-            ?.offerToken ?: return
+            ?.offerToken
+            ?: run {
+                _billingError.value = "No offer available for this product"
+                return
+            }
 
-        val productDetailsParams = BillingFlowParams.ProductDetailsParams
-            .newBuilder()
+        val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
             .setProductDetails(productDetails)
             .setOfferToken(offerToken)
             .build()
 
-        val flowParams = BillingFlowParams.newBuilder()
+        val billingFlowParams = BillingFlowParams.newBuilder()
             .setProductDetailsParamsList(listOf(productDetailsParams))
             .build()
 
-        billingClient.launchBillingFlow(activity, flowParams)
+        val result = billingClient.launchBillingFlow(activity, billingFlowParams)
+
+        if (result.responseCode != BillingResponseCode.OK) {
+            _billingError.value = "Billing flow failed: ${result.debugMessage}"
+        }
     }
 
-    // ── Called when purchase completes (success/fail/cancel) ──────
-    override fun onPurchasesUpdated(
-        result: BillingResult,
-        purchases: List<Purchase>?
-    ) {
+    override fun onPurchasesUpdated(result: BillingResult, purchases: List<Purchase>?) {
         when (result.responseCode) {
-            BillingClient.BillingResponseCode.OK -> {
+            BillingResponseCode.OK -> {
                 coroutineScope.launch {
                     purchases?.forEach { purchase ->
-                        if (purchase.purchaseState == Purchase.PurchaseState.PURCHASED) {
+                        if (purchase.purchaseState == PurchaseState.PURCHASED) {
                             acknowledgePurchase(purchase)
-                            _subscriptionState.value = SubscriptionState.Premium
+
+                            val plan = when {
+                                purchase.products.contains(PRODUCT_YEARLY) -> PremiumPlan.YEARLY
+                                else -> PremiumPlan.MONTHLY
+                            }
+
+                            _subscriptionState.value = SubscriptionState.Premium(plan)
                         }
                     }
                 }
             }
-            BillingClient.BillingResponseCode.USER_CANCELED -> {
+            BillingResponseCode.USER_CANCELED -> {
                 Log.d("Billing", "User cancelled purchase")
             }
             else -> {
                 _billingError.value = "Purchase failed: ${result.debugMessage}"
-                Log.e("Billing", "Purchase error: ${result.debugMessage}")
             }
         }
     }
@@ -197,17 +189,14 @@ class BillingManager(
             .setPurchaseToken(purchase.purchaseToken)
             .build()
 
-        val result = billingClient.acknowledgePurchase(params)
-        if (result.responseCode == BillingClient.BillingResponseCode.OK) {
-            Log.d("Billing", "Purchase acknowledged: ${purchase.products}")
-        }
+        billingClient.acknowledgePurchase(params)
     }
 
-    fun clearError() {
+    override fun clearError() {
         _billingError.value = null
     }
 
-    fun endConnection() {
+    override fun endConnection() {
         billingClient.endConnection()
     }
 }

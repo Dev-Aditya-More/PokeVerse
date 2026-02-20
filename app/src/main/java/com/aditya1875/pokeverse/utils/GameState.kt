@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.utils
-// GameModels.kt
+
+import com.aditya1875.pokeverse.data.billing.PremiumPlan
+
 enum class Difficulty(
     val displayName: String,
     val gridColumns: Int,
@@ -49,17 +51,10 @@ sealed class GameState {
     ) : GameState()
 }
 
-// Subscription state
-// Update in GameModels.kt
 sealed class SubscriptionState {
     object Loading : SubscriptionState()
     object Free : SubscriptionState()
     data class Premium(
         val plan: PremiumPlan = PremiumPlan.MONTHLY
     ) : SubscriptionState()
-}
-
-enum class PremiumPlan {
-    MONTHLY,
-    YEARLY
 }

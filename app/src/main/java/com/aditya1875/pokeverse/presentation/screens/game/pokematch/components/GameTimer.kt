@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.presentation.screens.game.components
+package com.aditya1875.pokeverse.presentation.screens.game.pokematch.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.RepeatMode
@@ -24,7 +24,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-// GameTimer.kt
 @Composable
 fun GameTimer(
     timeRemaining: Int,

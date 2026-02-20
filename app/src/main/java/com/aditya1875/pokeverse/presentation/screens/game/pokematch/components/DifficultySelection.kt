@@ -1,6 +1,6 @@
-package com.aditya1875.pokeverse.presentation.screens.game.components
+package com.aditya1875.pokeverse.presentation.screens.game.pokematch.components
 
-import android.widget.Toast
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
@@ -48,26 +47,33 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
-import com.aditya1875.pokeverse.presentation.ui.viewmodel.GameViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import com.aditya1875.pokeverse.utils.Difficulty
 import com.aditya1875.pokeverse.utils.SubscriptionState
 import org.koin.compose.viewmodel.koinViewModel
 
-// DifficultyScreen.kt
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DifficultyScreen(
     onDifficultySelected: (Difficulty) -> Unit,
     onBack: () -> Unit,
-    viewModel: GameViewModel = koinViewModel()
+    viewModel: MatchViewModel = koinViewModel()
 ) {
     val topScores by viewModel.topScores.collectAsStateWithLifecycle()
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
-    val gamesPlayedToday by viewModel.gamesPlayedToday.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val activity = (context as? Activity)
 
-    // Control premium sheet visibility here
+    val billingViewModel: BillingViewModel = koinViewModel()
+    val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
+    val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
+    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
+    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
+    val isBillingReady = monthlyProduct != null || yearlyProduct != null
+
     var showPremiumSheet by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -129,21 +135,20 @@ fun DifficultyScreen(
                     bestScore = topScores
                         .filter { it.difficulty == difficulty.name }
                         .maxByOrNull { it.score },
-                    gamesPlayedToday = gamesPlayedToday,
                     onSelect = {
                         if (canPlay) {
                             onDifficultySelected(difficulty)
                         } else {
-                            // Show premium sheet instead of navigating
                             showPremiumSheet = true
                         }
                     }
                 )
             }
 
-            if (subscriptionState is SubscriptionState.Free) {
+            if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
                 item {
                     PremiumBanner(
+                        price = monthly,
                         onSubscribe = { showPremiumSheet = true }
                     )
                 }
@@ -153,22 +158,23 @@ fun DifficultyScreen(
         }
     }
 
-    // Premium Bottom Sheet
     if (showPremiumSheet) {
         PremiumBottomSheet(
             onDismiss = { showPremiumSheet = false },
-            onSubscribe = {
-                // TODO: Hook into Google Play Billing here
-                // For now just show a coming soon toast
+            onSubscribeMonthly = {
                 showPremiumSheet = false
-                Toast.makeText(
-                    context,
-                    "Premium coming soon! 🚀",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+                activity?.let { billingViewModel.purchaseMonthly(it) }
+            },
+            onSubscribeYearly = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseYearly(it) }
+            },
+            monthlyPrice = monthly,
+            yearlyPrice = yearly,
+            isSubscribeEnabled = isBillingReady
         )
     }
+
 }
 
 @Composable
@@ -176,7 +182,6 @@ fun DifficultyCard(
     difficulty: Difficulty,
     canPlay: Boolean,
     bestScore: GameScoreEntity?,
-    gamesPlayedToday: Int,
     onSelect: () -> Unit
 ) {
     val difficultyColor = when (difficulty) {
@@ -190,23 +195,18 @@ fun DifficultyCard(
             .fillMaxWidth()
             .clickable { onSelect() },
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(4.dp),
         border = BorderStroke(
-            width = 1.dp,
-            color = if (canPlay) difficultyColor.copy(alpha = 0.5f)
+            1.dp,
+            if (canPlay) difficultyColor.copy(alpha = 0.5f)
             else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
         )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Color indicator
             Box(
                 modifier = Modifier
                     .size(48.dp)
@@ -218,11 +218,7 @@ fun DifficultyCard(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = when (difficulty) {
-                        Difficulty.EASY -> Icons.Default.Star
-                        Difficulty.MEDIUM -> Icons.Default.Star
-                        Difficulty.HARD -> Icons.Default.Star
-                    },
+                    imageVector = Icons.Default.Star,
                     contentDescription = null,
                     tint = if (canPlay) difficultyColor
                     else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
@@ -232,19 +228,16 @@ fun DifficultyCard(
 
             Spacer(Modifier.width(16.dp))
 
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+            Column(Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = difficulty.displayName,
-                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = if (canPlay) MaterialTheme.colorScheme.onSurface
                         else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                     )
                     if (!canPlay) {
+                        Spacer(Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.Lock,
                             contentDescription = "Locked",
@@ -254,52 +247,20 @@ fun DifficultyCard(
                     }
                 }
 
-                Spacer(Modifier.height(2.dp))
-
                 Text(
                     text = "${difficulty.pairs} pairs • ${difficulty.timeSeconds}s • ${difficulty.gridColumns}×${difficulty.gridRows}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                        alpha = if (canPlay) 1f else 0.4f
-                    )
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (canPlay) 1f else 0.4f)
                 )
-
-                if (difficulty == Difficulty.MEDIUM && !canPlay) {
-                    Text(
-                        text = "$gamesPlayedToday/3 free games used today",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
 
                 bestScore?.let {
                     Spacer(Modifier.height(4.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.EmojiEvents,
-                            contentDescription = null,
-                            tint = Color(0xFFFFD700),
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Text(
-                            text = "Best: ${it.score}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFFFD700),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        repeat(it.stars) {
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color(0xFFFFD700),
-                                modifier = Modifier.size(12.dp)
-                            )
-                        }
-                    }
+                    Text(
+                        text = "Best: ${it.score}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFFFD700),
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
 
@@ -312,3 +273,4 @@ fun DifficultyCard(
         }
     }
 }
+

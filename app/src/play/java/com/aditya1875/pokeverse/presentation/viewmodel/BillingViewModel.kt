@@ -3,7 +3,7 @@ package com.aditya1875.pokeverse.presentation.viewmodel
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aditya1875.pokeverse.data.billing.BillingManager
+import com.aditya1875.pokeverse.data.billing.IBillingManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -11,23 +11,22 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class BillingViewModel(
-    private val billingManager: BillingManager
+    private val billingManager: IBillingManager
 ) : ViewModel() {
 
     val subscriptionState = billingManager.subscriptionState
-    val monthlyProduct    = billingManager.monthlyProduct
-    val yearlyProduct     = billingManager.yearlyProduct
-    val billingError      = billingManager.billingError
+    val monthlyProduct = billingManager.monthlyProduct
+    val yearlyProduct = billingManager.yearlyProduct
+    val billingError = billingManager.billingError
 
-    // Formatted prices from Play Console (auto handles currency/locale)
     val monthlyPrice: StateFlow<String> = monthlyProduct.map { product ->
         product?.subscriptionOfferDetails
             ?.firstOrNull()
             ?.pricingPhases
             ?.pricingPhaseList
             ?.firstOrNull()
-            ?.formattedPrice ?: "₹49"
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "₹49")
+            ?.formattedPrice ?: ""
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
     val yearlyPrice: StateFlow<String> = yearlyProduct.map { product ->
         product?.subscriptionOfferDetails
@@ -35,25 +34,17 @@ class BillingViewModel(
             ?.pricingPhases
             ?.pricingPhaseList
             ?.firstOrNull()
-            ?.formattedPrice ?: "₹399"
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "₹399")
+            ?.formattedPrice ?: ""
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
 
     fun purchaseMonthly(activity: Activity) {
         val product = monthlyProduct.value ?: return
-        billingManager.launchPurchaseFlow(
-            activity = activity,
-            productDetails = product,
-            isYearly = false
-        )
+        billingManager.launchPurchaseFlow(activity, product, isYearly = false)
     }
 
     fun purchaseYearly(activity: Activity) {
         val product = yearlyProduct.value ?: return
-        billingManager.launchPurchaseFlow(
-            activity = activity,
-            productDetails = product,
-            isYearly = true
-        )
+        billingManager.launchPurchaseFlow(activity, product, isYearly = true)
     }
 
     fun refreshPurchases() {
@@ -63,9 +54,4 @@ class BillingViewModel(
     }
 
     fun clearError() = billingManager.clearError()
-
-    override fun onCleared() {
-        super.onCleared()
-        billingManager.endConnection()
-    }
 }

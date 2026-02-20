@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.presentation.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
@@ -18,8 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// GameViewModel.kt
-class GameViewModel(
+class MatchViewModel(
     private val repository: PokemonRepo,
     private val gameScoreDao: GameScoreDao
 ) : ViewModel() {
@@ -36,29 +36,26 @@ class GameViewModel(
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    // Subscription state - integrate with your billing later
+    // Subscription state (to be driven by BillingManager later)
     private val _subscriptionState = MutableStateFlow<SubscriptionState>(SubscriptionState.Free)
     val subscriptionState: StateFlow<SubscriptionState> = _subscriptionState
 
-    // Daily game tracking for free tier
-    private val _gamesPlayedToday = MutableStateFlow(0)
-    val gamesPlayedToday: StateFlow<Int> = _gamesPlayedToday
-
     private var timerJob: Job? = null
-    private var gameStartTime = 0L
     private var currentDifficulty = Difficulty.EASY
 
-    // Free tier limits
-    private val FREE_DAILY_MEDIUM_LIMIT = 3
-
     fun canPlayDifficulty(difficulty: Difficulty): Boolean {
-        return when (_subscriptionState.value) {
-            is SubscriptionState.Premium -> true
-            else -> when (difficulty) {
-                Difficulty.EASY -> true
-                Difficulty.MEDIUM -> _gamesPlayedToday.value < FREE_DAILY_MEDIUM_LIMIT
-                Difficulty.HARD -> false
-            }
+        return when (difficulty) {
+            Difficulty.EASY -> true
+            Difficulty.MEDIUM -> true
+            Difficulty.HARD -> _subscriptionState.value is SubscriptionState.Premium
+        }
+    }
+
+    fun setPremiumActive(active: Boolean) {
+        _subscriptionState.value = if (active) {
+            SubscriptionState.Premium(PremiumPlan.MONTHLY)
+        } else {
+            SubscriptionState.Free
         }
     }
 
@@ -78,7 +75,6 @@ class GameViewModel(
                     timeRemaining = difficulty.timeSeconds,
                     difficulty = difficulty
                 )
-                gameStartTime = System.currentTimeMillis()
                 startTimer()
             } catch (e: Exception) {
                 Log.e("GameVM", "Failed to start game", e)
@@ -88,7 +84,6 @@ class GameViewModel(
     }
 
     private suspend fun fetchRandomPokemon(count: Int): List<Pair<String, String>> {
-        // Total Pokemon in PokeAPI (up to gen 9)
         val maxPokemonId = 1010
         val randomIds = (1..maxPokemonId).shuffled().take(count)
 
@@ -102,7 +97,7 @@ class GameViewModel(
             } catch (e: Exception) {
                 null
             }
-        }.take(count) // Ensure we have exactly the right count
+        }.take(count)
     }
 
     private fun createCardDeck(
@@ -112,19 +107,22 @@ class GameViewModel(
         val cards = mutableListOf<CardState>()
 
         pokemon.forEachIndexed { pairId, (name, spriteUrl) ->
-            // Add two cards for each Pokemon (the pair)
-            cards.add(CardState(
-                index = pairId * 2,
-                pokemonName = name,
-                spriteUrl = spriteUrl,
-                pairId = pairId
-            ))
-            cards.add(CardState(
-                index = pairId * 2 + 1,
-                pokemonName = name,
-                spriteUrl = spriteUrl,
-                pairId = pairId
-            ))
+            cards.add(
+                CardState(
+                    index = pairId * 2,
+                    pokemonName = name,
+                    spriteUrl = spriteUrl,
+                    pairId = pairId
+                )
+            )
+            cards.add(
+                CardState(
+                    index = pairId * 2 + 1,
+                    pokemonName = name,
+                    spriteUrl = spriteUrl,
+                    pairId = pairId
+                )
+            )
         }
 
         return cards.shuffled().mapIndexed { idx, card ->
@@ -136,10 +134,7 @@ class GameViewModel(
         val currentState = _gameState.value as? GameState.Playing ?: return
         val card = currentState.cards[cardIndex]
 
-        // Ignore if already flipped or matched
         if (card.isFlipped || card.isMatched) return
-
-        // Ignore if two cards already flipped
         if (currentState.flippedIndices.size >= 2) return
 
         val newFlipped = currentState.flippedIndices + cardIndex
@@ -164,7 +159,6 @@ class GameViewModel(
             val newMoves = currentState.moves + 1
 
             if (firstCard.pairId == secondCard.pairId) {
-                // MATCH FOUND
                 val newCards = currentState.cards.toMutableList()
                 newCards[firstIndex] = firstCard.copy(isMatched = true)
                 newCards[secondIndex] = secondCard.copy(isMatched = true)
@@ -187,12 +181,10 @@ class GameViewModel(
                 )
                 _gameState.value = updatedState
 
-                // Check if game is complete
                 if (newMatchedPairs.size == currentState.difficulty.pairs) {
                     handleVictory(updatedState)
                 }
             } else {
-                // NO MATCH - wait then flip back
                 delay(800)
                 val state = _gameState.value as? GameState.Playing ?: return@launch
                 val updatedCards = state.cards.toMutableList()
@@ -233,8 +225,7 @@ class GameViewModel(
         totalTime: Int
     ): Int {
         val timePercent = timeRemaining.toFloat() / totalTime
-        val perfectMoves = totalPairs // best case - find every pair first try
-        val moveRatio = perfectMoves.toFloat() / moves.coerceAtLeast(1)
+        val moveRatio = totalPairs.toFloat() / moves.coerceAtLeast(1)
 
         return when {
             timePercent > 0.5f && moveRatio > 0.7f -> 3
@@ -256,7 +247,6 @@ class GameViewModel(
         val existingBest = gameScoreDao.getBestScore(state.difficulty.name)
         val isNewBest = existingBest == null || state.score > existingBest.score
 
-        // Save score
         gameScoreDao.insertScore(
             GameScoreEntity(
                 difficulty = state.difficulty.name,
@@ -266,8 +256,6 @@ class GameViewModel(
                 stars = stars
             )
         )
-
-        _gamesPlayedToday.value++
 
         _gameState.value = GameState.Victory(
             score = state.score,
