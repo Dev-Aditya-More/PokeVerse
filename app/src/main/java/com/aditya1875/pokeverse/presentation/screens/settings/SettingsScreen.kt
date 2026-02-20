@@ -1,6 +1,8 @@
 package com.aditya1875.pokeverse.presentation.screens.settings
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.StarRate
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -236,6 +239,43 @@ fun SettingsScreen(navController: NavController) {
                     )
                 }
 
+                var rateExpanded by rememberSaveable { mutableStateOf(false) }
+
+                SettingsCard(
+                    title = "Rate us on Google Play",
+                    icon = Icons.Default.StarRate,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = rateExpanded,
+                    onExpandToggle = {
+                        val packageName = context.packageName
+
+                        val uri = "market://details?id=$packageName".toUri()
+                        val goToMarket = Intent(Intent.ACTION_VIEW, uri).apply {
+                            addFlags(
+                                Intent.FLAG_ACTIVITY_NO_HISTORY or
+                                        Intent.FLAG_ACTIVITY_NEW_DOCUMENT or
+                                        Intent.FLAG_ACTIVITY_MULTIPLE_TASK
+                            )
+                        }
+
+                        try {
+                            context.startActivity(goToMarket)
+                        } catch (e: ActivityNotFoundException) {
+                            val webUri =
+                                "https://play.google.com/store/apps/details?id=$packageName".toUri()
+                            context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
+                        }
+
+                        rateExpanded = !rateExpanded
+                    }
+                ) {
+                    Text(
+                        "If you like Pokeverse, please take a moment to rate it on Play Store. It really helps.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -344,11 +384,13 @@ fun SettingsScreen(navController: NavController) {
                 Spacer(modifier = Modifier.height(20.dp))
 
                 Text(
-                    text = "© Pokéverse 2025. All rights reserved.",
+                    text = "© Pokéverse 2026. All rights reserved.",
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.alpha(0.6f)
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
             }
         }
     }

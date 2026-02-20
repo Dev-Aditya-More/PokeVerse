@@ -28,8 +28,11 @@ import com.aditya1875.pokeverse.domain.repository.PokemonSearchRepository
 import com.aditya1875.pokeverse.utils.EvolutionChainMapper
 import com.aditya1875.pokeverse.utils.SearchUiState
 import com.aditya1875.pokeverse.utils.UiError
+import com.google.firebase.Firebase
+import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,6 +48,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import kotlin.collections.filter
 
@@ -72,10 +77,6 @@ class PokemonViewModel(
     private val _searchUiState = MutableStateFlow(SearchUiState())
 
     private val _searchQuery = MutableStateFlow("")
-    @OptIn(FlowPreview::class)
-    val debouncedSearchQuery = _searchQuery
-        .debounce(300) // 300ms delay
-        .stateIn(viewModelScope, SharingStarted.Lazily, "")
 
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val searchUiState: StateFlow<SearchUiState> = _searchQuery
@@ -127,6 +128,13 @@ class PokemonViewModel(
     private val _filters = MutableStateFlow(PokemonFilter())
     val filters: StateFlow<PokemonFilter> = _filters
 
+    private fun shouldAutoLoadMoreForFilter(): Boolean {
+        val selectedType = _filters.value.selectedType ?: return false
+
+        // If we have less than one page worth of results, keep loading
+        return _pokemonList.value.size < limit && !endReached && !isLoading
+    }
+
     // -------------------------
     // Local description support
     // -------------------------
@@ -173,27 +181,36 @@ class PokemonViewModel(
 
                 currentOffset += limit
 
-                // Check if we've loaded all Pokemon in the region
                 if (newList.isEmpty() || newList.size < limit || currentOffset >= regionEnd) {
                     endReached = true
                 }
 
-                // Apply current filters (region + type if selected)
                 applyCurrentFilters()
 
                 _uiState.value = PokemonDetailUiState(isLoading = false, error = null)
 
+            } catch (e: SocketTimeoutException) {
+                _uiState.value = PokemonDetailUiState(
+                    error = UiError.Network("Connection timed out. Please try again."),
+                    isLoading = false
+                )
             } catch (e: UnknownHostException) {
-                _uiState.value = PokemonDetailUiState(error = UiError.Network(e.localizedMessage))
+                _uiState.value = PokemonDetailUiState(
+                    error = UiError.Network("No internet connection."),
+                    isLoading = false
+                )
             } catch (e: Exception) {
                 Log.e("PokeVM", "Failed to load Pokemon list", e)
-                _uiState.value = PokemonDetailUiState(error = UiError.Unexpected(e.localizedMessage))
+                FirebaseAnalytics.getInstance(context)
+                _uiState.value = PokemonDetailUiState(
+                    error = UiError.Unexpected(e.localizedMessage),
+                    isLoading = false
+                )
             } finally {
                 isLoading = false
             }
         }
     }
-
 
     // -------------------------
     // Pokémon Detail Loading
@@ -275,7 +292,10 @@ class PokemonViewModel(
         return TeamMemberEntity(
             teamId = "",
             name = this.name,
-            imageUrl = this.sprites.front_default ?: ""
+            imageUrl = this.sprites.other?.officialArtwork?.frontDefault
+                ?: this.sprites.other?.home?.frontDefault
+                ?: this.sprites.front_default
+                ?: ""
         )
     }
 
@@ -353,6 +373,10 @@ class PokemonViewModel(
             }
             Log.d("PokeVM", "Filtered to ${_pokemonList.value.size} ${selectedType.name} types")
         }
+
+        if (shouldAutoLoadMoreForFilter()) {
+            loadPokemonList()
+        }
     }
 
     private fun isNetworkAvailable(context: Context): Boolean {
@@ -396,10 +420,15 @@ class PokemonViewModel(
     // Utility
     // -------------------------
     fun extractIdFromUrl(url: String): Int {
-        return url.trimEnd('/')
-            .split("/")
-            .last()
-            .toIntOrNull() ?: -1
+        return try {
+            url.trimEnd('/')
+                .split("/")
+                .lastOrNull()
+                ?.toIntOrNull() ?: -1
+        } catch (e: Exception) {
+            Log.w("PokeVM", "Bad URL: $url", e)
+            -1
+        }
     }
 
     fun onSearchQueryChanged(query: String) {
@@ -544,65 +573,6 @@ class PokemonViewModel(
         }
     }
 
-    // ========== SMART POKEMON ADDITION ==========
-
-    /**
-     * Smartly adds a Pokemon to a team.
-     * - If only one team exists, add to that team
-     * - If multiple teams exist, find first team with space
-     * - If all teams are full, show error
-     */
-    fun addToTeamSmart(
-        pokemonResult: PokemonResult,
-        onSuccess: (teamName: String) -> Unit,
-        onTeamFull: () -> Unit,
-        onMultipleTeamsAvailable: (List<TeamEntity>) -> Unit
-    ) = viewModelScope.launch {
-        try {
-            val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
-            val teams = allTeams.value
-
-            when {
-                teams.isEmpty() -> {
-                    // No teams exist - create default
-                    val defaultTeam = TeamEntity(teamName = "My Team", isDefault = true)
-                    teamDao.createTeam(defaultTeam)
-                    addPokemonToTeam(pokemonResponse, defaultTeam.teamId)
-                    onSuccess(defaultTeam.teamName)
-                }
-
-                teams.size == 1 -> {
-                    // Only one team - add to it or show full message
-                    val team = teams.first()
-                    val memberCount = teamDao.getTeamMemberCountOnce(team.teamId)
-
-                    if (memberCount >= 6) {
-                        onTeamFull()
-                    } else {
-                        addPokemonToTeam(pokemonResponse, team.teamId)
-                        onSuccess(team.teamName)
-                    }
-                }
-
-                else -> {
-                    // Multiple teams - find first available
-                    val availableTeamId = teamDao.getFirstAvailableTeamId()
-
-                    if (availableTeamId != null) {
-                        val team = teamDao.getTeamByIdOnce(availableTeamId)
-                        addPokemonToTeam(pokemonResponse, availableTeamId)
-                        onSuccess(team?.teamName ?: "Team")
-                    } else {
-                        // All teams full
-                        onTeamFull()
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("PokeVM", "Failed to add Pokemon to team", e)
-        }
-    }
-
     private suspend fun addPokemonToTeam(pokemonResponse: PokemonResponse, teamId: String) {
         val entity = TeamMemberEntity(
             teamId = teamId,
@@ -656,13 +626,23 @@ class PokemonViewModel(
                 return@launch
             }
 
-            val members = teamDao.getTeamMembers(teamId).first()
+            val members = try {
+                withTimeout(5000) {
+                    teamDao.getTeamMembers(teamId).first()
+                }
+            } catch (e: TimeoutCancellationException) {
+                Log.e("PokeVM", "Timeout getting team members for $teamId")
+                emptyList()
+            } catch (e: Exception) {
+                Log.e("PokeVM", "Error getting team members: ${e.message}")
+                emptyList()
+            }
             val isInTeam = members.any { it.name.equals(pokemonResult.name, ignoreCase = true) }
 
             if (isInTeam) {
                 // Remove from team
                 teamDao.removeFromTeamByName(pokemonResult.name, teamId)
-                onResult(TeamAdditionResult.Success(team.teamName, wasAdded = false)) // FIXED
+                onResult(TeamAdditionResult.Success(team.teamName, wasAdded = false))
             } else {
                 // Check if team is full
                 if (members.size >= 6) {
@@ -670,15 +650,18 @@ class PokemonViewModel(
                     return@launch
                 }
 
-                // Add to team
                 val pokemonResponse = repository.getPokemonByName(pokemonResult.name)
+                val imageUrl = pokemonResponse.sprites.other?.officialArtwork?.frontDefault
+                    ?: pokemonResponse.sprites.other?.home?.frontDefault
+                    ?: pokemonResponse.sprites.front_default
+                    ?: ""
                 val entity = TeamMemberEntity(
                     teamId = teamId,
                     name = pokemonResponse.name,
-                    imageUrl = pokemonResponse.sprites.front_default ?: ""
+                    imageUrl = imageUrl
                 )
                 teamDao.addToTeam(entity)
-                onResult(TeamAdditionResult.Success(team.teamName, wasAdded = true)) // FIXED
+                onResult(TeamAdditionResult.Success(team.teamName, wasAdded = true))
             }
         } catch (e: Exception) {
             Log.e("PokeVM", "Failed to toggle Pokemon in team", e)
@@ -699,6 +682,15 @@ class PokemonViewModel(
                 }
             }.map { it.team }
         }
+    }
+
+    fun refreshList() {
+        currentOffset = filters.value.selectedRegion?.offset ?: 0
+        endReached = false
+        isLoading = false
+        allPokemonInRegion = emptyList()
+        _pokemonList.value = emptyList()
+        loadPokemonList(isNewRegion = true)
     }
 }
 

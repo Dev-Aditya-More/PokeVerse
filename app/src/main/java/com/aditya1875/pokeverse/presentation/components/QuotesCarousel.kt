@@ -1,9 +1,12 @@
 package com.aditya1875.pokeverse.presentation.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +17,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,10 +39,12 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
 @Composable
-fun QuoteCarousel(quotesGenerate: List<String>, modifier: Modifier) {
+fun QuoteCarousel(
+    quotesGenerate: List<String>,
+    modifier: Modifier = Modifier
+) {
     var currentIndex by remember { mutableIntStateOf(0) }
 
-    // update quote
     LaunchedEffect(Unit) {
         while (true) {
             delay(3000)
@@ -44,51 +52,68 @@ fun QuoteCarousel(quotesGenerate: List<String>, modifier: Modifier) {
         }
     }
 
-    Box(
-        modifier = Modifier
-            .then(modifier)
-            .padding(bottom = 64.dp)
-            .padding(horizontal = 24.dp, vertical = 20.dp)
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-            // Quote animation
-            AnimatedContent(
-                targetState = quotesGenerate[currentIndex],
-                transitionSpec = {
-                    fadeIn(tween(500)) togetherWith fadeOut(tween(500))
-                },
-                label = "quote"
-            ) { suggestion ->
+        AnimatedContent(
+            targetState = currentIndex,
+            transitionSpec = {
+                (slideInVertically { it / 2 } + fadeIn(tween(400))) togetherWith
+                        (slideOutVertically { -it / 2 } + fadeOut(tween(300)))
+            },
+            label = "quote_anim"
+        ) { index ->
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "“$suggestion”",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    text = quotesGenerate[index],
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center,
-                    lineHeight = 22.sp
+                    color = Color.White,
+                    lineHeight = 28.sp
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                // Signature accent line (brand feel)
+                Box(
+                    modifier = Modifier
+                        .height(3.dp)
+                        .width(40.dp)
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(MaterialTheme.colorScheme.primary)
                 )
             }
+        }
 
-            Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            // Dots indicator
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                repeat(quotesGenerate.size) { index ->
-                    val isSelected = currentIndex == index
-                    Box(
-                        modifier = Modifier
-                            .padding(horizontal = 4.dp)
-                            .size(if (isSelected) 10.dp else 6.dp)
-                            .clip(CircleShape)
-                            .background(
-                                color = if (isSelected) Color.White else Color.White.copy(alpha = 0.3f)
-                            )
-                    )
-                }
+        // Dots
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            repeat(quotesGenerate.size) { index ->
+                val isSelected = currentIndex == index
+                val size by animateDpAsState(
+                    targetValue = if (isSelected) 10.dp else 6.dp,
+                    label = "dot_size"
+                )
+
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .size(size)
+                        .clip(CircleShape)
+                        .background(
+                            if (isSelected)
+                                MaterialTheme.colorScheme.primary
+                            else
+                                Color.White.copy(alpha = 0.4f)
+                        )
+                )
             }
         }
     }

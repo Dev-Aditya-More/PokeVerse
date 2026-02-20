@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
@@ -39,6 +40,7 @@ fun BottomNavigationBar(
         val items = listOf(
             Route.BottomBar.Home,
             Route.BottomBar.Team,
+            Route.BottomBar.Game,
             Route.BottomBar.Settings
         )
 
@@ -47,12 +49,14 @@ fun BottomNavigationBar(
 
             val accentColor = when (routeItem) {
                 Route.BottomBar.Home -> MaterialTheme.colorScheme.primary
-                Route.BottomBar.Team -> MaterialTheme.colorScheme.secondary
-                Route.BottomBar.Settings -> MaterialTheme.colorScheme.tertiary
+                Route.BottomBar.Game -> Color(0xFFFFD700)
+                Route.BottomBar.Team -> MaterialTheme.colorScheme.primary
+                Route.BottomBar.Settings -> MaterialTheme.colorScheme.primary
             }
 
             val resolvedIcon = when (routeItem) {
-                Route.BottomBar.Team -> if (selected) Icons.Default.Star else Icons.Default.Add
+                Route.BottomBar.Team -> Icons.Default.Star
+                Route.BottomBar.Game -> Icons.Default.SportsEsports
                 else -> routeItem.icon
             }
 

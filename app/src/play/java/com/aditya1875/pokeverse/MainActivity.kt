@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -26,15 +27,25 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.aditya1875.pokeverse.data.preferences.ThemePreferences
-import com.aditya1875.pokeverse.di.appModule
 import com.aditya1875.pokeverse.presentation.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.presentation.screens.analysis.TeamAnalysisScreen
 import com.aditya1875.pokeverse.presentation.screens.detail.PokemonDetailScreen
+import com.aditya1875.pokeverse.presentation.screens.game.GameHubScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.PokeGuessDifficultyScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.PokeGuessGameScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
+import com.aditya1875.pokeverse.presentation.screens.game.pokematch.GameScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.DifficultyScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.QuizDifficultyScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.QuizGameScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
 import com.aditya1875.pokeverse.presentation.screens.home.HomeScreen
 import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.onboarding.IntroScreen
@@ -44,16 +55,13 @@ import com.aditya1875.pokeverse.presentation.screens.team.DreamTeam
 import com.aditya1875.pokeverse.presentation.screens.theme.ThemeSelectorScreen
 import com.aditya1875.pokeverse.presentation.ui.theme.AppTheme
 import com.aditya1875.pokeverse.presentation.ui.theme.PokeverseTheme
-import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.utils.Difficulty
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.aditya1875.pokeverse.utils.WithBottomBar
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
-import org.koin.android.ext.koin.androidContext
-import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import org.koin.core.context.GlobalContext.startKoin
 
 class MainActivity : ComponentActivity() {
 
@@ -61,23 +69,15 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
 
         requestNotificationPermission()
 
         NotificationUtils.createNotificationChannel(this)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        FirebaseMessaging.getInstance()
-            .subscribeToTopic("theme_updates")
-
-        startKoin {
-            androidContext(this@MainActivity)
-            modules(appModule)
-        }
+        FirebaseMessaging.getInstance().subscribeToTopic("theme_updates")
 
         setContent {
-
             val themePreferences = koinInject<ThemePreferences>()
             val selectedTheme by themePreferences.selectedTheme.collectAsState(
                 initial = AppTheme.POKEVERSE
@@ -92,23 +92,26 @@ class MainActivity : ComponentActivity() {
             val startDestination = remember { mutableStateOf("splash") }
             val context = LocalContext.current
 
-            PokeverseTheme(
-                selectedTheme = currentTheme,
-            ) {
+            PokeverseTheme(selectedTheme = currentTheme) {
                 val navController = rememberNavController()
-
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
 
-                var selectedRoute = when (currentRoute) {
-                    Route.BottomBar.Home.route -> Route.BottomBar.Home
-                    Route.BottomBar.Team.route -> Route.BottomBar.Team
-                    Route.BottomBar.Settings.route -> Route.BottomBar.Settings
-                    else -> Route.BottomBar.Home
+                var selectedRoute by remember {
+                    mutableStateOf<Route.BottomBar>(Route.BottomBar.Home)
+                }
+
+                LaunchedEffect(currentRoute) {
+                    selectedRoute = when (currentRoute) {
+                        Route.BottomBar.Home.route -> Route.BottomBar.Home
+                        Route.BottomBar.Team.route -> Route.BottomBar.Team
+                        Route.BottomBar.Game.route -> Route.BottomBar.Game
+                        Route.BottomBar.Settings.route -> Route.BottomBar.Settings
+                        else -> selectedRoute
+                    }
                 }
 
                 LaunchedEffect(Unit) {
-
                     val introSeen = ScreenStateManager.isIntroSeen(this@MainActivity)
                     val lastRoute = ScreenStateManager.getLastRoute(this@MainActivity)
 
@@ -119,21 +122,20 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-                var teamName by rememberSaveable { mutableStateOf("My Team") }
-                var favoritesName by rememberSaveable { mutableStateOf("My Favourites") }
-
-                val selectedName =
-                    if (selectedTab == 0) teamName else favoritesName
-
                 val scope = rememberCoroutineScope()
 
                 NavHost(
                     navController = navController,
                     startDestination = startDestination.value,
                 ) {
-                    composable(Route.Splash.route) { SplashScreen(navController) }
-                    composable(Route.Onboarding.route) { IntroScreen(navController) }
+                    // ── CORE SCREENS ──────────────────────────────────────
+                    composable(Route.Splash.route) {
+                        SplashScreen(navController)
+                    }
+
+                    composable(Route.Onboarding.route) {
+                        IntroScreen(navController)
+                    }
 
                     composable(Route.BottomBar.Home.route) {
                         WithBottomBar(navController) {
@@ -145,16 +147,139 @@ class MainActivity : ComponentActivity() {
                         WithBottomBar(
                             navController,
                             selectedRoute = selectedRoute,
-                            onRouteChange = {
-                                selectedRoute = it
-                            }
+                            onRouteChange = { selectedRoute = it }
                         ) {
-                            DreamTeam(
-                                navController = navController
+                            DreamTeam(navController = navController)
+                        }
+                    }
+
+                    composable(Route.BottomBar.Game.route) {
+                        WithBottomBar(
+                            navController = navController,
+                            selectedRoute = selectedRoute,
+                            onRouteChange = { selectedRoute = it }
+                        ) {
+                            GameHubScreen(
+                                onGameSelected = { gameId ->
+                                    when (gameId) {
+                                        "pokematch" -> navController.navigate(Route.GameDifficulty.route)
+                                        "pokequiz" -> navController.navigate(Route.QuizDifficulty.route)
+                                        "pokeguess" -> navController.navigate(Route.GuessDifficulty.route)
+                                    }
+                                }
                             )
                         }
                     }
 
+                    composable(Route.BottomBar.Settings.route) {
+                        WithBottomBar(
+                            navController,
+                            selectedRoute = selectedRoute,
+                            onRouteChange = { selectedRoute = it }
+                        ) {
+                            SettingsScreen(navController)
+                        }
+                    }
+
+                    // ── POKÉMATCH NAVIGATION ──────────────────────────────
+                    composable(Route.GameDifficulty.route) {
+                        DifficultyScreen(
+                            onDifficultySelected = { difficulty ->
+                                navController.navigate(Route.GamePlay.createRoute(difficulty.name))
+                            },
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = Route.GamePlay.route,
+                        arguments = listOf(
+                            navArgument("difficulty") {
+                                type = NavType.StringType
+                                defaultValue = "EASY"
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val difficultyName = backStackEntry.arguments?.getString("difficulty") ?: "EASY"
+                        val difficulty = try {
+                            Difficulty.valueOf(difficultyName)
+                        } catch (e: IllegalArgumentException) {
+                            Difficulty.EASY
+                        }
+
+                        GameScreen(
+                            difficulty = difficulty,
+                            onBack = {
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+
+                    // ── POKÉQUIZ NAVIGATION ───────────────────────────────
+                    composable(Route.QuizDifficulty.route) {
+                        QuizDifficultyScreen(
+                            onDifficultySelected = { difficulty ->
+                                navController.navigate(Route.QuizPlay.createRoute(difficulty.name))
+                            },
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = Route.QuizPlay.route,
+                        arguments = listOf(
+                            navArgument("difficulty") {
+                                type = NavType.StringType
+                                defaultValue = "EASY"
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val difficultyName = backStackEntry.arguments?.getString("difficulty") ?: "EASY"
+                        val difficulty = try {
+                            QuizDifficulty.valueOf(difficultyName)
+                        } catch (e: IllegalArgumentException) {
+                            QuizDifficulty.EASY
+                        }
+
+                        QuizGameScreen(
+                            difficulty = difficulty,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    // PokeGuess Integration
+                    composable(Route.GuessDifficulty.route) {
+                        PokeGuessDifficultyScreen(
+                            onDifficultySelected = { difficulty ->
+                                navController.navigate(Route.GuessPlay.createRoute(difficulty.name))
+                            },
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = Route.GuessPlay.route,
+                        arguments = listOf(
+                            navArgument("difficulty") {
+                                type = NavType.StringType
+                                defaultValue = "EASY"
+                            }
+                        )
+                    ) { backStackEntry ->
+                        val difficultyName = backStackEntry.arguments?.getString("difficulty") ?: "EASY"
+                        val difficulty = try {
+                            GuessDifficulty.valueOf(difficultyName)
+                        } catch (e: IllegalArgumentException) {
+                            GuessDifficulty.EASY
+                        }
+
+                        PokeGuessGameScreen(
+                            difficulty = difficulty,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    // ── OTHER SCREENS ─────────────────────────────────────
                     composable(Route.Analysis.route) {
                         TeamAnalysisScreen(navController = navController)
                     }
@@ -165,20 +290,10 @@ class MainActivity : ComponentActivity() {
                             PokemonDetailScreen(pokemonName, navController)
                         } else {
                             PokemonNotFoundScreen(
-                                onRetryClick = { navController.navigate(Route.BottomBar.Home.route) }
+                                onRetryClick = {
+                                    navController.navigate(Route.BottomBar.Home.route)
+                                }
                             )
-                        }
-                    }
-
-                    composable(Route.BottomBar.Settings.route) {
-                        WithBottomBar(
-                            navController,
-                            selectedRoute = selectedRoute,
-                            onRouteChange = {
-                                selectedRoute = it
-                            }
-                        ) {
-                            SettingsScreen(navController)
                         }
                     }
 
@@ -194,6 +309,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
+                // Save current route
                 LaunchedEffect(navController) {
                     navController.currentBackStackEntryFlow.collect { entry ->
                         entry.destination.route?.let { route ->
@@ -203,16 +319,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-        FirebaseMessaging.getInstance()
-            .subscribeToTopic("theme_updates")
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d("FCM", "Subscribed to theme_updates topic")
-                } else {
-                    Log.e("FCM", "Topic subscription failed", task.exception)
-                }
-            }
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)

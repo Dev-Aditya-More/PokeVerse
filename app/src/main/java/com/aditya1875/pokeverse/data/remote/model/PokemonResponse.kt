@@ -10,7 +10,13 @@ data class PokemonResponse(
     val sprites: Sprites,
     val types: List<TypeSlot>,
     val stats: List<StatSlot>,
-    val moves: List<Move>
+    val moves: List<Move>,
+    val cries: PokemonCries?
+)
+
+data class PokemonCries(
+    val latest: String?,
+    val legacy: String?
 )
 
 data class Move(

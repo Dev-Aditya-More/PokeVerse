@@ -21,6 +21,7 @@ class PokeVerseFirebaseMessagingService : FirebaseMessagingService() {
         Log.d("FCM", "New FCM token: $token")
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         val title = remoteMessage.data["title"] ?: "PokéVerse"
         val body = remoteMessage.data["body"] ?: "Something new awaits you"
@@ -29,6 +30,7 @@ class PokeVerseFirebaseMessagingService : FirebaseMessagingService() {
         showNotification(title, body, type)
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     private fun showNotification(
         title: String,
         message: String,

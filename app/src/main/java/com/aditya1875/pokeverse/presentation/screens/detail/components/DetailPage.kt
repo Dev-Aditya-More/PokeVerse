@@ -1,6 +1,8 @@
 package com.aditya1875.pokeverse.presentation.screens.detail.components
 
+import android.media.MediaPlayer
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -33,17 +35,24 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedAssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
@@ -54,6 +63,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
@@ -111,6 +121,59 @@ fun PokemonDetailPage(
     val ttsManager = remember { context.getTTSManager() }
     val isTtsReady by ttsManager.isReady.collectAsStateWithLifecycle()
     val isSpeaking by ttsManager.isSpeaking.collectAsStateWithLifecycle()
+
+    val mediaPlayer = remember { MediaPlayer() }
+    var isPlayingCry by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
+            }
+            mediaPlayer.release()
+        }
+    }
+
+    fun playCry() {
+        pokemon?.let {
+            val cryUrl = it.cries?.latest ?: it.cries?.legacy
+
+            if (cryUrl != null) {
+                try {
+                    if (mediaPlayer.isPlaying) {
+                        mediaPlayer.stop()
+                    }
+                    mediaPlayer.reset()
+                    mediaPlayer.setDataSource(cryUrl)
+                    mediaPlayer.prepareAsync()
+                    mediaPlayer.setOnPreparedListener { mp ->
+                        mp.start()
+                        isPlayingCry = true
+                    }
+                    mediaPlayer.setOnCompletionListener {
+                        isPlayingCry = false
+                    }
+                    mediaPlayer.setOnErrorListener { _, what, extra ->
+                        Toast.makeText(context, "Could not play cry", Toast.LENGTH_SHORT).show()
+                        isPlayingCry = false
+                        true
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Cry not available", Toast.LENGTH_SHORT).show()
+                    Log.e("PokemonDetail", "Error playing cry", e)
+                }
+            } else {
+                Toast.makeText(context, "Cry not available for this Pokémon", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    fun stopCry() {
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.stop()
+            isPlayingCry = false
+        }
+    }
 
     val infiniteTransition = rememberInfiniteTransition(label = "speaking")
     val pulseAlpha by infiniteTransition.animateFloat(
@@ -248,6 +311,10 @@ fun PokemonDetailPage(
                     },
                     navigationIcon = {
                         IconButton(onClick = {
+                            stopCry()
+                            if (mediaPlayer.isPlaying) {
+                                mediaPlayer.stop()
+                            }
                             navController.popBackStack()
                         }) {
                             Icon(
@@ -258,10 +325,6 @@ fun PokemonDetailPage(
                         }
                     },
                     actions = {
-                        val team by viewModel.currentTeamMembers.collectAsStateWithLifecycle()
-                        val isInTeam by viewModel.isInAnyTeam(pokemon?.name ?: "pikachu")
-                            .collectAsStateWithLifecycle(false)
-
                         IconButton(
                             onClick = {
                                 val orderedSprites = listOf(
@@ -304,34 +367,116 @@ fun PokemonDetailPage(
                             )
                         }
 
-                        IconButton(onClick = {
-                            if (isTtsReady) {
-                                if (isSpeaking) {
-                                    ttsManager.stop()
-                                } else {
-                                    ttsManager.speak(speechText, withBeep = true)
+                        var showAudioMenu by remember { mutableStateOf(false) }
+
+                        Box {
+                            IconButton(
+                                onClick = { showAudioMenu = true },
+                                modifier = Modifier.graphicsLayer {
+                                    alpha = if (isSpeaking || isPlayingCry) pulseAlpha else 1f
                                 }
-                            } else {
-                                Toast.makeText(context, "Initializing...", Toast.LENGTH_SHORT).show()
+                            ) {
+                                Icon(
+                                    imageVector = if (isSpeaking || isPlayingCry) {
+                                        Icons.AutoMirrored.Filled.VolumeOff
+                                    } else {
+                                        Icons.AutoMirrored.Filled.VolumeUp
+                                    },
+                                    contentDescription = "Audio options",
+                                    tint = if (isSpeaking || isPlayingCry) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.onSurface
+                                    }
+                                )
                             }
-                        },
-                            modifier = Modifier.graphicsLayer {
-                                alpha = if (isSpeaking) pulseAlpha else 1f
+
+                            DropdownMenu(
+                                expanded = showAudioMenu,
+                                onDismissRequest = { showAudioMenu = false }
+                            ) {
+                                // Pokédex entry TTS
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.AutoMirrored.Filled.MenuBook,
+                                                contentDescription = null,
+                                                tint = if (isSpeaking)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                if (isSpeaking) "Stop Pokédex Entry"
+                                                else "Pokédex Entry",
+                                                color = if (isSpeaking)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        showAudioMenu = false
+                                        if (isTtsReady) {
+                                            if (isSpeaking) {
+                                                ttsManager.stop()
+                                            } else {
+                                                stopCry()
+                                                ttsManager.speak(speechText, withBeep = true)
+                                            }
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Initializing...",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                )
+
+                                HorizontalDivider()
+
+                                // Pokémon cry
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.RecordVoiceOver,
+                                                contentDescription = null,
+                                                tint = if (isPlayingCry)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                if (isPlayingCry) "Stop Cry"
+                                                else "Pokémon Cry",
+                                                color = if (isPlayingCry)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+                                    },
+                                    onClick = {
+                                        showAudioMenu = false
+                                        if (isPlayingCry) {
+                                            stopCry()
+                                        } else {
+                                            ttsManager.stop()
+                                            playCry()
+                                        }
+                                    }
+                                )
                             }
-                        ){
-                            Icon(
-                                imageVector = if (isSpeaking) {
-                                    Icons.AutoMirrored.Filled.VolumeOff
-                                } else {
-                                    Icons.AutoMirrored.Filled.VolumeUp
-                                },
-                                contentDescription = if (isSpeaking) "Stop" else "Speak",
-                                tint = if (isSpeaking) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onPrimary
-                                }
-                            )
                         }
 
                         val isInFavorites by viewModel.isInFavorites(pokemon?.name ?: "")

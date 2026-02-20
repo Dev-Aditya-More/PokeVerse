@@ -31,7 +31,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun NeumorphicButton(
+fun NeuromorphicButton(
     text: String,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
