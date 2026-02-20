@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.presentation.screens.game.components
+package com.aditya1875.pokeverse.presentation.screens.game.pokematch.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -36,7 +36,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.utils.CardState
 
-// PokemonCard.kt
 @Composable
 fun PokemonCard(
     card: CardState,

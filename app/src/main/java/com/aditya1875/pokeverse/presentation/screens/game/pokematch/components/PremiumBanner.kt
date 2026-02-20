@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.presentation.screens.game.components
+package com.aditya1875.pokeverse.presentation.screens.game.pokematch.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,7 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun PremiumBanner(onSubscribe: () -> Unit) {
+fun PremiumBanner(
+    price : String,
+    onSubscribe: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -60,7 +63,7 @@ fun PremiumBanner(onSubscribe: () -> Unit) {
                 )
             }
             Text(
-                text = "₹49/mo",
+                text = price.ifEmpty { "Loading..." },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary

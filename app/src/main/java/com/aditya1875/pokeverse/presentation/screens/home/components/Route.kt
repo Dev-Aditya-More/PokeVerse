@@ -25,6 +25,18 @@ sealed class Route(val route: String) {
         fun createRoute(difficulty: String) = "game/play/$difficulty"
     }
 
+    object QuizDifficulty : Route("quiz/difficulty")
+
+    object QuizPlay : Route("quiz/play/{difficulty}") {
+        fun createRoute(difficulty: String) = "quiz/play/$difficulty"
+    }
+
+    object GuessDifficulty : Route("guess/difficulty")
+
+    object GuessPlay : Route("guess/play/{difficulty}") {
+        fun createRoute(difficulty: String) = "guess/play/$difficulty"
+    }
+
     // Other screens
     object Analysis : Route("team_analysis")
     object ThemeSelector : Route("theme_selector")

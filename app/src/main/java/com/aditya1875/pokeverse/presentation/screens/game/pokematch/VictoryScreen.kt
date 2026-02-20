@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.presentation.screens.game
+package com.aditya1875.pokeverse.presentation.screens.game.pokematch
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -36,8 +36,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.aditya1875.pokeverse.utils.GameState
+import com.aditya1875.pokeverse.utils.SoundManager
+import org.koin.compose.koinInject
 
-// ResultScreens.kt
 @Composable
 fun VictoryScreen(
     victory: GameState.Victory,
@@ -45,10 +46,8 @@ fun VictoryScreen(
     onChangeDifficulty: () -> Unit,
     onHome: () -> Unit
 ) {
-    val confettiColors = listOf(
-        Color(0xFFFFD700), Color(0xFFFF6B6B),
-        Color(0xFF4ECDC4), Color(0xFF45B7D1)
-    )
+    val soundManager : SoundManager = koinInject()
+    soundManager.play(SoundManager.Sound.GAME_WIN)
 
     Box(
         modifier = Modifier
@@ -149,6 +148,9 @@ fun TimeUpScreen(
     onPlayAgain: () -> Unit,
     onBack: () -> Unit
 ) {
+    val soundManager : SoundManager = koinInject()
+    soundManager.play(SoundManager.Sound.TIMER_UP)
+
     Box(
         modifier = Modifier
             .fillMaxSize()
