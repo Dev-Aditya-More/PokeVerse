@@ -5,9 +5,10 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.aboutlibraries) apply false
     alias(libs.plugins.ksp.android) apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.21" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.3.10" apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
     alias(libs.plugins.android.lint) apply false
-    id("com.google.gms.google-services") version "4.4.2" apply false
+    id("com.google.gms.google-services") version "4.4.4" apply false
+    id("com.google.firebase.crashlytics") version "3.0.1" apply false
 }

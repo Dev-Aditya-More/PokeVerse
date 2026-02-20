@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.ksp.android)
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -16,8 +18,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 45
-        versionName = "1.4.5"
+        versionCode = 46
+        versionName = "1.4.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -84,6 +86,8 @@ android {
             applicationIdSuffix = ".play"
             versionNameSuffix = "-play"
             buildConfigField("boolean", "USE_FIREBASE", "true")
+            buildConfigField("Boolean", "ENABLE_BILLING", "true")
+            buildConfigField("Boolean", "ENABLE_PREMIUM_GAMES", "true")
         }
         create("foss") {
             dimension = "distribution"
@@ -91,6 +95,8 @@ android {
 //            versionNameSuffix = "-foss"
             isDefault = true
             buildConfigField("boolean", "USE_FIREBASE", "false")
+            buildConfigField("Boolean", "ENABLE_BILLING", "false")
+            buildConfigField("Boolean", "ENABLE_PREMIUM_GAMES", "false")
         }
     }
 
@@ -108,8 +114,17 @@ android {
     }
 }
 
-if (gradle.startParameter.taskNames.any { it.lowercase().contains("play") }) {
-    apply(plugin = "com.google.gms.google-services")
+//android.productFlavors.configureEach {
+//    if (name == "play") {
+//        apply(plugin = "com.google.gms.google-services")
+//        apply(plugin = "com.google.firebase.crashlytics")
+//    }
+//}
+
+tasks.whenTaskAdded {
+    if (name.contains("ArtProfile")) {
+        enabled = false
+    }
 }
 
 dependencies {
@@ -136,7 +151,7 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.animation.core)
-    implementation(libs.androidx.compose.material3)
+//    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.animation)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
@@ -172,13 +187,11 @@ dependencies {
     implementation(libs.accompanist.systemuicontroller)
     implementation(libs.accompanist.navigation.animation.v0340)
 
-    add("playImplementation", libs.firebase.analytics)
     add("playImplementation", platform(libs.firebase.bom))
+    add("playImplementation", libs.firebase.analytics.ktx)
+    add("playImplementation", libs.google.firebase.crashlytics.ktx)
     add("playImplementation", libs.firebase.messaging)
-
     add("playImplementation", libs.billing.ktx)
-//    add("playImplementation", libs.androidx.core.ktx)
-//    add("playImplementation",libs.firebase.common.ktx)
 
     // Glance Widget
     implementation (libs.androidx.glance.appwidget)
@@ -202,11 +215,4 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation(kotlin("test"))
-}
-
-// Disable baseline profiles to make builds reproducible
-tasks.whenTaskAdded {
-    if (name.contains("ArtProfile")) {
-        enabled = false
-    }
 }

@@ -13,7 +13,8 @@
 
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="fullSensor"
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize"
             android:exported="true"
             android:theme="@style/Theme.PokeVerse">
 
