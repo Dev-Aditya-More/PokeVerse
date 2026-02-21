@@ -50,11 +50,3 @@ sealed class GameState {
         val difficulty: Difficulty
     ) : GameState()
 }
-
-sealed class SubscriptionState {
-    object Loading : SubscriptionState()
-    object Free : SubscriptionState()
-    data class Premium(
-        val plan: PremiumPlan = PremiumPlan.MONTHLY
-    ) : SubscriptionState()
-}

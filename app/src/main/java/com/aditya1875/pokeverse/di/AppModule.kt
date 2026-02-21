@@ -161,9 +161,9 @@ val appModule = module {
         SettingsViewModel(androidContext())
     }
 
-    viewModel { MatchViewModel(get(), get()) }
+    viewModel { MatchViewModel(get(), get(), get()) }
 
-    viewModel { QuizViewModel(get()) }
+    viewModel { QuizViewModel(get(), get(), get()) }
 
     single { get<TeamDatabase>().gameScoreDao() }
 
@@ -182,6 +182,6 @@ val appModule = module {
     single { Gson() }
 
     single { SoundManager(get()) }
-    viewModel { PokeGuessViewModel(repository = get()) }
+    viewModel { PokeGuessViewModel(repository = get(), billingManager = get(), gameScoreDao = get()) }
 
 }

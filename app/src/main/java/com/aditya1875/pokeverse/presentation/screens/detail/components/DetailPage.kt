@@ -680,7 +680,8 @@ fun PokemonDetailPage(
                                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         pokemon.types.forEach {
                                             AssistChip(
-                                                onClick = {},
+                                                onClick = {
+                                                },
                                                 label = {
                                                     Text(
                                                         it.type.name.uppercase(),

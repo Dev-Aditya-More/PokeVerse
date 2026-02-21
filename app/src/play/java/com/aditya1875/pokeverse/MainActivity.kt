@@ -33,6 +33,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.aditya1875.pokeverse.data.billing.IBillingManager
 import com.aditya1875.pokeverse.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.presentation.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.presentation.screens.analysis.TeamAnalysisScreen
@@ -61,6 +62,7 @@ import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.aditya1875.pokeverse.utils.WithBottomBar
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
@@ -69,6 +71,10 @@ class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val billingManager: IBillingManager = inject<IBillingManager>().value
+        billingManager.startConnection()
+
         enableEdgeToEdge()
 
         requestNotificationPermission()

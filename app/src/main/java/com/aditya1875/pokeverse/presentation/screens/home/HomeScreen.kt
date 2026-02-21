@@ -355,7 +355,9 @@ fun HomeScreen(navController: NavHostController) {
                     when {
                         isLoading && pokemonList.isEmpty() -> {
                             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CustomProgressIndicator()
+                                CustomProgressIndicator(
+                                    size = 80.dp
+                                )
                             }
                         }
 
@@ -487,7 +489,9 @@ fun HomeScreen(navController: NavHostController) {
                                                     .padding(16.dp),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                CustomProgressIndicator()
+                                                CustomProgressIndicator(
+                                                    resId = R.raw.pokemon_animation
+                                                )
                                             }
                                         }
                                     }

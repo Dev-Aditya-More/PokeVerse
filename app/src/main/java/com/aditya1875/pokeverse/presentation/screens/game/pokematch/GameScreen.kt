@@ -72,7 +72,7 @@ fun GameScreen(
 
     var showExitDialog by remember { mutableStateOf(false) }
 
-    BackHandler {
+    BackHandler(enabled = true) {
         showExitDialog = true
     }
 
@@ -283,7 +283,6 @@ fun GameScreen(
                     onPlayAgain = { viewModel.startGame(state.difficulty) },
                     onChangeDifficulty = onBack,
                     onHome = {
-                        viewModel.returnToMenu()
                         showExitDialog = true
                     }
                 )
@@ -307,6 +306,7 @@ fun GameScreen(
                     TextButton(
                         onClick = {
                             showExitDialog = false
+                            viewModel.returnToMenu()
                             onBack()
                         }
                     ) {
@@ -315,7 +315,9 @@ fun GameScreen(
                 },
                 dismissButton = {
                     TextButton(
-                        onClick = { showExitDialog = false }
+                        onClick = {
+                            showExitDialog = false
+                        }
                     ) {
                         Text("Cancel")
                     }

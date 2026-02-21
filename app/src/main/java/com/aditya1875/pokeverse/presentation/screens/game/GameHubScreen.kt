@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,11 +24,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.BuildConfig
+import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PremiumBanner
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
-import com.aditya1875.pokeverse.utils.SubscriptionState
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,8 +47,27 @@ fun GameHubScreen(
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
     val isBillingReady = monthlyProduct != null || yearlyProduct != null
 
+    var showThankYouDialog by rememberSaveable { mutableStateOf(false) }
+    var hasShownThankYou by rememberSaveable { mutableStateOf(false) }
+
+    var lastSubscriptionState by rememberSaveable {
+        mutableStateOf<SubscriptionState>(SubscriptionState.Loading)
+    }
+
     val context = LocalContext.current
     val activity = context as? Activity
+
+    LaunchedEffect(subscriptionState) {
+        val wasFree = lastSubscriptionState is SubscriptionState.Free
+        val isNowPremium = subscriptionState is SubscriptionState.Premium
+
+        if (wasFree && isNowPremium && !hasShownThankYou) {
+            showThankYouDialog = true
+            hasShownThankYou = true
+        }
+
+        lastSubscriptionState = subscriptionState
+    }
 
     data class GameEntry(
         val id: String,
@@ -190,6 +210,12 @@ fun GameHubScreen(
             monthlyPrice = monthly,
             yearlyPrice = yearly,
             isSubscribeEnabled = isBillingReady
+        )
+    }
+
+    if (showThankYouDialog) {
+        PremiumWelcomeDialog(
+            onDismiss = { showThankYouDialog = false }
         )
     }
 }

@@ -2,16 +2,18 @@ package com.aditya1875.pokeverse.presentation.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.data.billing.IBillingManager
 import com.aditya1875.pokeverse.data.billing.PremiumPlan
+import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.data.remote.model.gameModels.GameScore
+import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizGameState
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizQuestionBank
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizUiState
 import com.aditya1875.pokeverse.utils.Difficulty
-import com.aditya1875.pokeverse.utils.SubscriptionState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,21 +23,32 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class QuizViewModel(gameScoreDao: GameScoreDao) : ViewModel() {
+class QuizViewModel(
+    private val repository: PokemonRepo,
+    gameScoreDao: GameScoreDao,
+    billingManager: IBillingManager
+) : ViewModel() {
+
+    val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
 
     private val _uiState = MutableStateFlow<QuizUiState>(QuizUiState.Idle)
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
 
-    private val _subscriptionState = MutableStateFlow<SubscriptionState>(SubscriptionState.Free)
-    val subscriptionState: StateFlow<SubscriptionState> = _subscriptionState
-
     val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun canPlayDifficulty(difficulty: Difficulty): Boolean {
+        return when (difficulty) {
+            Difficulty.EASY -> true
+            Difficulty.MEDIUM -> true
+            Difficulty.HARD -> subscriptionState.value is SubscriptionState.Premium
+        }
+    }
 
     fun startQuiz(difficulty: QuizDifficulty) {
         viewModelScope.launch {
@@ -68,32 +81,26 @@ class QuizViewModel(gameScoreDao: GameScoreDao) : ViewModel() {
         val currentState = _uiState.value
         if (currentState !is QuizUiState.Playing) return
 
-        // Stop timer
         timerJob?.cancel()
 
         val gameState = currentState.gameState
         val currentQuestion = gameState.questions[gameState.currentQuestionIndex]
         val isCorrect = answerIndex == currentQuestion.correctAnswerIndex
 
-        // Calculate score for this question
         val questionScore = if (isCorrect) {
             calculateQuestionScore(
                 isCorrect = true,
                 timeRemaining = gameState.timeRemaining,
                 totalTime = gameState.totalTimePerQuestion
             )
-        } else {
-            0
-        }
+        } else 0
 
-        // Update game state
         val updatedGameState = gameState.copy(
             score = gameState.score + questionScore,
             correctAnswers = if (isCorrect) gameState.correctAnswers + 1 else gameState.correctAnswers,
             answers = gameState.answers.apply { this[gameState.currentQuestionIndex] = answerIndex }
         )
 
-        // Show answer explanation
         _uiState.value = QuizUiState.ShowingAnswer(
             gameState = updatedGameState,
             selectedAnswerIndex = answerIndex,
@@ -108,13 +115,11 @@ class QuizViewModel(gameScoreDao: GameScoreDao) : ViewModel() {
 
         val gameState = currentState.gameState
 
-        // Check if quiz is finished
         if (gameState.currentQuestionIndex >= gameState.questions.size - 1) {
             finishQuiz(gameState)
             return
         }
 
-        // Move to next question
         val nextGameState = gameState.copy(
             currentQuestionIndex = gameState.currentQuestionIndex + 1,
             timeRemaining = gameState.totalTimePerQuestion
@@ -122,14 +127,6 @@ class QuizViewModel(gameScoreDao: GameScoreDao) : ViewModel() {
 
         _uiState.value = QuizUiState.Playing(nextGameState)
         startTimer()
-    }
-
-    fun canPlayDifficulty(difficulty: Difficulty): Boolean {
-        return when (difficulty) {
-            Difficulty.EASY -> true
-            Difficulty.MEDIUM -> true
-            Difficulty.HARD -> _subscriptionState.value is SubscriptionState.Premium
-        }
     }
 
     private fun startTimer() {
@@ -145,8 +142,7 @@ class QuizViewModel(gameScoreDao: GameScoreDao) : ViewModel() {
                 val newTime = gameState.timeRemaining - 1
 
                 if (newTime <= 0) {
-                    // Time's up - auto-select wrong answer
-                    selectAnswer(-1) // -1 indicates timeout
+                    selectAnswer(-1)
                     break
                 }
 
@@ -172,13 +168,8 @@ class QuizViewModel(gameScoreDao: GameScoreDao) : ViewModel() {
         )
     }
 
-    private fun calculateQuestionScore(
-        isCorrect: Boolean,
-        timeRemaining: Int,
-        totalTime: Int
-    ): Int {
+    private fun calculateQuestionScore(isCorrect: Boolean, timeRemaining: Int, totalTime: Int): Int {
         if (!isCorrect) return 0
-
         val baseScore = 50
         val timeBonus = (timeRemaining.toFloat() / totalTime * 50).toInt()
         return baseScore + timeBonus
@@ -187,12 +178,11 @@ class QuizViewModel(gameScoreDao: GameScoreDao) : ViewModel() {
     private fun calculateStars(score: Int, totalQuestions: Int): Int {
         val maxScore = totalQuestions * 100
         val percentage = score.toFloat() / maxScore
-
         return when {
-            percentage >= 0.9f -> 3  // 90%+ = 3 stars
-            percentage >= 0.7f -> 2  // 70%+ = 2 stars
-            percentage >= 0.5f -> 1  // 50%+ = 1 star
-            else -> 0                // Below 50% = no stars
+            percentage >= 0.9f -> 3
+            percentage >= 0.7f -> 2
+            percentage >= 0.5f -> 1
+            else -> 0
         }
     }
 

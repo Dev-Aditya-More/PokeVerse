@@ -442,7 +442,7 @@ private fun RevealScreen(
             onClick = onNext,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp)
+                .height(100.dp)
                 .padding(bottom = 20.dp)
             ,
             colors = ButtonDefaults.buttonColors(
