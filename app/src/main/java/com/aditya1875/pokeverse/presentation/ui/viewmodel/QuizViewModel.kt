@@ -8,6 +8,7 @@ import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.data.remote.model.gameModels.GameScore
+import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizGameState
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizQuestionBank
@@ -23,8 +24,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class QuizViewModel(
-    private val gameScoreDao: GameScoreDao,
-    private val billingManager: IBillingManager
+    private val repository: PokemonRepo,
+    gameScoreDao: GameScoreDao,
+    billingManager: IBillingManager
 ) : ViewModel() {
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState

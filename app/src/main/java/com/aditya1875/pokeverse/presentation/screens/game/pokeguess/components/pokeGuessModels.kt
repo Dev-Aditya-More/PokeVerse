@@ -16,9 +16,9 @@ enum class GuessDifficulty(
     val timePerQuestion: Int,
     val optionCount: Int
 ) {
-    EASY("Easy", 10, 20, 3),      // 3 options, 20s
-    MEDIUM("Medium", 10, 15, 4),  // 4 options, 15s
-    HARD("Hard", 10, 10, 4)       // 4 options, 10s, harder Pokemon
+    EASY("Easy", 10, 20, 4),      // 4 options, 20s
+    MEDIUM("Medium", 10, 25, 4),  // 4 options, 25s
+    HARD("Hard", 10, 30, 4)       // 4 options, 30s, harder Pokemon
 }
 
 sealed class GuessGameState {
@@ -50,10 +50,3 @@ sealed class GuessGameState {
         val difficulty: GuessDifficulty
     ) : GuessGameState()
 }
-
-data class GuessScore(
-    val correct: Int,
-    val total: Int,
-    val timeBonus: Int,
-    val finalScore: Int
-)

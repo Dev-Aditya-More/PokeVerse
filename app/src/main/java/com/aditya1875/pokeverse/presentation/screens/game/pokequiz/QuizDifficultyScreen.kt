@@ -32,7 +32,7 @@ fun QuizDifficultyScreen(
 ) {
     val viewModel: QuizViewModel = koinViewModel()
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
-    val topScores by viewModel.topScores.collectAsState()
+    val topScores by viewModel.topScores.collectAsStateWithLifecycle()
 
     var showPremiumSheet by remember { mutableStateOf(false) }
 

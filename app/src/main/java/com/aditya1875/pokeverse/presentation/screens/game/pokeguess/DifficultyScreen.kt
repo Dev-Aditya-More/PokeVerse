@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PremiumBanner
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PremiumBottomSheet
@@ -41,6 +42,8 @@ fun PokeGuessDifficultyScreen(
 ) {
     val viewModel: PokeGuessViewModel = koinViewModel()
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
+
+    val topScores by viewModel.topScores.collectAsStateWithLifecycle()
 
     var showPremiumSheet by remember { mutableStateOf(false) }
 
@@ -89,21 +92,30 @@ fun PokeGuessDifficultyScreen(
             item {
                 GuessDifficultyCard(
                     difficulty = GuessDifficulty.EASY,
-                    locked = false
+                    locked = false,
+                    bestScore = topScores
+                        .filter { it.difficulty == GuessDifficulty.EASY.name }
+                        .maxByOrNull { it.score },
                 ) { onDifficultySelected(GuessDifficulty.EASY) }
             }
 
             item {
                 GuessDifficultyCard(
                     difficulty = GuessDifficulty.MEDIUM,
-                    locked = false
+                    locked = false,
+                    bestScore = topScores
+                        .filter { it.difficulty == GuessDifficulty.MEDIUM.name }
+                        .maxByOrNull { it.score },
                 ) { onDifficultySelected(GuessDifficulty.MEDIUM) }
             }
 
             item {
                 GuessDifficultyCard(
                     difficulty = GuessDifficulty.HARD,
-                    locked = !isPremium
+                    locked = !isPremium,
+                    bestScore = topScores
+                        .filter { it.difficulty == GuessDifficulty.HARD.name }
+                        .maxByOrNull { it.score },
                 ) {
                     if (isPremium) {
                         onDifficultySelected(GuessDifficulty.HARD)
@@ -148,6 +160,7 @@ fun PokeGuessDifficultyScreen(
 private fun GuessDifficultyCard(
     difficulty: GuessDifficulty,
     locked: Boolean,
+    bestScore: GameScoreEntity?,
     onClick: () -> Unit
 ) {
     val color = when (difficulty) {
@@ -216,6 +229,16 @@ private fun GuessDifficultyCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (!locked) 1f else 0.4f)
                 )
+
+                bestScore?.let {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "Best: ${it.score}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFFFD700),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
 
             Icon(

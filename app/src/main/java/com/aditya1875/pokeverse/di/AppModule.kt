@@ -163,7 +163,7 @@ val appModule = module {
 
     viewModel { MatchViewModel(get(), get(), get()) }
 
-    viewModel { QuizViewModel(get(), get()) }
+    viewModel { QuizViewModel(get(), get(), get()) }
 
     single { get<TeamDatabase>().gameScoreDao() }
 
@@ -182,6 +182,6 @@ val appModule = module {
     single { Gson() }
 
     single { SoundManager(get()) }
-    viewModel { PokeGuessViewModel(repository = get(), billingManager = get()) }
+    viewModel { PokeGuessViewModel(repository = get(), billingManager = get(), gameScoreDao = get()) }
 
 }
