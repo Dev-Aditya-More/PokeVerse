@@ -50,14 +50,23 @@ fun GameHubScreen(
     var showThankYouDialog by rememberSaveable { mutableStateOf(false) }
     var hasShownThankYou by rememberSaveable { mutableStateOf(false) }
 
+    var lastSubscriptionState by rememberSaveable {
+        mutableStateOf<SubscriptionState>(SubscriptionState.Loading)
+    }
+
     val context = LocalContext.current
     val activity = context as? Activity
 
     LaunchedEffect(subscriptionState) {
-        if (subscriptionState is SubscriptionState.Premium && !hasShownThankYou) {
+        val wasFree = lastSubscriptionState is SubscriptionState.Free
+        val isNowPremium = subscriptionState is SubscriptionState.Premium
+
+        if (wasFree && isNowPremium && !hasShownThankYou) {
             showThankYouDialog = true
             hasShownThankYou = true
         }
+
+        lastSubscriptionState = subscriptionState
     }
 
     data class GameEntry(

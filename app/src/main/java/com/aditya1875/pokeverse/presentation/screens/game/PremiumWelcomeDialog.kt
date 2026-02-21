@@ -88,10 +88,10 @@ fun PremiumWelcomeDialog(
 
                 Spacer(Modifier.height(8.dp))
 
-                PremiumPerkRow("Hard mode in all games")
+                PremiumPerkRow("Hard mode included in upcoming games")
                 PremiumPerkRow("Full leaderboard access")
                 PremiumPerkRow("Exclusive themes")
-                PremiumPerkRow("Free upcoming features & games")
+                PremiumPerkRow("premium upcoming features & games")
             }
         },
         confirmButton = {

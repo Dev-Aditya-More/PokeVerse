@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -16,8 +17,8 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.aditya1875.pokeverse.R
 
 @Composable
-fun CustomProgressIndicator(modifier: Modifier = Modifier) {
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.pokemon_animation))
+fun CustomProgressIndicator(modifier: Modifier = Modifier, resId : Int = R.raw.loading, size : Dp = 50.dp) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(resId))
     val progress by animateLottieCompositionAsState(
         composition = composition,
         iterations = LottieConstants.IterateForever,
@@ -30,7 +31,7 @@ fun CustomProgressIndicator(modifier: Modifier = Modifier) {
             composition = composition,
             progress = { progress },
             modifier = Modifier
-                .size(50.dp)
+                .size(size)
                 .align(Alignment.Center)
                 .then(modifier)
         )
