@@ -1,6 +1,8 @@
 package com.aditya1875.pokeverse.presentation.screens.game
 
 import android.app.Activity
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.*
@@ -47,15 +49,10 @@ fun GameHubScreen(
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
     val isBillingReady = monthlyProduct != null || yearlyProduct != null
 
-    var showThankYouDialog by rememberSaveable { mutableStateOf(false) }
-    var hasShownThankYou by rememberSaveable { mutableStateOf(false) }
-
-    var lastSubscriptionState by rememberSaveable {
-        mutableStateOf<SubscriptionState>(SubscriptionState.Loading)
-    }
-
     val context = LocalContext.current
-    val activity = context as? Activity
+    var showThankYouDialog by remember { mutableStateOf(false) }
+    var hasShownThankYou by remember { mutableStateOf(false) }
+    var lastSubscriptionState by remember { mutableStateOf<SubscriptionState?>(null) }
 
     LaunchedEffect(subscriptionState) {
         val wasFree = lastSubscriptionState is SubscriptionState.Free
@@ -69,6 +66,11 @@ fun GameHubScreen(
         lastSubscriptionState = subscriptionState
     }
 
+    if (showThankYouDialog) {
+        PremiumWelcomeDialog(
+            onDismiss = { showThankYouDialog = false }
+        )
+    }
     data class GameEntry(
         val id: String,
         val title: String,
@@ -201,11 +203,21 @@ fun GameHubScreen(
             onDismiss = { showPremiumSheet = false },
             onSubscribeMonthly = {
                 showPremiumSheet = false
-                activity?.let { billingViewModel.purchaseMonthly(it) }
+                val activity = context as? Activity
+                if (activity != null) {
+                    billingViewModel.purchaseMonthly(activity)
+                } else {
+                    Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
+                }
             },
             onSubscribeYearly = {
                 showPremiumSheet = false
-                activity?.let { billingViewModel.purchaseYearly(it) }
+                val activity = context as? Activity
+                if (activity != null) {
+                    billingViewModel.purchaseYearly(activity)
+                } else {
+                    Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
+                }
             },
             monthlyPrice = monthly,
             yearlyPrice = yearly,
