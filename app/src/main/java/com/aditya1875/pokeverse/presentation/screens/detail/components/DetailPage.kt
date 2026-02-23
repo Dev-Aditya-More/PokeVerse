@@ -13,6 +13,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -132,6 +133,10 @@ fun PokemonDetailPage(
             }
             mediaPlayer.release()
         }
+    }
+
+    LaunchedEffect(uiState) {
+        Log.d("DetailScreen", "Loading=${uiState.isLoading}, pokemon=${uiState.pokemon}, error=${uiState.error}")
     }
 
     fun playCry() {
@@ -699,6 +704,56 @@ fun PokemonDetailPage(
                             }
                         }
 
+                        // Abilities
+                        item {
+                            GlossyCard(modifier = Modifier.fillMaxWidth()) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "Abilities",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+
+                                    Spacer(Modifier.height(12.dp))
+
+                                    pokemon.abilities
+                                        .sortedBy { it.slot }
+                                        .forEach { ability ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(bgColor.copy(alpha = 0.12f))
+                                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Column(modifier = Modifier.weight(1f)) {
+                                                    Text(
+                                                        text = ability.ability.name
+                                                            .replace("-", " ")
+                                                            .replaceFirstChar { it.uppercase() },
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        fontWeight = FontWeight.SemiBold,
+                                                        color = MaterialTheme.colorScheme.onSurface
+                                                    )
+                                                }
+
+                                                if (ability.is_hidden) {
+                                                    AssistChip(
+                                                        onClick = {},
+                                                        label = { Text("Hidden") }
+                                                    )
+                                                }
+                                            }
+
+                                            Spacer(Modifier.height(8.dp))
+                                        }
+                                }
+                            }
+                        }
+
                         if (descriptionText.isNotBlank()) {
                             item {
                                 GlossyCard(
@@ -809,123 +864,115 @@ fun PokemonDetailPage(
                             }
                         }
 
+                        val movesByMethod = pokemon.moves
+                            .flatMap { move ->
+                                move.version_group_details.map { detail ->
+                                    Triple(move, detail.move_learn_method.name, detail.level_learned_at)
+                                }
+                            }
+                            .groupBy { it.second } // group by method name
+
                         item {
-                            var isMovesExpanded by rememberSaveable { mutableStateOf(false) }
+                            var expandedMethod by rememberSaveable { mutableStateOf<String?>(null) }
 
-                            val learnableMoves = pokemon.moves
-                                .filter { move ->
-                                    move.version_group_details.any {
-                                        it.move_learn_method.name == "level-up"
-                                    }
-                                }
-                                .sortedBy { move ->
-                                    move.version_group_details
-                                        .filter { it.move_learn_method.name == "level-up" }
-                                        .minOfOrNull { it.level_learned_at } ?: 999
-                                }
+                            GlossyCard(modifier = Modifier.fillMaxWidth()) {
+                                Column(modifier = Modifier.padding(16.dp)) {
+                                    Text(
+                                        text = "Moves",
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
 
-                            val displayedMoves = if (isMovesExpanded) learnableMoves else learnableMoves.take(8)
+                                    Spacer(Modifier.height(12.dp))
 
-                            if (learnableMoves.isNotEmpty()) {
-                                GlossyCard(modifier = Modifier.fillMaxWidth()) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
+                                    movesByMethod.forEach { (method, entries) ->
+
+                                        val displayName = when (method) {
+                                            "level-up" -> "Level Up"
+                                            "machine" -> "TM / HM"
+                                            "tutor" -> "Move Tutor"
+                                            "egg" -> "Egg Moves"
+                                            else -> method.replaceFirstChar { it.uppercase() }
+                                        }
+
+                                        val isExpanded = expandedMethod == method
+
+                                        // Header row
                                         Row(
-                                            modifier = Modifier.fillMaxWidth(),
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(bgColor.copy(alpha = 0.18f))
+                                                .clickable {
+                                                    expandedMethod = if (isExpanded) null else method
+                                                }
+                                                .padding(horizontal = 12.dp, vertical = 10.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
                                             Text(
-                                                text = "Moves",
-                                                fontWeight = FontWeight.Bold,
-                                                color = MaterialTheme.colorScheme.onSurface,
-                                                style = MaterialTheme.typography.titleMedium
+                                                text = "$displayName (${entries.size})",
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
-                                            Text(
-                                                text = "${learnableMoves.size} total",
-                                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                                    alpha = 0.6f
-                                                ),
-                                                style = MaterialTheme.typography.bodySmall
+
+                                            Icon(
+                                                imageVector = if (isExpanded)
+                                                    Icons.Default.KeyboardArrowUp
+                                                else
+                                                    Icons.Default.KeyboardArrowDown,
+                                                contentDescription = null,
+                                                tint = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
 
-                                        Spacer(modifier = Modifier.height(12.dp))
+                                        if (isExpanded) {
+                                            Spacer(Modifier.height(8.dp))
 
-                                        Column(
-                                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                                        ) {
-                                            displayedMoves.forEach { move ->
-                                                val level = move.version_group_details
-                                                    .filter { it.move_learn_method.name == "level-up" }
-                                                    .minOfOrNull { it.level_learned_at } ?: 0
-
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clip(RoundedCornerShape(8.dp))
-                                                        .background(bgColor.copy(alpha = 0.15f))
-                                                        .padding(
-                                                            horizontal = 12.dp,
-                                                            vertical = 10.dp
-                                                        ),
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Text(
-                                                        text = move.move.name
-                                                            .replace("-", " ")
-                                                            .replaceFirstChar { it.uppercase() },
-                                                        color = MaterialTheme.colorScheme.onSurface,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        modifier = Modifier.weight(1f)
-                                                    )
-
-                                                    Box(
+                                            entries
+                                                .sortedBy { it.third } // sort by level
+                                                .forEach { (move, _, level) ->
+                                                    Row(
                                                         modifier = Modifier
-                                                            .clip(RoundedCornerShape(6.dp))
-                                                            .background(bgColor.copy(alpha = 0.4f))
-                                                            .padding(
-                                                                horizontal = 10.dp,
-                                                                vertical = 4.dp
-                                                            )
+                                                            .fillMaxWidth()
+                                                            .clip(RoundedCornerShape(8.dp))
+                                                            .background(bgColor.copy(alpha = 0.12f))
+                                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        verticalAlignment = Alignment.CenterVertically
                                                     ) {
                                                         Text(
-                                                            text = if (level > 0) "Lv. $level" else "Start",
+                                                            text = move.move.name
+                                                                .replace("-", " ")
+                                                                .replaceFirstChar { it.uppercase() },
                                                             color = MaterialTheme.colorScheme.onSurface,
-                                                            style = MaterialTheme.typography.labelMedium,
-                                                            fontWeight = FontWeight.Bold
+                                                            style = MaterialTheme.typography.bodyMedium,
+                                                            modifier = Modifier.weight(1f)
                                                         )
+
+                                                        if (method == "level-up") {
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .clip(RoundedCornerShape(6.dp))
+                                                                    .background(bgColor.copy(alpha = 0.4f))
+                                                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                                                            ) {
+                                                                Text(
+                                                                    text = if (level > 0) "Lv. $level" else "Start",
+                                                                    color = MaterialTheme.colorScheme.onSurface,
+                                                                    style = MaterialTheme.typography.labelMedium,
+                                                                    fontWeight = FontWeight.Bold
+                                                                )
+                                                            }
+                                                        }
                                                     }
+
+                                                    Spacer(Modifier.height(6.dp))
                                                 }
-                                            }
                                         }
 
-                                        if (learnableMoves.size > 8) {
-                                            Spacer(modifier = Modifier.height(8.dp))
-
-                                            TextButton(
-                                                onClick = { isMovesExpanded = !isMovesExpanded },
-                                                modifier = Modifier.align(Alignment.CenterHorizontally)
-                                            ) {
-                                                Text(
-                                                    text = if (isMovesExpanded)
-                                                        "Show Less"
-                                                    else
-                                                        "Show All ${learnableMoves.size} Moves",
-                                                    color = bgColor
-                                                )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Icon(
-                                                    imageVector = if (isMovesExpanded)
-                                                        Icons.Default.KeyboardArrowUp
-                                                    else
-                                                        Icons.Default.KeyboardArrowDown,
-                                                    contentDescription = null,
-                                                    tint = bgColor,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                            }
-                                        }
+                                        Spacer(Modifier.height(12.dp))
                                     }
                                 }
                             }
@@ -1027,6 +1074,34 @@ fun PokemonDetailPage(
                                     Text("Try Pikachu")
                                 }
                             }
+                        }
+                    }
+                }
+
+                else -> {
+                    Scaffold(
+                        containerColor = MaterialTheme.colorScheme.background,
+                        topBar = {
+                            TopAppBar(
+                                title = {},
+                                colors = TopAppBarDefaults.topAppBarColors(
+                                    containerColor = Color.Transparent
+                                ),
+                                navigationIcon = {
+                                    IconButton(onClick = { navController.popBackStack() }) {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.ArrowBack,
+                                            contentDescription = "Back",
+                                            tint = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                }
+                            )
+                        }
+                    ) { innerPadding ->
+
+                        Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
+                            Text("Failed to load Pokémon")
                         }
                     }
                 }

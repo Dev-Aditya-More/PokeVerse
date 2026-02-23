@@ -102,7 +102,7 @@ fun QuizGameScreen(
             QuizPlayingContent(
                 gameState = state.gameState,
                 onAnswerSelected = { viewModel.selectAnswer(it) },
-                onBack = onBack
+                onRequestExit = { showExitDialog = true }
             )
         }
         is QuizUiState.ShowingAnswer -> {
@@ -169,7 +169,7 @@ fun QuizGameScreen(
 private fun QuizPlayingContent(
     gameState: QuizGameState,
     onAnswerSelected: (Int) -> Unit,
-    onBack: () -> Unit
+    onRequestExit: () -> Unit
 ) {
     val currentQuestion = gameState.questions[gameState.currentQuestionIndex]
 
@@ -181,26 +181,28 @@ private fun QuizPlayingContent(
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp)
         ) {
-            // Top Bar
             QuizTopBar(
                 currentQuestion = gameState.currentQuestionIndex + 1,
                 totalQuestions = gameState.questions.size,
                 score = gameState.score,
-                onBack = onBack
+                onExit = onRequestExit
             )
 
-            // Timer
+            Spacer(Modifier.height(8.dp))
+
             QuizTimer(
                 timeRemaining = gameState.timeRemaining,
                 totalTime = gameState.totalTimePerQuestion
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // Question Card
             QuizQuestionCard(
+                modifier = Modifier.weight(1f),
                 question = currentQuestion,
                 onAnswerSelected = onAnswerSelected
             )
@@ -214,9 +216,8 @@ private fun QuizTopBar(
     currentQuestion: Int,
     totalQuestions: Int,
     score: Int,
-    onBack: () -> Unit
+    onExit: () -> Unit
 ) {
-    var showExitDialog by remember { mutableStateOf(false) }
     TopAppBar(
         title = {
             Column {
@@ -233,8 +234,8 @@ private fun QuizTopBar(
             }
         },
         navigationIcon = {
-            IconButton(onClick = { showExitDialog = true }) {
-                Icon(Icons.Default.Close, "Exit quiz")
+            IconButton(onClick = onExit) {
+                Icon(Icons.Default.Close, contentDescription = "Exit quiz")
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
@@ -303,14 +304,15 @@ private fun QuizTimer(
 
 @Composable
 private fun QuizQuestionCard(
+    modifier: Modifier = Modifier,
     question: QuizQuestion,
     onAnswerSelected: (Int) -> Unit,
     soundManager: SoundManager = koinInject()
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 10.dp)
     ) {
         // Question text
         Card(
