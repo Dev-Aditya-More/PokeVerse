@@ -11,12 +11,19 @@ data class PokemonResponse(
     val types: List<TypeSlot>,
     val stats: List<StatSlot>,
     val moves: List<Move>,
-    val cries: PokemonCries?
+    val cries: PokemonCries?,
+    val abilities: List<Ability>
 )
 
 data class PokemonCries(
     val latest: String?,
     val legacy: String?
+)
+
+data class Ability(
+    val ability: NamedApiResource,
+    val is_hidden: Boolean,
+    val slot: Int
 )
 
 data class Move(
