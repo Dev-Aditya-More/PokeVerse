@@ -242,7 +242,7 @@ private fun SilhouetteScreen(
             )
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(15.dp))
 
         state.question.options.forEach { option ->
             PokeGuessOption(

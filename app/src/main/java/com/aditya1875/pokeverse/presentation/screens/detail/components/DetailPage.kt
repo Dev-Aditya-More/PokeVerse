@@ -41,13 +41,11 @@ import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedAssistChip
@@ -60,7 +58,6 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -95,10 +92,9 @@ import com.aditya1875.pokeverse.presentation.screens.detail.getPokemonBackground
 import com.aditya1875.pokeverse.presentation.screens.home.components.AddToTeamBottomSheet
 import com.aditya1875.pokeverse.presentation.screens.team.components.CreateTeamDialog
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
-import com.aditya1875.pokeverse.utils.TeamMapper.toEntity
+import com.aditya1875.pokeverse.utils.DisplayMove
 import com.aditya1875.pokeverse.utils.UiError
 import org.koin.androidx.compose.koinViewModel
-import kotlin.collections.get
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
@@ -136,7 +132,10 @@ fun PokemonDetailPage(
     }
 
     LaunchedEffect(uiState) {
-        Log.d("DetailScreen", "Loading=${uiState.isLoading}, pokemon=${uiState.pokemon}, error=${uiState.error}")
+        Log.d(
+            "DetailScreen",
+            "Loading=${uiState.isLoading}, pokemon=${uiState.pokemon}, error=${uiState.error}"
+        )
     }
 
     fun playCry() {
@@ -168,7 +167,8 @@ fun PokemonDetailPage(
                     Log.e("PokemonDetail", "Error playing cry", e)
                 }
             } else {
-                Toast.makeText(context, "Cry not available for this Pokémon", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Cry not available for this Pokémon", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
@@ -250,18 +250,22 @@ fun PokemonDetailPage(
                 if (shiny) pokemon?.sprites?.other?.officialArtwork?.frontShiny
                 else pokemon?.sprites?.other?.officialArtwork?.frontDefault
             }
+
             "home" -> {
                 if (shiny) pokemon?.sprites?.other?.home?.frontShiny
                 else pokemon?.sprites?.other?.home?.frontDefault
             }
+
             "dream-world" -> {
                 if (shiny) pokemon?.sprites?.other?.dreamWorld?.frontShiny
                 else pokemon?.sprites?.other?.dreamWorld?.frontDefault
             }
+
             "showdown" -> {
                 if (shiny) pokemon?.sprites?.other?.showdown?.frontShiny
                 else pokemon?.sprites?.other?.showdown?.frontDefault
             }
+
             else -> pokemon?.sprites?.other?.officialArtwork?.frontDefault
         }
     }
@@ -343,8 +347,10 @@ fun PokemonDetailPage(
                                         ?: pokemon?.sprites?.other?.showdown?.frontShiny),
                                 ).filter { it.second != null }
 
-                                val currentIndex = orderedSprites.indexOfFirst { it.first == currentSpriteSource }
-                                val nextIndex = if (currentIndex == -1 || currentIndex == orderedSprites.lastIndex) 0 else currentIndex + 1
+                                val currentIndex =
+                                    orderedSprites.indexOfFirst { it.first == currentSpriteSource }
+                                val nextIndex =
+                                    if (currentIndex == -1 || currentIndex == orderedSprites.lastIndex) 0 else currentIndex + 1
 
                                 val nextSource = orderedSprites.getOrNull(nextIndex)
                                 if (nextSource != null) {
@@ -360,7 +366,11 @@ fun PokemonDetailPage(
                             modifier = Modifier.pointerInput(Unit) {
                                 detectTapGestures(
                                     onLongPress = {
-                                        Toast.makeText(context, "Tap to switch sprite style ✨", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Tap to switch sprite style ✨",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 )
                             }
@@ -488,7 +498,9 @@ fun PokemonDetailPage(
                             .collectAsStateWithLifecycle(initialValue = false)
 
                         val allTeamsWithMembers by viewModel.allTeamsWithMembers.collectAsStateWithLifecycle()
-                        val teamsContainingPokemon by viewModel.getTeamsForPokemon(pokemon?.name ?: "")
+                        val teamsContainingPokemon by viewModel.getTeamsForPokemon(
+                            pokemon?.name ?: ""
+                        )
                             .collectAsStateWithLifecycle(initialValue = emptyList())
 
                         var showTeamBottomSheet by remember { mutableStateOf(false) }
@@ -511,13 +523,21 @@ fun PokemonDetailPage(
                                             url = "https://pokeapi.co/api/v2/pokemon/${pokemonData.id}/"
                                         )
                                     )
-                                    Toast.makeText(context, "${pokemonData.name.replaceFirstChar { c -> c.uppercase() }} added to favorites ⭐", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "${pokemonData.name.replaceFirstChar { c -> c.uppercase() }} added to favorites ⭐",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             },
                             onRemoveFromFavorites = {
                                 pokemon?.let {
                                     viewModel.removeFromFavoritesByName(it.name)
-                                    Toast.makeText(context, "Removed from favorites", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        "Removed from favorites",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         )
@@ -542,14 +562,29 @@ fun PokemonDetailPage(
                                                             "Added to ${result.teamName}!"
                                                         else
                                                             "Removed from ${result.teamName}"
-                                                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(
+                                                            context,
+                                                            message,
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
                                                     }
+
                                                     is PokemonViewModel.TeamAdditionResult.TeamFull -> {
-                                                        Toast.makeText(context, "Team is full!", Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Team is full!",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
                                                     }
+
                                                     is PokemonViewModel.TeamAdditionResult.Error -> {
-                                                        Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
+                                                        Toast.makeText(
+                                                            context,
+                                                            result.message,
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
                                                     }
+
                                                     else -> {}
                                                 }
                                             }
@@ -571,7 +606,11 @@ fun PokemonDetailPage(
                                         onSuccess = {
                                             showCreateTeamDialog = false
                                             teamCreationError = null
-                                            Toast.makeText(context, "Team \"$teamName\" created!", Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                context,
+                                                "Team \"$teamName\" created!",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         },
                                         onError = { error ->
                                             teamCreationError = error
@@ -729,16 +768,15 @@ fun PokemonDetailPage(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
-                                                Column(modifier = Modifier.weight(1f)) {
-                                                    Text(
-                                                        text = ability.ability.name
-                                                            .replace("-", " ")
-                                                            .replaceFirstChar { it.uppercase() },
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        fontWeight = FontWeight.SemiBold,
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
-                                                }
+
+                                                Text(
+                                                    text = ability.ability.name
+                                                        .replace("-", " ")
+                                                        .replaceFirstChar { it.uppercase() },
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.onSurface
+                                                )
 
                                                 if (ability.is_hidden) {
                                                     AssistChip(
@@ -864,13 +902,33 @@ fun PokemonDetailPage(
                             }
                         }
 
-                        val movesByMethod = pokemon.moves
-                            .flatMap { move ->
-                                move.version_group_details.map { detail ->
-                                    Triple(move, detail.move_learn_method.name, detail.level_learned_at)
+                        val movesByMethod: Map<String, List<DisplayMove>> =
+                            pokemon.moves
+                                .flatMap { move ->
+                                    move.version_group_details.map { detail ->
+                                        Triple(
+                                            move.move.name,
+                                            detail.move_learn_method.name,
+                                            detail.level_learned_at
+                                        )
+                                    }
                                 }
-                            }
-                            .groupBy { it.second } // group by method name
+                                .groupBy { it.second } // group by method
+                                .mapValues { (_, entries) ->
+                                    entries
+                                        .groupBy { it.first }
+                                        .map { (moveName, sameMoves) ->
+                                            val minLevel = sameMoves.minOf { it.third }
+                                            if (minLevel > 0)
+                                                DisplayMove(moveName, minLevel)
+                                            else
+                                                DisplayMove(moveName, null)
+                                        }
+                                        .sortedWith(
+                                            compareBy<DisplayMove> { it.level ?: Int.MAX_VALUE }
+                                                .thenBy { it.name }
+                                        )
+                                }
 
                         item {
                             var expandedMethod by rememberSaveable { mutableStateOf<String?>(null) }
@@ -905,7 +963,8 @@ fun PokemonDetailPage(
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .background(bgColor.copy(alpha = 0.18f))
                                                 .clickable {
-                                                    expandedMethod = if (isExpanded) null else method
+                                                    expandedMethod =
+                                                        if (isExpanded) null else method
                                                 }
                                                 .padding(horizontal = 12.dp, vertical = 10.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -930,46 +989,50 @@ fun PokemonDetailPage(
                                         if (isExpanded) {
                                             Spacer(Modifier.height(8.dp))
 
-                                            entries
-                                                .sortedBy { it.third } // sort by level
-                                                .forEach { (move, _, level) ->
-                                                    Row(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .clip(RoundedCornerShape(8.dp))
-                                                            .background(bgColor.copy(alpha = 0.12f))
-                                                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                                        verticalAlignment = Alignment.CenterVertically
-                                                    ) {
-                                                        Text(
-                                                            text = move.move.name
-                                                                .replace("-", " ")
-                                                                .replaceFirstChar { it.uppercase() },
-                                                            color = MaterialTheme.colorScheme.onSurface,
-                                                            style = MaterialTheme.typography.bodyMedium,
-                                                            modifier = Modifier.weight(1f)
-                                                        )
+                                            movesByMethod[method]?.forEach { move ->
+                                                Row(
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .clip(RoundedCornerShape(8.dp))
+                                                        .background(bgColor.copy(alpha = 0.12f))
+                                                        .padding(
+                                                            horizontal = 12.dp,
+                                                            vertical = 10.dp
+                                                        ),
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    verticalAlignment = Alignment.CenterVertically
+                                                ) {
+                                                    Text(
+                                                        text = move.name
+                                                            .replace("-", " ")
+                                                            .replaceFirstChar { it.uppercase() },
+                                                        color = MaterialTheme.colorScheme.onSurface,
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        modifier = Modifier.weight(1f)
+                                                    )
 
-                                                        if (method == "level-up") {
-                                                            Box(
-                                                                modifier = Modifier
-                                                                    .clip(RoundedCornerShape(6.dp))
-                                                                    .background(bgColor.copy(alpha = 0.4f))
-                                                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                                                            ) {
-                                                                Text(
-                                                                    text = if (level > 0) "Lv. $level" else "Start",
-                                                                    color = MaterialTheme.colorScheme.onSurface,
-                                                                    style = MaterialTheme.typography.labelMedium,
-                                                                    fontWeight = FontWeight.Bold
+                                                    if (method == "level-up" && move.level != null) {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .clip(RoundedCornerShape(6.dp))
+                                                                .background(bgColor.copy(alpha = 0.4f))
+                                                                .padding(
+                                                                    horizontal = 10.dp,
+                                                                    vertical = 4.dp
                                                                 )
-                                                            }
+                                                        ) {
+                                                            Text(
+                                                                text = if (move.level > 0) "Lv. ${move.level}" else "Start",
+                                                                color = MaterialTheme.colorScheme.onSurface,
+                                                                style = MaterialTheme.typography.labelMedium,
+                                                                fontWeight = FontWeight.Bold
+                                                            )
                                                         }
                                                     }
-
-                                                    Spacer(Modifier.height(6.dp))
                                                 }
+
+                                                Spacer(Modifier.height(6.dp))
+                                            }
                                         }
 
                                         Spacer(Modifier.height(12.dp))
@@ -1100,7 +1163,12 @@ fun PokemonDetailPage(
                         }
                     ) { innerPadding ->
 
-                        Box(Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text("Failed to load Pokémon")
                         }
                     }
