@@ -69,14 +69,13 @@ fun GameScreen(
 ) {
     val gameState by viewModel.gameState.collectAsStateWithLifecycle()
     val haptic = LocalHapticFeedback.current
+    val soundManager: SoundManager = koinInject()
 
     var showExitDialog by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) {
         showExitDialog = true
     }
-
-    val soundManager : SoundManager = koinInject()
 
     LaunchedEffect(difficulty) {
         viewModel.startGame(difficulty)
@@ -88,13 +87,15 @@ fun GameScreen(
             .background(MaterialTheme.colorScheme.background)
             .navigationBarsPadding()
     ) { innerPadding ->
+
         Box(
             modifier = Modifier
+                .fillMaxSize()
                 .padding(innerPadding)
         ) {
             when (val state = gameState) {
                 is GameState.Loading -> {
-                    Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -104,8 +105,7 @@ fun GameScreen(
                             )
                             Text(
                                 text = "Preparing Pokémon...",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onBackground
+                                style = MaterialTheme.typography.bodyLarge
                             )
                         }
                     }
@@ -115,127 +115,134 @@ fun GameScreen(
                     val playing = state as? GameState.Playing ?: (state as GameState.Paused).playing
                     val isPaused = state is GameState.Paused
 
-                    Scaffold(
-                        containerColor = MaterialTheme.colorScheme.background,
-                        modifier = Modifier.fillMaxSize()
-                    ) { innerPadding ->
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(innerPadding)
-                                .padding(16.dp)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        // ─── Top HUD ─────────────────────────────────────────────
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            // Top bar
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                // Score
-                                Column {
-                                    Text(
-                                        text = "Score",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                                    )
-                                    Text(
-                                        text = playing.score.toString(),
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-
-                                // Timer - center
-                                GameTimer(
-                                    timeRemaining = playing.timeRemaining,
-                                    totalTime = playing.difficulty.timeSeconds,
-                                    modifier = Modifier.weight(1f).padding(horizontal = 16.dp)
+                            // Score
+                            Column {
+                                Text(
+                                    "Score",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                                 )
-
-                                // Moves + Pause
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text(
-                                        text = "Moves",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                                    )
-                                    Text(
-                                        text = playing.moves.toString(),
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onBackground
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {
-                                        if (isPaused) viewModel.resumeGame()
-                                        else viewModel.pauseGame()
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = if (isPaused) Icons.Default.PlayArrow
-                                        else Icons.Default.Pause,
-                                        contentDescription = if (isPaused) "Resume" else "Pause",
-                                        tint = MaterialTheme.colorScheme.onBackground
-                                    )
-                                }
+                                Text(
+                                    playing.score.toString(),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
                             }
 
-                            // Progress indicator
-                            Text(
-                                text = "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                                modifier = Modifier.padding(vertical = 8.dp)
+                            // Timer
+                            GameTimer(
+                                timeRemaining = playing.timeRemaining,
+                                totalTime = playing.difficulty.timeSeconds,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(horizontal = 16.dp)
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            // Moves + Pause
+                            Column(horizontalAlignment = Alignment.End) {
+                                Text(
+                                    "Moves",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                )
+                                Text(
+                                    playing.moves.toString(),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
 
-                            // Card Grid
-                            LazyVerticalGrid(
-                                columns = GridCells.Fixed(playing.difficulty.gridColumns),
-                                modifier = Modifier.weight(1f),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp),
-                                userScrollEnabled = true
+                            IconButton(
+                                onClick = {
+                                    if (isPaused) viewModel.resumeGame()
+                                    else viewModel.pauseGame()
+                                }
                             ) {
-                                itemsIndexed(playing.cards) { index, card ->
-                                    PokemonCard(
-                                        card = card,
-                                        onClick = {
-                                            if (!isPaused) {
-                                                soundManager.play(SoundManager.Sound.CARD_FLIP)
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                viewModel.onCardFlipped(index)
-                                            }
-                                        },
-                                        modifier = Modifier.aspectRatio(0.75f)
-                                    )
+                                Icon(
+                                    imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                    contentDescription = null
+                                )
+                            }
+                        }
+
+                        // Progress text
+                        Text(
+                            text = "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // ─── Game Board (Fixed, no scroll, fills space) ──────────
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Card(
+                                modifier = Modifier.fillMaxSize(),
+                                shape = RoundedCornerShape(20.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)
+                                )
+                            ) {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(playing.difficulty.gridColumns),
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                    userScrollEnabled = true
+                                ) {
+                                    itemsIndexed(playing.cards) { index, card ->
+                                        PokemonCard(
+                                            card = card,
+                                            onClick = {
+                                                if (!isPaused) {
+                                                    soundManager.play(SoundManager.Sound.CARD_FLIP)
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    viewModel.onCardFlipped(index)
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .aspectRatio(0.75f) // use 1f for square cards
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
-                    // Pause overlay
+                    // ─── Pause Overlay ─────────────────────────────────────────
                     if (isPaused) {
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.6f))
-                                .clickable(
-                                    indication = null,
-                                    interactionSource = remember { MutableInteractionSource() }
-                                ) {},
+                                .background(Color.Black.copy(alpha = 0.6f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Card(
                                 shape = RoundedCornerShape(24.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = MaterialTheme.colorScheme.surface
-                                ),
-                                elevation = CardDefaults.cardElevation(8.dp)
+                                )
                             ) {
                                 Column(
                                     modifier = Modifier.padding(32.dp),
@@ -243,15 +250,12 @@ fun GameScreen(
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
                                     Text(
-                                        text = "Paused",
+                                        "Paused",
                                         style = MaterialTheme.typography.headlineMedium,
                                         fontWeight = FontWeight.Bold
                                     )
                                     Button(
-                                        onClick = {
-                                            viewModel.resumeGame()
-                                            soundManager.play(SoundManager.Sound.BUTTON_CLICK)
-                                        },
+                                        onClick = { viewModel.resumeGame() },
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
                                         Icon(Icons.Default.PlayArrow, null)
@@ -282,9 +286,7 @@ fun GameScreen(
                     victory = state,
                     onPlayAgain = { viewModel.startGame(state.difficulty) },
                     onChangeDifficulty = onBack,
-                    onHome = {
-                        showExitDialog = true
-                    }
+                    onHome = { showExitDialog = true }
                 )
 
                 is GameState.TimeUp -> TimeUpScreen(
@@ -293,10 +295,11 @@ fun GameScreen(
                     onBack = { showExitDialog = true }
                 )
 
-                else -> {}
+                else -> Unit
             }
         }
 
+        // ─── Exit Dialog ─────────────────────────────────────────────────
         if (showExitDialog) {
             AlertDialog(
                 onDismissRequest = { showExitDialog = false },
@@ -314,11 +317,7 @@ fun GameScreen(
                     }
                 },
                 dismissButton = {
-                    TextButton(
-                        onClick = {
-                            showExitDialog = false
-                        }
-                    ) {
+                    TextButton(onClick = { showExitDialog = false }) {
                         Text("Cancel")
                     }
                 }
