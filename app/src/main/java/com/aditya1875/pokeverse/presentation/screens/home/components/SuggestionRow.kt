@@ -32,8 +32,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.aditya1875.pokeverse.data.remote.model.PokemonResult
-import com.aditya1875.pokeverse.data.remote.model.PokemonSearchIndex
 import com.aditya1875.pokeverse.utils.SearchResult
 
 @Composable

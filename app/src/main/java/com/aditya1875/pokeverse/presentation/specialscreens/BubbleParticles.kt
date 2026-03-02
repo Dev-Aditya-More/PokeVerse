@@ -30,19 +30,19 @@ import kotlin.random.Random
 @Composable
 fun HydroPumpParticles(
     modifier: Modifier = Modifier,
-    particleCount: Int = 35,
-    spawnRateMs: Long = 110L,
+    particleCount: Int = 18,
+    spawnRateMs: Long = 300L,
     colors: List<Color> = listOf(
-        Color(0xFF64B5F6),
-        Color(0xFF42A5F5),
         Color(0xFF90CAF9),
-        Color(0xFF81D4FA)
+        Color(0xFF64B5F6),
+        Color(0xFFB3E5FC),
+        Color(0xFF81D4FA),
+        Color(0xFFE1F5FE)
     )
 ) {
     val particles = remember { mutableStateListOf<BubbleParticle>() }
     val density = LocalDensity.current.density
 
-    // Subtle background water flow shader
     val hydroShader = remember {
         RuntimeShader(
             """
@@ -51,26 +51,19 @@ fun HydroPumpParticles(
 
             half4 main(float2 fragCoord) {
                 float2 uv = fragCoord / iResolution;
-                float t = iTime * 0.25;
+                float t = iTime * 0.15;
 
-                // Very gentle flowing waves
-                float wave1 = sin(uv.y * 6.0 + t) * 0.02;
-                float wave2 = cos(uv.y * 4.0 - t * 0.6) * 0.015;
-                float wave = wave1 + wave2;
-                
-                // Soft vertical gradient
-                float dist = abs(uv.x - 0.5 + wave);
-                float intensity = smoothstep(0.7, 0.0, dist);
+                // Slow, long-wavelength undulation
+                float wave = sin(uv.x * 3.0 + t) * 0.012
+                           + cos(uv.y * 2.5 - t * 0.5) * 0.008;
 
-                // Subtle shimmer
-                float shimmer = 0.4 + 0.3 * sin(t * 1.5 + uv.y * 12.0);
-                
-                // Very soft blue tones
-                float blue = 0.5 + 0.15 * sin(t + uv.y * 3.0);
-                float cyan = 0.4 + 0.2 * cos(t * 0.4 + uv.y * 5.0);
+                float dist = length(uv - float2(0.5 + wave, 0.5));
+                float vignette = 1.0 - smoothstep(0.3, 0.9, dist);
 
-                // TWEAK THIS: Change 0.08 to 0.05-0.15 (lower = more subtle, higher = more visible)
-                return half4(cyan * 0.3, blue * 0.6, 0.9, intensity * shimmer * 0.08);
+                float shimmer = 0.5 + 0.5 * sin(t * 0.8 + uv.y * 8.0 + uv.x * 4.0);
+
+                // Very desaturated, icy blue — just a hint of atmosphere
+                return half4(0.1, 0.3, 0.55, vignette * shimmer * 0.04);
             }
             """.trimIndent()
         )
@@ -94,7 +87,6 @@ fun HydroPumpParticles(
         }
     }
 
-    // Update particles
     LaunchedEffect(Unit) {
         while (true) {
             val iterator = particles.listIterator()
@@ -103,25 +95,24 @@ fun HydroPumpParticles(
                 val age = p.age + 1
                 val progress = age.toFloat() / p.lifetime
 
-                // Gentle S-curve rise with subtle sway
-                val sway = sin(progress * PI * 2.5f + p.driftX * 80f) * 0.03f
-                val newX = p.x + sway.toFloat()
-                val newY = p.y - (p.velocityY * 1.0f)
+                val sway = (
+                        sin(progress * PI * 1.8 + p.phaseOffset) * 0.018 +
+                                sin(progress * PI * 3.2 + p.phaseOffset * 2.1) * 0.006
+                        ).toFloat()
 
-                // Smooth fade - stays transparent
-                val fadeIn = (progress * 10f).coerceIn(0f, 1f)
-                val fadeOut = 1f - progress
-                val newAlpha = (fadeIn * fadeOut).coerceAtMost(0.65f) // TWEAK: 0.5-0.8 (lower = more subtle)
+                val newX = p.x + sway * p.driftSign
+                val speed = p.velocityY * (1f + progress * 0.4f)
+                val newY = p.y - speed
 
-                // Gentle size pulsing
-                val pulse = 1f + sin(progress * PI * 2f) * 0.12f
+                val fadeIn  = (progress / 0.15f).coerceIn(0f, 1f)
+                val fadeOut = ((1f - progress) / 0.25f).coerceIn(0f, 1f)
+                val newAlpha = (fadeIn * fadeOut * p.peakAlpha).coerceIn(0f, 1f)
 
                 val newParticle = p.copy(
                     x = newX,
                     y = newY,
                     alpha = newAlpha,
-                    age = age,
-                    radius = (p.radius * pulse).toFloat()
+                    age = age
                 )
 
                 if (newParticle.isAlive()) iterator.set(newParticle)
@@ -137,83 +128,101 @@ fun HydroPumpParticles(
 
         hydroShader.setFloatUniform("iResolution", w, h)
         hydroShader.setFloatUniform("iTime", time.floatValue)
-
         drawRect(
             brush = ShaderBrush(hydroShader),
             size = size,
-            alpha = 0.25f,
-            blendMode = BlendMode.Plus
+            alpha = 1f,
+            blendMode = BlendMode.Screen
         )
 
-        particles.forEach { particle ->
-            val center = Offset(particle.x * w, particle.y * h)
-            val radiusPx = particle.radius * density
-            val alpha = particle.alpha
+        particles.forEach { p ->
+            val center = Offset(p.x * w, p.y * h)
+            val r = p.baseRadius * density
+            val a = p.alpha
 
-            // Large soft outer glow - very transparent
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        particle.color.copy(alpha = alpha * 0.08f), // TWEAK: 0.05-0.12
+                        p.color.copy(alpha = a * 0.06f),
                         Color.Transparent
                     ),
                     center = center,
-                    radius = radiusPx * 2.5f
+                    radius = r * 3.2f
                 ),
-                radius = radiusPx * 2.5f,
+                radius = r * 3.2f,
                 center = center,
-                blendMode = BlendMode.Plus
+                blendMode = BlendMode.Screen
             )
 
-            // Medium glow
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        particle.color.copy(alpha = alpha * 0.2f), // TWEAK: 0.15-0.3
+                        p.color.copy(alpha = a * 0.18f),
+                        p.color.copy(alpha = a * 0.06f),
                         Color.Transparent
                     ),
                     center = center,
-                    radius = radiusPx * 1.5f
+                    radius = r * 1.8f
                 ),
-                radius = radiusPx * 1.5f,
+                radius = r * 1.8f,
                 center = center,
-                blendMode = BlendMode.Plus
+                blendMode = BlendMode.Screen
             )
 
-            // Bubble core with gradient
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color.White.copy(alpha = alpha * 0.15f), // TWEAK: 0.1-0.25
-                        particle.color.copy(alpha = alpha * 0.35f), // TWEAK: 0.25-0.45
-                        particle.color.copy(alpha = alpha * 0.2f)
+                        Color.Transparent,                             // hollow center
+                        Color.Transparent,
+                        p.color.copy(alpha = a * 0.22f),              // thin colored rim
+                        Color.White.copy(alpha = a * 0.08f)
                     ),
                     center = center,
-                    radius = radiusPx
+                    radius = r,
+                    // Shift gradient stop weights toward the edge
                 ),
-                radius = radiusPx,
+                radius = r,
                 center = center,
-                blendMode = BlendMode.Plus
+                blendMode = BlendMode.Screen
             )
 
-            // Subtle bubble outline
             drawCircle(
-                color = Color.White.copy(alpha = alpha * 0.2f), // TWEAK: 0.15-0.3
-                radius = radiusPx,
+                color = Color.White.copy(alpha = a * 0.15f),
+                radius = r,
                 center = center,
-                style = Stroke(width = 1f),
-                blendMode = BlendMode.Plus
+                style = Stroke(width = 0.8f),
+                blendMode = BlendMode.Screen
             )
 
-            // Highlight on top
             drawCircle(
-                color = Color.White.copy(alpha = alpha * 0.25f), // TWEAK: 0.2-0.35
-                radius = radiusPx * 0.3f,
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = a * 0.5f),
+                        Color.Transparent
+                    ),
+                    center = Offset(
+                        center.x - r * 0.28f,
+                        center.y - r * 0.28f
+                    ),
+                    radius = r * 0.22f
+                ),
+                radius = r * 0.22f,
                 center = Offset(
-                    center.x - radiusPx * 0.25f,
-                    center.y - radiusPx * 0.25f
+                    center.x - r * 0.28f,
+                    center.y - r * 0.28f
                 ),
-                blendMode = BlendMode.Plus
+                blendMode = BlendMode.Screen
+            )
+
+            // Layer 6 — secondary smaller highlight (bottom-right, opposite refraction)
+            drawCircle(
+                color = Color.White.copy(alpha = a * 0.12f),
+                radius = r * 0.1f,
+                center = Offset(
+                    center.x + r * 0.3f,
+                    center.y + r * 0.3f
+                ),
+                blendMode = BlendMode.Screen
             )
         }
     }
@@ -222,10 +231,12 @@ fun HydroPumpParticles(
 data class BubbleParticle(
     val x: Float,
     val y: Float,
-    val radius: Float,
+    val baseRadius: Float,     // Immutable — prevents compounding mutation bug
     val velocityY: Float,
-    val driftX: Float,
+    val driftSign: Float,      // +1 or -1 — determines sway direction
+    val phaseOffset: Double,   // Unique wave phase per particle
     val alpha: Float,
+    val peakAlpha: Float,      // Max opacity ceiling, varies per particle
     val lifetime: Int,
     val color: Color,
     val age: Int = 0
@@ -234,22 +245,32 @@ data class BubbleParticle(
 
     companion object {
         fun generate(colors: List<Color>): BubbleParticle {
+            // Two size classes: small crisp bubbles and larger diffuse ones
+            val isLarge = Random.nextFloat() < 0.25f
+            val radius = if (isLarge) {
+                Random.nextFloat() * 5f + 8f    // 8–13 dp — rare large
+            } else {
+                Random.nextFloat() * 4f + 2.5f  // 2.5–6.5 dp — common small
+            }
+
+            // Large bubbles are more transparent — they're ambient, not focal
+            val peak = if (isLarge) {
+                Random.nextFloat() * 0.12f + 0.08f   // 0.08–0.20
+            } else {
+                Random.nextFloat() * 0.20f + 0.20f   // 0.20–0.40
+            }
+
             return BubbleParticle(
-
-                x = 0.35f + Random.nextFloat() * 0.3f,
-
-                y = 0.6f + Random.nextFloat() * 0.4f,
-
-                radius = Random.nextFloat() * 4f + 3f,
-
-                velocityY = Random.nextFloat() * 0.0015f + 0.001f,
-
-                driftX = Random.nextFloat() * 0.001f - 0.0005f,
-                alpha = 0.65f,
-
-                lifetime = 120 + Random.nextInt(60),
-
-                color = colors.random()
+                x            = Random.nextFloat() * 0.90f + 0.05f,  // Full width, small margin
+                y            = 0.75f + Random.nextFloat() * 0.30f,  // Bottom quarter
+                baseRadius   = radius,
+                velocityY    = Random.nextFloat() * 0.0010f + 0.0008f, // Very slow rise
+                driftSign    = if (Random.nextBoolean()) 1f else -1f,
+                phaseOffset  = Random.nextDouble() * PI * 2.0,
+                alpha        = 0f,
+                peakAlpha    = peak,
+                lifetime     = 220 + Random.nextInt(120),            // 3.5–5.5 seconds
+                color        = colors.random()
             )
         }
     }

@@ -2,7 +2,6 @@ package com.aditya1875.pokeverse.presentation.screens.settings
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,11 +19,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.StarRate
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -35,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -68,16 +73,29 @@ import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsScreen(navController: NavController) {
-    val settingsViewModel: SettingsViewModel = koinViewModel()
-    val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
-
+fun SettingsScreen(
+    navController: NavController,
+    settingsViewModel: SettingsViewModel = koinViewModel()
+) {
+    val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled
+        .collectAsStateWithLifecycle()
     val supportsShaders = EffectCapabilities.supportsShaders
 
     var isAboutExpanded by remember { mutableStateOf(false) }
     var isSpecialEffectsExpanded by remember {
         mutableStateOf(!supportsShaders)
     }
+
+    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
+        .collectAsStateWithLifecycle()
+
+    var showOriginalAssetsDialog by remember { mutableStateOf(false) }
+
+    var isPrivacyPolicyExpanded by remember { mutableStateOf(false) }
+
+    var isHelpExpanded by remember { mutableStateOf(false) }
+
+    var isAssetsExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -139,6 +157,65 @@ fun SettingsScreen(navController: NavController) {
                 }
 
                 SettingsCard(
+                    title = "Original Assets",
+                    icon = Icons.Default.PhotoLibrary,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = isAssetsExpanded,
+                    onExpandToggle = {
+                        isAssetsExpanded = !isAssetsExpanded
+                    },
+                    trailing = {
+                        ResponsiveMetaballSwitch(
+                            checked = originalAssetsEnabled,
+                            onCheckedChange = { checked ->
+                                if (checked) {
+                                    showOriginalAssetsDialog = true
+                                } else {
+                                    settingsViewModel.toggleOriginalAssetsEnabled()
+                                }
+                            }
+                        )
+                    }
+                ) {
+                    Text(
+                        "Enable original franchise visuals and media.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                if (showOriginalAssetsDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showOriginalAssetsDialog = false },
+                        title = { Text("Original Assets") },
+                        text = {
+                            Text(
+                                "This feature enables original franchise visuals and audio. " +
+                                        "These assets may be protected by intellectual property laws. " +
+                                        "This app is unofficial and not affiliated with any franchise owner."
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    settingsViewModel.toggleOriginalAssetsEnabled()
+                                    showOriginalAssetsDialog = false
+                                }
+                            ) {
+                                Text("I Understand, Enable")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = { showOriginalAssetsDialog = false }
+                            ) {
+                                Text("Cancel")
+                            }
+                        }
+                    )
+                }
+
+                SettingsCard(
                     title = "Special Effects",
                     icon = Icons.Default.AutoAwesome,
                     iconTint = MaterialTheme.colorScheme.onSurface,
@@ -169,7 +246,7 @@ fun SettingsScreen(navController: NavController) {
                         )
                     } else {
                         Text(
-                            "You'll see particle effects in Pokémon details.\nTry pressing the Pokémon sprite!",
+                            "You'll see enhanced visual effects in creature details.",
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -212,7 +289,7 @@ fun SettingsScreen(navController: NavController) {
                 var shareExpanded by rememberSaveable { mutableStateOf(false) }
 
                 SettingsCard(
-                    title = "Share Pokeverse",
+                    title = "Share Dexverse",
                     icon = Icons.Default.Share,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     expanded = shareExpanded,
@@ -233,7 +310,7 @@ fun SettingsScreen(navController: NavController) {
                     }
                 ) {
                     Text(
-                        "Tell your friends about Pokeverse!",
+                        "Tell your friends about Dexverse!",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
@@ -270,7 +347,48 @@ fun SettingsScreen(navController: NavController) {
                     }
                 ) {
                     Text(
-                        "If you like Pokeverse, please take a moment to rate it on Play Store. It really helps.",
+                        "If you like Dexverse, please take a moment to rate it on Play Store. It really helps.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                SettingsCard(
+                    title = "Privacy Policy",
+                    icon = Icons.Default.PrivacyTip,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = isPrivacyPolicyExpanded,
+                    onExpandToggle = {
+                        isPrivacyPolicyExpanded = !isPrivacyPolicyExpanded
+                        val intent = Intent(Intent.ACTION_VIEW,
+                            "https://github.com/Dev-Aditya-More/PokeVerse/raw/master/Privacy_Policy.md".toUri()
+                        )
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text(
+                        "View our privacy policy",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                SettingsCard(
+                    title = "Help & Support",
+                    icon = Icons.AutoMirrored.Filled.Help,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = isHelpExpanded,
+                    onExpandToggle = {
+                        isHelpExpanded = !isHelpExpanded
+                        val intent = Intent(Intent.ACTION_SENDTO).apply {
+                            data = "mailto:aditya1875more@gmail.com".toUri()
+                            putExtra(Intent.EXTRA_SUBJECT, "Dexverse Support")
+                        }
+                        context.startActivity(intent)
+                    }
+                ) {
+                    Text(
+                        "Contact support or report an issue",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
@@ -291,7 +409,6 @@ fun SettingsScreen(navController: NavController) {
                         modifier = Modifier.padding(16.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
                         )
                     ) {
                         Text(
@@ -381,10 +498,43 @@ fun SettingsScreen(navController: NavController) {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "Content & Attribution",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Text(
+                            text = "Dexverse is an independent application and is not affiliated with or endorsed by any franchise owner.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+
+                        Text(
+                            text = "All trademarks and registered trademarks are property of their respective owners.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 Text(
-                    text = "© Pokéverse 2026. All rights reserved.",
+                    text = "© Dexverse 2026",
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.alpha(0.6f)

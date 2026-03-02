@@ -35,10 +35,10 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun PokemonDetailScreen(
     pokemonName: String,
-    navController: NavController
+    navController: NavController,
+    settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
     val viewModel: PokemonViewModel = koinViewModel()
-    val settingsViewModel: SettingsViewModel = koinViewModel()
     val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled.collectAsStateWithLifecycle()
 
     LaunchedEffect(pokemonName) {
@@ -56,7 +56,8 @@ fun PokemonDetailScreen(
         PokemonDetailPage(
             navController = navController,
             specialEffectsEnabled = specialEffectsEnabled,
-            spriteEffectsEnabledState = spriteEffectsEnabledState
+            spriteEffectsEnabledState = spriteEffectsEnabledState,
+            settingsViewModel = settingsViewModel
         )
     }
 }

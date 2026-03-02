@@ -3,7 +3,6 @@ package com.aditya1875.pokeverse.presentation.ui.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aditya1875.pokeverse.data.billing.BillingManager
 import com.aditya1875.pokeverse.data.billing.IBillingManager
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao

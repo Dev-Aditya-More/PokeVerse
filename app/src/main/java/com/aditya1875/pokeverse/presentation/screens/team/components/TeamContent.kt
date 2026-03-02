@@ -41,7 +41,8 @@ fun TeamContent(
     team: List<TeamMemberEntity>,
     navController: NavController,
     onRemove: (TeamMemberEntity) -> Unit,
-    accentColor: Color? = null
+    accentColor: Color? = null,
+    assetsEnabled: Boolean
 ) {
     val progressColor = accentColor ?: MaterialTheme.colorScheme.primary
 
@@ -149,7 +150,7 @@ fun TeamContent(
                         pokemon = pokemon,
                         navController = navController,
                         onRemove = onRemove,
-                        type = "team"
+                        assetsEnabled = assetsEnabled
                     )
                 }
             }

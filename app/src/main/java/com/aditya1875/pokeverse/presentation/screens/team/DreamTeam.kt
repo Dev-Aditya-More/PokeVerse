@@ -69,13 +69,15 @@ import com.aditya1875.pokeverse.presentation.screens.team.components.FavoritesCo
 import com.aditya1875.pokeverse.presentation.screens.team.components.TabButton
 import com.aditya1875.pokeverse.presentation.screens.team.components.TeamContent
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DreamTeam(
     navController: NavController,
-    viewModel: PokemonViewModel = koinViewModel()
+    viewModel: PokemonViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
     val haptic = LocalHapticFeedback.current
     val favorites by viewModel.favorites.collectAsStateWithLifecycle()
@@ -90,6 +92,12 @@ fun DreamTeam(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var isEditingTeamName by remember { mutableStateOf(false) }
     var editedTeamName by remember { mutableStateOf("") }
+
+    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
+        .collectAsStateWithLifecycle()
+
+    var showOriginalAssetsDialog by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(currentTeam) {
         editedTeamName = currentTeam?.teamName ?: ""
@@ -361,12 +369,14 @@ fun DreamTeam(
                                     team = currentTeamMembers,
                                     navController = navController,
                                     onRemove = { viewModel.removeFromTeam(it) },
-                                    accentColor = MaterialTheme.colorScheme.primary
+                                    accentColor = MaterialTheme.colorScheme.primary,
+                                    assetsEnabled = originalAssetsEnabled
                                 )
                                 1 -> FavoritesContent(
                                     favorites = favorites,
                                     navController = navController,
-                                    onRemove = { viewModel.removeFromFavorites(it) }
+                                    onRemove = { viewModel.removeFromFavorites(it) },
+                                    assetsEnabled = originalAssetsEnabled
                                 )
                             }
                         }

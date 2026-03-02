@@ -37,7 +37,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -48,8 +51,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.data.remote.model.PokemonResult
+import com.aditya1875.pokeverse.presentation.screens.detail.getPokemonBackgroundColor
 import com.aditya1875.pokeverse.presentation.screens.team.components.CreateTeamDialog
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -58,11 +63,11 @@ fun ImprovedPokemonCard(
     pokemon: PokemonResult,
     isInTeam: Boolean,
     isInFavorites: Boolean,
-    teamSize: Int,
     onAddToFavorites: () -> Unit,
     onRemoveFromFavorites: () -> Unit,
     onClick: () -> Unit,
-    viewModel: PokemonViewModel = koinViewModel()
+    isAssetEnabled: Boolean,
+    viewModel: PokemonViewModel = koinViewModel(),
 ) {
     val pokemonId = remember(pokemon.url) {
         pokemon.url.trimEnd('/')
@@ -80,7 +85,6 @@ fun ImprovedPokemonCard(
         label = "cardScale"
     )
 
-    // Bottom sheet state
     var showTeamBottomSheet by remember { mutableStateOf(false) }
     var showCreateTeamDialog by remember { mutableStateOf(false) }
     var teamCreationError by remember { mutableStateOf<String?>(null) }
@@ -135,15 +139,36 @@ fun ImprovedPokemonCard(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(spriteUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = pokemon.name,
-                    modifier = Modifier.size(64.dp),
-                    contentScale = ContentScale.Fit
-                )
+                if(!isAssetEnabled) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(spriteUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = pokemon.name,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .graphicsLayer {
+                                alpha = 1f
+                                colorFilter = ColorFilter.tint(
+                                    Color.Black,
+                                    blendMode = BlendMode.SrcAtop
+                                )
+                            },
+                        contentScale = ContentScale.Fit
+                    )
+                } else {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(spriteUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = pokemon.name,
+                        modifier = Modifier
+                            .size(64.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
 
             Spacer(Modifier.width(16.dp))

@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.data.billing.IBillingManager
-import com.aditya1875.pokeverse.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity

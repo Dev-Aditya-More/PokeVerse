@@ -177,9 +177,9 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
         emoji = "⭐",
         description = "The original Pokeverse look and feel",
         colors = listOf(
-            Color(0xFFB63A3A), // Pokeverse Red
-            Color(0xFF1A1A1A), // Surface
-            Color(0xFF0E0E0E)  // Background
+            Color(0xFF5FD3E6),   // Cyan
+            Color(0xFFFF7043),   // Orange
+            Color(0xFF0B1C2D)    // Deep Navy
         )
     ),
     StarterTheme(

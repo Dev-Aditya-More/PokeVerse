@@ -19,7 +19,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,8 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -56,7 +57,7 @@ fun ImprovedTeamCard(
     pokemon: TeamMemberEntity,
     navController: NavController,
     onRemove: (TeamMemberEntity) -> Unit,
-    type: String
+    assetsEnabled: Boolean
 ) {
     val pokemonId = remember {
         pokemon.name.hashCode().absoluteValue % 1000
@@ -122,7 +123,19 @@ fun ImprovedTeamCard(
                         .crossfade(true)
                         .build(),
                     contentDescription = pokemon.name,
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier
+                        .size(64.dp)
+                        .graphicsLayer {
+                            if (!assetsEnabled) {
+                                alpha = 1f
+                                colorFilter = ColorFilter.tint(
+                                    Color.Black,
+                                    blendMode = BlendMode.SrcAtop
+                                )
+                            } else {
+                                alpha = 1f
+                            }
+                        },
                     contentScale = ContentScale.Fit
                 )
             }

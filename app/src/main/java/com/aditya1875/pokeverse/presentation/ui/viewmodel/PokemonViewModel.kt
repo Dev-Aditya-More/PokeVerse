@@ -28,7 +28,6 @@ import com.aditya1875.pokeverse.domain.repository.PokemonSearchRepository
 import com.aditya1875.pokeverse.utils.EvolutionChainMapper
 import com.aditya1875.pokeverse.utils.SearchUiState
 import com.aditya1875.pokeverse.utils.UiError
-import com.google.firebase.Firebase
 import com.google.firebase.analytics.FirebaseAnalytics
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
@@ -309,13 +308,11 @@ class PokemonViewModel(
     private var allPokemonInRegion: List<PokemonResult> = emptyList()
 
     init {
-        // Initialize selected team to default or first team
         viewModelScope.launch {
             val defaultTeam = teamDao.getDefaultTeam()
             _selectedTeamId.value = defaultTeam?.teamId ?: allTeams.value.firstOrNull()?.teamId
         }
 
-        // Load type data in background
         loadAllTypeData()
     }
 

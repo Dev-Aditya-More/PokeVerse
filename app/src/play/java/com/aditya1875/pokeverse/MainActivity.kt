@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,7 +14,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -25,7 +23,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowCompat
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -56,6 +53,7 @@ import com.aditya1875.pokeverse.presentation.screens.team.DreamTeam
 import com.aditya1875.pokeverse.presentation.screens.theme.ThemeSelectorScreen
 import com.aditya1875.pokeverse.presentation.ui.theme.AppTheme
 import com.aditya1875.pokeverse.presentation.ui.theme.PokeverseTheme
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import com.aditya1875.pokeverse.utils.Difficulty
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
@@ -63,6 +61,7 @@ import com.aditya1875.pokeverse.utils.WithBottomBar
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
@@ -86,7 +85,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themePreferences = koinInject<ThemePreferences>()
             val selectedTheme by themePreferences.selectedTheme.collectAsState(
-                initial = AppTheme.POKEVERSE
+                initial = AppTheme.CHARIZARD
             )
 
             var currentTheme by rememberSaveable { mutableStateOf(selectedTheme) }
@@ -95,7 +94,7 @@ class MainActivity : ComponentActivity() {
                 currentTheme = selectedTheme
             }
 
-            val startDestination = remember { mutableStateOf("splash") }
+            val startDestination = remember { mutableStateOf(Route.Splash.route) }
             val context = LocalContext.current
 
             PokeverseTheme(selectedTheme = currentTheme) {
@@ -130,13 +129,14 @@ class MainActivity : ComponentActivity() {
 
                 val scope = rememberCoroutineScope()
 
+                val settingsViewModel: SettingsViewModel = koinViewModel()
+
                 NavHost(
                     navController = navController,
                     startDestination = startDestination.value,
                 ) {
-                    // ── CORE SCREENS ──────────────────────────────────────
                     composable(Route.Splash.route) {
-                        SplashScreen(navController)
+                        SplashScreen()
                     }
 
                     composable(Route.Onboarding.route) {
@@ -145,7 +145,7 @@ class MainActivity : ComponentActivity() {
 
                     composable(Route.BottomBar.Home.route) {
                         WithBottomBar(navController) {
-                            HomeScreen(navController)
+                            HomeScreen(navController, settingsViewModel)
                         }
                     }
 
@@ -155,7 +155,7 @@ class MainActivity : ComponentActivity() {
                             selectedRoute = selectedRoute,
                             onRouteChange = { selectedRoute = it }
                         ) {
-                            DreamTeam(navController = navController)
+                            DreamTeam(navController = navController, settingsViewModel = settingsViewModel)
                         }
                     }
 
@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                             selectedRoute = selectedRoute,
                             onRouteChange = { selectedRoute = it }
                         ) {
-                            SettingsScreen(navController)
+                            SettingsScreen(navController, settingsViewModel)
                         }
                     }
 
@@ -293,7 +293,7 @@ class MainActivity : ComponentActivity() {
                     composable(Route.Details.route) { backStackEntry ->
                         val pokemonName = backStackEntry.arguments?.getString("pokemonName")
                         if (pokemonName != null) {
-                            PokemonDetailScreen(pokemonName, navController)
+                            PokemonDetailScreen(pokemonName, navController, settingsViewModel)
                         } else {
                             PokemonNotFoundScreen(
                                 onRetryClick = {
@@ -345,5 +345,5 @@ class MainActivity : ComponentActivity() {
 @Preview(showSystemUi = true)
 @Composable
 private fun SplashScreenPreview() {
-    SplashScreen(navController = NavController(LocalContext.current))
+    SplashScreen()
 }

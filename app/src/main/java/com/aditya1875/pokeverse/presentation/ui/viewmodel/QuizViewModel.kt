@@ -3,11 +3,9 @@ package com.aditya1875.pokeverse.presentation.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.data.billing.IBillingManager
-import com.aditya1875.pokeverse.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
-import com.aditya1875.pokeverse.data.remote.model.gameModels.GameScore
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizGameState

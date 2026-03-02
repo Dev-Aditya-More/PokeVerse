@@ -36,8 +36,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -45,6 +47,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.decode.ImageDecoderDecoder
@@ -57,10 +60,12 @@ import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionChain
 import com.aditya1875.pokeverse.presentation.screens.settings.components.ResponsiveMetaballSwitch
 import com.aditya1875.pokeverse.presentation.specialscreens.ParticleBackground
 import com.aditya1875.pokeverse.presentation.specialscreens.getParticleTypeFor
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import org.koin.androidx.compose.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -80,8 +85,12 @@ fun PokemonDetailHeader(
     onSpriteLoaded: (Boolean) -> Unit,
     onSpriteError: (Boolean) -> Unit,
     showLoader: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
+    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
+        .collectAsStateWithLifecycle()
+
     val typeList = pokemon?.types?.map { it.type.name } ?: emptyList()
     val context = LocalContext.current
 
@@ -109,7 +118,6 @@ fun PokemonDetailHeader(
             .fillMaxWidth()
             .aspectRatio(1f)
     ) {
-        // Background radial glow
         Canvas(modifier = Modifier.fillMaxSize()) {
             val gradientBrush = Brush.radialGradient(
                 colors = listOf(
@@ -200,6 +208,19 @@ fun PokemonDetailHeader(
                             alpha = animatedAlpha
                             scaleX = pressScale.value
                             scaleY = pressScale.value
+                            if (!originalAssetsEnabled) {
+                                colorFilter = when {
+                                    isShinyEnabled -> ColorFilter.tint(
+                                        Color(0xFFFFD700),
+                                        blendMode = BlendMode.SrcAtop
+                                    )
+
+                                    else -> ColorFilter.tint(
+                                        Color.Black,
+                                        blendMode = BlendMode.SrcAtop
+                                    )
+                                }
+                            }
                         }
                         .pointerInput(Unit) {
                             detectTapGestures(
@@ -214,7 +235,6 @@ fun PokemonDetailHeader(
                         }
                 )
             } else {
-                // Placeholder when sprite is not available
                 SpritePlaceholder(
                     isShiny = isShinyEnabled,
                     bgColor = bgColor,
