@@ -246,7 +246,7 @@ fun SettingsScreen(
                         )
                     } else {
                         Text(
-                            "You'll see enhanced visual effects in creature details.",
+                            "You'll see enhanced visual effects in Pokemon details.",
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -298,12 +298,12 @@ fun SettingsScreen(
                             type = "text/plain"
                             putExtra(
                                 Intent.EXTRA_TEXT,
-                                "Hey mate, Check out Pokeverse — a clean Pokédex app for Pokémon fans:\n" +
+                                "Hey mate, Check out Dexverse — a clean Pokédex app for Pokémon fans:\n" +
                                         "https://play.google.com/store/apps/details?id=${context.packageName}"
                             )
                         }
                         context.startActivity(
-                            Intent.createChooser(shareIntent, "Share Pokeverse via")
+                            Intent.createChooser(shareIntent, "Share Dexverse via")
                         )
 
                         shareExpanded = !shareExpanded
@@ -427,7 +427,7 @@ fun SettingsScreen(
                     ),
                     SocialLink(
                         "Twitter",
-                        "https://twitter.com/Pokeverse_App",
+                        "https://twitter.com/Dexverse_App",
                         ImageVector.vectorResource(id = R.drawable.x_twitter_brands_solid_full),
                         size = 20.dp,
                         MaterialTheme.colorScheme.onSurface

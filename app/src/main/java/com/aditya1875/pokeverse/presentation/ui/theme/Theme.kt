@@ -149,7 +149,7 @@ private val BlastoiseDark = darkColorScheme(
 // THEME ENUM
 
 enum class AppTheme {
-    POKEVERSE,
+    DEXVERSE,
     CHARIZARD,
     VENUSAUR,
     BLASTOISE
@@ -159,11 +159,11 @@ enum class AppTheme {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PokeverseTheme(
-    selectedTheme: AppTheme = AppTheme.POKEVERSE,
+    selectedTheme: AppTheme = AppTheme.DEXVERSE,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when (selectedTheme) {
-        AppTheme.POKEVERSE -> PokeverseClassicDark
+        AppTheme.DEXVERSE -> PokeverseClassicDark
         AppTheme.CHARIZARD -> CharizardDark
         AppTheme.VENUSAUR -> VenusaurDark
         AppTheme.BLASTOISE -> BlastoiseDark

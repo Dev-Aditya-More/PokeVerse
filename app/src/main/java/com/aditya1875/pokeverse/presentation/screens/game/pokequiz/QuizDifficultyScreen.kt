@@ -27,7 +27,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun QuizDifficultyScreen(
     onDifficultySelected: (Difficulty) -> Unit,
-    onBack: () -> Unit,
+    onBack: () -> Unit
 ) {
     val viewModel: QuizViewModel = koinViewModel()
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()

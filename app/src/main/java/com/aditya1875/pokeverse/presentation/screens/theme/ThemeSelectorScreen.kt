@@ -170,12 +170,12 @@ data class StarterTheme(
 
 fun getStarterThemes(): List<StarterTheme> = listOf(
     StarterTheme(
-        theme = AppTheme.POKEVERSE,
-        pokemonName = "Pokeverse Classic",
+        theme = AppTheme.DEXVERSE,
+        pokemonName = "Dexverse Classic",
         pokemonNumber = "Default",
         type = "Brand Theme",
         emoji = "⭐",
-        description = "The original Pokeverse look and feel",
+        description = "The original Dexverse look and feel",
         colors = listOf(
             Color(0xFF5FD3E6),   // Cyan
             Color(0xFFFF7043),   // Orange

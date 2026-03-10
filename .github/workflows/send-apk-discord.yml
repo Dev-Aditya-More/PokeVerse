@@ -44,9 +44,9 @@ jobs:
         uses: tsickert/discord-webhook@v7.0.0
         with:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          embed-title: "✅ New Pokeverse Release"
+          embed-title: "✅ New Dexverse Release"
           embed-description: |
-            **A new version of Pokeverse is live!**
+            **A new version of Dexverse is live!**
 
             👉 [Click here to download the APK](${{ env.DOWNLOAD_LINK }})
           embed-image-url: "https://github.com/Dev-Aditya-More/PokeVerse/blob/master/app/src/main/res/drawable/logo.png?raw=true"

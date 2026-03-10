@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class MatchViewModel(
     private val repository: PokemonRepo,
@@ -38,6 +40,10 @@ class MatchViewModel(
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    private val matchCheckMutex = Mutex()
+
+    private var gameCompleted = false
+
     private var timerJob: Job? = null
     private var currentDifficulty = Difficulty.EASY
 
@@ -54,6 +60,7 @@ class MatchViewModel(
 
     fun startGame(difficulty: Difficulty) {
         currentDifficulty = difficulty
+        gameCompleted = false
         _gameState.value = GameState.Loading
         viewModelScope.launch {
             try {
@@ -142,49 +149,87 @@ class MatchViewModel(
 
     private fun checkForMatch(firstIndex: Int, secondIndex: Int) {
         viewModelScope.launch {
-            val currentState = _gameState.value as? GameState.Playing ?: return@launch
-            val firstCard = currentState.cards[firstIndex]
-            val secondCard = currentState.cards[secondIndex]
-            val newMoves = currentState.moves + 1
+            // ✅ FIX: Use mutex to prevent concurrent match checks
+            matchCheckMutex.withLock {
+                val currentState = _gameState.value as? GameState.Playing ?: return@launch
 
-            if (firstCard.pairId == secondCard.pairId) {
-                val newCards = currentState.cards.toMutableList()
-                newCards[firstIndex] = firstCard.copy(isMatched = true)
-                newCards[secondIndex] = secondCard.copy(isMatched = true)
+                // ✅ FIX: Don't process if game already completed
+                if (gameCompleted) return@launch
 
-                val newMatchedPairs = currentState.matchedPairs + firstCard.pairId
-                val newScore = calculateScore(
-                    moves = newMoves,
-                    matchesFound = newMatchedPairs.size,
-                    totalPairs = currentState.difficulty.pairs,
-                    timeRemaining = currentState.timeRemaining,
-                    difficulty = currentState.difficulty
-                )
+                val firstCard = currentState.cards[firstIndex]
+                val secondCard = currentState.cards[secondIndex]
+                val newMoves = currentState.moves + 1
 
-                val updatedState = currentState.copy(
-                    cards = newCards,
-                    flippedIndices = emptyList(),
-                    matchedPairs = newMatchedPairs,
-                    moves = newMoves,
-                    score = newScore
-                )
-                _gameState.value = updatedState
+                if (firstCard.pairId == secondCard.pairId) {
+                    // Cards match
+                    val newCards = currentState.cards.toMutableList()
+                    newCards[firstIndex] = firstCard.copy(isMatched = true)
+                    newCards[secondIndex] = secondCard.copy(isMatched = true)
 
-                if (newMatchedPairs.size == currentState.difficulty.pairs) {
-                    handleVictory(updatedState)
+                    val newMatchedPairs = currentState.matchedPairs + firstCard.pairId
+                    val newScore = calculateScore(
+                        moves = newMoves,
+                        matchesFound = newMatchedPairs.size,
+                        totalPairs = currentState.difficulty.pairs,
+                        timeRemaining = currentState.timeRemaining,
+                        difficulty = currentState.difficulty
+                    )
+
+                    val updatedState = currentState.copy(
+                        cards = newCards,
+                        flippedIndices = emptyList(),
+                        matchedPairs = newMatchedPairs,
+                        moves = newMoves,
+                        score = newScore
+                    )
+
+                    val matchedPairsCount = newMatchedPairs.size
+                    val matchedCardsCount = newCards.count { it.isMatched }
+                    val totalPairs = currentState.difficulty.pairs
+                    val expectedCards = totalPairs * 2
+
+                    val isVictory = matchedPairsCount >= totalPairs &&
+                            matchedCardsCount >= expectedCards
+
+                    Log.d(
+                        "PokéMatch",
+                        "Match! Pairs: $matchedPairsCount/$totalPairs, Cards: $matchedCardsCount/$expectedCards, Victory: $isVictory"
+                    )
+
+                    if (isVictory) {
+                        gameCompleted = true
+
+                        timerJob?.cancel()
+
+                        Log.d("PokéMatch", "🎉 Victory! Timer cancelled, showing victory screen")
+
+                        _gameState.value = updatedState
+
+                        delay(400)
+
+                        handleVictory(updatedState)
+                    } else {
+                        // Not victory yet, just update state
+                        _gameState.value = updatedState
+                    }
+                } else {
+                    // Cards don't match - flip back after delay
+                    delay(800)
+
+                    val state = _gameState.value as? GameState.Playing ?: return@launch
+
+                    if (gameCompleted) return@launch
+
+                    val updatedCards = state.cards.toMutableList()
+                    updatedCards[firstIndex] = state.cards[firstIndex].copy(isFlipped = false)
+                    updatedCards[secondIndex] = state.cards[secondIndex].copy(isFlipped = false)
+
+                    _gameState.value = state.copy(
+                        cards = updatedCards,
+                        flippedIndices = emptyList(),
+                        moves = newMoves
+                    )
                 }
-            } else {
-                delay(800)
-                val state = _gameState.value as? GameState.Playing ?: return@launch
-                val updatedCards = state.cards.toMutableList()
-                updatedCards[firstIndex] = state.cards[firstIndex].copy(isFlipped = false)
-                updatedCards[secondIndex] = state.cards[secondIndex].copy(isFlipped = false)
-
-                _gameState.value = state.copy(
-                    cards = updatedCards,
-                    flippedIndices = emptyList(),
-                    moves = newMoves
-                )
             }
         }
     }

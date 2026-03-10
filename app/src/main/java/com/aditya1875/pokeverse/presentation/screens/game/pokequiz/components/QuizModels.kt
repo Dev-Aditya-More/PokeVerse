@@ -72,13 +72,3 @@ fun calculateQuestionScore(
     val timeBonus = (timeRemaining.toFloat() / totalTimeForQuestion * 50).toInt()
     return baseScore + timeBonus
 }
-
-fun calculateStars(score: Int, totalQuestions: Int): Int {
-    val maxScore = totalQuestions * 100
-    val percentage = (score.toFloat() / maxScore)
-    return when {
-        percentage >= 0.9f -> 3
-        percentage >= 0.7f -> 2
-        else -> 1
-    }
-}

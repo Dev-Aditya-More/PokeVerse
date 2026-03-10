@@ -17,41 +17,47 @@ class BillingViewModel(
     val subscriptionState = billingManager.subscriptionState
     val monthlyProduct = billingManager.monthlyProduct
     val yearlyProduct = billingManager.yearlyProduct
-    val billingError = billingManager.billingError
 
-    val monthlyPrice: StateFlow<String> = monthlyProduct.map { product ->
-        product?.subscriptionOfferDetails
-            ?.firstOrNull()
-            ?.pricingPhases
-            ?.pricingPhaseList
-            ?.firstOrNull()
-            ?.formattedPrice ?: ""
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+    init {
+        billingManager.startConnection()
+    }
 
-    val yearlyPrice: StateFlow<String> = yearlyProduct.map { product ->
-        product?.subscriptionOfferDetails
-            ?.firstOrNull()
-            ?.pricingPhases
-            ?.pricingPhaseList
-            ?.firstOrNull()
-            ?.formattedPrice ?: ""
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+    val monthlyPrice: StateFlow<String> =
+        monthlyProduct
+            .map { product ->
+                product?.subscriptionOfferDetails
+                    ?.firstOrNull()
+                    ?.pricingPhases
+                    ?.pricingPhaseList
+                    ?.firstOrNull()
+                    ?.formattedPrice ?: ""
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
+    val yearlyPrice: StateFlow<String> =
+        yearlyProduct
+            .map { product ->
+                product?.subscriptionOfferDetails
+                    ?.firstOrNull()
+                    ?.pricingPhases
+                    ?.pricingPhaseList
+                    ?.firstOrNull()
+                    ?.formattedPrice ?: ""
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     fun purchaseMonthly(activity: Activity) {
         val product = monthlyProduct.value ?: return
-        billingManager.launchPurchaseFlow(activity, product, isYearly = false)
+        billingManager.launchPurchaseFlow(activity, product)
     }
 
     fun purchaseYearly(activity: Activity) {
         val product = yearlyProduct.value ?: return
-        billingManager.launchPurchaseFlow(activity, product, isYearly = true)
+        billingManager.launchPurchaseFlow(activity, product)
     }
 
-    fun refreshPurchases() {
-        viewModelScope.launch {
-            billingManager.queryExistingPurchases()
-        }
+    override fun onCleared() {
+        billingManager.endConnection()
+        super.onCleared()
     }
-
-    fun clearError() = billingManager.clearError()
 }

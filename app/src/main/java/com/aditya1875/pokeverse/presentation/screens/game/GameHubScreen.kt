@@ -82,8 +82,8 @@ fun GameHubScreen(
     val games = listOf(
         GameEntry(
             id = "pokematch",
-            title = "PokéMatch",
-            description = "Flip cards and match Pokémon pairs before time runs out!",
+            title = "Match 'Em All",
+            description = "Flip cards and match pairs before time runs out!",
             icon = Icons.Default.GridView,
             accentColor = Color(0xFF4CAF50),
             tag = "Memory",
@@ -91,8 +91,8 @@ fun GameHubScreen(
         ),
         GameEntry(
             id = "pokequiz",
-            title = "PokéQuiz",
-            description = "Test your Pokémon knowledge across generations!",
+            title = "Do you know it?",
+            description = "Test your knowledge across generations!",
             icon = Icons.Default.Quiz,
             accentColor = Color(0xFF2196F3),
             tag = "Trivia",
@@ -100,8 +100,8 @@ fun GameHubScreen(
         ),
         GameEntry(
             id = "pokeguess",
-            title = "Who's That Pokémon?",
-            description = "Guess the Pokémon from its silhouette!",
+            title = "Who's That Monster?",
+            description = "Guess the monsters from its silhouette!",
             icon = Icons.Default.Visibility,
             accentColor = Color(0xFF9C27B0),
             tag = "Guess",

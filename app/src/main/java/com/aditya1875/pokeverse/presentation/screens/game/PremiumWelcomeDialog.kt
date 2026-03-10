@@ -67,7 +67,7 @@ fun PremiumWelcomeDialog(
                 Spacer(Modifier.height(12.dp))
 
                 Text(
-                    text = "Welcome to Pokeverse Premium 🎉",
+                    text = "Welcome to Dexverse Premium 🎉",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center
@@ -80,7 +80,7 @@ fun PremiumWelcomeDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Thanks for supporting Pokeverse! You’ve unlocked:",
+                    text = "Thanks for supporting Dexverse! You’ve unlocked:",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center

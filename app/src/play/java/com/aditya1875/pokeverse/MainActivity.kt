@@ -85,7 +85,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             val themePreferences = koinInject<ThemePreferences>()
             val selectedTheme by themePreferences.selectedTheme.collectAsState(
-                initial = AppTheme.CHARIZARD
+                initial = AppTheme.DEXVERSE
             )
 
             var currentTheme by rememberSaveable { mutableStateOf(selectedTheme) }

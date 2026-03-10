@@ -111,7 +111,6 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
-    val team by viewModel.currentTeamMembers.collectAsStateWithLifecycle()
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isLoading,

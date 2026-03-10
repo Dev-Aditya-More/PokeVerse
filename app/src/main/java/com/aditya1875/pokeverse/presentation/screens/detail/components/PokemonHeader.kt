@@ -216,7 +216,7 @@ fun PokemonDetailHeader(
                                     )
 
                                     else -> ColorFilter.tint(
-                                        Color.Black,
+                                        bgColor,
                                         blendMode = BlendMode.SrcAtop
                                     )
                                 }
