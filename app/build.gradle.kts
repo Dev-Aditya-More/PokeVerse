@@ -18,8 +18,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 51
-        versionName = "1.5.1"
+        versionCode = 52
+        versionName = "1.5.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -192,6 +192,11 @@ dependencies {
     add("playImplementation", libs.google.firebase.crashlytics.ktx)
     add("playImplementation", libs.firebase.messaging)
     add("playImplementation", libs.billing.ktx)
+
+    add("playImplementation", libs.firebase.auth.ktx)
+    add("playImplementation", libs.firebase.database.ktx)
+
+    add("playImplementation", libs.play.services.auth)
 
     // Glance Widget
     implementation (libs.androidx.glance.appwidget)

@@ -57,7 +57,7 @@ fun PremiumBanner(
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text = "Unlock Hard mode + unlimited games",
+                    text = "Unlock Hard mode and more",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                 )

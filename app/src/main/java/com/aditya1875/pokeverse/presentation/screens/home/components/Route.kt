@@ -44,4 +44,7 @@ sealed class Route(val route: String) {
     object Details : Route("pokemon_detail/{pokemonName}") {
         fun createDetails(pokemonName: String): String = "pokemon_detail/$pokemonName"
     }
+
+    object Profile : Route("profile")
+    object EditProfile : Route("edit_profile")
 }

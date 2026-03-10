@@ -380,12 +380,182 @@ object QuizQuestionBank {
 
         QuizQuestion(
             id = 38,
-            question = "What is the base stat total of Mewtwo?",
-            options = listOf("680", "600", "720", "540"),
+            question = "Which Pokémon is known as the 'Genetic Pokémon'?",
+            options = listOf("Mewtwo", "Mew", "Deoxys", "Arceus"),
             correctAnswerIndex = 0,
             difficulty = QuizDifficulty.MEDIUM,
-            category = QuizCategory.STATS,
-            explanation = "Mewtwo's base stat total is 680, making it one of the strongest!"
+            category = QuizCategory.POKEDEX,
+            explanation = "Mewtwo was created from Mew's DNA in a lab!"
+        ),
+
+        QuizQuestion(
+            id = 40,
+            question = "Which move never misses in rain?",
+            options = listOf("Thunder", "Hydro Pump", "Blizzard", "Focus Blast"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.MEDIUM,
+            category = QuizCategory.MOVES,
+            explanation = "Thunder and Hurricane have perfect accuracy in rain!"
+        ),
+
+        QuizQuestion(
+            id = 41,
+            question = "Which Pokémon is known for having the most HP?",
+            options = listOf("Blissey", "Chansey", "Snorlax", "Wailord"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.MEDIUM,
+            category = QuizCategory.POKEDEX,
+            explanation = "Blissey is the ultimate special wall with massive HP!"
+        ),
+
+        QuizQuestion(
+            id = 48,
+            question = "Which pseudo-legendary is Dragon/Ground type?",
+            options = listOf("Garchomp", "Dragonite", "Salamence", "Tyranitar"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.MEDIUM,
+            category = QuizCategory.TYPES,
+            explanation = "Garchomp's unique typing gives it only one weakness: Ice!"
+        ),
+
+        QuizQuestion(
+            id = 53,
+            question = "Which Mega Evolution becomes Psychic/Fighting?",
+            options = listOf("Mega Mewtwo X", "Mega Alakazam", "Mega Medicham", "Mega Gallade"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.MEDIUM,
+            category = QuizCategory.TYPES,
+            explanation = "Mega Mewtwo X trades Special Attack for physical power!"
+        ),
+
+        QuizQuestion(
+            id = 64,
+            question = "Which Pokémon evolves by trading with a Twisted Spoon?",
+            options = listOf("None - Alakazam needs no item", "Kadabra", "Abra", "Alakazam"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.MEDIUM,
+            category = QuizCategory.EVOLUTIONS,
+            explanation = "Kadabra evolves into Alakazam through trade alone!"
+        ),
+
+        QuizQuestion(
+            id = 71,
+            question = "Which move deals damage based on the user's level?",
+            options = listOf("Seismic Toss", "Night Shade", "Dragon Rage", "All of them"),
+            correctAnswerIndex = 3,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.MOVES,
+            explanation = "All three deal fixed damage based on level!"
+        ),
+
+        QuizQuestion(
+            id = 75,
+            question = "Which legendary is Ground/Flying type?",
+            options = listOf("Landorus", "Groudon", "Rayquaza", "Yveltal"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.TYPES,
+            explanation = "Landorus is part of the Forces of Nature trio!"
+        ),
+
+        QuizQuestion(
+            id = 77,
+            question = "Which Fairy-type can learn Moonblast naturally?",
+            options = listOf("Clefable", "Wigglytuff", "Azumarill", "All of them"),
+            correctAnswerIndex = 3,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.MOVES,
+            explanation = "Moonblast is a signature Fairy-type move!"
+        ),
+
+        QuizQuestion(
+            id = 79,
+            question = "Which Ultra Beast is Grass/Steel type?",
+            options = listOf("Kartana", "Celesteela", "Xurkitree", "None"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.TYPES,
+            explanation = "Kartana is the lightest Ultra Beast but hits incredibly hard!"
+        ),
+
+        QuizQuestion(
+            id = 81,
+            question = "Which move hits Defense instead of Special Defense?",
+            options = listOf("Psyshock", "Psychic", "Psybeam", "Confusion"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.MOVES,
+            explanation = "Psyshock targets Defense, making it unique!"
+        ),
+
+        QuizQuestion(
+            id = 85,
+            question = "Which legendary becomes Fairy/Steel when holding Rusted Sword?",
+            options = listOf("Zacian", "Zamazenta", "Eternatus", "Calyrex"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.TYPES,
+            explanation = "Zacian-Crowned is the strongest physical attacker!"
+        ),
+
+        QuizQuestion(
+            id = 87,
+            question = "Which Electric move always paralyzes but has low accuracy?",
+            options = listOf("Zap Cannon", "Thunder", "Thunderbolt", "Discharge"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.MOVES,
+            explanation = "Zap Cannon is high risk, high reward!"
+        ),
+
+        QuizQuestion(
+            id = 89,
+            question = "Which Tapu summons Psychic Terrain?",
+            options = listOf("Tapu Lele", "Tapu Koko", "Tapu Bulu", "Tapu Fini"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.ABILITIES,
+            explanation = "Each Tapu summons a different terrain!"
+        ),
+
+        QuizQuestion(
+            id = 91,
+            question = "Which Pokémon doesn't need a Mega Stone to Mega Evolve?",
+            options = listOf("Rayquaza", "Mewtwo", "Charizard", "Lucario"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.EVOLUTIONS,
+            explanation = "Rayquaza needs Dragon Ascent move instead!"
+        ),
+
+        QuizQuestion(
+            id = 95,
+            question = "Which Ultra Beast is Steel/Flying type?",
+            options = listOf("Celesteela", "Kartana", "Stakataka", "Naganadel"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.TYPES,
+            explanation = "Celesteela is based on a bamboo rocket ship!"
+        ),
+
+        QuizQuestion(
+            id = 97,
+            question = "Which Steel move can raise Attack?",
+            options = listOf("Meteor Mash", "Iron Head", "Steel Beam", "Flash Cannon"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.MOVES,
+            explanation = "Meteor Mash has a 20% chance to boost Attack!"
+        ),
+
+        QuizQuestion(
+            id = 99,
+            question = "Which Ultra Beast is Bug/Fighting type?",
+            options = listOf("Pheromosa", "Buzzwole", "Xurkitree", "Kartana"),
+            correctAnswerIndex = 0,
+            difficulty = QuizDifficulty.HARD,
+            category = QuizCategory.TYPES,
+            explanation = "Pheromosa is the fastest Ultra Beast!"
         ),
 
         QuizQuestion(
@@ -396,26 +566,6 @@ object QuizQuestionBank {
             difficulty = QuizDifficulty.MEDIUM,
             category = QuizCategory.ABILITIES,
             explanation = "Immunity prevents the Pokémon from being poisoned!"
-        ),
-
-        QuizQuestion(
-            id = 40,
-            question = "What is the accuracy of Thunder?",
-            options = listOf("70%", "80%", "90%", "100%"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.MEDIUM,
-            category = QuizCategory.MOVES,
-            explanation = "Thunder has 70% accuracy, but never misses in rain!"
-        ),
-
-        QuizQuestion(
-            id = 41,
-            question = "Which Pokémon has the highest base HP?",
-            options = listOf("Blissey", "Chansey", "Snorlax", "Wailord"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.MEDIUM,
-            category = QuizCategory.STATS,
-            explanation = "Blissey has a massive base HP of 255!"
         ),
 
         QuizQuestion(
@@ -479,16 +629,6 @@ object QuizQuestionBank {
         ),
 
         QuizQuestion(
-            id = 48,
-            question = "What is Garchomp's base Speed stat?",
-            options = listOf("102", "95", "108", "100"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.MEDIUM,
-            category = QuizCategory.STATS,
-            explanation = "Garchomp's base 102 Speed makes it a fast pseudo-legendary!"
-        ),
-
-        QuizQuestion(
             id = 49,
             question = "Which ability boosts Speed in rain?",
             options = listOf("Swift Swim", "Drizzle", "Rain Dish", "Hydration"),
@@ -526,16 +666,6 @@ object QuizQuestionBank {
             difficulty = QuizDifficulty.MEDIUM,
             category = QuizCategory.ABILITIES,
             explanation = "Disguise blocks the first damaging hit it takes!"
-        ),
-
-        QuizQuestion(
-            id = 53,
-            question = "Which Pokémon has the highest base Attack?",
-            options = listOf("Mega Mewtwo X", "Rayquaza", "Garchomp", "Dragonite"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.MEDIUM,
-            category = QuizCategory.STATS,
-            explanation = "Mega Mewtwo X has a base Attack of 190!"
         ),
 
         QuizQuestion(
@@ -639,16 +769,6 @@ object QuizQuestionBank {
         ),
 
         QuizQuestion(
-            id = 64,
-            question = "What is Alakazam's highest base stat?",
-            options = listOf("Special Attack", "Speed", "Special Defense", "HP"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.MEDIUM,
-            category = QuizCategory.STATS,
-            explanation = "Alakazam's Special Attack is 135, making it a special sweeper!"
-        ),
-
-        QuizQuestion(
             id = 65,
             question = "Which Pokémon has the ability Huge Power?",
             options = listOf("Azumarill", "Slaking", "Regigigas", "Medicham"),
@@ -713,16 +833,6 @@ object QuizQuestionBank {
         // ═══════════════════════════════════════════════════════════
 
         QuizQuestion(
-            id = 71,
-            question = "What is the base power of Seismic Toss?",
-            options = listOf("Equals user's level", "100", "80", "Variable"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.MOVES,
-            explanation = "Seismic Toss deals damage equal to the user's level!"
-        ),
-
-        QuizQuestion(
             id = 72,
             question = "Which ability boosts Sp. Atk in harsh sunlight?",
             options = listOf("Solar Power", "Chlorophyll", "Drought", "Flower Gift"),
@@ -753,16 +863,6 @@ object QuizQuestionBank {
         ),
 
         QuizQuestion(
-            id = 75,
-            question = "What is Landorus-T's base Attack stat?",
-            options = listOf("145", "135", "130", "150"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.STATS,
-            explanation = "Landorus-Therian has a massive base 145 Attack!"
-        ),
-
-        QuizQuestion(
             id = 76,
             question = "Which ability prevents secondary effects?",
             options = listOf("Shield Dust", "Inner Focus", "Keen Eye", "Clear Body"),
@@ -770,16 +870,6 @@ object QuizQuestionBank {
             difficulty = QuizDifficulty.HARD,
             category = QuizCategory.ABILITIES,
             explanation = "Shield Dust prevents additional effects of attacks!"
-        ),
-
-        QuizQuestion(
-            id = 77,
-            question = "What is Clefable's base stat total?",
-            options = listOf("483", "500", "525", "450"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.STATS,
-            explanation = "Clefable's balanced 483 BST makes it a great utility Pokémon!"
         ),
 
         QuizQuestion(
@@ -793,16 +883,6 @@ object QuizQuestionBank {
         ),
 
         QuizQuestion(
-            id = 79,
-            question = "What is Kartana's base Attack stat?",
-            options = listOf("181", "170", "165", "190"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.STATS,
-            explanation = "Kartana has the highest non-Mega base Attack at 181!"
-        ),
-
-        QuizQuestion(
             id = 80,
             question = "Which ability changes forme based on HP?",
             options = listOf("Power Construct", "Stance Change", "Shields Down", "Zen Mode"),
@@ -810,16 +890,6 @@ object QuizQuestionBank {
             difficulty = QuizDifficulty.HARD,
             category = QuizCategory.ABILITIES,
             explanation = "Power Construct transforms Zygarde at 50% HP!"
-        ),
-
-        QuizQuestion(
-            id = 81,
-            question = "What is the base power of Psyshock?",
-            options = listOf("80", "90", "70", "85"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.MOVES,
-            explanation = "Psyshock is special but hits the target's Defense stat!"
         ),
 
         QuizQuestion(
@@ -853,16 +923,6 @@ object QuizQuestionBank {
         ),
 
         QuizQuestion(
-            id = 85,
-            question = "What is Zacian's base Attack with Crowned Sword?",
-            options = listOf("170", "150", "165", "180"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.STATS,
-            explanation = "Zacian-Crowned has a ridiculous base 170 Attack!"
-        ),
-
-        QuizQuestion(
             id = 86,
             question = "Which ability heals allies' status?",
             options = listOf("Healer", "Natural Cure", "Immunity", "Shed Skin"),
@@ -870,16 +930,6 @@ object QuizQuestionBank {
             difficulty = QuizDifficulty.HARD,
             category = QuizCategory.ABILITIES,
             explanation = "Healer has a 30% chance to cure allies' status each turn!"
-        ),
-
-        QuizQuestion(
-            id = 87,
-            question = "What is the accuracy of Zap Cannon?",
-            options = listOf("50%", "60%", "70%", "80%"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.MOVES,
-            explanation = "Zap Cannon has 120 power and 50% accuracy, always paralyzes!"
         ),
 
         QuizQuestion(
@@ -893,16 +943,6 @@ object QuizQuestionBank {
         ),
 
         QuizQuestion(
-            id = 89,
-            question = "What is Tapu Lele's base Sp. Atk stat?",
-            options = listOf("130", "125", "135", "140"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.STATS,
-            explanation = "Tapu Lele's 130 Sp. Atk makes it a Psychic terrain sweeper!"
-        ),
-
-        QuizQuestion(
             id = 90,
             question = "Which ability prevents all entry hazards?",
             options = listOf("Magic Bounce", "Defiant", "Competitive", "Clear Body"),
@@ -910,16 +950,6 @@ object QuizQuestionBank {
             difficulty = QuizDifficulty.HARD,
             category = QuizCategory.ABILITIES,
             explanation = "Magic Bounce reflects hazards and status moves back!"
-        ),
-
-        QuizQuestion(
-            id = 91,
-            question = "What is Mega Rayquaza's base stat total?",
-            options = listOf("780", "720", "760", "800"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.STATS,
-            explanation = "Mega Rayquaza's 780 BST is tied for highest ever!"
         ),
 
         QuizQuestion(
@@ -952,15 +982,6 @@ object QuizQuestionBank {
             explanation = "Moxie boosts Attack; Weak Armor boosts Speed!"
         ),
 
-        QuizQuestion(
-            id = 95,
-            question = "What is Celesteela's BST?",
-            options = listOf("570", "580", "600", "550"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.STATS,
-            explanation = "As an Ultra Beast, Celesteela has 570 BST!"
-        ),
 
         QuizQuestion(
             id = 96,
@@ -970,16 +991,6 @@ object QuizQuestionBank {
             difficulty = QuizDifficulty.HARD,
             category = QuizCategory.ABILITIES,
             explanation = "Mimicry changes type to match active terrain!"
-        ),
-
-        QuizQuestion(
-            id = 97,
-            question = "What is the base power of Meteor Mash?",
-            options = listOf("90", "80", "100", "85"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.MOVES,
-            explanation = "Meteor Mash is 90 power with 90% accuracy!"
         ),
 
         QuizQuestion(
@@ -993,16 +1004,6 @@ object QuizQuestionBank {
         ),
 
         QuizQuestion(
-            id = 99,
-            question = "What is Pheromosa's base Speed?",
-            options = listOf("151", "145", "160", "140"),
-            correctAnswerIndex = 0,
-            difficulty = QuizDifficulty.HARD,
-            category = QuizCategory.STATS,
-            explanation = "Pheromosa is the fastest Ultra Beast with 151 Speed!"
-        ),
-
-        QuizQuestion(
             id = 100,
             question = "Which move sets up both screens at once?",
             options = listOf("Aurora Veil", "Light Screen", "Reflect", "Safeguard"),
@@ -1012,6 +1013,29 @@ object QuizQuestionBank {
             explanation = "Aurora Veil sets Reflect + Light Screen in hail/snow!"
         )
     )
+
+    fun getUnusedQuestions(
+        difficulty: QuizDifficulty,
+        excludeIds: Set<Int>
+    ): List<QuizQuestion> {
+        val availableQuestions = allQuestions
+            .filter { it.difficulty == difficulty }
+            .filter { it.id !in excludeIds }
+
+        return if (availableQuestions.size >= difficulty.questionCount) {
+            availableQuestions.shuffled().take(difficulty.questionCount)
+        } else {
+            // Use all available + fill with repeats
+            val fresh = availableQuestions.shuffled()
+            val needMore = difficulty.questionCount - fresh.size
+            val repeats = allQuestions
+                .filter { it.difficulty == difficulty }
+                .filter { it.id in excludeIds }
+                .shuffled()
+                .take(needMore)
+            (fresh + repeats).shuffled()
+        }
+    }
 
     fun getQuestionsByDifficulty(difficulty: QuizDifficulty): List<QuizQuestion> {
         return allQuestions

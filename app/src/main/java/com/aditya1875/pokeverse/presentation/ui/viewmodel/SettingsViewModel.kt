@@ -17,6 +17,13 @@ class SettingsViewModel(private val context: Context) : ViewModel() {
     private val _specialEffectsEnabled = MutableStateFlow(false)
     val specialEffectsEnabled: StateFlow<Boolean> = _specialEffectsEnabled.asStateFlow()
 
+    private val _originalAssetsEnabled = MutableStateFlow(false)
+    val originalAssetsEnabled: StateFlow<Boolean> = _originalAssetsEnabled.asStateFlow()
+
+    fun toggleOriginalAssetsEnabled() {
+        _originalAssetsEnabled.value = !originalAssetsEnabled.value
+    }
+
     init {
         viewModelScope.launch {
             ScreenStateManager.specialEffectsEnabledFlow(context).collect { persisted ->

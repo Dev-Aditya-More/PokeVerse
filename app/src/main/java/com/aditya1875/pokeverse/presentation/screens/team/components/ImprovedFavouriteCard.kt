@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,8 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -47,16 +48,15 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.data.local.entity.FavouriteEntity
-import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
 import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import kotlinx.coroutines.delay
-import kotlin.math.absoluteValue
 
 @Composable
 fun ImprovedFavoriteCard(
     favorite: FavouriteEntity,
     navController: NavController,
-    onRemove: (FavouriteEntity) -> Unit
+    onRemove: (FavouriteEntity) -> Unit,
+    assetsEnabled: Boolean
 ) {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -118,7 +118,19 @@ fun ImprovedFavoriteCard(
                         .crossfade(true)
                         .build(),
                     contentDescription = favorite.name,
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier
+                        .size(64.dp)
+                        .graphicsLayer {
+                            if(!assetsEnabled) {
+                                alpha = 1f
+                                colorFilter = ColorFilter.tint(
+                                    Color.Black,
+                                    blendMode = BlendMode.SrcAtop
+                                )
+                            } else {
+                                alpha = 1f
+                            }
+                        },
                     contentScale = ContentScale.Fit
                 )
             }

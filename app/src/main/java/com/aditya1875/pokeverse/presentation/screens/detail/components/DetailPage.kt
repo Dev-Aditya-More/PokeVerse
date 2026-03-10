@@ -92,6 +92,7 @@ import com.aditya1875.pokeverse.presentation.screens.detail.getPokemonBackground
 import com.aditya1875.pokeverse.presentation.screens.home.components.AddToTeamBottomSheet
 import com.aditya1875.pokeverse.presentation.screens.team.components.CreateTeamDialog
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import com.aditya1875.pokeverse.utils.DisplayMove
 import com.aditya1875.pokeverse.utils.UiError
 import org.koin.androidx.compose.koinViewModel
@@ -106,7 +107,8 @@ fun PokemonDetailPage(
     navController: NavController,
     specialEffectsEnabled: Boolean,
     spriteEffectsEnabledState: MutableState<Boolean>,
-    viewModel: PokemonViewModel = koinViewModel()
+    viewModel: PokemonViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pokemon = uiState.pokemon
@@ -687,7 +689,8 @@ fun PokemonDetailPage(
                                 showLoader = showLoader,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .aspectRatio(1f)
+                                    .aspectRatio(1f),
+                                settingsViewModel = settingsViewModel
                             )
                         }
 

@@ -1,7 +1,6 @@
 package com.aditya1875.pokeverse.presentation.screens.game.pokeguess
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,7 +31,6 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessGameState
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel

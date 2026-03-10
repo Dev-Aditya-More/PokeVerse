@@ -163,7 +163,7 @@ val appModule = module {
 
     viewModel { MatchViewModel(get(), get(), get()) }
 
-    viewModel { QuizViewModel(get(), get(), get()) }
+    viewModel { QuizViewModel(get(), get()) }
 
     single { get<TeamDatabase>().gameScoreDao() }
 

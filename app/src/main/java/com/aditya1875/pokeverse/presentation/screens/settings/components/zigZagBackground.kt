@@ -1,6 +1,5 @@
 package com.aditya1875.pokeverse.presentation.screens.settings.components
 
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color

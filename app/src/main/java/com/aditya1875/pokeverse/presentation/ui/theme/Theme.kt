@@ -15,32 +15,36 @@ import androidx.core.view.WindowCompat
 // POKEVERSE CLASSIC
 
 private val PokeverseClassicDark = darkColorScheme(
-    primary = Color(0xFFB63A3A),            // Muted Pokeverse Red
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFF8E2B2B),
-    onPrimaryContainer = Color(0xFFFFDAD6),
 
-    secondary = Color(0xFF3A3A3A),          // Neutral Dark
-    onSecondary = Color.White,
-    secondaryContainer = Color(0xFF2A2A2A),
-    onSecondaryContainer = Color(0xFFE0E0E0),
+    primary = Color(0xFF5FD3E6),              // Logo Cyan
+    onPrimary = Color(0xFF0B1C2D),
 
-    tertiary = Color(0xFF5A5A5A),           // Subtle highlights
-    onTertiary = Color.White,
+    primaryContainer = Color(0xFF1F4E5F),
+    onPrimaryContainer = Color(0xFFB8F3FF),
 
-    background = Color(0xFF0E0E0E),         // Near-black (NOT pure black)
-    onBackground = Color(0xFFEDEDED),
+    secondary = Color(0xFFFF7043),            // Logo Orange-Red
+    onSecondary = Color(0xFF1A0F0B),
 
-    surface = Color(0xFF1A1A1A),
-    onSurface = Color(0xFFEDEDED),
-    surfaceVariant = Color(0xFF242424),
-    onSurfaceVariant = Color(0xFFCFCFCF),
+    secondaryContainer = Color(0xFF5C2B1A),
+    onSecondaryContainer = Color(0xFFFFDAD0),
+
+    tertiary = Color(0xFF90CAF9),             // Soft highlight blue
+    onTertiary = Color(0xFF0B1C2D),
+
+    background = Color(0xFF0B1C2D),           // Deep Navy
+    onBackground = Color(0xFFEAF6FF),
+
+    surface = Color(0xFF13293D),
+    onSurface = Color(0xFFEAF6FF),
+
+    surfaceVariant = Color(0xFF1C3A52),
+    onSurfaceVariant = Color(0xFFC9DDEB),
 
     error = Color(0xFFCF6679),
     onError = Color.White,
 
-    outline = Color(0xFF3A3A3A),
-    outlineVariant = Color(0xFF2A2A2A),
+    outline = Color(0xFF274A66),
+    outlineVariant = Color(0xFF1C3A52),
 )
 
 // CHARIZARD THEME (Fire/Flying)
@@ -145,7 +149,7 @@ private val BlastoiseDark = darkColorScheme(
 // THEME ENUM
 
 enum class AppTheme {
-    POKEVERSE,
+    DEXVERSE,
     CHARIZARD,
     VENUSAUR,
     BLASTOISE
@@ -155,11 +159,11 @@ enum class AppTheme {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PokeverseTheme(
-    selectedTheme: AppTheme = AppTheme.POKEVERSE,
+    selectedTheme: AppTheme = AppTheme.DEXVERSE,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when (selectedTheme) {
-        AppTheme.POKEVERSE -> PokeverseClassicDark
+        AppTheme.DEXVERSE -> PokeverseClassicDark
         AppTheme.CHARIZARD -> CharizardDark
         AppTheme.VENUSAUR -> VenusaurDark
         AppTheme.BLASTOISE -> BlastoiseDark

@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -104,7 +103,7 @@ fun PremiumBottomSheet(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Pokeverse Premium",
+                text = "Dexverse Premium",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -113,7 +112,7 @@ fun PremiumBottomSheet(
             Spacer(Modifier.height(4.dp))
 
             Text(
-                text = "Unlock the full Pokeverse experience",
+                text = "Unlock the full Dexverse experience",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -232,7 +231,7 @@ fun PremiumBottomSheet(
             Spacer(Modifier.height(12.dp))
 
             Text(
-                text = "🔒 Payment processed securely by Google Play.\nYour card details are never shared with us.",
+                text = "🔒 Payment processed securely by Google Play.\nYour details are never shared with us.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,

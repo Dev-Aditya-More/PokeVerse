@@ -5,11 +5,11 @@ import com.aditya1875.pokeverse.di.appModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext.startKoin
 
-class PokeVerseApp : Application() {
+class DexVerseApp : Application() {
     override fun onCreate() {
         super.onCreate()
         startKoin {
-            androidContext(this@PokeVerseApp)
+            androidContext(this@DexVerseApp)
             modules(appModule)
         }
     }

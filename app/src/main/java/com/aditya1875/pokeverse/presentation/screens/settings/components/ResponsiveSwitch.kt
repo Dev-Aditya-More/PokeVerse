@@ -25,7 +25,6 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
-import androidx.core.graphics.toColor
 
 @Composable
 fun ResponsiveMetaballSwitch(

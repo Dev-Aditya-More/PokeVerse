@@ -82,7 +82,6 @@ fun PokemonCard(
                 }
             )
         } else {
-            // Show front when rotation > 90 degrees (mirrored)
             CardFront(
                 card = card,
                 modifier = Modifier.graphicsLayer {

@@ -3,12 +3,9 @@ package com.aditya1875.pokeverse.presentation.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.data.billing.IBillingManager
-import com.aditya1875.pokeverse.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
-import com.aditya1875.pokeverse.data.remote.model.gameModels.GameScore
-import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizGameState
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizQuestionBank
@@ -24,7 +21,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class QuizViewModel(
-    private val repository: PokemonRepo,
     gameScoreDao: GameScoreDao,
     billingManager: IBillingManager
 ) : ViewModel() {
@@ -42,20 +38,19 @@ class QuizViewModel(
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    fun canPlayDifficulty(difficulty: Difficulty): Boolean {
-        return when (difficulty) {
-            Difficulty.EASY -> true
-            Difficulty.MEDIUM -> true
-            Difficulty.HARD -> subscriptionState.value is SubscriptionState.Premium
-        }
-    }
+    private val usedQuestionIds = mutableSetOf<Int>()
 
     fun startQuiz(difficulty: QuizDifficulty) {
         viewModelScope.launch {
             _uiState.value = QuizUiState.Loading
             delay(300)
 
-            val questions = QuizQuestionBank.getQuestionsByDifficulty(difficulty)
+            val questions = QuizQuestionBank.getUnusedQuestions(
+                difficulty = difficulty,
+                excludeIds = usedQuestionIds
+            )
+
+            usedQuestionIds.addAll(questions.map { it.id })
 
             val gameState = QuizGameState(
                 questions = questions,
@@ -74,6 +69,13 @@ class QuizViewModel(
 
     fun onBackToMenu() {
         timerJob?.cancel()
+        usedQuestionIds.clear() // Reset for new session
+        _uiState.value = QuizUiState.Idle
+    }
+
+    fun resetQuiz() {
+        timerJob?.cancel()
+        usedQuestionIds.clear()
         _uiState.value = QuizUiState.Idle
     }
 
@@ -184,11 +186,6 @@ class QuizViewModel(
             percentage >= 0.5f -> 1
             else -> 0
         }
-    }
-
-    fun resetQuiz() {
-        timerJob?.cancel()
-        _uiState.value = QuizUiState.Idle
     }
 
     override fun onCleared() {

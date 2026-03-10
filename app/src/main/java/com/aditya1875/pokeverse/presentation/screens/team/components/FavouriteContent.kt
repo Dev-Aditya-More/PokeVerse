@@ -31,7 +31,8 @@ import com.aditya1875.pokeverse.data.local.entity.FavouriteEntity
 fun FavoritesContent(
     favorites: List<FavouriteEntity>,
     navController: NavController,
-    onRemove: (FavouriteEntity) -> Unit
+    onRemove: (FavouriteEntity) -> Unit,
+    assetsEnabled: Boolean
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         if (favorites.isEmpty()) {
@@ -85,7 +86,8 @@ fun FavoritesContent(
                     ImprovedFavoriteCard(
                         favorite = favorite,
                         navController = navController,
-                        onRemove = onRemove
+                        onRemove = onRemove,
+                        assetsEnabled = assetsEnabled
                     )
                 }
             }

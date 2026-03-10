@@ -1,7 +1,6 @@
 package com.aditya1875.pokeverse.presentation.screens.game
 
 import android.app.Activity
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -14,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -84,8 +82,8 @@ fun GameHubScreen(
     val games = listOf(
         GameEntry(
             id = "pokematch",
-            title = "PokéMatch",
-            description = "Flip cards and match Pokémon pairs before time runs out!",
+            title = "Match 'Em All",
+            description = "Flip cards and match pairs before time runs out!",
             icon = Icons.Default.GridView,
             accentColor = Color(0xFF4CAF50),
             tag = "Memory",
@@ -93,8 +91,8 @@ fun GameHubScreen(
         ),
         GameEntry(
             id = "pokequiz",
-            title = "PokéQuiz",
-            description = "Test your Pokémon knowledge across generations!",
+            title = "Do you know it?",
+            description = "Test your knowledge across generations!",
             icon = Icons.Default.Quiz,
             accentColor = Color(0xFF2196F3),
             tag = "Trivia",
@@ -102,8 +100,8 @@ fun GameHubScreen(
         ),
         GameEntry(
             id = "pokeguess",
-            title = "Who's That Pokémon?",
-            description = "Guess the Pokémon from its silhouette!",
+            title = "Who's That Monster?",
+            description = "Guess the monsters from its silhouette!",
             icon = Icons.Default.Visibility,
             accentColor = Color(0xFF9C27B0),
             tag = "Guess",

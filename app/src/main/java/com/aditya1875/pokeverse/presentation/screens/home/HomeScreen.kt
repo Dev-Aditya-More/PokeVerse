@@ -32,8 +32,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -54,7 +52,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -79,13 +76,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.presentation.screens.detail.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.presentation.screens.home.components.FilterBar
 import com.aditya1875.pokeverse.presentation.screens.home.components.ImprovedPokemonCard
@@ -94,7 +89,8 @@ import com.aditya1875.pokeverse.presentation.screens.home.components.SuggestionR
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.UiError
-import kotlinx.coroutines.delay
+import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -102,8 +98,11 @@ import org.koin.androidx.compose.koinViewModel
     ExperimentalMaterialApi::class
 )
 @Composable
-fun HomeScreen(navController: NavHostController) {
-    val viewModel: PokemonViewModel = koinViewModel()
+fun HomeScreen(
+    navController: NavHostController,
+    settingsViewModel: SettingsViewModel,
+    viewModel: PokemonViewModel = koinViewModel()
+) {
     val pokemonList by viewModel.pokemonList.collectAsStateWithLifecycle()
     val isLoading = viewModel.isLoading
     val endReached = viewModel.endReached
@@ -112,12 +111,16 @@ fun HomeScreen(navController: NavHostController) {
     val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
-    val team by viewModel.currentTeamMembers.collectAsStateWithLifecycle()
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isLoading,
         onRefresh = { viewModel.refreshList() }
     )
+
+    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
+        .collectAsStateWithLifecycle()
+
+    var showOriginalAssetsDialog by remember { mutableStateOf(false) }
 
     var isSearchFocused by remember { mutableStateOf(false) }
 
@@ -158,7 +161,7 @@ fun HomeScreen(navController: NavHostController) {
                 TopAppBar(
                     title = {
                         Text(
-                            "Pokeverse",
+                            "Dexverse",
                             style = MaterialTheme.typography.headlineSmall.copy(
                                 fontSize = 26.sp,
                                 letterSpacing = 0.5.sp
@@ -195,7 +198,6 @@ fun HomeScreen(navController: NavHostController) {
             }
         ) { paddingValues ->
             val focusManager = LocalFocusManager.current
-            val keyboardController = LocalSoftwareKeyboardController.current
 
             Box(
                 modifier = Modifier
@@ -240,7 +242,7 @@ fun HomeScreen(navController: NavHostController) {
                             query = it
                             viewModel.onSearchQueryChanged(it)
                         },
-                        label = { Text("Search a Pokémon") },
+                        label = { Text("Search a Monster..") },
                         singleLine = true,
                         leadingIcon = {
                             IconButton(onClick = { showFilters = !showFilters }) {
@@ -472,12 +474,12 @@ fun HomeScreen(navController: NavHostController) {
                                             pokemon = pokemon,
                                             isInTeam = isInTeam,
                                             isInFavorites = isFavorite,
-                                            teamSize = team.size,
                                             onAddToFavorites = { viewModel.addToFavorites(pokemon) },
                                             onRemoveFromFavorites = {
                                                 viewModel.removeFromFavoritesByName(pokemon.name)
                                             },
-                                            onClick = { navController.navigate(Route.Details.createDetails(pokemon.name)) }
+                                            isAssetEnabled = originalAssetsEnabled,
+                                            onClick = { navController.navigate(Route.Details.createDetails(pokemon.name)) },
                                         )
                                     }
 
