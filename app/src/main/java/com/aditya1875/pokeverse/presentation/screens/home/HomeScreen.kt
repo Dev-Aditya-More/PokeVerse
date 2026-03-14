@@ -93,6 +93,7 @@ import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.UiError
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.domain.xp.XPResult
+import com.aditya1875.pokeverse.presentation.screens.home.components.AssetsOnboardingBanner
 import com.aditya1875.pokeverse.presentation.screens.home.components.DailyTriviaFab
 import com.aditya1875.pokeverse.presentation.screens.home.components.DailyTriviaSheet
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
@@ -139,10 +140,8 @@ fun HomeScreen(
         onRefresh = { viewModel.refreshList() }
     )
 
-    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
-        .collectAsStateWithLifecycle()
-
-    var showOriginalAssetsDialog by remember { mutableStateOf(false) }
+    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
+    val assetsBannerSeen by settingsViewModel.assetsBannerSeen.collectAsStateWithLifecycle()
 
     var isSearchFocused by remember { mutableStateOf(false) }
 
@@ -593,6 +592,15 @@ fun HomeScreen(
                                                         )
                                                     )
                                                 },
+                                            )
+                                        }
+
+                                        item {
+                                            val showBanner = !assetsBannerSeen && !originalAssetsEnabled
+                                            AssetsOnboardingBanner(
+                                                visible = showBanner,
+                                                onEnable = { settingsViewModel.toggleOriginalAssetsEnabled() },
+                                                onDismiss = { settingsViewModel.dismissAssetsBanner() }
                                             )
                                         }
 

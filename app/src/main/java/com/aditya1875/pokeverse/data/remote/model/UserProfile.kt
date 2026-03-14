@@ -8,6 +8,7 @@ data class UserProfile(
     val currentXp: Int = 0,           // XP within current level (resets each level-up)
     val nextLevelXp: Int = 100,       // XP needed to reach next level
     val gamesPlayed: Int = 0,
+    val bestTypeRushScore: Int = 0,
     val bestQuizScore: Int = 0,
     val bestMatchScore: Int = 0,
     val bestGuessScore: Int = 0,

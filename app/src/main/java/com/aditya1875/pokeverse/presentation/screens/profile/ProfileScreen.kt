@@ -44,8 +44,10 @@ fun ProfileScreen(
     }
 
     LaunchedEffect(currentUser) {
-        currentUser?.let { user ->
-            viewModel.updateUsername(user.displayName ?: "Trainer")
+        currentUser?.displayName?.let { name ->
+            if (profile.username.isBlank()) {
+                viewModel.updateUsername(name)
+            }
         }
     }
 

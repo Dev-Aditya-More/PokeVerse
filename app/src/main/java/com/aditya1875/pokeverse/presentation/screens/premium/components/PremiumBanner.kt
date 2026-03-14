@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.presentation.screens.game.pokematch.components
+package com.aditya1875.pokeverse.presentation.screens.premium.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

@@ -1023,9 +1023,11 @@ object QuizQuestionBank {
             .filter { it.id !in excludeIds }
 
         return if (availableQuestions.size >= difficulty.questionCount) {
-            availableQuestions.shuffled().take(difficulty.questionCount)
+            availableQuestions
+                .shuffled()
+                .take(difficulty.questionCount)
+                .map { it.shuffleOptions() }
         } else {
-            // Use all available + fill with repeats
             val fresh = availableQuestions.shuffled()
             val needMore = difficulty.questionCount - fresh.size
             val repeats = allQuestions
@@ -1033,8 +1035,24 @@ object QuizQuestionBank {
                 .filter { it.id in excludeIds }
                 .shuffled()
                 .take(needMore)
-            (fresh + repeats).shuffled()
+            (fresh + repeats)
+                .shuffled()
+                .map { it.shuffleOptions() }
         }
+    }
+
+    private fun QuizQuestion.shuffleOptions(): QuizQuestion {
+
+        val correctAnswer = options[correctAnswerIndex]
+
+        val shuffledOptions = options.shuffled()
+
+        val newCorrectIndex = shuffledOptions.indexOf(correctAnswer)
+
+        return copy(
+            options = shuffledOptions,
+            correctAnswerIndex = newCorrectIndex
+        )
     }
 
     fun getQuestionsByDifficulty(difficulty: QuizDifficulty): List<QuizQuestion> {
@@ -1042,6 +1060,7 @@ object QuizQuestionBank {
             .filter { it.difficulty == difficulty }
             .shuffled()
             .take(difficulty.questionCount)
+            .map { it.shuffleOptions() }
     }
 
     fun getAllQuestions() = allQuestions

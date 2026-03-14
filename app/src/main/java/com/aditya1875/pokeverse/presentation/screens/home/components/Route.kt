@@ -22,6 +22,8 @@ sealed class Route(val route: String) {
         object Profile : BottomBar("profile", Icons.Default.Person)
     }
 
+    object EditProfile : Route("edit_profile")
+
     object Settings : Route("settings")
 
     object GameDifficulty : Route("game/difficulty")
@@ -42,6 +44,11 @@ sealed class Route(val route: String) {
         fun createRoute(difficulty: String) = "guess/play/$difficulty"
     }
 
+    object TypeRushDifficulty : Route("typerush/difficulty")
+    object TypeRushPlay : Route("typerush/play/{difficulty}") {
+        fun createRoute(difficulty: String) = "typerush/play/$difficulty"
+    }
+
     // Other screens
     object Analysis : Route("team_analysis")
     object ThemeSelector : Route("theme_selector")
@@ -49,7 +56,4 @@ sealed class Route(val route: String) {
     object Details : Route("pokemon_detail/{pokemonName}") {
         fun createDetails(pokemonName: String): String = "pokemon_detail/$pokemonName"
     }
-
-    object Profile : Route("profile")
-    object EditProfile : Route("edit_profile")
 }

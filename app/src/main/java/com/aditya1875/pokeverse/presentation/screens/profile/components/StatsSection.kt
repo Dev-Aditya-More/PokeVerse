@@ -82,6 +82,12 @@ fun GameStatsSection(profile: UserProfile) {
         )
 
         GameStatRow(
+            icon = Icons.Default.SportsEsports,
+            title = "Type Rush",
+            bestScore = profile.bestTypeRushScore,
+            accentColor = Color(0xFFA93128)
+        )
+        GameStatRow(
             icon = Icons.Default.Quiz,
             title = "Do you know it?",
             bestScore = profile.bestQuizScore,

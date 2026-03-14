@@ -30,6 +30,16 @@ class ProfileViewModel(
     private val _xpEvent = MutableSharedFlow<XPResult>(extraBufferCapacity = 8)
     val xpEvent: SharedFlow<XPResult> = _xpEvent.asSharedFlow()
 
+    init {
+        viewModelScope.launch {
+            currentUser.collect { user ->
+                user?.let {
+                    syncFromCloud(it.uid)
+                }
+            }
+        }
+    }
+
     fun onAppLaunch() {
         viewModelScope.launch {
             val uid = authManager.currentUser.value?.uid
@@ -43,7 +53,6 @@ class ProfileViewModel(
         }
     }
 
-    // Pull Firestore → DataStore, handling cross-device XP conflicts
     private suspend fun syncFromCloud(uid: String) {
         val cloudProfile = repository.loadFromFirestore(uid) ?: return
         val local = userProfile.value

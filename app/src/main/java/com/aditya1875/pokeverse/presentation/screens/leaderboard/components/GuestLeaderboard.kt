@@ -27,17 +27,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun GuestLeaderboardLocked() {
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
         contentAlignment = Alignment.Center
     ) {
-
         Surface(
             shape = RoundedCornerShape(20.dp),
             tonalElevation = 4.dp,
@@ -80,7 +81,8 @@ fun GuestLeaderboardLocked() {
                 Text(
                     text = "Sign in to appear on the global leaderboard,\ntrack your rank, and earn trainer prestige.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
             }
         }

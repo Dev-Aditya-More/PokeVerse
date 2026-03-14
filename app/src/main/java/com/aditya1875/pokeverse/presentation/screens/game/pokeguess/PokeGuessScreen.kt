@@ -32,6 +32,7 @@ import coil.request.ImageRequest
 import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessGameState
+import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.PokeGuessResultScreen
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
 import com.aditya1875.pokeverse.utils.SoundManager

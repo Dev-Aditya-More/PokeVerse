@@ -52,6 +52,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.GameTimer
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PokemonCard
+import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.TimeUpScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.VictoryScreen
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
 import com.aditya1875.pokeverse.utils.Difficulty

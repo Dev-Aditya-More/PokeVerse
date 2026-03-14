@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.presentation.screens.game.pokematch
+package com.aditya1875.pokeverse.presentation.screens.game.pokematch.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

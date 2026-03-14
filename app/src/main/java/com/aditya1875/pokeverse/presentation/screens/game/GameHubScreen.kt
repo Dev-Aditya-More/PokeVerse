@@ -25,8 +25,9 @@ import androidx.compose.ui.unit.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
-import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PremiumBanner
-import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PremiumBottomSheet
+import com.aditya1875.pokeverse.presentation.screens.premium.PremiumWelcomeDialog
+import com.aditya1875.pokeverse.presentation.screens.premium.components.PremiumBanner
+import com.aditya1875.pokeverse.presentation.screens.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -80,6 +81,15 @@ fun GameHubScreen(
     )
 
     val games = listOf(
+        GameEntry(
+            id = "poketype",
+            title = "Type Combo",
+            description = "Guess the type combo of monster",
+            icon = Icons.Default.SportsScore,
+            accentColor = Color(0xFF3F51B5),
+            tag = "Guess",
+            stats = "3 difficulties"
+        ),
         GameEntry(
             id = "pokematch",
             title = "Match 'Em All",

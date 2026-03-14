@@ -23,11 +23,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.aditya1875.pokeverse.data.billing.IBillingManager
@@ -37,20 +37,24 @@ import com.aditya1875.pokeverse.presentation.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.presentation.screens.analysis.TeamAnalysisScreen
 import com.aditya1875.pokeverse.presentation.screens.detail.PokemonDetailScreen
 import com.aditya1875.pokeverse.presentation.screens.game.GameHubScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.PokeGuessDifficultyScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.PokeGuessDifficultyScreen
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.PokeGuessGameScreen
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.GameScreen
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.DifficultyScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.QuizDifficultyScreen
+import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficultyScreen
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.QuizGameScreen
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
+import com.aditya1875.pokeverse.presentation.screens.game.poketype.TypeRushScreen
+import com.aditya1875.pokeverse.presentation.screens.game.poketype.components.TypeRushDifficulty
+import com.aditya1875.pokeverse.presentation.screens.game.poketype.components.TypeRushDifficultyScreen
 import com.aditya1875.pokeverse.presentation.screens.home.HomeScreen
 import com.aditya1875.pokeverse.presentation.screens.home.components.Route
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.LeaderboardScreen
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.screens.onboarding.IntroScreen
 import com.aditya1875.pokeverse.presentation.screens.profile.ProfileScreen
+import com.aditya1875.pokeverse.presentation.screens.profile.components.EditProfileDialog
 import com.aditya1875.pokeverse.presentation.screens.settings.SettingsScreen
 import com.aditya1875.pokeverse.presentation.screens.splash.SplashScreen
 import com.aditya1875.pokeverse.presentation.screens.team.DreamTeam
@@ -102,7 +106,7 @@ class MainActivity : ComponentActivity() {
             }
 
             LaunchedEffect(Unit) {
-                profileViewModel.onAppLaunch()   // triggers daily XP check
+                profileViewModel.onAppLaunch()
             }
 
             var currentTheme by rememberSaveable { mutableStateOf(selectedTheme) }
@@ -192,6 +196,7 @@ class MainActivity : ComponentActivity() {
                                 GameHubScreen(
                                     onGameSelected = { gameId ->
                                         when (gameId) {
+                                            "poketype" -> navController.navigate(Route.TypeRushDifficulty.route)
                                             "pokematch" -> navController.navigate(Route.GameDifficulty.route)
                                             "pokequiz" -> navController.navigate(Route.QuizDifficulty.route)
                                             "pokeguess" -> navController.navigate(Route.GuessDifficulty.route)
@@ -223,16 +228,21 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onEditName = {
                                         navController.navigate(Route.EditProfile.route)
-                                    },
+                                    }
                                 )
                             }
+                        }
+
+                        dialog(Route.EditProfile.route) {
+                            EditProfileDialog(
+                                onDismiss = { navController.popBackStack() }
+                            )
                         }
 
                         composable(Route.Settings.route) {
                             SettingsScreen(navController, settingsViewModel)
                         }
 
-                        // ── POKÉMATCH NAVIGATION ──────────────────────────────
                         composable(Route.GameDifficulty.route) {
                             DifficultyScreen(
                                 onDifficultySelected = { difficulty ->
@@ -328,6 +338,26 @@ class MainActivity : ComponentActivity() {
                             }
 
                             PokeGuessGameScreen(
+                                difficulty = difficulty,
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+
+                        composable(Route.TypeRushDifficulty.route) {
+                            TypeRushDifficultyScreen(
+                                onDifficultySelected = { difficulty ->
+                                    navController.navigate(Route.TypeRushPlay.createRoute(difficulty.name))
+                                },
+                                onBack = { navController.popBackStack() }
+                            )
+                        }
+                        composable(
+                            route = Route.TypeRushPlay.route,
+                            arguments = listOf(navArgument("difficulty") { type = NavType.StringType })
+                        ) { backStackEntry ->
+                            val difficultyName = backStackEntry.arguments?.getString("difficulty") ?: "EASY"
+                            val difficulty = TypeRushDifficulty.valueOf(difficultyName)
+                            TypeRushScreen(
                                 difficulty = difficulty,
                                 onBack = { navController.popBackStack() }
                             )

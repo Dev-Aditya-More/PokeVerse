@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
@@ -25,11 +26,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.presentation.ui.theme.AppTheme
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +44,14 @@ fun ThemeSelectorScreen(
     onThemeSelected: (AppTheme) -> Unit
 ) {
     val scope = rememberCoroutineScope()
-    val currentTheme by themePreferences.selectedTheme.collectAsState(initial = AppTheme.CHARIZARD)
+    val currentTheme by themePreferences.selectedTheme.collectAsState(initial = AppTheme.DEXVERSE)
+
+    val billingViewModel: BillingViewModel = koinViewModel()
+    val subscriptionState by billingViewModel.subscriptionState.collectAsStateWithLifecycle()
+
+    val isPremium = subscriptionState is SubscriptionState.Premium
+
+    var showPremiumSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -84,6 +96,7 @@ fun ThemeSelectorScreen(
                     shape = RoundedCornerShape(16.dp),
                     elevation = CardDefaults.cardElevation(4.dp)
                 ) {
+
                     Column(
                         modifier = Modifier.padding(24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -112,15 +125,21 @@ fun ThemeSelectorScreen(
                 }
             }
 
-            // Theme Options
             items(getStarterThemes()) { starterTheme ->
+                val canUseTheme = !starterTheme.premium || isPremium
+                val locked = starterTheme.premium && !isPremium
                 StarterThemeCard(
                     starterTheme = starterTheme,
                     isSelected = currentTheme == starterTheme.theme,
+                    isLocked = locked,
                     onClick = {
-                        scope.launch {
-                            themePreferences.setTheme(starterTheme.theme)
-                            onThemeSelected(starterTheme.theme)
+                        if (canUseTheme) {
+                            scope.launch {
+                                themePreferences.setTheme(starterTheme.theme)
+                                onThemeSelected(starterTheme.theme)
+                            }
+                        } else {
+                            showPremiumSheet = true
                         }
                     }
                 )
@@ -165,23 +184,40 @@ data class StarterTheme(
     val type: String,
     val emoji: String,
     val description: String,
-    val colors: List<Color>
+    val colors: List<Color>,
+    val premium: Boolean = false
 )
 
 fun getStarterThemes(): List<StarterTheme> = listOf(
     StarterTheme(
         theme = AppTheme.DEXVERSE,
-        pokemonName = "Dexverse Classic",
-        pokemonNumber = "Default",
-        type = "Brand Theme",
-        emoji = "⭐",
-        description = "The original Dexverse look and feel",
+        pokemonName = "Dexverse",
+        pokemonNumber = "Brand",
+        type = "Official Theme",
+        emoji = "⚡",
+        description = "The classic Dexverse theme",
         colors = listOf(
-            Color(0xFF5FD3E6),   // Cyan
-            Color(0xFFFF7043),   // Orange
-            Color(0xFF0B1C2D)    // Deep Navy
+            Color(0xFF7C4DFF), // Purple
+            Color(0xFF00E5FF), // Neon cyan
+            Color(0xFF0B0F1A)  // Deep space navy
         )
     ),
+
+    StarterTheme(
+        theme = AppTheme.PIKACHU,
+        pokemonName = "Pikachu",
+        pokemonNumber = "#025",
+        type = "Electric",
+        emoji = "⚡",
+        description = "Bright and energetic like everyone's favorite electric mouse",
+        colors = listOf(
+            Color(0xFFFFD600), // Pikachu Yellow
+            Color(0xFFFFEA00), // Bright Yellow
+            Color(0xFF212121)  // Dark contrast (ears/tail tip)
+        ),
+        premium = true
+    ),
+
     StarterTheme(
         theme = AppTheme.CHARIZARD,
         pokemonName = "Charizard",
@@ -227,8 +263,10 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
 fun StarterThemeCard(
     starterTheme: StarterTheme,
     isSelected: Boolean,
+    isLocked: Boolean,
     onClick: () -> Unit
 ) {
+
     val scale by animateFloatAsState(
         targetValue = if (isSelected) 1.02f else 1f,
         animationSpec = spring(
@@ -242,6 +280,7 @@ fun StarterThemeCard(
         modifier = Modifier
             .fillMaxWidth()
             .scale(scale)
+            .alpha(if (isLocked) 0.7f else 1f)
             .then(
                 if (isSelected) {
                     Modifier.border(
@@ -260,17 +299,19 @@ fun StarterThemeCard(
             defaultElevation = if (isSelected) 12.dp else 4.dp
         )
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                // Pokemon Info
+
                 Column(modifier = Modifier.weight(1f)) {
 
                     if (starterTheme.theme == AppTheme.DEXVERSE) {
@@ -284,52 +325,96 @@ fun StarterThemeCard(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
+
                         Text(
                             text = starterTheme.emoji,
                             fontSize = 32.sp
                         )
+
                         Spacer(Modifier.width(12.dp))
+
                         Column {
+
                             Text(
                                 text = starterTheme.pokemonName,
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
+
                             Text(
                                 text = starterTheme.pokemonNumber,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
+
+                            if (starterTheme.premium) {
+
+                                Spacer(Modifier.height(6.dp))
+
+                                AssistChip(
+                                    onClick = {},
+                                    enabled = false,
+                                    label = { Text("Premium") },
+                                    leadingIcon = {
+                                        Icon(
+                                            Icons.Default.WorkspacePremium,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }
 
-                // Selection Indicator
-                AnimatedVisibility(
-                    visible = isSelected,
-                    enter = scaleIn() + fadeIn(),
-                    exit = scaleOut() + fadeOut()
-                ) {
+                if (isLocked) {
+
                     Box(
                         modifier = Modifier
                             .size(40.dp)
                             .clip(CircleShape)
-                            .background(
-                                Brush.linearGradient(starterTheme.colors)
-                            ),
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            Icons.Default.Check,
-                            contentDescription = "Selected",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
+                            Icons.Default.Lock,
+                            contentDescription = "Premium Theme",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-                }
 
-                if (!isSelected) {
+                } else if (isSelected) {
+
+                    AnimatedVisibility(
+                        visible = true,
+                        enter = scaleIn() + fadeIn(),
+                        exit = scaleOut() + fadeOut()
+                    ) {
+
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(starterTheme.colors)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = "Selected",
+                                tint = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                } else {
+
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -345,11 +430,11 @@ fun StarterThemeCard(
 
             Spacer(Modifier.height(12.dp))
 
-            // Type Badge
             Surface(
                 shape = RoundedCornerShape(8.dp),
                 color = starterTheme.colors[0].copy(alpha = 0.15f)
             ) {
+
                 Text(
                     text = starterTheme.type,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -361,7 +446,6 @@ fun StarterThemeCard(
 
             Spacer(Modifier.height(12.dp))
 
-            // Description
             Text(
                 text = starterTheme.description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -370,11 +454,12 @@ fun StarterThemeCard(
 
             Spacer(Modifier.height(16.dp))
 
-            // Color Preview
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+
                 starterTheme.colors.forEach { color ->
+
                     Box(
                         modifier = Modifier
                             .size(32.dp)

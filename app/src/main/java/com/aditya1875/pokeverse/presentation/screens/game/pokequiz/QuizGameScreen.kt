@@ -59,6 +59,7 @@ import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizGameState
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizQuestion
+import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizResultScreen
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizUiState
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.QuizViewModel

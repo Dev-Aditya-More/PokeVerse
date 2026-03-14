@@ -47,6 +47,44 @@ private val PokeverseClassicDark = darkColorScheme(
     outlineVariant = Color(0xFF1C3A52),
 )
 
+// PIKACHU THEME (Electric)
+
+private val PikachuClassicDark = darkColorScheme(
+
+    primary = Color(0xFFFFD600),           // Pikachu Yellow
+    onPrimary = Color(0xFF1A1A1A),
+
+    primaryContainer = Color(0xFFFFC400),  // Deep Yellow
+    onPrimaryContainer = Color(0xFF2B2B2B),
+
+    secondary = Color(0xFFFFEA00),         // Electric Glow
+    onSecondary = Color(0xFF1A1A1A),
+
+    secondaryContainer = Color(0xFFFFF176),
+    onSecondaryContainer = Color(0xFF2B2B2B),
+
+    tertiary = Color(0xFFFFA000),          // Thunder Accent
+    onTertiary = Color(0xFF1A1A1A),
+
+    tertiaryContainer = Color(0xFFFFD54F),
+    onTertiaryContainer = Color(0xFF2B2B2B),
+
+    background = Color(0xFF121212),        // Dark neutral (so yellow pops)
+    onBackground = Color(0xFFFFFDE7),
+
+    surface = Color(0xFF1E1E1E),
+    onSurface = Color(0xFFFFFDE7),
+
+    surfaceVariant = Color(0xFF2C2C2C),
+    onSurfaceVariant = Color(0xFFFFF176),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF3A3A3A),
+    outlineVariant = Color(0xFF2C2C2C),
+)
+
 // CHARIZARD THEME (Fire/Flying)
 
 private val CharizardDark = darkColorScheme(
@@ -150,6 +188,7 @@ private val BlastoiseDark = darkColorScheme(
 
 enum class AppTheme {
     DEXVERSE,
+    PIKACHU,
     CHARIZARD,
     VENUSAUR,
     BLASTOISE
@@ -164,6 +203,7 @@ fun PokeverseTheme(
 ) {
     val colorScheme = when (selectedTheme) {
         AppTheme.DEXVERSE -> PokeverseClassicDark
+        AppTheme.PIKACHU -> PikachuClassicDark
         AppTheme.CHARIZARD -> CharizardDark
         AppTheme.VENUSAUR -> VenusaurDark
         AppTheme.BLASTOISE -> BlastoiseDark

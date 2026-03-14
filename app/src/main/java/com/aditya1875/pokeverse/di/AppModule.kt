@@ -21,6 +21,7 @@ import com.aditya1875.pokeverse.domain.trivia.DailyTriviaManager
 import com.aditya1875.pokeverse.domain.xp.XPManager
 import com.aditya1875.pokeverse.presentation.auth.AuthManager
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.DailyTriviaViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.ItemViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.LeaderboardViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
@@ -28,6 +29,7 @@ import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.QuizViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.TypeRushViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.utils.TeamMapper
 import com.google.gson.Gson
@@ -199,6 +201,10 @@ val appModule = module {
         DailyTriviaViewModel(get(), get())
     }
 
+    viewModel{
+        ItemViewModel(get())
+    }
+
     single { AuthManager(get()) }
 
     single { UserProfileRepository(androidContext()) }
@@ -230,6 +236,10 @@ val appModule = module {
             xpManager = get(),
             userRepository = get()
         )
+    }
+
+    viewModel{
+        TypeRushViewModel(get(), get(), get(), get(), get())
     }
 
 }

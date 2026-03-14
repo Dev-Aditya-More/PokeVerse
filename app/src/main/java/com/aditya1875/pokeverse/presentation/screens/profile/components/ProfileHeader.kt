@@ -95,7 +95,7 @@ fun ProfileHeader(
                     CircleShape
                 )
                 .combinedClickable(
-                    onClick = onEditName,
+                    onClick = {},
                     onLongClick = onEditPhoto
                 ),
             contentAlignment = Alignment.Center
