@@ -29,8 +29,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
+import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessGameState
+import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
@@ -45,6 +47,13 @@ fun PokeGuessGameScreen(
 ) {
     val gameState by viewModel.gameState.collectAsStateWithLifecycle()
     val soundManager: SoundManager = koinInject()
+
+    var pendingXp by remember { mutableStateOf<XPResult?>(null) }
+    LaunchedEffect(Unit) {
+        viewModel.xpResult.collect { result ->
+            pendingXp = result
+        }
+    }
     val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(gameState) {
@@ -77,66 +86,75 @@ fun PokeGuessGameScreen(
         }
     }
 
-    Scaffold(
-        Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.primary
+    XPOverlay(
+        result = pendingXp,
+        onDismiss = { pendingXp = null }
+    ) {
+        Scaffold(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.primary
+                        )
                     )
-                )
-            ).navigationBarsPadding()
+                ).navigationBarsPadding()
 
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-        ) {
-            when (val state = gameState) {
-                is GuessGameState.Idle -> {}
-                is GuessGameState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularWavyProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary
+        ) { innerPadding ->
+            Box(
+                modifier = Modifier
+                    .padding(innerPadding)
+            ) {
+                when (val state = gameState) {
+                    is GuessGameState.Idle -> {}
+                    is GuessGameState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularWavyProgressIndicator(
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    is GuessGameState.ShowingSilhouette -> {
+                        SilhouetteScreen(
+                            state = state,
+                            timeUp = state.timeRemaining <= 0,
+                            onAnswerSelected = { answer ->
+                                if (state.timeRemaining > 0) {
+                                    viewModel.submitAnswer(
+                                        answer,
+                                        state.currentQuestionIndex,
+                                        difficulty
+                                    )
+                                }
+                            },
+                            onBack = onBack
                         )
                     }
-                }
 
-                is GuessGameState.ShowingSilhouette -> {
-                    SilhouetteScreen(
-                        state = state,
-                        timeUp = state.timeRemaining <= 0,
-                        onAnswerSelected = { answer ->
-                            if (state.timeRemaining > 0) {
-                                viewModel.submitAnswer(answer, state.currentQuestionIndex, difficulty)
-                            }
-                        },
-                        onBack = onBack
-                    )
-                }
+                    is GuessGameState.Revealing -> {
+                        RevealScreen(
+                            state = state,
+                            onNext = { viewModel.nextQuestion(difficulty) },
+                            difficulty = difficulty
+                        )
+                    }
 
-                is GuessGameState.Revealing -> {
-                    RevealScreen(
-                        state = state,
-                        onNext = { viewModel.nextQuestion(difficulty) },
-                        difficulty = difficulty
-                    )
-                }
-
-                is GuessGameState.Finished -> {
-                    PokeGuessResultScreen(
-                        score = state.score,
-                        correctAnswers = state.correctAnswers,
-                        totalQuestions = state.totalQuestions,
-                        difficulty = state.difficulty,
-                        onPlayAgain = { viewModel.startGame(difficulty) },
-                        onBackToMenu = onBack
-                    )
+                    is GuessGameState.Finished -> {
+                        PokeGuessResultScreen(
+                            score = state.score,
+                            correctAnswers = state.correctAnswers,
+                            totalQuestions = state.totalQuestions,
+                            difficulty = state.difficulty,
+                            onPlayAgain = { viewModel.startGame(difficulty) },
+                            onBackToMenu = onBack
+                        )
+                    }
                 }
             }
         }

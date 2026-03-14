@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.aditya1875.pokeverse.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.data.local.TeamDatabase
 import com.aditya1875.pokeverse.data.local.PokemonDatabase
 import com.aditya1875.pokeverse.data.local.dao.TeamDao
@@ -11,13 +12,20 @@ import com.aditya1875.pokeverse.data.local.entity.TeamEntity
 import com.aditya1875.pokeverse.data.preferences.ThemePreferences
 import org.koin.androidx.viewmodel.dsl.viewModel
 import com.aditya1875.pokeverse.data.remote.PokeApi
+import com.aditya1875.pokeverse.data.repository.LeaderboardRepository
 import com.aditya1875.pokeverse.data.repository.PokemonRepoImpl
 import com.aditya1875.pokeverse.domain.repository.DescriptionRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
 import com.aditya1875.pokeverse.domain.repository.PokemonSearchRepository
+import com.aditya1875.pokeverse.domain.trivia.DailyTriviaManager
+import com.aditya1875.pokeverse.domain.xp.XPManager
+import com.aditya1875.pokeverse.presentation.auth.AuthManager
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.DailyTriviaViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.LeaderboardViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.QuizViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
@@ -67,24 +75,29 @@ val appModule = module {
     val MIGRATION_2_3 = object : Migration(2, 3) {
         override fun migrate(db: SupportSQLiteDatabase) {
             // Step 1: Create new teams table
-            db.execSQL("""
+            db.execSQL(
+                """
             CREATE TABLE IF NOT EXISTS teams (
                 teamId TEXT PRIMARY KEY NOT NULL,
                 teamName TEXT NOT NULL,
                 createdAt INTEGER NOT NULL,
                 isDefault INTEGER NOT NULL DEFAULT 0
             )
-        """)
+        """
+            )
 
             // Step 2: Create default team
             val defaultTeamId = UUID.randomUUID().toString()
-            db.execSQL("""
+            db.execSQL(
+                """
             INSERT INTO teams (teamId, teamName, createdAt, isDefault)
             VALUES ('$defaultTeamId', 'My Team', ${System.currentTimeMillis()}, 1)
-        """)
+        """
+            )
 
             // Step 3: Create temporary table for new team_members structure
-            db.execSQL("""
+            db.execSQL(
+                """
             CREATE TABLE IF NOT EXISTS team_members_new (
                 id TEXT PRIMARY KEY NOT NULL,
                 teamId TEXT NOT NULL,
@@ -93,10 +106,12 @@ val appModule = module {
                 addedAt INTEGER NOT NULL,
                 FOREIGN KEY(teamId) REFERENCES teams(teamId) ON DELETE CASCADE
             )
-        """)
+        """
+            )
 
             // Step 4: Copy existing data to new table, assigning to default team
-            db.execSQL("""
+            db.execSQL(
+                """
             INSERT INTO team_members_new (id, teamId, name, imageUrl, addedAt)
             SELECT 
                 LOWER(HEX(RANDOMBLOB(16))),
@@ -105,7 +120,8 @@ val appModule = module {
                 imageUrl,
                 ${System.currentTimeMillis()}
             FROM team_members
-        """)
+        """
+            )
 
             // Step 5: Drop old table
             db.execSQL("DROP TABLE team_members")
@@ -114,10 +130,12 @@ val appModule = module {
             db.execSQL("ALTER TABLE team_members_new RENAME TO team_members")
 
             // Step 7: Create index
-            db.execSQL("""
+            db.execSQL(
+                """
             CREATE INDEX IF NOT EXISTS index_team_members_teamId 
             ON team_members(teamId)
-        """)
+        """
+            )
         }
     }
 
@@ -148,7 +166,7 @@ val appModule = module {
 
     single { get<TeamDatabase>().teamDao() }
 
-    single { get<TeamDatabase>().favoritesDao()}
+    single { get<TeamDatabase>().favoritesDao() }
 
     single { TeamMapper }
 
@@ -161,9 +179,31 @@ val appModule = module {
         SettingsViewModel(androidContext())
     }
 
-    viewModel { MatchViewModel(get(), get(), get()) }
+    viewModel { MatchViewModel(get(), get(), get(), get(), get()) }
 
-    viewModel { QuizViewModel(get(), get()) }
+    viewModel { QuizViewModel(get(), get(), get(), get()) }
+
+    viewModel {
+        ProfileViewModel(get(), get(), get())
+    }
+
+    viewModel {
+        LeaderboardViewModel(get())
+    }
+
+    single {
+        DailyTriviaManager(get(), get())
+    }
+
+    viewModel {
+        DailyTriviaViewModel(get(), get())
+    }
+
+    single { AuthManager(get()) }
+
+    single { UserProfileRepository(androidContext()) }
+    single { XPManager(get<UserProfileRepository>()) }
+    single { LeaderboardRepository() }
 
     single { get<TeamDatabase>().gameScoreDao() }
 
@@ -182,6 +222,14 @@ val appModule = module {
     single { Gson() }
 
     single { SoundManager(get()) }
-    viewModel { PokeGuessViewModel(repository = get(), billingManager = get(), gameScoreDao = get()) }
+    viewModel {
+        PokeGuessViewModel(
+            repository = get(),
+            billingManager = get(),
+            gameScoreDao = get(),
+            xpManager = get(),
+            userRepository = get()
+        )
+    }
 
 }

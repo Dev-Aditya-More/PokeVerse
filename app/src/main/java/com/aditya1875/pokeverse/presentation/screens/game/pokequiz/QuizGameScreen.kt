@@ -55,10 +55,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizGameState
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizQuestion
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizUiState
+import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.QuizViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
@@ -72,6 +74,13 @@ fun QuizGameScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val soundManager: SoundManager = koinInject()
+
+    var pendingXp by remember { mutableStateOf<XPResult?>(null) }
+    LaunchedEffect(Unit) {
+        viewModel.xpResult.collect { result ->
+            pendingXp = result
+        }
+    }
 
     var showExitDialog by remember { mutableStateOf(false) }
 
@@ -91,69 +100,74 @@ fun QuizGameScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .navigationBarsPadding()
-    ) { padding ->
-
-        Box(
+    XPOverlay(
+        result = pendingXp,
+        onDismiss = { pendingXp = null }
+    ) {
+        Scaffold(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-        ) {
-            when (val state = uiState) {
-                is QuizUiState.Idle -> Unit
+                .background(MaterialTheme.colorScheme.background)
+                .navigationBarsPadding()
+        ) { padding ->
 
-                is QuizUiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
+                when (val state = uiState) {
+                    is QuizUiState.Idle -> Unit
 
-                is QuizUiState.Playing -> {
-                    QuizPlayingContent(
-                        gameState = state.gameState,
-                        onAnswerSelected = { viewModel.selectAnswer(it) },
-                        onRequestExit = { showExitDialog = true }
-                    )
-                }
-
-                is QuizUiState.ShowingAnswer -> {
-                    LaunchedEffect(state.isCorrect) {
-                        if (state.isCorrect) {
-                            soundManager.play(SoundManager.Sound.CORRECT_ANSWER)
-                        } else {
-                            soundManager.play(SoundManager.Sound.WRONG_ANSWER)
+                    is QuizUiState.Loading -> {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
                         }
                     }
 
-                    QuizAnswerFeedbackContent(
-                        gameState = state.gameState,
-                        selectedAnswerIndex = state.selectedAnswerIndex,
-                        isCorrect = state.isCorrect,
-                        explanation = state.explanation,
-                        onNext = { viewModel.nextQuestion() }
-                    )
-                }
+                    is QuizUiState.Playing -> {
+                        QuizPlayingContent(
+                            gameState = state.gameState,
+                            onAnswerSelected = { viewModel.selectAnswer(it) },
+                            onRequestExit = { showExitDialog = true }
+                        )
+                    }
 
-                is QuizUiState.Finished -> {
-                    QuizResultScreen(
-                        score = state.score,
-                        correctAnswers = state.correctAnswers,
-                        totalQuestions = state.totalQuestions,
-                        difficulty = state.difficulty,
-                        stars = state.stars,
-                        onPlayAgain = { viewModel.startQuiz(difficulty) },
-                        onBackToMenu = {
-                            viewModel.onBackToMenu()
-                            showExitDialog = true
+                    is QuizUiState.ShowingAnswer -> {
+                        LaunchedEffect(state.isCorrect) {
+                            if (state.isCorrect) {
+                                soundManager.play(SoundManager.Sound.CORRECT_ANSWER)
+                            } else {
+                                soundManager.play(SoundManager.Sound.WRONG_ANSWER)
+                            }
                         }
-                    )
+
+                        QuizAnswerFeedbackContent(
+                            gameState = state.gameState,
+                            selectedAnswerIndex = state.selectedAnswerIndex,
+                            isCorrect = state.isCorrect,
+                            explanation = state.explanation,
+                            onNext = { viewModel.nextQuestion() }
+                        )
+                    }
+
+                    is QuizUiState.Finished -> {
+                        QuizResultScreen(
+                            score = state.score,
+                            correctAnswers = state.correctAnswers,
+                            totalQuestions = state.totalQuestions,
+                            difficulty = state.difficulty,
+                            stars = state.stars,
+                            onPlayAgain = { viewModel.startQuiz(difficulty) },
+                            onBackToMenu = {
+                                viewModel.onBackToMenu()
+                                showExitDialog = true
+                            }
+                        )
+                    }
                 }
             }
         }

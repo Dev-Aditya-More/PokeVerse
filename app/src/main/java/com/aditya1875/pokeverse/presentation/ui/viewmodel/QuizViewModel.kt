@@ -4,8 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.data.billing.IBillingManager
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
+import com.aditya1875.pokeverse.data.repository.LeaderboardRepository
+import com.aditya1875.pokeverse.domain.xp.XPEvent
+import com.aditya1875.pokeverse.domain.xp.XPManager
+import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizGameState
 import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizQuestionBank
@@ -13,22 +18,30 @@ import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.Qu
 import com.aditya1875.pokeverse.utils.Difficulty
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class QuizViewModel(
     gameScoreDao: GameScoreDao,
-    billingManager: IBillingManager
+    billingManager: IBillingManager,
+    private val xpManager: XPManager,
+    private val repository: UserProfileRepository
 ) : ViewModel() {
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
 
     private val _uiState = MutableStateFlow<QuizUiState>(QuizUiState.Idle)
     val uiState: StateFlow<QuizUiState> = _uiState.asStateFlow()
+
+    private val _xpResult = MutableSharedFlow<XPResult>(extraBufferCapacity = 8)
+    val xpResult: SharedFlow<XPResult> = _xpResult.asSharedFlow()
 
     private var timerJob: Job? = null
 
@@ -40,16 +53,24 @@ class QuizViewModel(
 
     private val usedQuestionIds = mutableSetOf<Int>()
 
+    private var firstGameOfDayAwarded = false
+
     fun startQuiz(difficulty: QuizDifficulty) {
         viewModelScope.launch {
             _uiState.value = QuizUiState.Loading
             delay(300)
 
+            // First-game-of-day bonus (once per ViewModel lifetime)
+            if (!firstGameOfDayAwarded) {
+                firstGameOfDayAwarded = true
+                val bonus = xpManager.awardGameXP(XPEvent.FirstGameOfDay)
+                if (bonus.xpGained > 0) _xpResult.emit(bonus)
+            }
+
             val questions = QuizQuestionBank.getUnusedQuestions(
                 difficulty = difficulty,
                 excludeIds = usedQuestionIds
             )
-
             usedQuestionIds.addAll(questions.map { it.id })
 
             val gameState = QuizGameState(
@@ -89,6 +110,12 @@ class QuizViewModel(
         val currentQuestion = gameState.questions[gameState.currentQuestionIndex]
         val isCorrect = answerIndex == currentQuestion.correctAnswerIndex
 
+        // ── Award XP for this answer immediately ──────────────────────────────
+        viewModelScope.launch {
+            val result = xpManager.awardGameXP(XPEvent.QuizAnswer(correct = isCorrect))
+            if (result.xpGained > 0) _xpResult.emit(result)
+        }
+
         val questionScore = if (isCorrect) {
             calculateQuestionScore(
                 isCorrect = true,
@@ -116,7 +143,6 @@ class QuizViewModel(
         if (currentState !is QuizUiState.ShowingAnswer) return
 
         val gameState = currentState.gameState
-
         if (gameState.currentQuestionIndex >= gameState.questions.size - 1) {
             finishQuiz(gameState)
             return
@@ -126,7 +152,6 @@ class QuizViewModel(
             currentQuestionIndex = gameState.currentQuestionIndex + 1,
             timeRemaining = gameState.totalTimePerQuestion
         )
-
         _uiState.value = QuizUiState.Playing(nextGameState)
         startTimer()
     }
@@ -156,10 +181,20 @@ class QuizViewModel(
     }
 
     private fun finishQuiz(gameState: QuizGameState) {
-        val stars = calculateStars(
-            score = gameState.score,
-            totalQuestions = gameState.questions.size
-        )
+        val stars = calculateStars(gameState.score, gameState.questions.size)
+
+        viewModelScope.launch {
+            val result = xpManager.awardGameXP(
+                XPEvent.QuizComplete(
+                    score = gameState.correctAnswers,
+                    total = gameState.questions.size
+                )
+            )
+            if (result.xpGained > 0) _xpResult.emit(result)
+
+            repository.updateBestScore("quiz", gameState.score)
+            repository.incrementGamesPlayed()
+        }
 
         _uiState.value = QuizUiState.Finished(
             score = gameState.score,

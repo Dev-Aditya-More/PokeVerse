@@ -153,6 +153,7 @@ dependencies {
     implementation(libs.androidx.compose.animation.core)
 //    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.animation)
+    implementation(libs.googleid)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
@@ -188,13 +189,14 @@ dependencies {
     implementation(libs.accompanist.navigation.animation.v0340)
 
     add("playImplementation", platform(libs.firebase.bom))
-    add("playImplementation", libs.firebase.analytics.ktx)
-    add("playImplementation", libs.google.firebase.crashlytics.ktx)
+    add("playImplementation", libs.firebase.firestore)
+    add("playImplementation", libs.firebase.analytics)
+    add("playImplementation", libs.firebase.crashlytics)
     add("playImplementation", libs.firebase.messaging)
     add("playImplementation", libs.billing.ktx)
 
-    add("playImplementation", libs.firebase.auth.ktx)
-    add("playImplementation", libs.firebase.database.ktx)
+    add("playImplementation", libs.firebase.auth)
+    add("playImplementation", libs.firebase.database)
 
     add("playImplementation", libs.play.services.auth)
 

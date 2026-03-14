@@ -5,17 +5,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.data.billing.IBillingManager
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
+import com.aditya1875.pokeverse.domain.xp.XPEvent
+import com.aditya1875.pokeverse.domain.xp.XPManager
+import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessGameState
 import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.PokeGuessQuestion
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,7 +30,9 @@ import kotlinx.coroutines.launch
 class PokeGuessViewModel(
     private val repository: PokemonRepo,
     private val gameScoreDao: GameScoreDao,
-    billingManager: IBillingManager
+    billingManager: IBillingManager,
+    private val xpManager: XPManager,
+    private val userRepository: UserProfileRepository
 ) : ViewModel() {
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
@@ -31,14 +40,14 @@ class PokeGuessViewModel(
     private val _gameState = MutableStateFlow<GuessGameState>(GuessGameState.Idle)
     val gameState: StateFlow<GuessGameState> = _gameState.asStateFlow()
 
+    private val _xpResult = MutableSharedFlow<XPResult>(extraBufferCapacity = 8)
+    val xpResult: SharedFlow<XPResult> = _xpResult.asSharedFlow()
     private var timerJob: Job? = null
     private var currentScore = 0
     private var correctAnswers = 0
+    private var currentStreak = 0
     private val allQuestions = mutableListOf<PokeGuessQuestion>()
-
-    fun canPlayHard(): Boolean {
-        return subscriptionState.value is SubscriptionState.Premium
-    }
+    private var firstGameOfDayAwarded = false
 
     val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -50,14 +59,20 @@ class PokeGuessViewModel(
         viewModelScope.launch {
             _gameState.value = GuessGameState.Loading
 
+            // First-game bonus
+            if (!firstGameOfDayAwarded) {
+                val bonus = xpManager.awardGameXP(XPEvent.FirstGameOfDay)
+                if (bonus.xpGained > 0) _xpResult.emit(bonus)
+                firstGameOfDayAwarded = true
+            }
+
             try {
                 val questions = generateQuestions(difficulty)
                 allQuestions.clear()
                 allQuestions.addAll(questions)
-
                 currentScore = 0
                 correctAnswers = 0
-
+                currentStreak = 0
                 showQuestion(0, difficulty)
             } catch (e: Exception) {
                 Log.e("PokeGuess", "Failed to generate questions", e)
@@ -166,12 +181,28 @@ class PokeGuessViewModel(
     }
 
     private fun showQuestion(index: Int, difficulty: GuessDifficulty) {
+
         if (index >= allQuestions.size) {
-            finishGame(difficulty)
+            val current = _gameState.value
+            if (current is GuessGameState.ShowingSilhouette) {
+                finishGame(difficulty, current)
+            } else {
+                finishGame(
+                    difficulty,
+                    GuessGameState.ShowingSilhouette(
+                        question = allQuestions.last(),
+                        currentQuestionIndex = index,
+                        totalQuestions = allQuestions.size,
+                        score = currentScore,
+                        timeRemaining = 0
+                    )
+                )
+            }
             return
         }
 
         val question = allQuestions[index]
+
         _gameState.value = GuessGameState.ShowingSilhouette(
             question = question,
             currentQuestionIndex = index,
@@ -180,10 +211,10 @@ class PokeGuessViewModel(
             timeRemaining = difficulty.timePerQuestion
         )
 
-        startTimer(difficulty.timePerQuestion, index, difficulty)
+        startTimer(difficulty.timePerQuestion, index)
     }
 
-    private fun startTimer(totalTime: Int, questionIndex: Int, difficulty: GuessDifficulty) {
+    private fun startTimer(totalTime: Int, questionIndex: Int) {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             var timeLeft = totalTime
@@ -198,11 +229,11 @@ class PokeGuessViewModel(
                 }
             }
 
-            onTimeUp(questionIndex, difficulty)
+            onTimeUp(questionIndex)
         }
     }
 
-    private fun onTimeUp(questionIndex: Int, difficulty: GuessDifficulty) {
+    private fun onTimeUp(questionIndex: Int) {
         timerJob?.cancel()
 
         val question = allQuestions[questionIndex]
@@ -226,14 +257,21 @@ class PokeGuessViewModel(
 
         if (isCorrect) {
             correctAnswers++
+            currentStreak++
 
             val currentState = _gameState.value
             val timeBonus = if (currentState is GuessGameState.ShowingSilhouette) {
                 (currentState.timeRemaining * 10).coerceAtLeast(0)
-            } else {
-                0
-            }
+            } else 0
             currentScore += 100 + timeBonus
+
+            // ── Award XP for correct guess ────────────────────────────────────
+            viewModelScope.launch {
+                val result = xpManager.awardGameXP(XPEvent.GuessCorrect(streak = currentStreak))
+                if (result.xpGained > 0) _xpResult.emit(result)
+            }
+        } else {
+            currentStreak = 0   // reset streak on wrong answer
         }
 
         _gameState.value = GuessGameState.Revealing(
@@ -255,7 +293,15 @@ class PokeGuessViewModel(
         }
     }
 
-    private fun finishGame(difficulty: GuessDifficulty) {
+    private fun finishGame(difficulty: GuessDifficulty, state: GuessGameState.ShowingSilhouette) {
+        viewModelScope.launch {
+            val result = xpManager.awardGameXP(XPEvent.GuessComplete)
+            if (result.xpGained > 0) _xpResult.emit(result)
+
+            userRepository.updateBestScore("guess", state.score)
+            userRepository.incrementGamesPlayed()
+        }
+
         _gameState.value = GuessGameState.Finished(
             score = currentScore,
             correctAnswers = correctAnswers,

@@ -249,7 +249,6 @@ private fun GuessDifficultyCard(
     }
 }
 
-
 @Composable
 fun PokeGuessResultScreen(
     score: Int,

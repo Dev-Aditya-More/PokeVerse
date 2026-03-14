@@ -15,9 +15,6 @@ class SoundManager(private val context: Context) {
     enum class Sound {
         // UI Sounds
         BUTTON_CLICK,
-        BACK,
-        SUCCESS,
-        ERROR,
 
         // Game Sounds
         CARD_FLIP,
@@ -29,13 +26,9 @@ class SoundManager(private val context: Context) {
         // Quiz Sounds
         CORRECT_ANSWER,
         WRONG_ANSWER,
-        QUIZ_COMPLETE,
 
-        // Guess Sounds
-        POKEMON_APPEAR,
-        POKEMON_REVEAL,
-        GUESS_CORRECT,
-        GUESS_WRONG
+        WHOS_THAT_POKEMON,
+        LEVEL_UP
     }
 
     init {
@@ -67,6 +60,9 @@ class SoundManager(private val context: Context) {
         soundMap[Sound.CORRECT_ANSWER] = loadSound(R.raw.correct_answer)
         soundMap[Sound.WRONG_ANSWER] = loadSound(R.raw.wrong_answer)
         soundMap[Sound.TIMER_UP] = loadSound(R.raw.time_up)
+
+        soundMap[Sound.WHOS_THAT_POKEMON] = loadSound(R.raw.whos_that_pokemon)
+        soundMap[Sound.LEVEL_UP] = loadSound(R.raw.level_up)
         // Add more mappings when you have custom sound files
     }
 

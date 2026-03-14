@@ -49,8 +49,10 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.GameTimer
 import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.PokemonCard
+import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
 import com.aditya1875.pokeverse.utils.Difficulty
 import com.aditya1875.pokeverse.utils.GameState
@@ -69,6 +71,13 @@ fun GameScreen(
     val haptic = LocalHapticFeedback.current
     val soundManager: SoundManager = koinInject()
 
+    var pendingXp by remember { mutableStateOf<XPResult?>(null) }
+    LaunchedEffect(Unit) {
+        viewModel.xpResult.collect { result ->
+            pendingXp = result
+        }
+    }
+
     var showExitDialog by remember { mutableStateOf(false) }
 
     BackHandler(enabled = true) {
@@ -79,245 +88,256 @@ fun GameScreen(
         viewModel.startGame(difficulty)
     }
 
-    Scaffold(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .navigationBarsPadding()
-    ) { innerPadding ->
-
-        Box(
+    XPOverlay(
+        result = pendingXp,
+        onDismiss = { pendingXp = null }
+    ) {
+        Scaffold(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            when (val state = gameState) {
-                is GameState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            CircularWavyProgressIndicator(
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = "Preparing Pokémon...",
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                    }
-                }
+                .background(MaterialTheme.colorScheme.background)
+                .navigationBarsPadding()
+        ) { innerPadding ->
 
-                is GameState.Playing, is GameState.Paused -> {
-                    val playing = state as? GameState.Playing ?: (state as GameState.Paused).playing
-                    val isPaused = state is GameState.Paused
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
-                    ) {
-                        // ─── Top HUD ─────────────────────────────────────────────
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            // Score
-                            Column {
-                                Text(
-                                    "Score",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                                )
-                                Text(
-                                    playing.score.toString(),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold,
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                when (val state = gameState) {
+                    is GameState.Loading -> {
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                CircularWavyProgressIndicator(
                                     color = MaterialTheme.colorScheme.primary
                                 )
-                            }
-
-                            // Timer
-                            GameTimer(
-                                timeRemaining = playing.timeRemaining,
-                                totalTime = playing.difficulty.timeSeconds,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(horizontal = 16.dp)
-                            )
-
-                            Column(horizontalAlignment = Alignment.End) {
                                 Text(
-                                    "Moves",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                    text = "Preparing Pokémon...",
+                                    style = MaterialTheme.typography.bodyLarge
                                 )
-                                Text(
-                                    playing.moves.toString(),
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                            IconButton(
-                                onClick = {
-                                    if (isPaused) viewModel.resumeGame()
-                                    else viewModel.pauseGame()
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                                    contentDescription = null
-                                )
-                            }
-                        }
-
-                        // Progress text
-                        Text(
-                            text = "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Card(
-                                modifier = Modifier.fillMaxSize(),
-                                shape = RoundedCornerShape(20.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.35f)
-                                )
-                            ) {
-                                LazyVerticalGrid(
-                                    columns = GridCells.Fixed(playing.difficulty.gridColumns),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(12.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                    userScrollEnabled = true
-                                ) {
-                                    itemsIndexed(playing.cards) { index, card ->
-                                        PokemonCard(
-                                            card = card,
-                                            onClick = {
-                                                if (!isPaused) {
-                                                    soundManager.play(SoundManager.Sound.CARD_FLIP)
-                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                    viewModel.onCardFlipped(index)
-                                                }
-                                            },
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .aspectRatio(0.75f) // use 1f for square cards
-                                        )
-                                    }
-                                }
                             }
                         }
                     }
 
-                    // ─── Pause Overlay ─────────────────────────────────────────
-                    if (isPaused) {
-                        Box(
+                    is GameState.Playing, is GameState.Paused -> {
+                        val playing =
+                            state as? GameState.Playing ?: (state as GameState.Paused).playing
+                        val isPaused = state is GameState.Paused
+
+                        Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .background(Color.Black.copy(alpha = 0.6f)),
-                            contentAlignment = Alignment.Center
+                                .padding(16.dp)
                         ) {
-                            Card(
-                                shape = RoundedCornerShape(24.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = MaterialTheme.colorScheme.surface
-                                )
+                            // ─── Top HUD ─────────────────────────────────────────────
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Column(
-                                    modifier = Modifier.padding(32.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
+                                // Score
+                                Column {
                                     Text(
-                                        "Paused",
-                                        style = MaterialTheme.typography.headlineMedium,
+                                        "Score",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                    )
+                                    Text(
+                                        playing.score.toString(),
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+
+                                // Timer
+                                GameTimer(
+                                    timeRemaining = playing.timeRemaining,
+                                    totalTime = playing.difficulty.timeSeconds,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(horizontal = 16.dp)
+                                )
+
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text(
+                                        "Moves",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                    )
+                                    Text(
+                                        playing.moves.toString(),
+                                        style = MaterialTheme.typography.headlineSmall,
                                         fontWeight = FontWeight.Bold
                                     )
-                                    Button(
-                                        onClick = { viewModel.resumeGame() },
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        Icon(Icons.Default.PlayArrow, null)
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("Resume")
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        if (isPaused) viewModel.resumeGame()
+                                        else viewModel.pauseGame()
                                     }
-                                    OutlinedButton(
-                                        onClick = { viewModel.restartGame() },
-                                        modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Icon(
+                                        imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+
+                            // Progress text
+                            Text(
+                                text = "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Card(
+                                    modifier = Modifier.fillMaxSize(),
+                                    shape = RoundedCornerShape(20.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surface.copy(
+                                            alpha = 0.35f
+                                        )
+                                    )
+                                ) {
+                                    LazyVerticalGrid(
+                                        columns = GridCells.Fixed(playing.difficulty.gridColumns),
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(12.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                                        userScrollEnabled = true
                                     ) {
-                                        Icon(Icons.Default.Refresh, null)
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("Restart")
+                                        itemsIndexed(playing.cards) { index, card ->
+                                            PokemonCard(
+                                                card = card,
+                                                onClick = {
+                                                    if (!isPaused) {
+                                                        soundManager.play(SoundManager.Sound.CARD_FLIP)
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.LongPress
+                                                        )
+                                                        viewModel.onCardFlipped(index)
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .aspectRatio(0.75f) // use 1f for square cards
+                                            )
+                                        }
                                     }
-                                    TextButton(
-                                        onClick = { showExitDialog = true },
-                                        modifier = Modifier.fillMaxWidth()
+                                }
+                            }
+                        }
+
+                        if (isPaused) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.6f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Card(
+                                    shape = RoundedCornerShape(24.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surface
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(32.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(16.dp)
                                     ) {
-                                        Text("Exit Game", color = MaterialTheme.colorScheme.error)
+                                        Text(
+                                            "Paused",
+                                            style = MaterialTheme.typography.headlineMedium,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        Button(
+                                            onClick = { viewModel.resumeGame() },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Icon(Icons.Default.PlayArrow, null)
+                                            Spacer(Modifier.width(8.dp))
+                                            Text("Resume")
+                                        }
+                                        OutlinedButton(
+                                            onClick = { viewModel.restartGame() },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Icon(Icons.Default.Refresh, null)
+                                            Spacer(Modifier.width(8.dp))
+                                            Text("Restart")
+                                        }
+                                        TextButton(
+                                            onClick = { showExitDialog = true },
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                "Exit Game",
+                                                color = MaterialTheme.colorScheme.error
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+
+                    is GameState.Victory -> VictoryScreen(
+                        victory = state,
+                        onPlayAgain = { viewModel.startGame(state.difficulty) },
+                        onChangeDifficulty = onBack,
+                        onHome = { showExitDialog = true }
+                    )
+
+                    is GameState.TimeUp -> TimeUpScreen(
+                        timeUp = state,
+                        onPlayAgain = { viewModel.startGame(state.difficulty) },
+                        onBack = { showExitDialog = true }
+                    )
+
+                    else -> Unit
                 }
-
-                is GameState.Victory -> VictoryScreen(
-                    victory = state,
-                    onPlayAgain = { viewModel.startGame(state.difficulty) },
-                    onChangeDifficulty = onBack,
-                    onHome = { showExitDialog = true }
-                )
-
-                is GameState.TimeUp -> TimeUpScreen(
-                    timeUp = state,
-                    onPlayAgain = { viewModel.startGame(state.difficulty) },
-                    onBack = { showExitDialog = true }
-                )
-
-                else -> Unit
             }
-        }
 
-        // ─── Exit Dialog ─────────────────────────────────────────────────
-        if (showExitDialog) {
-            AlertDialog(
-                onDismissRequest = { showExitDialog = false },
-                title = { Text("Exit game?") },
-                text = { Text("Are you sure you want to exit?") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showExitDialog = false
-                            viewModel.returnToMenu()
-                            onBack()
+            if (showExitDialog) {
+                AlertDialog(
+                    onDismissRequest = { showExitDialog = false },
+                    title = { Text("Exit game?") },
+                    text = { Text("Are you sure you want to exit?") },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showExitDialog = false
+                                viewModel.returnToMenu()
+                                onBack()
+                            }
+                        ) {
+                            Text("Exit", color = MaterialTheme.colorScheme.error)
                         }
-                    ) {
-                        Text("Exit", color = MaterialTheme.colorScheme.error)
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showExitDialog = false }) {
+                            Text("Cancel")
+                        }
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showExitDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
-            )
+                )
+            }
         }
     }
 }

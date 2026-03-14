@@ -273,9 +273,9 @@ fun StarterThemeCard(
                 // Pokemon Info
                 Column(modifier = Modifier.weight(1f)) {
 
-                    if (starterTheme.theme == AppTheme.POKEVERSE) {
+                    if (starterTheme.theme == AppTheme.DEXVERSE) {
                         Text(
-                            text = "Recommended",
+                            text = "Classic",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold

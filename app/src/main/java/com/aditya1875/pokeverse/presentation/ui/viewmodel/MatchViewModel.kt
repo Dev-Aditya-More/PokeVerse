@@ -5,17 +5,24 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.data.billing.IBillingManager
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.domain.repository.PokemonRepo
+import com.aditya1875.pokeverse.domain.xp.XPEvent
+import com.aditya1875.pokeverse.domain.xp.XPManager
+import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.utils.CardState
 import com.aditya1875.pokeverse.utils.Difficulty
 import com.aditya1875.pokeverse.utils.GameState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -24,7 +31,9 @@ import kotlinx.coroutines.sync.withLock
 class MatchViewModel(
     private val repository: PokemonRepo,
     private val gameScoreDao: GameScoreDao,
-    billingManager: IBillingManager
+    billingManager: IBillingManager,
+    private val xpManager: XPManager,
+    private val userRepository: UserProfileRepository
 ) : ViewModel() {
 
     private val _gameState = MutableStateFlow<GameState>(GameState.Idle)
@@ -32,6 +41,9 @@ class MatchViewModel(
 
     private val _selectedDifficulty = MutableStateFlow(Difficulty.EASY)
     val selectedDifficulty: StateFlow<Difficulty> = _selectedDifficulty
+
+    private val _xpResult = MutableSharedFlow<XPResult>(extraBufferCapacity = 8)
+    val xpResult: SharedFlow<XPResult> = _xpResult.asSharedFlow()
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
     val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
@@ -46,6 +58,8 @@ class MatchViewModel(
 
     private var timerJob: Job? = null
     private var currentDifficulty = Difficulty.EASY
+
+    private var firstGameOfDayAwarded = false
 
     fun canPlayDifficulty(difficulty: Difficulty): Boolean {
         return when (difficulty) {
@@ -62,7 +76,15 @@ class MatchViewModel(
         currentDifficulty = difficulty
         gameCompleted = false
         _gameState.value = GameState.Loading
+
         viewModelScope.launch {
+            // First-game bonus
+            if (!firstGameOfDayAwarded) {
+                firstGameOfDayAwarded = true
+                val bonus = xpManager.awardGameXP(XPEvent.FirstGameOfDay)
+                if (bonus.xpGained > 0) _xpResult.emit(bonus)
+            }
+
             try {
                 val pokemon = fetchRandomPokemon(difficulty.pairs)
                 val cards = createCardDeck(pokemon, difficulty)
@@ -73,7 +95,7 @@ class MatchViewModel(
                 )
                 startTimer()
             } catch (e: Exception) {
-                Log.e("GameVM", "Failed to start game", e)
+                Log.e("MatchVM", "Failed to start game", e)
                 _gameState.value = GameState.Idle
             }
         }
@@ -149,11 +171,9 @@ class MatchViewModel(
 
     private fun checkForMatch(firstIndex: Int, secondIndex: Int) {
         viewModelScope.launch {
-            // ✅ FIX: Use mutex to prevent concurrent match checks
             matchCheckMutex.withLock {
                 val currentState = _gameState.value as? GameState.Playing ?: return@launch
 
-                // ✅ FIX: Don't process if game already completed
                 if (gameCompleted) return@launch
 
                 val firstCard = currentState.cards[firstIndex]
@@ -213,7 +233,6 @@ class MatchViewModel(
                         _gameState.value = updatedState
                     }
                 } else {
-                    // Cards don't match - flip back after delay
                     delay(800)
 
                     val state = _gameState.value as? GameState.Playing ?: return@launch
@@ -277,6 +296,16 @@ class MatchViewModel(
             timeRemaining = state.timeRemaining,
             totalTime = state.difficulty.timeSeconds
         )
+
+        // ── Award XP for completing the match ─────────────────────────────────
+        val par = state.difficulty.pairs * 2
+        val xpResult = xpManager.awardGameXP(
+            XPEvent.MatchComplete(moves = state.moves, par = par)
+        )
+        if (xpResult.xpGained > 0) _xpResult.emit(xpResult)
+
+        userRepository.updateBestScore("match", state.score)
+        userRepository.incrementGamesPlayed()
 
         val existingBest = gameScoreDao.getBestScore(state.difficulty.name)
         val isNewBest = existingBest == null || state.score > existingBest.score

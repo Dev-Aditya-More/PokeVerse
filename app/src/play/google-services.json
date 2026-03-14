@@ -12,7 +12,12 @@
           "package_name": "com.aditya1875.pokeverse"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "362465307544-2aahhujet94930f2tei585jbh9rmrtub.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDoDLueEpn8KfUG_7eYCYjNNJHgi3S-iUQ"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "362465307544-2aahhujet94930f2tei585jbh9rmrtub.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     },
@@ -31,7 +41,20 @@
           "package_name": "com.aditya1875.pokeverse.play"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "362465307544-mro1lioco9de4h3gnb8io4bssotgel8g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aditya1875.pokeverse.play",
+            "certificate_hash": "db2e8b9c168f46f4047fa075c08b92f4594470a1"
+          }
+        },
+        {
+          "client_id": "362465307544-2aahhujet94930f2tei585jbh9rmrtub.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDoDLueEpn8KfUG_7eYCYjNNJHgi3S-iUQ"
@@ -39,7 +62,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "362465307544-2aahhujet94930f2tei585jbh9rmrtub.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

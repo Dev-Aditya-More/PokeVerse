@@ -65,14 +65,6 @@ private val stars: List<Star> = List(120) {
     )
 }
 
-private data class OrbRing(val radiusFactor: Float, val alpha: Float, val blur: Float)
-
-private val orbRings = listOf(
-    OrbRing(1.45f, 0.08f, 24f),
-    OrbRing(1.20f, 0.14f, 16f),
-    OrbRing(1.00f, 0.22f, 8f),
-)
-
 private val BgTop = Color(0xFF060D1F)
 private val BgBottom = Color(0xFF0A1628)
 private val CyanGlow = Color(0xFF29C6E0)
@@ -83,14 +75,6 @@ private val White = Color(0xFFEEF4FF)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun SplashScreen() {
-
-    val progress = remember { Animatable(0f) }
-    LaunchedEffect(Unit) {
-        progress.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(durationMillis = 2800, easing = FastOutSlowInEasing)
-        )
-    }
 
     val infiniteTransition = rememberInfiniteTransition(label = "twinkle")
     val twinkleClock by infiniteTransition.animateFloat(
@@ -113,12 +97,6 @@ fun SplashScreen() {
         label = "ring"
     )
 
-    val p = progress.value
-
-    val glowAlpha = ((p - 0.25f) * 2.5f).coerceIn(0f, 1f)
-
-    val titleAlpha = ((p - 0.55f) * 3.5f).coerceIn(0f, 1f)
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -135,11 +113,9 @@ fun SplashScreen() {
             drawStars(stars, twinkleClock)
         }
 
-        // ── glow aura behind logo ─────────────────────────────────────────────
         Canvas(
             modifier = Modifier
                 .size(340.dp)
-                .alpha(glowAlpha)
         ) {
             val cx = size.width / 2f
             val cy = size.height / 2f
@@ -173,7 +149,6 @@ fun SplashScreen() {
         Canvas(
             modifier = Modifier
                 .size(220.dp)
-                .alpha(glowAlpha * 0.55f)
         ) {
             val cx = size.width / 2f
             val cy = size.height / 2f
@@ -194,8 +169,6 @@ fun SplashScreen() {
         }
 
         Column(
-            modifier = Modifier
-                .alpha(titleAlpha),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
