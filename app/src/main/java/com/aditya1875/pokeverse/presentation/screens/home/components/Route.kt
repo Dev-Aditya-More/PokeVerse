@@ -2,6 +2,8 @@ package com.aditya1875.pokeverse.presentation.screens.home.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Leaderboard
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
@@ -16,8 +18,13 @@ sealed class Route(val route: String) {
         object Home : BottomBar("home", Icons.Default.Home)
         object Team : BottomBar("dream_team", Icons.Default.Star)
         object Game : BottomBar("game", Icons.Default.SportsEsports)
-        object Settings : BottomBar("settings", Icons.Default.Settings)
+        object Leaderboard : BottomBar("leaderboard", Icons.Default.Leaderboard)
+        object Profile : BottomBar("profile", Icons.Default.Person)
     }
+
+    object EditProfile : Route("edit_profile")
+
+    object Settings : Route("settings")
 
     object GameDifficulty : Route("game/difficulty")
 
@@ -37,6 +44,11 @@ sealed class Route(val route: String) {
         fun createRoute(difficulty: String) = "guess/play/$difficulty"
     }
 
+    object TypeRushDifficulty : Route("typerush/difficulty")
+    object TypeRushPlay : Route("typerush/play/{difficulty}") {
+        fun createRoute(difficulty: String) = "typerush/play/$difficulty"
+    }
+
     // Other screens
     object Analysis : Route("team_analysis")
     object ThemeSelector : Route("theme_selector")
@@ -44,7 +56,4 @@ sealed class Route(val route: String) {
     object Details : Route("pokemon_detail/{pokemonName}") {
         fun createDetails(pokemonName: String): String = "pokemon_detail/$pokemonName"
     }
-
-    object Profile : Route("profile")
-    object EditProfile : Route("edit_profile")
 }

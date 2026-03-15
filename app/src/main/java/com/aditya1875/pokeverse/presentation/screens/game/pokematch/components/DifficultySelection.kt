@@ -1,180 +1,78 @@
 package com.aditya1875.pokeverse.presentation.screens.game.pokematch.components
 
-import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aditya1875.pokeverse.BuildConfig
-import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
+import com.aditya1875.pokeverse.presentation.screens.game.GameDifficultyLayout
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.MatchViewModel
-import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import com.aditya1875.pokeverse.utils.Difficulty
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DifficultyScreen(
     onDifficultySelected: (Difficulty) -> Unit,
     onBack: () -> Unit,
     viewModel: MatchViewModel = koinViewModel()
 ) {
+
     val topScores by viewModel.topScores.collectAsStateWithLifecycle()
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val activity = (context as? Activity)
 
-    val billingViewModel: BillingViewModel = koinViewModel()
-    val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
-    val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
-    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
-    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null
+    GameDifficultyLayout(
+        gameTitle = "PokéMatch",
+        gameSubtitle = "Match all Pokémon pairs to win!",
+        difficultyHint = "Flip cards and match all pairs.",
+        onBack = onBack,
+        subscriptionState = subscriptionState
+    ) {
 
-    var showPremiumSheet by remember { mutableStateOf(false) }
+        items(Difficulty.entries.toTypedArray()) { difficulty ->
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        "PokéMatch",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+            val canPlay = viewModel.canPlayDifficulty(difficulty)
+
+            DifficultyCard(
+                difficulty = difficulty,
+                canPlay = canPlay,
+                bestScore = topScores
+                    .filter { it.difficulty == difficulty.name }
+                    .maxByOrNull { it.score },
+                onSelect = {
+                    if (canPlay) onDifficultySelected(difficulty)
+                }
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item { Spacer(Modifier.height(8.dp)) }
-
-            item {
-                Column {
-                    Text(
-                        text = "Select Difficulty",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = "Match all Pokémon pairs to win!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
-                }
-            }
-
-            items(Difficulty.entries.toTypedArray()) { difficulty ->
-                val canPlay = viewModel.canPlayDifficulty(difficulty)
-                DifficultyCard(
-                    difficulty = difficulty,
-                    canPlay = canPlay,
-                    bestScore = topScores
-                        .filter { it.difficulty == difficulty.name }
-                        .maxByOrNull { it.score },
-                    onSelect = {
-                        if (canPlay) {
-                            onDifficultySelected(difficulty)
-                        } else {
-                            showPremiumSheet = true
-                        }
-                    }
-                )
-            }
-
-            if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
-                item {
-                    PremiumBanner(
-                        price = monthly,
-                        onSubscribe = { showPremiumSheet = true }
-                    )
-                }
-            }
-
-            item { Spacer(Modifier.height(16.dp)) }
         }
     }
-
-    if (showPremiumSheet) {
-        PremiumBottomSheet(
-            onDismiss = { showPremiumSheet = false },
-            onSubscribeMonthly = {
-                showPremiumSheet = false
-                activity?.let { billingViewModel.purchaseMonthly(it) }
-            },
-            onSubscribeYearly = {
-                showPremiumSheet = false
-                activity?.let { billingViewModel.purchaseYearly(it) }
-            },
-            monthlyPrice = monthly,
-            yearlyPrice = yearly,
-            isSubscribeEnabled = isBillingReady
-        )
-    }
-
 }
 
 @Composable

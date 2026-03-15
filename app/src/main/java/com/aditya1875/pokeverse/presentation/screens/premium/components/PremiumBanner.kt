@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.presentation.screens.game.pokematch.components
+package com.aditya1875.pokeverse.presentation.screens.premium.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +33,7 @@ fun PremiumBanner(
             .clickable { onSubscribe() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.7f)
         )
     ) {
         Row(

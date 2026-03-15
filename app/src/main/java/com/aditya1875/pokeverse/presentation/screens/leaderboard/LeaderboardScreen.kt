@@ -1,0 +1,543 @@
+package com.aditya1875.pokeverse.presentation.screens.leaderboard
+
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import com.aditya1875.pokeverse.data.repository.LeaderboardEntry
+import com.aditya1875.pokeverse.data.repository.LeaderboardState
+import com.aditya1875.pokeverse.presentation.auth.AuthState
+import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.GuestLeaderboardLocked
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.LeaderboardViewModel
+import com.aditya1875.pokeverse.presentation.ui.viewmodel.ProfileViewModel
+import org.koin.androidx.compose.koinViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LeaderboardScreen(
+    viewModel: LeaderboardViewModel = koinViewModel(),
+    profileViewModel: ProfileViewModel = koinViewModel()
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val pullState = rememberPullToRefreshState()
+    val authState by profileViewModel.authState.collectAsStateWithLifecycle()
+
+    if (authState !is AuthState.Authenticated) {
+        GuestLeaderboardLocked()
+        return
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.background
+    ) { padding ->
+        Box(modifier = Modifier.padding(padding)) {
+            when (val s = state) {
+                is LeaderboardState.Loading -> LeaderboardSkeleton()
+                is LeaderboardState.Error -> LeaderboardError(s.message) { viewModel.load() }
+                is LeaderboardState.Success -> {
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = { viewModel.refresh() },
+                        state = pullState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LeaderboardList(
+                            entries = s.entries,
+                            userEntry = s.userEntry,
+                            canLoadMore = s.canLoadMore,
+                            onLoadMore = { viewModel.loadNextPage() }
+                        )
+                    }
+
+                    val userInList = s.entries.any { it.uid == s.userEntry?.uid }
+                    if (s.userEntry != null && !userInList) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .padding(16.dp)
+                        ) {
+                            UserRankBanner(entry = s.userEntry)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun LeaderboardList(
+    entries: List<LeaderboardEntry>,
+    userEntry: LeaderboardEntry?,
+    canLoadMore: Boolean,
+    onLoadMore: () -> Unit
+) {
+    val listState = rememberLazyListState()
+
+    // Trigger load-more when near end
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            lastVisible >= entries.size - 5 && canLoadMore
+        }
+    }
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore) onLoadMore()
+    }
+
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 100.dp),
+        verticalArrangement = Arrangement.spacedBy(0.dp)
+    ) {
+        // Header
+        item {
+            LeaderboardHeader()
+        }
+
+        // Top 3 podium
+        if (entries.size >= 3) {
+            item {
+                PodiumSection(
+                    first = entries[0],
+                    second = entries[1],
+                    third = entries[2]
+                )
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+
+        itemsIndexed(
+            items = entries.drop(3),
+            key = { _, e -> e.uid }
+        ) { index, entry ->
+            val isUser = entry.uid == userEntry?.uid
+            LeaderboardRow(
+                entry = entry,
+                isUser = isUser
+            )
+        }
+
+        if (canLoadMore) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun LeaderboardHeader() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+    ) {
+        Text(
+            "Leaderboard",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Black
+        )
+        Text(
+            "Top trainers by XP earned",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun PodiumSection(
+    first: LeaderboardEntry,
+    second: LeaderboardEntry,
+    third: LeaderboardEntry
+) {
+    val gold = Color(0xFFFFD700)
+    val silver = Color(0xFFC0C0C0)
+    val bronze = Color(0xFFCD7F32)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.Bottom,
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        // #2
+        PodiumColumn(
+            entry = second,
+            rank = 2,
+            color = silver,
+            avatarSize = 64.dp,
+            podiumHeight = 70.dp
+        )
+        // #1 — tallest
+        PodiumColumn(
+            entry = first,
+            rank = 1,
+            color = gold,
+            avatarSize = 80.dp,
+            podiumHeight = 96.dp
+        )
+        // #3
+        PodiumColumn(
+            entry = third,
+            rank = 3,
+            color = bronze,
+            avatarSize = 56.dp,
+            podiumHeight = 52.dp
+        )
+    }
+}
+
+@Composable
+private fun PodiumColumn(
+    entry: LeaderboardEntry,
+    rank: Int,
+    color: Color,
+    avatarSize: Dp,
+    podiumHeight: Dp
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        // Crown for #1
+        if (rank == 1) {
+            Text("👑", fontSize = 22.sp)
+        }
+
+        TrainerAvatar(
+            photoUrl = entry.photoUrl,
+            displayName = entry.displayName,
+            size = avatarSize,
+            borderColor = color
+        )
+
+        Spacer(Modifier.height(6.dp))
+
+        Text(
+            entry.displayName,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = 80.dp)
+        )
+        Text(
+            "${entry.totalXp} XP",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(Modifier.height(6.dp))
+
+        // Podium block
+        Box(
+            modifier = Modifier
+                .width(80.dp)
+                .height(podiumHeight)
+                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                .background(color.copy(alpha = 0.25f))
+                .border(
+                    1.dp,
+                    color.copy(alpha = 0.5f),
+                    RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                "#$rank",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = color
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Regular rank row (rank 4+)
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun LeaderboardRow(
+    entry: LeaderboardEntry,
+    isUser: Boolean
+) {
+    val bgColor = if (isUser)
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+    else
+        Color.Transparent
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(bgColor)
+            .padding(horizontal = 20.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Rank number
+        Text(
+            text = "#${entry.rank}",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.width(42.dp)
+        )
+
+        TrainerAvatar(
+            photoUrl = entry.photoUrl,
+            displayName = entry.displayName,
+            size = 40.dp
+        )
+
+        Spacer(Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    entry.displayName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (isUser) FontWeight.Bold else FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (isUser) {
+                    Spacer(Modifier.width(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(4.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    ) {
+                        Text(
+                            "You",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+            }
+            Text(
+                "Lv. ${entry.level}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+
+        Text(
+            "${entry.totalXp} XP",
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pinned bottom banner when user is outside top-50
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun UserRankBanner(entry: LeaderboardEntry) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer
+        ),
+        elevation = CardDefaults.cardElevation(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(Icons.Default.Person, null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text("Your Rank", style = MaterialTheme.typography.labelMedium)
+            Spacer(Modifier.weight(1f))
+            Text(
+                "#${entry.rank}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(16.dp))
+            Text(
+                "${entry.totalXp} XP",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared avatar composable
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun TrainerAvatar(
+    photoUrl: String,
+    displayName: String,
+    size: Dp,
+    borderColor: Color = Color.Transparent
+) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .border(2.dp, borderColor, CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+        contentAlignment = Alignment.Center
+    ) {
+        if (photoUrl.isNotEmpty()) {
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Text(
+                text = displayName.firstOrNull()?.uppercase() ?: "?",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun LeaderboardSkeleton() {
+    val shimmer by rememberInfiniteTransition(label = "shimmer").animateFloat(
+        initialValue = 0.3f, targetValue = 0.7f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
+        label = "alpha"
+    )
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(20.dp)) {
+        repeat(8) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    Modifier
+                        .size(42.dp, 16.dp)
+                        .clip(RoundedCornerShape(4.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = shimmer))
+                )
+                Spacer(Modifier.width(12.dp))
+                Box(
+                    Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = shimmer))
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth(0.5f)
+                            .height(14.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = shimmer))
+                    )
+                    Box(
+                        Modifier
+                            .fillMaxWidth(0.3f)
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(4.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = shimmer))
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LeaderboardError(message: String, onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text("Couldn't load leaderboard", style = MaterialTheme.typography.titleMedium)
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = onRetry) { Text("Retry") }
+    }
+}

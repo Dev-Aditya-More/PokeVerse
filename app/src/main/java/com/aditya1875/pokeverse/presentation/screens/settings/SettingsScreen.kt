@@ -18,6 +18,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -112,6 +113,18 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            navController.popBackStack()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -120,7 +133,6 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        val context = LocalContext.current
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -408,12 +420,12 @@ fun SettingsScreen(
                         onClick = {},
                         modifier = Modifier.padding(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
                         )
                     ) {
                         Text(
                             text = "Socials",
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -427,7 +439,7 @@ fun SettingsScreen(
                     ),
                     SocialLink(
                         "Twitter",
-                        "https://twitter.com/Dexverse_App",
+                        "https://x.com/Dexverse_App",
                         ImageVector.vectorResource(id = R.drawable.x_twitter_brands_solid_full),
                         size = 20.dp,
                         MaterialTheme.colorScheme.onSurface
@@ -531,7 +543,7 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
                 Text(
                     text = "© Dexverse 2026",

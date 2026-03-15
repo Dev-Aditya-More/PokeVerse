@@ -1,42 +1,38 @@
 package com.aditya1875.pokeverse.presentation.screens.game.pokeguess
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.*
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.*
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
-import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessGameState
+import com.aditya1875.pokeverse.domain.xp.XPResult
+import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
+import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.*
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PokeGuessGameScreen(
     difficulty: GuessDifficulty,
@@ -45,99 +41,68 @@ fun PokeGuessGameScreen(
 ) {
     val gameState by viewModel.gameState.collectAsStateWithLifecycle()
     val soundManager: SoundManager = koinInject()
-    val haptic = LocalHapticFeedback.current
+    var pendingXp by remember { mutableStateOf<XPResult?>(null) }
 
+    LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }
     LaunchedEffect(gameState) {
-        when (val state = gameState) {
-            is GuessGameState.Revealing -> {
-                when {
-                    state.isTimeUp -> {
-                        soundManager.play(SoundManager.Sound.TIMER_UP)
-                    }
-                    state.isCorrect -> {
-                        soundManager.play(SoundManager.Sound.CORRECT_ANSWER)
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    }
-                    else -> {
-                        soundManager.play(SoundManager.Sound.WRONG_ANSWER)
-                    }
-                }
+        when (val s = gameState) {
+            is GuessGameState.Revealing -> when {
+                s.isTimeUp   -> soundManager.play(SoundManager.Sound.TIMER_UP)
+                s.isCorrect  -> soundManager.play(SoundManager.Sound.CORRECT_ANSWER)
+                else         -> soundManager.play(SoundManager.Sound.WRONG_ANSWER)
             }
             else -> {}
         }
     }
+    LaunchedEffect(difficulty) { viewModel.startGame(difficulty) }
+    DisposableEffect(Unit) { onDispose { viewModel.resetGame() } }
 
-    LaunchedEffect(difficulty) {
-        viewModel.startGame(difficulty)
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.resetGame()
-        }
-    }
-
-    Scaffold(
-        Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.primary
+    XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
+        Scaffold(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        0f to MaterialTheme.colorScheme.background,
+                        0.6f to MaterialTheme.colorScheme.background,
+                        1f to MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
                     )
                 )
-            ).navigationBarsPadding()
-
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .padding(innerPadding)
-        ) {
+                .navigationBarsPadding()
+        ) { paddingValues ->
             when (val state = gameState) {
                 is GuessGameState.Idle -> {}
-                is GuessGameState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularWavyProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                is GuessGameState.Loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 3.dp)
+                        Text("Loading Pokémon…",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-
-                is GuessGameState.ShowingSilhouette -> {
-                    SilhouetteScreen(
-                        state = state,
-                        timeUp = state.timeRemaining <= 0,
-                        onAnswerSelected = { answer ->
-                            if (state.timeRemaining > 0) {
-                                viewModel.submitAnswer(answer, state.currentQuestionIndex, difficulty)
-                            }
-                        },
-                        onBack = onBack
-                    )
-                }
-
-                is GuessGameState.Revealing -> {
-                    RevealScreen(
-                        state = state,
-                        onNext = { viewModel.nextQuestion(difficulty) },
-                        difficulty = difficulty
-                    )
-                }
-
-                is GuessGameState.Finished -> {
-                    PokeGuessResultScreen(
-                        score = state.score,
-                        correctAnswers = state.correctAnswers,
-                        totalQuestions = state.totalQuestions,
-                        difficulty = state.difficulty,
-                        onPlayAgain = { viewModel.startGame(difficulty) },
-                        onBackToMenu = onBack
-                    )
-                }
+                is GuessGameState.ShowingSilhouette -> SilhouetteScreen(
+                    state = state,
+                    difficulty = difficulty,
+                    onAnswerSelected = { answer ->
+                        if (state.timeRemaining > 0)
+                            viewModel.submitAnswer(answer, state.currentQuestionIndex, difficulty)
+                    },
+                    onBack = onBack,
+                    modifier = Modifier.padding(paddingValues)
+                )
+                is GuessGameState.Revealing -> RevealScreen(
+                    state = state,
+                    onNext = { viewModel.nextQuestion(difficulty) }
+                )
+                is GuessGameState.Finished -> PokeGuessResultScreen(
+                    score = state.score,
+                    correctAnswers = state.correctAnswers,
+                    totalQuestions = state.totalQuestions,
+                    difficulty = state.difficulty,
+                    onPlayAgain = { viewModel.startGame(difficulty) },
+                    onBackToMenu = onBack
+                )
             }
         }
     }
@@ -146,319 +111,337 @@ fun PokeGuessGameScreen(
 @Composable
 private fun SilhouetteScreen(
     state: GuessGameState.ShowingSilhouette,
-    timeUp: Boolean,
+    difficulty: GuessDifficulty,
     onAnswerSelected: (String) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier
 ) {
+    val timerColor by animateColorAsState(
+        targetValue = when {
+            state.timeRemaining <= 3 -> Color(0xFFFF1744)
+            state.timeRemaining <= 5 -> Color(0xFFFF9800)
+            else -> Color(0xFFFFD700)
+        }, label = "tc"
+    )
+    val timerFraction = state.timeRemaining.toFloat() / difficulty.timePerQuestion
+    val timeUp = state.timeRemaining <= 0
+
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .padding(10.dp)
+            .padding(horizontal = 20.dp)
+            .padding(top = 16.dp)
     ) {
-        // Top bar
+        // HUD
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Back",
-                    tint = Color.White
-                )
+            IconButton(onClick = onBack, modifier = Modifier.size(40.dp)) {
+                Icon(Icons.Default.Close, null,
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
             }
-
-            Column(horizontalAlignment = Alignment.End) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "Question ${state.currentQuestionIndex + 1}/${state.totalQuestions}",
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
+                    "${state.currentQuestionIndex + 1} / ${state.totalQuestions}",
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
+            }
+            Surface(shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                 Text(
-                    text = "Score: ${state.score}",
-                    color = Color.White.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.bodyMedium
+                    "${state.score}",
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
         }
 
         Spacer(Modifier.height(10.dp))
 
-        // Timer
-        GuessTimer(timeRemaining = state.timeRemaining)
+        // Timer bar + countdown
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            LinearProgressIndicator(
+                progress = { timerFraction },
+                modifier = Modifier.weight(1f).height(5.dp).clip(RoundedCornerShape(3.dp)),
+                color = timerColor,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            )
+            Text(
+                "${state.timeRemaining}s",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = timerColor,
+                modifier = Modifier.width(32.dp)
+            )
+        }
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(20.dp))
 
+        // Title
         Text(
-            text = "Who's That Pokémon?",
-            style = MaterialTheme.typography.displaySmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.Yellow,
+            "Who's That Pokémon?",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Black,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth(),
-            letterSpacing = 2.sp
+            letterSpacing = 1.sp
         )
 
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(16.dp))
 
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(175.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(Color.White.copy(alpha = 0.1f))
-                .border(
-                    width = 3.dp,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                    shape = RoundedCornerShape(20.dp)
-                ),
-            contentAlignment = Alignment.Center
+        // Silhouette card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+            ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
+            elevation = CardDefaults.cardElevation(0.dp)
         ) {
-            val painter = rememberAsyncImagePainter(
-                ImageRequest.Builder(LocalContext.current)
-                    .data(state.question.spriteUrl)
-                    .crossfade(true)
-                    .build()
-            )
-
-            Image(
-                painter = painter,
-                contentDescription = "Pokemon silhouette",
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(22.dp)
-                    .graphicsLayer {
-                        alpha = 1f
-                        colorFilter = ColorFilter.tint(
-                            Color.Black,
-                            blendMode = BlendMode.SrcAtop
-                        )
-                    },
-                contentScale = ContentScale.Fit
-            )
-        }
-
-        Spacer(Modifier.height(15.dp))
-
-        state.question.options.forEach { option ->
-            PokeGuessOption(
-                text = option.replaceFirstChar { it.uppercase() },
-                enabled = !timeUp,
-                onClick = { onAnswerSelected(option) }
-            )
-            Spacer(Modifier.height(8.dp))
-        }
-    }
-}
-
-@Composable
-private fun GuessTimer(timeRemaining: Int) {
-    val color by animateColorAsState(
-        targetValue = when {
-            timeRemaining <= 3 -> Color(0xFFFF1744)
-            timeRemaining <= 5 -> Color(0xFFFF9800)
-            else -> Color.Yellow
-        },
-        label = "timer_color"
-    )
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Default.Timer,
-            contentDescription = null,
-            tint = color,
-            modifier = Modifier.size(28.dp)
-        )
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = "${timeRemaining}s",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = color
-        )
-    }
-}
-
-@Composable
-private fun PokeGuessOption(
-    text: String,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled, onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = if (enabled)
-                Color.White.copy(alpha = 0.15f)
-            else
-                Color.Gray.copy(alpha = 0.2f)
-        ),
-        shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(2.dp, Color.White.copy(alpha = 0.3f))
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(15.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.White.copy(alpha = if (enabled) 1f else 0.5f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun RevealScreen(
-    state: GuessGameState.Revealing,
-    onNext: () -> Unit,
-    difficulty: GuessDifficulty
-) {
-    var showReveal by remember { mutableStateOf(false) }
-
-    val titleText = when {
-        state.isTimeUp -> "Time's up!"
-        state.isCorrect -> "It's ${state.question.pokemonName.replaceFirstChar { it.uppercase() }}!"
-        else -> "It was ${state.question.pokemonName.replaceFirstChar { it.uppercase() }}!"
-    }
-
-    val resultText = when {
-        state.isTimeUp -> "Too slow!"
-        state.isCorrect -> "Correct!"
-        else -> "Wrong!"
-    }
-
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(300)
-        showReveal = true
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(15.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Spacer(Modifier.height(60.dp))
-
-        AnimatedVisibility(
-            visible = showReveal,
-            enter = fadeIn() + scaleIn()
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = titleText,
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = when {
-                        state.isTimeUp -> Color(0xFFFF9800)   // orange for timeout
-                        state.isCorrect -> Color(0xFF4CAF50)
-                        else -> Color(0xFFFF1744)
-                    },
-                    textAlign = TextAlign.Center,
-                    letterSpacing = 2.sp
+            Box(
+                modifier = Modifier.fillMaxWidth().height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                val painter = rememberAsyncImagePainter(
+                    ImageRequest.Builder(LocalContext.current)
+                        .data(state.question.spriteUrl).crossfade(true).build()
                 )
-
-                Spacer(Modifier.height(30.dp))
-
-                // Revealed Pokemon
-                Box(
-                    modifier = Modifier
-                        .size(280.dp)
-                        .clip(CircleShape)
-                        .background(
-                            if (state.isCorrect)
-                                Color(0xFF4CAF50).copy(alpha = 0.2f)
-                            else
-                                Color(0xFFFF1744).copy(alpha = 0.2f)
-                        )
-                        .border(
-                            width = 4.dp,
-                            color = if (state.isCorrect) Color(0xFF4CAF50) else Color(0xFFFF1744),
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    val painter = rememberAsyncImagePainter(
-                        ImageRequest.Builder(LocalContext.current)
-                            .data(state.question.spriteUrl)
-                            .crossfade(true)
-                            .build()
-                    )
-
-                    Image(
-                        painter = painter,
-                        contentDescription = state.question.pokemonName,
-                        modifier = Modifier.fillMaxSize(0.8f),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-
-                Spacer(Modifier.height(18.dp))
-
-                Icon(
-                    imageVector = when {
-                        state.isTimeUp -> Icons.Default.Timer
-                        state.isCorrect -> Icons.Default.Check
-                        else -> Icons.Default.Close
-                    },
+                Image(
+                    painter = painter,
                     contentDescription = null,
-                    tint = when {
-                        state.isTimeUp -> Color(0xFFFF9800)
-                        state.isCorrect -> Color(0xFF4CAF50)
-                        else -> Color(0xFFFF1744)
-                    },
-                    modifier = Modifier.size(60.dp)
-                )
-
-                Spacer(Modifier.height(8.dp))
-
-                Text(
-                    text = resultText,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    modifier = Modifier.fillMaxHeight(0.85f)
+                        .graphicsLayer {
+                            colorFilter = ColorFilter.tint(
+                                Color.Black, BlendMode.SrcAtop
+                            )
+                        },
+                    contentScale = ContentScale.Fit
                 )
             }
         }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(20.dp))
 
-        Button(
-            onClick = onNext,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp)
-                .padding(bottom = 20.dp)
-            ,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Yellow,
-                contentColor = Color.Black
-            ),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Text(
-                text = if (state.currentQuestionIndex >= state.totalQuestions - 1)
-                    "See Results"
-                else
-                    "Next Pokémon",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+        // Options
+        state.question.options.forEachIndexed { i, option ->
+            GuessOptionCard(
+                text = option.split("-").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } },
+                index = i,
+                enabled = !timeUp,
+                onClick = { onAnswerSelected(option) }
             )
-            Spacer(Modifier.width(8.dp))
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+            if (i < state.question.options.size - 1) Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun GuessOptionCard(
+    text: String,
+    index: Int,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    soundManager: SoundManager = koinInject()
+) {
+    val labels = listOf("A", "B", "C", "D")
+    Card(
+        modifier = Modifier.fillMaxWidth().clickable(enabled = enabled) {
+            soundManager.play(SoundManager.Sound.BUTTON_CLICK); onClick()
+        },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (enabled) MaterialTheme.colorScheme.surface
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        border = BorderStroke(
+            1.dp,
+            if (enabled) MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            else Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(if (enabled) 1.dp else 0.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Box(
+                modifier = Modifier.size(34.dp).clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 0.12f else 0.05f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    labels[index],
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = if (enabled) 1f else 0.3f)
+                )
+            }
+            Text(
+                text,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.4f)
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// REVEAL screen
+// ─────────────────────────────────────────────────────────────────────────────
+@Composable
+private fun RevealScreen(
+    state: GuessGameState.Revealing,
+    onNext: () -> Unit
+) {
+    val isCorrect = state.isCorrect
+    val isTimeUp = state.isTimeUp
+
+    val accentColor = when { isTimeUp -> Color(0xFFFF9800); isCorrect -> Color(0xFF4CAF50); else -> Color(0xFFFF1744) }
+    val headlineText = when { isTimeUp -> "Time's Up!"; isCorrect -> "Correct!"; else -> "Wrong!" }
+    val pokemonName = state.question.pokemonName.split("-")
+        .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } }
+
+    var showContent by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { kotlinx.coroutines.delay(200); showContent = true }
+
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        // Colour sweep from top
+        Box(
+            modifier = Modifier.fillMaxWidth().fillMaxHeight(0.55f)
+                .background(Brush.verticalGradient(
+                    listOf(accentColor.copy(alpha = 0.1f), Color.Transparent)
+                ))
+        )
+
+        AnimatedVisibility(
+            visible = showContent,
+            enter = fadeIn() + slideInVertically { it / 6 }
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp)
+                    .navigationBarsPadding(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(Modifier.height(40.dp))
+
+                // Result label
+                Text(
+                    headlineText,
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Black,
+                    color = accentColor,
+                    textAlign = TextAlign.Center,
+                    letterSpacing = 1.sp
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                // Pokémon revealed — circular frame with coloured ring
+                Box(
+                    modifier = Modifier
+                        .size(240.dp)
+                        .clip(CircleShape)
+                        .background(accentColor.copy(alpha = 0.1f))
+                        .border(3.dp, accentColor.copy(alpha = 0.5f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // Glow radial
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        drawCircle(
+                            brush = Brush.radialGradient(
+                                listOf(accentColor.copy(alpha = 0.12f), Color.Transparent)
+                            )
+                        )
+                    }
+                    val painter = rememberAsyncImagePainter(
+                        ImageRequest.Builder(LocalContext.current)
+                            .data(state.question.spriteUrl).crossfade(true).build()
+                    )
+                    Image(
+                        painter = painter,
+                        contentDescription = pokemonName,
+                        modifier = Modifier.fillMaxSize(0.78f),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                Spacer(Modifier.height(20.dp))
+
+                // Name
+                Text(
+                    "It's $pokemonName!",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Black,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(Modifier.weight(1f))
+
+                // Result pill
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = accentColor.copy(alpha = 0.12f),
+                    border = BorderStroke(1.dp, accentColor.copy(alpha = 0.3f)),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 14.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = when {
+                                isTimeUp -> Icons.Default.Timer
+                                isCorrect -> Icons.Default.Check
+                                else -> Icons.Default.Close
+                            },
+                            contentDescription = null,
+                            tint = accentColor,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            when { isTimeUp -> "Too slow!"; isCorrect -> "Nice one!"; else -> "Better luck next time!" },
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = accentColor
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                Button(
+                    onClick = onNext,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                    elevation = ButtonDefaults.buttonElevation(4.dp)
+                ) {
+                    val isLast = state.currentQuestionIndex >= state.totalQuestions - 1
+                    Text(
+                        if (isLast) "See Results" else "Next Pokémon",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, null,
+                        tint = Color.White, modifier = Modifier.size(18.dp))
+                }
+
+                Spacer(Modifier.height(16.dp))
+            }
         }
     }
 }
