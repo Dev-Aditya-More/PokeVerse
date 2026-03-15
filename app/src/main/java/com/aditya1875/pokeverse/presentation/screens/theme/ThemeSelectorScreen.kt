@@ -86,7 +86,6 @@ fun ThemeSelectorScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -194,7 +193,7 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
         pokemonName = "Dexverse",
         pokemonNumber = "Brand",
         type = "Official Theme",
-        emoji = "⚡",
+        emoji = "✨",
         description = "The classic Dexverse theme",
         colors = listOf(
             Color(0xFF7C4DFF), // Purple

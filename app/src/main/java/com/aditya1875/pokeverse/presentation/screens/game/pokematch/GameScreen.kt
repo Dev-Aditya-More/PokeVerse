@@ -134,7 +134,6 @@ fun GameScreen(
                                 .fillMaxSize()
                                 .padding(16.dp)
                         ) {
-                            // ─── Top HUD ─────────────────────────────────────────────
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,

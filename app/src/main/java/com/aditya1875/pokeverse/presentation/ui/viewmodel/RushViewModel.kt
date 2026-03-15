@@ -25,7 +25,7 @@ class TypeRushViewModel(
     private val xpManager: XPManager,
     private val repository: UserProfileRepository,
     billingManager: IBillingManager,
-    private val gameScoreDao: GameScoreDao
+    gameScoreDao: GameScoreDao
 ) : ViewModel() {
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState

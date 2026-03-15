@@ -74,13 +74,6 @@ fun StatsSection(profile: UserProfile) {
 @Composable
 fun GameStatsSection(profile: UserProfile) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-
-        Text(
-            text = "Game Records",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-
         GameStatRow(
             icon = Icons.Default.SportsEsports,
             title = "Type Rush",

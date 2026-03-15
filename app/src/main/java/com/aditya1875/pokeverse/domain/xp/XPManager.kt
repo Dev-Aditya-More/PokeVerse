@@ -21,7 +21,6 @@ class XPManager(
         val profile = repository.profileFlow.first()
         val today = dateFormat.format(Date())
 
-        // Already claimed today
         if (profile.lastDailyXpDate == today) return null
 
         val yesterday = dateFormat.format(Date(System.currentTimeMillis() - 86_400_000L))
@@ -45,7 +44,8 @@ class XPManager(
 
     suspend fun awardGameXP(event: XPEvent): XPResult {
         val profile = repository.profileFlow.first()
-        val today = dateFormat.format(Date())
+
+        if (profile.isGuest) return noOpResult(profile)
 
         val (gained, label) = when (event) {
             is XPEvent.QuizAnswer -> {
@@ -73,24 +73,20 @@ class XPManager(
                     else -> 0
                 }
                 val total = XPValues.GUESS_CORRECT + streakBonus
-                val lbl = if (streakBonus > 0) "Correct Guess +$total XP 🔥 x ${event.streak}" else "Correct Guess +$total XP"
+                val lbl = if (streakBonus > 0) "Correct Guess +$total XP 🔥 x${event.streak}" else "Correct Guess +$total XP"
                 total to lbl
             }
-            is XPEvent.GuessComplete -> XPValues.GUESS_COMPLETE to "Round Complete +${XPValues.GUESS_COMPLETE} XP"
-            is XPEvent.FirstGameOfDay -> XPValues.FIRST_GAME_OF_DAY to "First Game Today! +${XPValues.FIRST_GAME_OF_DAY} XP 🎮"
-            is XPEvent.DailyLogin -> XPValues.DAILY_LOGIN to "Showed up today! + ${XPValues.DAILY_LOGIN} XP"
+            is XPEvent.GuessComplete ->
+                XPValues.GUESS_COMPLETE to "Round Complete +${XPValues.GUESS_COMPLETE} XP"
+            is XPEvent.FirstGameOfDay ->
+                XPValues.FIRST_GAME_OF_DAY to "First Game Today! +${XPValues.FIRST_GAME_OF_DAY} XP 🎮"
+            is XPEvent.DailyLogin ->
+                XPValues.DAILY_LOGIN to "Daily Login +${XPValues.DAILY_LOGIN} XP"
         }
 
         if (gained == 0) return noOpResult(profile)
 
-        val isFirstGame = profile.lastDailyXpDate != today || profile.gamesPlayed == 0
-        val firstGameBonus = if (isFirstGame && event !is XPEvent.FirstGameOfDay) XPValues.FIRST_GAME_OF_DAY else 0
-        val finalGained = gained + firstGameBonus
-        val finalLabel = if (firstGameBonus > 0) "$label  +$firstGameBonus First Game Bonus" else label
-
-        return applyXP(profile, finalGained, finalLabel) { updated ->
-            updated.copy(gamesPlayed = updated.gamesPlayed + 1)
-        }
+        return applyXP(profile, gained, label)   // no extraUpdate = no gamesPlayed change
     }
 
     private suspend fun applyXP(
@@ -104,42 +100,25 @@ class XPManager(
         val leveledUp = newLevel > profile.level
 
         val updated = extraUpdate(
-            profile.copy(
-                totalXp = newTotal,
-                currentXp = newCurrent,
-                nextLevelXp = newNext,
-                level = newLevel
-            )
+            profile.copy(totalXp = newTotal, currentXp = newCurrent,
+                nextLevelXp = newNext, level = newLevel)
         )
 
         repository.saveProfile(updated)
-
         if (!updated.isGuest) {
             scope.launch { repository.syncToFirestore(updated) }
         }
 
-        if (profile.isGuest) {
-            return noOpResult(profile)
-        }
-
         return XPResult(
-            xpGained = gained,
-            newTotalXp = newTotal,
-            newLevel = newLevel,
-            newCurrentXp = newCurrent,
-            newNextLevelXp = newNext,
-            leveledUp = leveledUp,
-            label = label
+            xpGained = gained, newTotalXp = newTotal, newLevel = newLevel,
+            newCurrentXp = newCurrent, newNextLevelXp = newNext,
+            leveledUp = leveledUp, label = label
         )
     }
 
     private fun noOpResult(profile: UserProfile) = XPResult(
-        xpGained = 0,
-        newTotalXp = profile.totalXp,
-        newLevel = profile.level,
-        newCurrentXp = profile.currentXp,
-        newNextLevelXp = profile.nextLevelXp,
-        leveledUp = false,
-        label = ""
+        xpGained = 0, newTotalXp = profile.totalXp, newLevel = profile.level,
+        newCurrentXp = profile.currentXp, newNextLevelXp = profile.nextLevelXp,
+        leveledUp = false, label = ""
     )
 }

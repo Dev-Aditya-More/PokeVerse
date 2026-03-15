@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.presentation.screens.home
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -74,6 +77,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -92,10 +96,13 @@ import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.UiError
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.data.billing.BillingManager
+import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.home.components.AssetsOnboardingBanner
 import com.aditya1875.pokeverse.presentation.screens.home.components.DailyTriviaFab
 import com.aditya1875.pokeverse.presentation.screens.home.components.DailyTriviaSheet
+import com.aditya1875.pokeverse.presentation.screens.home.components.HomePopupOrchestrator
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.DailyTriviaViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.ProfileViewModel
@@ -106,6 +113,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import androidx.core.net.toUri
+import com.aditya1875.pokeverse.presentation.screens.premium.components.PremiumBottomSheet
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
     ExperimentalMaterialApi::class
@@ -130,7 +140,6 @@ fun HomeScreen(
     val showBadge by triviaViewModel.showBadge.collectAsStateWithLifecycle()
     var showTriviaSheet by remember { mutableStateOf(false) }
 
-    // XP from trivia
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
 
     val soundManager: SoundManager = koinInject()
@@ -160,9 +169,30 @@ fun HomeScreen(
 
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
 
+    val billingManager: BillingManager = koinInject()
+
+    val billingViewModel: BillingViewModel = koinViewModel()
+
     val profileViewModel: ProfileViewModel = koinViewModel()
     val profile by profileViewModel.userProfile.collectAsStateWithLifecycle()
 
+    val ratingPromptSeen by settingsViewModel.ratingPromptSeen.collectAsStateWithLifecycle()
+    val premiumPromptShown by settingsViewModel.premiumPromptShown.collectAsStateWithLifecycle()
+    val totalSessionMinutes by settingsViewModel.totalSessionMinutes.collectAsStateWithLifecycle()
+
+    val subscriptionState by billingManager.subscriptionState.collectAsStateWithLifecycle()
+    val isPremium = subscriptionState is SubscriptionState.Premium
+
+    val context = LocalContext.current
+
+    val activity = context as? Activity
+    val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
+    val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
+    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
+    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
+    val isBillingReady = monthlyProduct != null || yearlyProduct != null
+
+    var showPremiumSheet by remember { mutableStateOf(false) }
 
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore) {
@@ -175,6 +205,50 @@ fun HomeScreen(
         query = ""
 
         triviaViewModel.xpResult.collect { pendingXp = it }
+    }
+
+    HomePopupOrchestrator(
+        assetsBannerSeen = assetsBannerSeen,
+        originalAssetsEnabled = originalAssetsEnabled,
+        ratingPromptSeen = ratingPromptSeen,
+        premiumPromptShown = premiumPromptShown,
+        totalSessionMinutes = totalSessionMinutes,
+        isGuest = profile.isGuest,
+        isPremium = isPremium,
+        onEnableAssets = { settingsViewModel.toggleOriginalAssetsEnabled() },
+        onDismissAssets = { settingsViewModel.dismissAssetsBanner() },
+        onDismissRating = { settingsViewModel.markRatingPromptSeen() },
+        onRateNow = {
+            settingsViewModel.markRatingPromptSeen()
+            val packageName = context.packageName
+
+            val uri = "market://details?id=$packageName".toUri()
+            val intent = Intent(Intent.ACTION_VIEW, uri)
+            context.startActivity(intent)
+        },
+        onDismissPremium = { settingsViewModel.markPremiumPromptShown() },
+        onGoPremium = {
+            settingsViewModel.markPremiumPromptShown()
+            showPremiumSheet = true
+        }
+    )
+
+
+    if (showPremiumSheet) {
+        PremiumBottomSheet(
+            onDismiss = { showPremiumSheet = false },
+            onSubscribeMonthly = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseMonthly(it) }
+            },
+            onSubscribeYearly = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseYearly(it) }
+            },
+            monthlyPrice = monthly,
+            yearlyPrice = yearly,
+            isSubscribeEnabled = isBillingReady
+        )
     }
 
     Box(
@@ -592,15 +666,6 @@ fun HomeScreen(
                                                         )
                                                     )
                                                 },
-                                            )
-                                        }
-
-                                        item {
-                                            val showBanner = !assetsBannerSeen && !originalAssetsEnabled
-                                            AssetsOnboardingBanner(
-                                                visible = showBanner,
-                                                onEnable = { settingsViewModel.toggleOriginalAssetsEnabled() },
-                                                onDismiss = { settingsViewModel.dismissAssetsBanner() }
                                             )
                                         }
 

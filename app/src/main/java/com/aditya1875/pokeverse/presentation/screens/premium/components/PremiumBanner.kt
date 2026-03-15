@@ -33,7 +33,7 @@ fun PremiumBanner(
             .clickable { onSubscribe() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.7f)
         )
     ) {
         Row(

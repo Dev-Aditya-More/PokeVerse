@@ -133,7 +133,6 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        val context = LocalContext.current
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -421,12 +420,12 @@ fun SettingsScreen(
                         onClick = {},
                         modifier = Modifier.padding(16.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
                         )
                     ) {
                         Text(
                             text = "Socials",
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
@@ -440,7 +439,7 @@ fun SettingsScreen(
                     ),
                     SocialLink(
                         "Twitter",
-                        "https://twitter.com/Dexverse_App",
+                        "https://x.com/Dexverse_App",
                         ImageVector.vectorResource(id = R.drawable.x_twitter_brands_solid_full),
                         size = 20.dp,
                         MaterialTheme.colorScheme.onSurface
@@ -544,7 +543,7 @@ fun SettingsScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
                 Text(
                     text = "© Dexverse 2026",

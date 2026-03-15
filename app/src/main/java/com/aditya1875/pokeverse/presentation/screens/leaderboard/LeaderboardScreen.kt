@@ -538,12 +538,6 @@ private fun LeaderboardError(message: String, onRetry: () -> Unit) {
     ) {
         Text("Couldn't load leaderboard", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
-        Text(
-            message,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(Modifier.height(16.dp))
         Button(onClick = onRetry) { Text("Retry") }
     }
 }

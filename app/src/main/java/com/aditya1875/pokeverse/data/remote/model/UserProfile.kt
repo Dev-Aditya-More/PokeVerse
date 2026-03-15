@@ -5,8 +5,8 @@ data class UserProfile(
     val username: String = "Trainer",
     val level: Int = 1,
     val totalXp: Int = 0,
-    val currentXp: Int = 0,           // XP within current level (resets each level-up)
-    val nextLevelXp: Int = 100,       // XP needed to reach next level
+    val currentXp: Int = 0,
+    val nextLevelXp: Int = 100,
     val gamesPlayed: Int = 0,
     val bestTypeRushScore: Int = 0,
     val bestQuizScore: Int = 0,
@@ -15,12 +15,12 @@ data class UserProfile(
     val isGuest: Boolean = true,
 
     // XP tracking
-    val lastDailyXpDate: String = "",         // "yyyy-MM-dd" — for daily bonus dedup
-    val dailyStreak: Int = 0,                 // consecutive days opened
+    val lastDailyXpDate: String = "",
+    val dailyStreak: Int = 0,
     val lastActiveDateMillis: Long = 0L,
 
     // Leaderboard
-    val rank: Int = 0,                        // written by Cloud Function
+    val rank: Int = 0,
     val photoUrl: String = "",
     val email: String = ""
 ) {

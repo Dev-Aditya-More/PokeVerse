@@ -28,7 +28,9 @@ class SoundManager(private val context: Context) {
         WRONG_ANSWER,
 
         WHOS_THAT_POKEMON,
-        LEVEL_UP
+        LEVEL_UP,
+
+        RUSH_CLICK
     }
 
     init {
@@ -63,6 +65,7 @@ class SoundManager(private val context: Context) {
 
         soundMap[Sound.WHOS_THAT_POKEMON] = loadSound(R.raw.whos_that_pokemon)
         soundMap[Sound.LEVEL_UP] = loadSound(R.raw.level_up)
+        soundMap[Sound.RUSH_CLICK] = loadSound(R.raw.click_rush)
         // Add more mappings when you have custom sound files
     }
 

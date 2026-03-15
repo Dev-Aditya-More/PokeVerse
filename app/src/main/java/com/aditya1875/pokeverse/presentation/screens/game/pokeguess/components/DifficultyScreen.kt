@@ -17,14 +17,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.presentation.screens.game.GameDifficultyLayout
 import com.aditya1875.pokeverse.presentation.screens.game.GameResultLayout
+import com.aditya1875.pokeverse.presentation.screens.game.ResultStatChips
+import com.aditya1875.pokeverse.presentation.screens.game.ResultStatRow
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokeGuessViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -199,68 +204,70 @@ fun PokeGuessResultScreen(
     totalQuestions: Int,
     difficulty: GuessDifficulty,
     onPlayAgain: () -> Unit,
-    onBackToMenu: () -> Unit
+    onBackToMenu: () -> Unit,
+    soundManager: SoundManager = koinInject()
 ) {
-    val percentage = (correctAnswers.toFloat() / totalQuestions * 100).toInt()
+    LaunchedEffect(Unit) { soundManager.play(SoundManager.Sound.GAME_WIN) }
+
+    val pct = (correctAnswers.toFloat() / totalQuestions * 100).toInt()
+    val heroColor = when {
+        pct == 100 -> Color(0xFFFFD700)
+        pct >= 80  -> Color(0xFF4CAF50)
+        pct >= 60  -> Color(0xFF2196F3)
+        else       -> Color(0xFF9E9E9E)
+    }
+    val titleText = when {
+        pct == 100 -> "Perfect!"
+        pct >= 80  -> "Excellent!"
+        pct >= 60  -> "Great Job!"
+        else       -> "Keep Going!"
+    }
+    val stars = when {
+        pct >= 90 -> 3; pct >= 70 -> 2; pct >= 50 -> 1; else -> 0
+    }
 
     GameResultLayout(
-        title = when {
-            percentage == 100 -> "Perfect!"
-            percentage >= 80 -> "Excellent!"
-            percentage >= 60 -> "Great Job!"
-            else -> "Keep Trying!"
-        },
+        title = titleText,
         subtitle = "Who's That Pokémon?",
         score = score.toString(),
-        scoreLabel = "$correctAnswers / $totalQuestions correct • $percentage%",
-        heroColor = Color.Yellow,
+        scoreLabel = "POINTS",
+        heroColor = heroColor,
+        stars = stars,
         onPlayAgain = onPlayAgain,
         onBack = onBackToMenu,
         heroContent = {
-            Icon(
-                Icons.Default.EmojiEvents,
-                null,
-                tint = Color.Yellow,
-                modifier = Modifier.size(56.dp)
+            Text(
+                text = when {
+                    pct == 100 -> "👁️‍🗨️"; pct >= 80 -> "👁️"; pct >= 60 -> "🔍"; else -> "❓"
+                },
+                fontSize = 64.sp
             )
         },
         statsContent = {
-            DifficultyBadge(difficulty)
+            ResultStatChips(
+                "Correct" to "$correctAnswers",
+                "Missed"  to "${totalQuestions - correctAnswers}",
+                "Rate"    to "$pct%"
+            )
+            Spacer(Modifier.height(16.dp))
+            ResultStatRow(
+                label = "Total score",
+                value = score.toString(),
+                valueColor = heroColor,
+                icon = Icons.Default.Star
+            )
+            ResultStatRow(
+                label = "Questions",
+                value = "$correctAnswers / $totalQuestions",
+                icon = Icons.Default.Help
+            )
+            ResultStatRow(
+                label = "Difficulty",
+                value = difficulty.name.lowercase().replaceFirstChar { it.uppercase() },
+                icon = Icons.Default.Speed,
+                isLast = true
+            )
         }
     )
 }
 
-@Composable
-fun DifficultyBadge(difficulty: GuessDifficulty) {
-
-    // Difficulty badge
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = when (difficulty) {
-                GuessDifficulty.EASY -> Color(0xFF4CAF50).copy(alpha = 0.3f)
-                GuessDifficulty.MEDIUM -> Color(0xFFFF9800).copy(alpha = 0.3f)
-                GuessDifficulty.HARD -> Color(0xFFFF1744).copy(alpha = 0.3f)
-            }
-        ),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Star,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(Modifier.width(8.dp))
-            Text(
-                text = "${difficulty.displayName} Mode",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-        }
-    }
-}

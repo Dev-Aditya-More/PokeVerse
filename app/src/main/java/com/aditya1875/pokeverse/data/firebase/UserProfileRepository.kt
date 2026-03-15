@@ -23,7 +23,6 @@ class UserProfileRepository(private val context: Context) {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    // ── Keys ──────────────────────────────────────────────────────────────────
     private object K {
         val UID = stringPreferencesKey("uid")
         val USERNAME = stringPreferencesKey("username")
@@ -32,17 +31,16 @@ class UserProfileRepository(private val context: Context) {
         val BEST_QUIZ = intPreferencesKey("best_quiz")
         val BEST_MATCH = intPreferencesKey("best_match")
         val BEST_GUESS = intPreferencesKey("best_guess")
+        val BEST_TYPERUSH = intPreferencesKey("best_typerush")
         val IS_GUEST = booleanPreferencesKey("is_guest")
         val LAST_DAILY_DATE = stringPreferencesKey("last_daily_date")
         val DAILY_STREAK = intPreferencesKey("daily_streak")
         val LAST_ACTIVE_MS = longPreferencesKey("last_active_ms")
         val PHOTO_URL = stringPreferencesKey("photo_url")
         val RANK = intPreferencesKey("rank")
-
         val EMAIL = stringPreferencesKey("email")
     }
 
-    // ── Live profile stream ───────────────────────────────────────────────────
     val profileFlow: Flow<UserProfile> = ds.data.map { p ->
         val totalXp = p[K.TOTAL_XP] ?: 0
         val (level, currentXp, nextLevelXp) = LevelConfig.computeLevel(totalXp)
@@ -57,17 +55,17 @@ class UserProfileRepository(private val context: Context) {
             bestQuizScore = p[K.BEST_QUIZ] ?: 0,
             bestMatchScore = p[K.BEST_MATCH] ?: 0,
             bestGuessScore = p[K.BEST_GUESS] ?: 0,
+            bestTypeRushScore = p[K.BEST_TYPERUSH] ?: 0,
             isGuest = p[K.IS_GUEST] ?: true,
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
             dailyStreak = p[K.DAILY_STREAK] ?: 0,
             lastActiveDateMillis = p[K.LAST_ACTIVE_MS] ?: 0L,
             photoUrl = p[K.PHOTO_URL] ?: "",
             rank = p[K.RANK] ?: 0,
-            email = p[K.EMAIL] ?: ""
+            email = p[K.EMAIL] ?: "",
         )
     }
 
-    // ── Save to DataStore (instant) ───────────────────────────────────────────
     suspend fun saveProfile(profile: UserProfile) {
         ds.edit { p ->
             p[K.UID] = profile.uid
@@ -77,20 +75,21 @@ class UserProfileRepository(private val context: Context) {
             p[K.BEST_QUIZ] = profile.bestQuizScore
             p[K.BEST_MATCH] = profile.bestMatchScore
             p[K.BEST_GUESS] = profile.bestGuessScore
+            p[K.BEST_TYPERUSH] = profile.bestTypeRushScore
             p[K.IS_GUEST] = profile.isGuest
             p[K.LAST_DAILY_DATE] = profile.lastDailyXpDate
             p[K.DAILY_STREAK] = profile.dailyStreak
             p[K.LAST_ACTIVE_MS] = profile.lastActiveDateMillis
             p[K.PHOTO_URL] = profile.photoUrl
             p[K.RANK] = profile.rank
+            p[K.EMAIL] = profile.email
         }
     }
 
-    // ── Load from Firestore on login (users collection = full private profile) ─
     suspend fun loadFromFirestore(uid: String): UserProfile? {
         return try {
             val doc = firestore.collection("users").document(uid).get().await()
-            if (!doc.exists()) return null   // first login, no doc yet — that's fine
+            if (!doc.exists()) return null
             val totalXp = (doc.getLong("totalXp") ?: 0L).toInt()
             val (level, currentXp, nextLevelXp) = LevelConfig.computeLevel(totalXp)
             UserProfile(
@@ -104,12 +103,14 @@ class UserProfileRepository(private val context: Context) {
                 bestQuizScore = (doc.getLong("bestQuizScore") ?: 0L).toInt(),
                 bestMatchScore = (doc.getLong("bestMatchScore") ?: 0L).toInt(),
                 bestGuessScore = (doc.getLong("bestGuessScore") ?: 0L).toInt(),
+                bestTypeRushScore = (doc.getLong("bestTypeRushScore") ?: 0L).toInt(),
                 isGuest = false,
                 lastDailyXpDate = doc.getString("lastDailyXpDate") ?: "",
                 dailyStreak = (doc.getLong("dailyStreak") ?: 0L).toInt(),
                 lastActiveDateMillis = doc.getLong("lastActiveDateMs") ?: 0L,
                 photoUrl = doc.getString("photoUrl") ?: "",
                 rank = (doc.getLong("rank") ?: 0L).toInt(),
+                email = doc.getString("email") ?: "",
             )
         } catch (e: Exception) {
             null
@@ -119,29 +120,27 @@ class UserProfileRepository(private val context: Context) {
     suspend fun syncToFirestore(profile: UserProfile) {
         val uid = auth.currentUser?.uid ?: return
         try {
-            // users/{uid} — full private profile
             firestore.collection("users").document(uid).set(
                 mapOf(
                     "uid" to uid,
                     "username" to profile.username,
                     "photoUrl" to profile.photoUrl,
+                    "email" to profile.email,
                     "totalXp" to profile.totalXp,
                     "level" to profile.level,
                     "gamesPlayed" to profile.gamesPlayed,
                     "bestQuizScore" to profile.bestQuizScore,
                     "bestMatchScore" to profile.bestMatchScore,
                     "bestGuessScore" to profile.bestGuessScore,
+                    "bestTypeRushScore" to profile.bestTypeRushScore,
                     "dailyStreak" to profile.dailyStreak,
                     "lastDailyXpDate" to profile.lastDailyXpDate,
                     "lastActiveDateMs" to profile.lastActiveDateMillis,
                     "updatedAt" to Timestamp.now(),
-                    "rank" to profile.rank,
-                    "email" to profile.email
                 ),
-                SetOptions.merge()   // never overwrite rank (written by Cloud Function)
+                SetOptions.merge()
             ).await()
 
-            // leaderboard/{uid} — public read subset only
             firestore.collection("leaderboard").document(uid).set(
                 mapOf(
                     "uid" to uid,
@@ -150,30 +149,40 @@ class UserProfileRepository(private val context: Context) {
                     "totalXp" to profile.totalXp,
                     "level" to profile.level,
                     "updatedAt" to Timestamp.now(),
-                    "rank" to profile.rank,
-                    "email" to profile.email
                 ),
                 SetOptions.merge()
             ).await()
-        } catch (_: Exception) { /* silent — DataStore is the source of truth */
+        } catch (_: Exception) {
         }
     }
 
-    // ── Update best score (DataStore + Firestore) ─────────────────────────────
     suspend fun updateBestScore(game: String, score: Int) {
-        var shouldUpdate = false
+        if (score <= 0) return
+
+        var didUpdate = false
         ds.edit { p ->
             val key = when (game) {
-                "quiz" -> K.BEST_QUIZ; "match" -> K.BEST_MATCH; else -> K.BEST_GUESS
+                "quiz" -> K.BEST_QUIZ
+                "match" -> K.BEST_MATCH
+                "guess" -> K.BEST_GUESS
+                "typerush" -> K.BEST_TYPERUSH
+                else -> return@edit
             }
             if (score > (p[key] ?: 0)) {
-                p[key] = score; shouldUpdate = true
+                p[key] = score
+                didUpdate = true
             }
         }
-        if (!shouldUpdate) return
+
+        if (!didUpdate) return
+
         val uid = auth.currentUser?.uid ?: return
         val field = when (game) {
-            "quiz" -> "bestQuizScore"; "match" -> "bestMatchScore"; else -> "bestGuessScore"
+            "quiz" -> "bestQuizScore"
+            "match" -> "bestMatchScore"
+            "guess" -> "bestGuessScore"
+            "typerush" -> "bestTypeRushScore"
+            else -> return
         }
         try {
             firestore.collection("users").document(uid)
@@ -182,7 +191,6 @@ class UserProfileRepository(private val context: Context) {
         }
     }
 
-    // ── Increment gamesPlayed (call from game ViewModels on finish) ───────────
     suspend fun incrementGamesPlayed() {
         var newCount = 0
         ds.edit { p ->
@@ -197,7 +205,6 @@ class UserProfileRepository(private val context: Context) {
         }
     }
 
-    // ── Clear on sign-out ─────────────────────────────────────────────────────
     suspend fun clearLocal() {
         ds.edit { it.clear() }
     }

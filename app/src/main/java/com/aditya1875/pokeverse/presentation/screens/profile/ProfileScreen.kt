@@ -43,14 +43,6 @@ fun ProfileScreen(
         }
     }
 
-    LaunchedEffect(currentUser) {
-        currentUser?.displayName?.let { name ->
-            if (profile.username.isBlank()) {
-                viewModel.updateUsername(name)
-            }
-        }
-    }
-
     XPOverlay(
         result = pendingXp,
         onDismiss = { pendingXp = null }

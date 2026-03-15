@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.aditya1875.pokeverse.data.billing.BillingManager
 import com.aditya1875.pokeverse.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.data.local.TeamDatabase
 import com.aditya1875.pokeverse.data.local.PokemonDatabase
@@ -30,6 +31,7 @@ import com.aditya1875.pokeverse.presentation.ui.viewmodel.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.QuizViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.TypeRushViewModel
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.utils.TeamMapper
 import com.google.gson.Gson
@@ -193,6 +195,13 @@ val appModule = module {
         LeaderboardViewModel(get())
     }
 
+    single{
+        BillingManager(get(), get())
+    }
+
+    viewModel{
+        BillingViewModel(get())
+    }
     single {
         DailyTriviaManager(get(), get())
     }

@@ -79,7 +79,7 @@ fun GuestLeaderboardLocked() {
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "Sign in to appear on the global leaderboard,\ntrack your rank, and earn trainer prestige.",
+                    text = "Sign in to appear on the global leaderboard.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center

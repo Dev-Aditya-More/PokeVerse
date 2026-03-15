@@ -1,19 +1,19 @@
 package com.aditya1875.pokeverse.presentation.ui.viewmodel
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aditya1875.pokeverse.domain.xp.XPEvent
-import com.aditya1875.pokeverse.domain.xp.XPManager
-import com.aditya1875.pokeverse.domain.xp.XPResult
-import android.app.Activity
 import com.aditya1875.pokeverse.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.data.remote.model.UserProfile
+import com.aditya1875.pokeverse.domain.xp.XPManager
+import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.auth.AuthManager
 import com.aditya1875.pokeverse.presentation.auth.AuthResult
 import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
 class ProfileViewModel(
     private val authManager: AuthManager,
     private val repository: UserProfileRepository,
@@ -21,8 +21,7 @@ class ProfileViewModel(
 ) : ViewModel() {
 
     val userProfile: StateFlow<UserProfile> =
-        repository.profileFlow
-            .stateIn(viewModelScope, SharingStarted.Eagerly, UserProfile())
+        repository.profileFlow.stateIn(viewModelScope, SharingStarted.Eagerly, UserProfile())
 
     val authState: StateFlow<AuthState> = authManager.authState
     val currentUser: StateFlow<FirebaseUser?> = authManager.currentUser
@@ -30,11 +29,14 @@ class ProfileViewModel(
     private val _xpEvent = MutableSharedFlow<XPResult>(extraBufferCapacity = 8)
     val xpEvent: SharedFlow<XPResult> = _xpEvent.asSharedFlow()
 
+    private var hasSyncedThisSession = false
+
     init {
         viewModelScope.launch {
-            currentUser.collect { user ->
-                user?.let {
-                    syncFromCloud(it.uid)
+            currentUser.filterNotNull().first().let { user ->
+                if (!hasSyncedThisSession) {
+                    hasSyncedThisSession = true
+                    syncFromCloud(user.uid)
                 }
             }
         }
@@ -43,24 +45,47 @@ class ProfileViewModel(
     fun onAppLaunch() {
         viewModelScope.launch {
             val uid = authManager.currentUser.value?.uid
-
-            if (uid != null) {
+            if (uid != null && !hasSyncedThisSession) {
+                hasSyncedThisSession = true
                 syncFromCloud(uid)
-
-                val result = xpManager.awardDailyXP()
-                result?.let { _xpEvent.emit(it) }
             }
+            val result = xpManager.awardDailyXP()
+            result?.let { _xpEvent.emit(it) }
         }
     }
+
+    private fun String.isCustomUsername() =
+        isNotBlank() && this != "Trainer" && this != "Guest Trainer"
 
     private suspend fun syncFromCloud(uid: String) {
         val cloudProfile = repository.loadFromFirestore(uid) ?: return
         val local = userProfile.value
+
         if (cloudProfile.totalXp >= local.totalXp) {
-            repository.saveProfile(cloudProfile)
+            val localDateIsNewer = local.lastDailyXpDate > cloudProfile.lastDailyXpDate
+            repository.saveProfile(
+                cloudProfile.copy(
+                    // Never overwrite a custom username with cloud/Google value
+                    username        = if (local.username.isCustomUsername()) local.username
+                    else cloudProfile.username,
+                    lastDailyXpDate = if (localDateIsNewer) local.lastDailyXpDate
+                    else cloudProfile.lastDailyXpDate,
+                    dailyStreak     = if (localDateIsNewer) local.dailyStreak
+                    else cloudProfile.dailyStreak,
+                )
+            )
         } else {
-            // Local is ahead of cloud — push local up to cloud
             repository.syncToFirestore(local)
+        }
+    }
+
+    // ── Username update — explicit user action, always wins ───────────────────
+    fun updateUsername(newName: String) {
+        if (newName.isBlank()) return
+        viewModelScope.launch {
+            val updated = userProfile.value.copy(username = newName.trim())
+            repository.saveProfile(updated)
+            if (!updated.isGuest) repository.syncToFirestore(updated)
         }
     }
 
@@ -81,67 +106,53 @@ class ProfileViewModel(
                 val local = userProfile.value
 
                 val merged = when {
-                    cloudProfile == null -> {
-                        // Brand new user — use local state, stamp real uid
+                    cloudProfile == null ->
                         local.copy(
                             uid = uid,
                             username = result.user.displayName ?: local.username,
                             photoUrl = result.user.photoUrl?.toString() ?: "",
                             isGuest = false
                         )
-                    }
                     cloudProfile.totalXp >= local.totalXp -> {
-                        // Cloud is ahead or equal — use cloud, refresh photo/name
+                        val localDateIsNewer = local.lastDailyXpDate > cloudProfile.lastDailyXpDate
                         cloudProfile.copy(
                             photoUrl = result.user.photoUrl?.toString() ?: cloudProfile.photoUrl,
-                            username = result.user.displayName ?: cloudProfile.username,
-                            isGuest = false
+                            username = if (local.username.isCustomUsername()) local.username
+                            else cloudProfile.username,
+                            isGuest = false,
+                            lastDailyXpDate = if (localDateIsNewer) local.lastDailyXpDate
+                            else cloudProfile.lastDailyXpDate,
+                            dailyStreak = if (localDateIsNewer) local.dailyStreak
+                            else cloudProfile.dailyStreak,
                         )
                     }
-                    else -> {
-                        // Local is ahead — keep local, stamp uid/name/photo
-                        local.copy(
-                            uid = uid,
-                            username = result.user.displayName ?: local.username,
-                            photoUrl = result.user.photoUrl?.toString() ?: "",
-                            isGuest = false
-                        )
-                    }
+                    else -> local.copy(
+                        uid = uid,
+                        photoUrl = result.user.photoUrl?.toString() ?: "",
+                        isGuest = false
+                    )
                 }
                 repository.saveProfile(merged)
                 repository.syncToFirestore(merged)
+                hasSyncedThisSession = true
             }
         }
         return result
     }
 
     fun signOut() {
+        hasSyncedThisSession = false
         viewModelScope.launch {
             authManager.signOut()
             repository.clearLocal()
         }
     }
 
-    fun updateUsername(newName: String) {
-        viewModelScope.launch {
-            val updated = userProfile.value.copy(username = newName)
-            repository.saveProfile(updated)
-
-            if (!updated.isGuest) {
-                repository.syncToFirestore(updated)
-            }
-        }
-    }
-
     fun updatePhoto(url: String) {
         viewModelScope.launch {
             val updated = userProfile.value.copy(photoUrl = url)
-
             repository.saveProfile(updated)
-
-            if (!updated.isGuest) {
-                repository.syncToFirestore(updated)
-            }
+            if (!updated.isGuest) repository.syncToFirestore(updated)
         }
     }
 

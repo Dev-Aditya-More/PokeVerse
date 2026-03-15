@@ -29,7 +29,7 @@ import kotlinx.coroutines.launch
 
 class PokeGuessViewModel(
     private val repository: PokemonRepo,
-    private val gameScoreDao: GameScoreDao,
+    gameScoreDao: GameScoreDao,
     billingManager: IBillingManager,
     private val xpManager: XPManager,
     private val userRepository: UserProfileRepository
@@ -298,7 +298,7 @@ class PokeGuessViewModel(
             val result = xpManager.awardGameXP(XPEvent.GuessComplete)
             if (result.xpGained > 0) _xpResult.emit(result)
 
-            userRepository.updateBestScore("guess", state.score)
+            userRepository.updateBestScore("guess", currentScore)
             userRepository.incrementGamesPlayed()
         }
 

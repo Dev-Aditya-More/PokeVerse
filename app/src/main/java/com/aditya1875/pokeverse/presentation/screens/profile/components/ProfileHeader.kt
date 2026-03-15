@@ -5,7 +5,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,17 +13,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,7 +47,6 @@ fun ProfileHeader(
     onEditName: () -> Unit,
     onEditPhoto: () -> Unit
 ) {
-    // Animate level number changes — scale pop when it changes
     var prevLevel by remember { mutableIntStateOf(profile.level) }
     var levelChanged by remember { mutableStateOf(false) }
 
@@ -100,7 +92,6 @@ fun ProfileHeader(
                 ),
             contentAlignment = Alignment.Center
         ) {
-
             val photo = when {
                 profile.photoUrl.isNotEmpty() -> profile.photoUrl
                 currentUser?.photoUrl != null -> currentUser.photoUrl.toString()
@@ -134,22 +125,22 @@ fun ProfileHeader(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
-                    text = currentUser?.displayName ?: profile.username,
+                    text = profile.username,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
                     maxLines = 1
                 )
 
-                IconButton(
-                    onClick = onEditName,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Edit Name",
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
+//                IconButton(
+//                    onClick = onEditName,
+//                    modifier = Modifier.size(28.dp)
+//                ) {
+//                    Icon(
+//                        Icons.Default.Edit,
+//                        contentDescription = "Edit Name",
+//                        modifier = Modifier.size(16.dp)
+//                    )
+//                }
             }
 
             if(!profile.isGuest) {

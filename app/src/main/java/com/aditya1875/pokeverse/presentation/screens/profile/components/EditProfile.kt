@@ -29,7 +29,6 @@ fun EditProfileDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-
         title = {
             Text(
                 "Edit Trainer Name",
@@ -37,7 +36,6 @@ fun EditProfileDialog(
                 fontWeight = FontWeight.Bold
             )
         },
-
         text = {
             OutlinedTextField(
                 value = name,

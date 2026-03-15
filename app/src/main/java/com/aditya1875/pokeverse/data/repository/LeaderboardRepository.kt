@@ -38,7 +38,7 @@ class LeaderboardRepository {
     private var cachedEntries: List<LeaderboardEntry> = emptyList()
     private var lastDocument: DocumentSnapshot? = null
     private var cacheTimestamp: Long = 0L
-    private val CACHE_TTL_MS = 5 * 60 * 1000L   // 5 minutes
+    private val CACHE_TTL_MS = 5 * 60 * 1000L
 
     // ── Fetch top-50, use cache if fresh ─────────────────────────────────────
     suspend fun getLeaderboard(forceRefresh: Boolean = false): LeaderboardState {
