@@ -35,7 +35,7 @@ import androidx.navigation.NavController
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.presentation.components.NeuromorphicButton
 import com.aditya1875.pokeverse.presentation.components.QuoteCarousel
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
 import com.aditya1875.pokeverse.utils.ScreenStateManager.markIntroSeen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

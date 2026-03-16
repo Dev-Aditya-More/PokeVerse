@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.presentation.screens.home.components
+package com.aditya1875.pokeverse.navigation
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.aditya1875.pokeverse.navigation.components.Route
 
 @Composable
 fun BottomNavigationBar(

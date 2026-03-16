@@ -49,7 +49,7 @@ import com.aditya1875.pokeverse.presentation.screens.game.poketype.TypeRushScree
 import com.aditya1875.pokeverse.presentation.screens.game.poketype.components.TypeRushDifficulty
 import com.aditya1875.pokeverse.presentation.screens.game.poketype.components.TypeRushDifficultyScreen
 import com.aditya1875.pokeverse.presentation.screens.home.HomeScreen
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.LeaderboardScreen
 import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
 import com.aditya1875.pokeverse.presentation.screens.onboarding.IntroScreen
@@ -66,7 +66,7 @@ import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
 import com.aditya1875.pokeverse.utils.Difficulty
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
-import com.aditya1875.pokeverse.utils.WithBottomBar
+import com.aditya1875.pokeverse.navigation.components.WithBottomBar
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject

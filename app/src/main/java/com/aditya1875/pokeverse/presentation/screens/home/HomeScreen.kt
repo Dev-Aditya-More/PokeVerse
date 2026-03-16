@@ -90,7 +90,7 @@ import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.presentation.screens.detail.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.presentation.screens.home.components.FilterBar
 import com.aditya1875.pokeverse.presentation.screens.home.components.ImprovedPokemonCard
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
 import com.aditya1875.pokeverse.presentation.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.SearchResult

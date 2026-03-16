@@ -48,7 +48,7 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.data.local.entity.FavouriteEntity
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
 import kotlinx.coroutines.delay
 
 @Composable

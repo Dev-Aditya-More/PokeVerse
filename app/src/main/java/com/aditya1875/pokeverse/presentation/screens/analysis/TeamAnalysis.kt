@@ -52,7 +52,7 @@ import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamAna
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamAnalyzer
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamMemberWithTypes
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TypeDiversity
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
 
