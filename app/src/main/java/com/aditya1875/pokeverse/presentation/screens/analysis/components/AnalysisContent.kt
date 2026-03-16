@@ -13,72 +13,53 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.AMBER
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.BG
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.GREEN
 import com.aditya1875.pokeverse.presentation.screens.analysis.TypeDiversityCard
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AnalysisContent(
     analysis: TeamAnalysis,
     teamWithTypes: List<TeamMemberWithTypes>
 ) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0F0F0F),
-                        Color(0xFF1A1A1A),
-                        Color(0xFF0F0F0F)
-                    )
-                )
-            ),
-        contentPadding = PaddingValues(16.dp),
+        modifier = Modifier.fillMaxSize().background(BG),
+        contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Overall Score with gradient card
-        item {
-            OverallScoreCard(score = analysis.coverageScore)
-        }
+        // ── Hero score card ───────────────────────────────────────────────────
+        item { ScoreHeroCard(score = analysis.coverageScore) }
 
-        // Quick Stats Row
-        item {
-            QuickStatsRow(analysis = analysis, teamWithTypes = teamWithTypes)
-        }
+        // ── 3 quick stat chips ────────────────────────────────────────────────
+        item { QuickStatsRow(analysis = analysis, teamSize = teamWithTypes.size) }
 
-        // Strengths
+        // ── Strengths (only if any) ───────────────────────────────────────────
         if (analysis.strengths.isNotEmpty()) {
-            item {
-                StrengthsCard(strengths = analysis.strengths)
-            }
+            item { InsightCard(
+                title = "Strengths",
+                icon = "✅",
+                accentColor = GREEN,
+                items = analysis.strengths
+            ) }
         }
 
-        // Recommendations
-        item {
-            RecommendationsCard(recommendations = analysis.recommendations)
-        }
+        // ── Recommendations ───────────────────────────────────────────────────
+        item { InsightCard(
+            title = "Suggestions",
+            icon = "💡",
+            accentColor = AMBER,
+            items = analysis.recommendations
+        ) }
 
-        // Type Coverage with better visualization
-        item {
-            TypeCoverageCard(coverage = analysis.offensiveCoverage)
-        }
+        item { DefenseSection(
+            weaknesses = analysis.defensiveWeaknesses,
+            resistances = analysis.resistances,
+            teamSize = teamWithTypes.size
+        ) }
 
-        item {
-            DefensiveAnalysisCard(
-                weaknesses = analysis.defensiveWeaknesses,
-                resistances = analysis.resistances,
-                teamWithTypes = teamWithTypes
-            )
-        }
+        item { CoverageSection(coverage = analysis.offensiveCoverage, teamSize = teamWithTypes.size) }
 
-        // Type Diversity
-        item {
-            TypeDiversityCard(diversity = analysis.typeDiversity)
-        }
-
-        // Bottom spacing
-        item {
-            Spacer(Modifier.height(16.dp))
-        }
+        item { Spacer(Modifier.height(32.dp)) }
     }
 }

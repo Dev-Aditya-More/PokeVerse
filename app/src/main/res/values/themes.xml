@@ -2,8 +2,9 @@
 <resources>
 
     <style name="Theme.Dexverse" parent="Theme.AppCompat.DayNight.NoActionBar">
-
         <item name="android:windowIsTranslucent">true</item>
     </style>
+
+    <style name="Theme.PokeVerse" parent="Theme.Dexverse" />
 
 </resources>

@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val billingManager: IBillingManager = inject<IBillingManager>().value
+        val billingManager by inject<IBillingManager>()
         billingManager.startConnection()
 
         enableEdgeToEdge()
@@ -343,6 +343,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        // TypeRush Integration
                         composable(Route.TypeRushDifficulty.route) {
                             TypeRushDifficultyScreen(
                                 onDifficultySelected = { difficulty ->

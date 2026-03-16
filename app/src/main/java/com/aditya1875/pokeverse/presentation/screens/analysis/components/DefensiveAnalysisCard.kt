@@ -1,10 +1,14 @@
 package com.aditya1875.pokeverse.presentation.screens.analysis.components
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,17 +17,23 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.CARD
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.GREEN
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.RED
 
 @Composable
 fun DefensiveAnalysisCard(
@@ -174,5 +184,86 @@ fun DefensiveTypeRow(
                 fontWeight = FontWeight.Bold
             )
         }
+    }
+}
+
+@Composable
+fun DefenseSection(
+    weaknesses: Map<String, List<String>>,
+    resistances: Map<String, List<String>>,
+    teamSize: Int
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = CARD),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+
+            Text("🛡️ Defensive Profile",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold, color = Color.White)
+            HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+
+            if (weaknesses.isNotEmpty()) {
+                Text("VULNERABLE TO", style = MaterialTheme.typography.labelSmall,
+                    color = RED.copy(alpha = 0.8f), letterSpacing = 1.5.sp)
+                weaknesses.entries.sortedByDescending { it.value.size }.take(6).forEach { (type, pokemon) ->
+                    DefenseTypeBar(type = type, count = pokemon.size, total = teamSize, isWeakness = true)
+                }
+            }
+
+            if (resistances.isNotEmpty()) {
+                Text("RESISTS", style = MaterialTheme.typography.labelSmall,
+                    color = GREEN.copy(alpha = 0.8f), letterSpacing = 1.5.sp)
+                resistances.entries.sortedByDescending { it.value.size }.take(6).forEach { (type, pokemon) ->
+                    DefenseTypeBar(type = type, count = pokemon.size, total = teamSize, isWeakness = false)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DefenseTypeBar(type: String, count: Int, total: Int, isWeakness: Boolean) {
+    val barColor = if (isWeakness) RED else GREEN
+    val fraction by animateFloatAsState(
+        count.toFloat() / total.toFloat().coerceAtLeast(1f),
+        tween(600), label = "bar"
+    )
+    Row(
+        Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = PokemonTypeData.getTypeColor(type),
+            modifier = Modifier.width(82.dp)
+        ) {
+            Text(
+                type.replaceFirstChar { it.uppercase() },
+                Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold, color = Color.White,
+                textAlign = TextAlign.Center
+            )
+        }
+        Box(
+            Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp))
+                .background(Color.White.copy(alpha = 0.06f))
+        ) {
+            Box(
+                Modifier.fillMaxHeight().fillMaxWidth(fraction).clip(RoundedCornerShape(4.dp))
+                    .background(barColor.copy(alpha = 0.7f))
+            )
+        }
+        Text(
+            "$count/$total",
+            style = MaterialTheme.typography.labelMedium,
+            color = barColor, fontWeight = FontWeight.Bold,
+            modifier = Modifier.width(32.dp), textAlign = TextAlign.End
+        )
     }
 }
