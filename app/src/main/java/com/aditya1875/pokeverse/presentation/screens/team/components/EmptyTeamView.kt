@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
 

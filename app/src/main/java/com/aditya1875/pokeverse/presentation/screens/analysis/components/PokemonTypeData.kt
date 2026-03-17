@@ -7,14 +7,14 @@ import androidx.compose.ui.graphics.Color
  */
 
 object PokemonTypeData {
-    
+
     // All Pokemon types
     val allTypes = listOf(
         "normal", "fire", "water", "electric", "grass", "ice",
         "fighting", "poison", "ground", "flying", "psychic", "bug",
         "rock", "ghost", "dragon", "dark", "steel", "fairy"
     )
-    
+
     /**
      * Type effectiveness chart
      * Key: Attacking type
@@ -94,45 +94,45 @@ object PokemonTypeData {
             "dark" to 2.0, "steel" to 0.5
         )
     )
-    
+
     /**
      * Calculate defensive effectiveness for a type
      * Returns map of attacking type to damage multiplier
      */
     fun getDefensiveWeaknesses(defendingType: String): Map<String, Double> {
         val weaknesses = mutableMapOf<String, Double>()
-        
+
         typeEffectiveness.forEach { (attackingType, matchups) ->
             val multiplier = matchups[defendingType] ?: 1.0
             if (multiplier != 1.0) {
                 weaknesses[attackingType] = multiplier
             }
         }
-        
+
         return weaknesses
     }
-    
+
     /**
      * Calculate combined defensive effectiveness for dual types
      */
     fun getDualTypeDefense(type1: String, type2: String?): Map<String, Double> {
         if (type2 == null) return getDefensiveWeaknesses(type1)
-        
+
         val combined = mutableMapOf<String, Double>()
-        
+
         allTypes.forEach { attackingType ->
             val mult1 = typeEffectiveness[attackingType]?.get(type1) ?: 1.0
             val mult2 = typeEffectiveness[attackingType]?.get(type2) ?: 1.0
             val total = mult1 * mult2
-            
+
             if (total != 1.0) {
                 combined[attackingType] = total
             }
         }
-        
+
         return combined
     }
-    
+
     /**
      * Get type color for UI
      */
@@ -185,85 +185,87 @@ data class TypeDiversity(
  * Team Analyzer - Main analysis engine
  */
 object TeamAnalyzer {
-    
+
     fun analyzeTeam(team: List<TeamMemberWithTypes>): TeamAnalysis {
+        if (team.isEmpty()) return emptyAnalysis()
+
         val offensiveCoverage = calculateOffensiveCoverage(team)
-        val defensiveAnalysis = calculateDefensiveProfile(team)
+        val (weaknesses, resistances) = calculateDefensiveProfile(team)
         val typeDiversity = analyzeTypeDiversity(team)
-        val coverageScore = calculateOverallScore(offensiveCoverage, defensiveAnalysis, typeDiversity)
-        val recommendations = generateRecommendations(team, offensiveCoverage, defensiveAnalysis, typeDiversity)
-        val strengths = identifyStrengths(team, offensiveCoverage, defensiveAnalysis)
-        
+        val coverageScore = calculateOverallScore(
+            offensiveCoverage,
+            weaknesses,
+            resistances,
+            typeDiversity,
+            team.size
+        )
+        val recommendations =
+            generateRecommendations(team, offensiveCoverage, weaknesses, typeDiversity)
+        val strengths = identifyStrengths(team, offensiveCoverage, resistances)
+
         return TeamAnalysis(
             coverageScore = coverageScore,
             offensiveCoverage = offensiveCoverage,
-            defensiveWeaknesses = defensiveAnalysis.first,
-            resistances = defensiveAnalysis.second,
+            defensiveWeaknesses = weaknesses,
+            resistances = resistances,
             recommendations = recommendations,
             strengths = strengths,
             typeDiversity = typeDiversity
         )
     }
-    
+
+    private fun emptyAnalysis() = TeamAnalysis(
+        coverageScore = 0,
+        offensiveCoverage = emptyMap(),
+        defensiveWeaknesses = emptyMap(),
+        resistances = emptyMap(),
+        recommendations = listOf("Add Pokémon to your team to get analysis!"),
+        strengths = emptyList(),
+        typeDiversity = TypeDiversity(0, emptyMap(), false, emptyList())
+    )
+
     private fun calculateOffensiveCoverage(team: List<TeamMemberWithTypes>): Map<String, Int> {
-        val coverage = mutableMapOf<String, Int>()
-        
-        // For each defending type, count how many team members can hit it super effectively
-        PokemonTypeData.allTypes.forEach { defendingType ->
-            var hitCount = 0
-            
-            team.forEach { pokemon ->
-                // Check if this Pokemon's types can hit the defending type super effectively
-                pokemon.types.forEach { attackingType ->
-                    val effectiveness = PokemonTypeData.typeEffectiveness[attackingType]?.get(defendingType) ?: 1.0
-                    if (effectiveness >= 2.0) {
-                        hitCount++
-                        return@forEach // Count each Pokemon only once
-                    }
+        return PokemonTypeData.allTypes.associateWith { defendingType ->
+            team.count { pokemon ->
+                pokemon.types.any { attackingType ->
+                    (PokemonTypeData.typeEffectiveness[attackingType]?.get(defendingType)
+                        ?: 1.0) >= 2.0
                 }
             }
-            
-            coverage[defendingType] = hitCount
         }
-        
-        return coverage
     }
-    
+
     private fun calculateDefensiveProfile(
         team: List<TeamMemberWithTypes>
     ): Pair<Map<String, List<String>>, Map<String, List<String>>> {
         val weaknesses = mutableMapOf<String, MutableList<String>>()
         val resistances = mutableMapOf<String, MutableList<String>>()
-        
+
         team.forEach { pokemon ->
             val defense = PokemonTypeData.getDualTypeDefense(
                 pokemon.types.getOrNull(0) ?: "normal",
                 pokemon.types.getOrNull(1)
             )
-            
             defense.forEach { (attackType, multiplier) ->
                 when {
-                    multiplier >= 2.0 -> {
-                        weaknesses.getOrPut(attackType) { mutableListOf() }.add(pokemon.name)
-                    }
-                    multiplier <= 0.5 -> {
-                        resistances.getOrPut(attackType) { mutableListOf() }.add(pokemon.name)
-                    }
+                    multiplier >= 2.0 -> weaknesses.getOrPut(attackType) { mutableListOf() }
+                        .add(pokemon.name)
+
+                    multiplier <= 0.5 -> resistances.getOrPut(attackType) { mutableListOf() }
+                        .add(pokemon.name)
                 }
             }
         }
-        
         return Pair(weaknesses, resistances)
     }
-    
+
     private fun analyzeTypeDiversity(team: List<TeamMemberWithTypes>): TypeDiversity {
         val allTeamTypes = team.flatMap { it.types }
         val uniqueTypes = allTeamTypes.toSet().size
         val typeDistribution = allTeamTypes.groupingBy { it }.eachCount()
-        
         val criticalTypes = listOf("water", "fire", "grass", "electric", "fighting", "psychic")
         val missingCritical = criticalTypes.filter { it !in allTeamTypes }
-        
+
         return TypeDiversity(
             uniqueTypes = uniqueTypes,
             typeDistribution = typeDistribution,
@@ -271,96 +273,103 @@ object TeamAnalyzer {
             missingCriticalTypes = missingCritical
         )
     }
-    
+
     private fun calculateOverallScore(
         coverage: Map<String, Int>,
-        defense: Pair<Map<String, List<String>>, Map<String, List<String>>>,
-        diversity: TypeDiversity
+        weaknesses: Map<String, List<String>>,
+        resistances: Map<String, List<String>>,
+        diversity: TypeDiversity,
+        teamSize: Int
     ): Int {
-        // Coverage score (40 points): Average coverage across all types
-        val avgCoverage = coverage.values.average()
-        val coveragePoints = ((avgCoverage / 6.0) * 40).coerceIn(0.0, 40.0).toInt()
-        
-        // Diversity score (30 points)
-        val diversityPoints = ((diversity.uniqueTypes / 18.0) * 30).coerceIn(0.0, 30.0).toInt()
-        
-        // Defense score (30 points): Fewer weaknesses, more resistances
-        val weaknessCount = defense.first.values.sumOf { it.size }
-        val resistanceCount = defense.second.values.sumOf { it.size }
-        val defensePoints = (30 - (weaknessCount * 2) + resistanceCount).coerceIn(0, 30)
-        
-        return (coveragePoints + diversityPoints + defensePoints).coerceIn(0, 100)
+        if (teamSize == 0) return 0
+
+        // ── COVERAGE (40 pts) ─────────────────────────────────────────────────
+        // What fraction of all 18 types does the team cover super-effectively?
+        val typesCovered = coverage.values.count { it > 0 }
+        val coverageRatio = typesCovered / 18.0
+        val avgDepth = coverage.values.average() / teamSize.toDouble()   // normalised by team size
+        val coverageScore = ((coverageRatio * 25) + (avgDepth * 15)).coerceIn(0.0, 40.0).toInt()
+
+        // ── DIVERSITY (30 pts) ────────────────────────────────────────────────
+        // Max possible unique types for a team of N: N * 2 (dual types), capped at 18
+        val maxPossibleTypes = minOf(teamSize * 2, 18)
+        val diversityRatio = diversity.uniqueTypes.toDouble() / maxPossibleTypes
+        val missingPenalty = diversity.missingCriticalTypes.size * 2.0
+        val diversityScore = ((diversityRatio * 30) - missingPenalty).coerceIn(0.0, 30.0).toInt()
+
+        // ── DEFENSE (30 pts) ──────────────────────────────────────────────────
+        // Use ratios so small teams aren't punished for having fewer total Pokémon
+        val weaknessRatio =
+            weaknesses.size.toDouble() / 18.0     // fraction of types you're weak to
+        val resistanceRatio = resistances.size.toDouble() / 18.0    // fraction you resist
+        // Concentrated weaknesses (3+ members weak to same type) are severe
+        val criticalWeaks =
+            weaknesses.count { it.value.size >= (teamSize / 2.0).coerceAtLeast(2.0) }
+        val defenseScore = (30 * (1 - weaknessRatio) + 10 * resistanceRatio - criticalWeaks * 5)
+            .coerceIn(0.0, 30.0).toInt()
+
+        return (coverageScore + diversityScore + defenseScore).coerceIn(0, 100)
     }
-    
+
     private fun generateRecommendations(
         team: List<TeamMemberWithTypes>,
         coverage: Map<String, Int>,
-        defense: Pair<Map<String, List<String>>, Map<String, List<String>>>,
+        weaknesses: Map<String, List<String>>,
         diversity: TypeDiversity
     ): List<String> {
-        val recommendations = mutableListOf<String>()
-        
-        // Check for poor coverage
-        val poorCoverage = coverage.filter { it.value == 0 }
-        if (poorCoverage.isNotEmpty()) {
-            val types = poorCoverage.keys.take(3).joinToString(", ")
-            recommendations.add("⚠️ No coverage against: $types. Consider adding Pokemon with these attack types.")
+        val recs = mutableListOf<String>()
+
+        // Worst weakness
+        val worstWeak = weaknesses.maxByOrNull { it.value.size }
+        if (worstWeak != null && worstWeak.value.size >= 2) {
+            recs.add("${worstWeak.value.size} of your Pokémon are weak to ${worstWeak.key.replaceFirstChar { it.uppercase() }}. Add a ${worstWeak.key}-resistant Pokémon.")
         }
-        
-        // Check for common weaknesses
-        val criticalWeaknesses = defense.first.filter { it.value.size >= 3 }
-        if (criticalWeaknesses.isNotEmpty()) {
-            val worst = criticalWeaknesses.maxBy { it.value.size }
-            recommendations.add("🛡️ ${worst.value.size} Pokemon are weak to ${worst.key}. Consider adding a ${worst.key}-resistant Pokemon.")
+
+        // Uncovered types (no super-effective move)
+        val uncovered = coverage.filter { it.value == 0 }.keys.take(3)
+        if (uncovered.isNotEmpty()) {
+            recs.add("No super-effective moves against: ${uncovered.joinToString(", ") { it.replaceFirstChar { c -> c.uppercase() } }}.")
         }
-        
-        // Check type diversity
-        if (diversity.uniqueTypes < 6 && team.size >= 4) {
-            recommendations.add("🎨 Low type diversity (${diversity.uniqueTypes} types). Add different types for better balance.")
+
+        // Duplicate types
+        val heavyDuplicate = diversity.typeDistribution.filter { it.value >= 3 }.keys.firstOrNull()
+        if (heavyDuplicate != null) {
+            recs.add("Too many ${heavyDuplicate.replaceFirstChar { it.uppercase() }}-types. Replace one for better variety.")
         }
-        
-        // Check for duplicate types
-        val duplicates = diversity.typeDistribution.filter { it.value > 2 }
-        if (duplicates.isNotEmpty()) {
-            val type = duplicates.keys.first()
-            recommendations.add("⚡ Too many ${type}-type Pokemon (${duplicates[type]}). Consider more variety.")
-        }
-        
-        // Suggest missing critical types
+
+        // Missing critical types (only when team has room)
         if (diversity.missingCriticalTypes.isNotEmpty() && team.size < 6) {
-            val missing = diversity.missingCriticalTypes.take(2).joinToString(" or ")
-            recommendations.add("💡 Consider adding a $missing-type Pokemon for better coverage.")
+            val missing = diversity.missingCriticalTypes.take(2)
+                .joinToString(" or ") { it.replaceFirstChar { c -> c.uppercase() } }
+            recs.add("Consider adding a $missing-type for broader coverage.")
         }
-        
-        return recommendations.ifEmpty { listOf("✅ Your team has good balance!") }
+
+        return recs.ifEmpty { listOf("Great balance! Your team is well-rounded.") }
     }
-    
+
     private fun identifyStrengths(
         team: List<TeamMemberWithTypes>,
         coverage: Map<String, Int>,
-        defense: Pair<Map<String, List<String>>, Map<String, List<String>>>
+        resistances: Map<String, List<String>>
     ): List<String> {
         val strengths = mutableListOf<String>()
-        
-        // Strong coverage
-        val excellentCoverage = coverage.filter { it.value >= 3 }
-        if (excellentCoverage.isNotEmpty()) {
-            val types = excellentCoverage.keys.take(3).joinToString(", ")
-            strengths.add("💪 Excellent coverage against: $types")
+
+        val excellentTypes = coverage.filter { it.value >= maxOf(2, team.size / 2) }.keys.take(4)
+        if (excellentTypes.isNotEmpty()) {
+            strengths.add("Strong coverage against ${excellentTypes.joinToString(", ") { it.replaceFirstChar { c -> c.uppercase() } }}")
         }
-        
-        // Strong resistances
-        val strongResistances = defense.second.filter { it.value.size >= 3 }
-        if (strongResistances.isNotEmpty()) {
-            val type = strongResistances.keys.first()
-            strengths.add("🛡️ Strong ${type}-type resistance across team")
+
+        val teamResist =
+            resistances.filter { it.value.size >= maxOf(2, team.size / 2) }.keys.take(3)
+        if (teamResist.isNotEmpty()) {
+            strengths.add("Solid resistance to ${teamResist.joinToString(", ") { it.replaceFirstChar { c -> c.uppercase() } }}")
         }
-        
-        // Balanced team
-        if (team.size >= 5 && coverage.values.average() >= 2.0) {
-            strengths.add("⚖️ Well-balanced offensive coverage")
+
+        val typeCount = team.flatMap { it.types }.toSet().size
+        if (team.size in 3..typeCount) {
+            strengths.add("Good type variety. no major overlaps")
         }
-        
+
         return strengths
     }
 }

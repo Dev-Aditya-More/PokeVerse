@@ -90,13 +90,13 @@ import androidx.navigation.NavHostController
 import com.aditya1875.pokeverse.presentation.screens.detail.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.presentation.screens.home.components.FilterBar
 import com.aditya1875.pokeverse.presentation.screens.home.components.ImprovedPokemonCard
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
 import com.aditya1875.pokeverse.presentation.screens.home.components.SuggestionRow
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.UiError
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.data.billing.BillingManager
+import com.aditya1875.pokeverse.data.billing.IBillingManager
 import com.aditya1875.pokeverse.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.screens.home.components.AssetsOnboardingBanner
@@ -114,6 +114,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import androidx.core.net.toUri
+import com.aditya1875.pokeverse.presentation.screens.home.components.HomeContentMode
 import com.aditya1875.pokeverse.presentation.screens.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 
@@ -142,6 +143,8 @@ fun HomeScreen(
 
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
 
+    var contentMode by rememberSaveable { mutableStateOf(HomeContentMode.POKEMON) }
+
     val soundManager: SoundManager = koinInject()
 
     val pullRefreshState = rememberPullRefreshState(
@@ -169,7 +172,7 @@ fun HomeScreen(
 
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
 
-    val billingManager: BillingManager = koinInject()
+    val billingManager: IBillingManager = koinInject()
 
     val billingViewModel: BillingViewModel = koinViewModel()
 

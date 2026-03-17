@@ -41,7 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.AnalysisContent
@@ -52,9 +54,21 @@ import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamAna
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamAnalyzer
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamMemberWithTypes
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TypeDiversity
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.BLUE
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
+
+object AnalysisColors {
+    val BG = Color(0xFF0B0E17)
+    val CARD = Color(0xFF141820)
+    val CARD2 = Color(0xFF1C2230)
+    val GREEN = Color(0xFF00E676)
+    val RED = Color(0xFFFF4C60)
+    val AMBER = Color(0xFFFFB300)
+    val BLUE = Color(0xFF40C4FF)
+    val PURPLE = Color(0xFFCE93D8)
+}
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -285,50 +299,25 @@ fun TypeChip(type: String, count: Int) {
 
 @Composable
 fun EmptyAnalysisView(navController: NavController) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1C1C1C))
-    ) {
+    Box(Modifier.fillMaxSize().background(AnalysisColors.BG), contentAlignment = Alignment.Center) {
         Column(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(
-                Icons.Default.Info,
-                contentDescription = null,
-                tint = Color.White.copy(alpha = 0.5f),
-                modifier = Modifier.size(64.dp)
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            Text(
-                text = "No Team to Analyze",
-                style = MaterialTheme.typography.headlineSmall,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-
+            Text("📋", fontSize = 56.sp)
+            Text("No Team Yet", style = MaterialTheme.typography.headlineSmall,
+                color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Build a team to unlock analysis",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.6f), textAlign = TextAlign.Center)
             Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = "Build a team first to see analysis",
-                color = Color.White.copy(alpha = 0.6f),
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(Modifier.height(24.dp))
-
             Button(
                 onClick = { navController.navigate(Route.BottomBar.Home.route) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFDC3545)
-                )
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = BLUE)
             ) {
-                Text("Build Team")
+                Text("Build Team", modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
             }
         }
     }

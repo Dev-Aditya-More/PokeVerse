@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.data.local.entity.TeamMemberEntity
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.components.Route
 
 @Composable
 fun TeamContent(

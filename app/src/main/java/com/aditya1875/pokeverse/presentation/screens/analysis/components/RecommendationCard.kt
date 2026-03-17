@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse.presentation.screens.analysis.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.CARD
 
 @Composable
 fun RecommendationsCard(recommendations: List<String>) {
@@ -103,6 +106,41 @@ fun RecommendationsCard(recommendations: List<String>) {
                 }
                 if (index < recommendations.lastIndex) {
                     Spacer(Modifier.height(4.dp))
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+fun InsightCard(title: String, icon: String, accentColor: Color, items: List<String>) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = CARD),
+        elevation = CardDefaults.cardElevation(2.dp)
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(icon, fontSize = 22.sp)
+                Text(title, style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold, color = Color.White)
+            }
+            HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
+            items.forEach { item ->
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Box(
+                        Modifier.size(6.dp).offset(y = 7.dp)
+                            .background(accentColor, CircleShape)
+                    )
+                    Text(item, style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.85f), lineHeight = 20.sp)
                 }
             }
         }

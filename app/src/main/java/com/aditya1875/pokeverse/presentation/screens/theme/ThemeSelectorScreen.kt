@@ -101,12 +101,6 @@ fun ThemeSelectorScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            "🔥 💧 🌿",
-                            fontSize = 48.sp,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        Text(
                             "Choose Your Theme",
                             style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
@@ -115,7 +109,7 @@ fun ThemeSelectorScreen(
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            "Pick a legendary starter to personalize your Pokéverse experience",
+                            "Pick a theme to personalize your Pokéverse experience",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                             textAlign = TextAlign.Center
@@ -144,7 +138,6 @@ fun ThemeSelectorScreen(
                 )
             }
 
-            // Fun fact footer
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -212,8 +205,19 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
         colors = listOf(
             Color(0xFFFFD600), // Pikachu Yellow
             Color(0xFFFFEA00), // Bright Yellow
-            Color(0xFF212121)  // Dark contrast (ears/tail tip)
+            Color(0xFF212121)
         ),
+        premium = true
+    ),
+
+    StarterTheme(
+        theme = AppTheme.DARKRAI,
+        pokemonName = "Darkrai",
+        pokemonNumber = "#491",
+        type = "Dark",
+        emoji = "🖤",
+        description = "For those who prefer the dark side",
+        colors = listOf(Color(0xFF9B59B6), Color(0xFF050508), Color(0xFFE53935)),
         premium = true
     ),
 
@@ -346,24 +350,6 @@ fun StarterThemeCard(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
-
-                            if (starterTheme.premium) {
-
-                                Spacer(Modifier.height(6.dp))
-
-                                AssistChip(
-                                    onClick = {},
-                                    enabled = false,
-                                    label = { Text("Premium") },
-                                    leadingIcon = {
-                                        Icon(
-                                            Icons.Default.WorkspacePremium,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                )
-                            }
                         }
                     }
                 }

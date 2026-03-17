@@ -85,6 +85,41 @@ private val PikachuClassicDark = darkColorScheme(
     outlineVariant = Color(0xFF2C2C2C),
 )
 
+val DarkraiDark = darkColorScheme(
+    primary = Color(0xFF9B59B6),           // Shadow Purple — Darkrai's aura
+    onPrimary = Color(0xFFF5EEFF),
+
+    primaryContainer = Color(0xFF4A235A),   // Deep void purple
+    onPrimaryContainer = Color(0xFFE8CFFF),
+
+    secondary = Color(0xFFE53935),          // Crimson eye
+    onSecondary = Color(0xFFFFEBEE),
+
+    secondaryContainer = Color(0xFF7B1FA2), // Dark purple
+    onSecondaryContainer = Color(0xFFF3E5F5),
+
+    tertiary = Color(0xFFB0BEC5),           // Pale moonlight silver
+    onTertiary = Color(0xFF0D0D0D),
+
+    tertiaryContainer = Color(0xFF37474F),
+    onTertiaryContainer = Color(0xFFECEFF1),
+
+    background = Color(0xFF050508),         // True void black
+    onBackground = Color(0xFFE8E0F0),
+
+    surface = Color(0xFF0D0D14),            // Near-black with faint purple tint
+    onSurface = Color(0xFFE8E0F0),
+
+    surfaceVariant = Color(0xFF1A1025),     // Dark purple-black
+    onSurfaceVariant = Color(0xFFCBB8E0),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF3D2B4D),
+    outlineVariant = Color(0xFF1A1025),
+)
+
 // CHARIZARD THEME (Fire/Flying)
 
 private val CharizardDark = darkColorScheme(
@@ -189,6 +224,7 @@ private val BlastoiseDark = darkColorScheme(
 enum class AppTheme {
     DEXVERSE,
     PIKACHU,
+    DARKRAI,
     CHARIZARD,
     VENUSAUR,
     BLASTOISE
@@ -204,6 +240,7 @@ fun PokeverseTheme(
     val colorScheme = when (selectedTheme) {
         AppTheme.DEXVERSE -> PokeverseClassicDark
         AppTheme.PIKACHU -> PikachuClassicDark
+        AppTheme.DARKRAI -> DarkraiDark
         AppTheme.CHARIZARD -> CharizardDark
         AppTheme.VENUSAUR -> VenusaurDark
         AppTheme.BLASTOISE -> BlastoiseDark
@@ -215,11 +252,7 @@ fun PokeverseTheme(
         SideEffect {
             val window = (view.context as Activity).window
 
-            // Let content draw behind system bars
             WindowCompat.setDecorFitsSystemWindows(window, false)
-
-            // Make status bar transparent
-            window.statusBarColor = Color.Transparent.toArgb()
 
             val controller = WindowCompat.getInsetsController(window, view)
             controller.isAppearanceLightStatusBars = false // dark icons? true

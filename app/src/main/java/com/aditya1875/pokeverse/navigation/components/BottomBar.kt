@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.utils
+package com.aditya1875.pokeverse.navigation.components
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,8 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import com.aditya1875.pokeverse.presentation.screens.home.components.BottomNavigationBar
-import com.aditya1875.pokeverse.presentation.screens.home.components.Route
+import com.aditya1875.pokeverse.navigation.BottomNavigationBar
 
 @Composable
 fun WithBottomBar(

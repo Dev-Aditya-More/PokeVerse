@@ -1,6 +1,5 @@
 package com.aditya1875.pokeverse.presentation.screens.item
 
-import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -32,62 +31,33 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ItemListScreen(
     onItemClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
     viewModel: ItemViewModel = koinViewModel()
 ) {
     val listState by viewModel.listState.collectAsState()
     val searchQuery by viewModel.searchQuery.collectAsState()
     val filteredItems by viewModel.filteredItems.collectAsState()
-
-    val gridState = rememberLazyGridState()
     val focusManager = LocalFocusManager.current
+    val gridState = rememberLazyGridState()
 
-    // Auto-trigger load-more when nearing end
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisible = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val total = filteredItems.size
-            lastVisible >= total - 8 && listState is ItemListState.Success &&
+            lastVisible >= filteredItems.size - 8 &&
+                    listState is ItemListState.Success &&
                     (listState as ItemListState.Success).canLoadMore &&
                     searchQuery.isBlank()
         }
     }
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore) viewModel.loadMore()
-    }
+    LaunchedEffect(shouldLoadMore) { if (shouldLoadMore) viewModel.loadMore() }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-        ) {
-            Text(
-                text = "Items",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black
-            )
-            Text(
-                text = "Pokémon items & held gear",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
+    Column(modifier = modifier.fillMaxSize()) {
+        // Search bar — same padding/style as Pokémon search
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { viewModel.onSearchChange(it) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 12.dp),
-            placeholder = {
-                Text(
-                    "Search items...",
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                )
-            },
+            label = { Text("Search items..") },
+            singleLine = true,
             leadingIcon = {
                 Icon(Icons.Default.Search, null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -99,13 +69,12 @@ fun ItemListScreen(
                     }
                 }
             },
-            shape = RoundedCornerShape(14.dp),
-            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+            shape = RoundedCornerShape(12.dp),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
             colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+                unfocusedBorderColor = MaterialTheme.colorScheme.surfaceVariant)
         )
 
         when (val state = listState) {
@@ -113,12 +82,8 @@ fun ItemListScreen(
             is ItemListState.Error   -> ItemListError(state.message) { viewModel.loadItems() }
             is ItemListState.Success -> {
                 val displayList = if (searchQuery.isNotEmpty()) filteredItems else state.items
-
                 if (displayList.isEmpty() && searchQuery.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text("🔍", fontSize = 40.sp)
                             Spacer(Modifier.height(8.dp))
@@ -129,32 +94,17 @@ fun ItemListScreen(
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(3),
                         state = gridState,
-                        contentPadding = PaddingValues(
-                            start = 16.dp, end = 16.dp,
-                            top = 4.dp, bottom = 100.dp
-                        ),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 120.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(
-                            items = displayList,
-                            key = { it.id }
-                        ) { item ->
-                            ItemGridCard(
-                                item = item,
-                                onClick = { onItemClick(item.name) }
-                            )
+                        items(displayList, key = { it.id }) { item ->
+                            ItemGridCard(item = item, onClick = { onItemClick(item.name) })
                         }
-
                         if (state.isLoadingMore) {
                             item(span = { GridItemSpan(3) }) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
+                                Box(Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
                                 }
                             }
@@ -167,76 +117,38 @@ fun ItemListScreen(
 }
 
 @Composable
-fun ItemGridCard(
-    item: ItemUiModel,
-    onClick: () -> Unit
-) {
+fun ItemGridCard(item: ItemUiModel, onClick: () -> Unit) {
     val accentColor = Color(item.categoryColor)
-
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(0.85f)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(1.dp),
+        modifier = Modifier.fillMaxWidth().aspectRatio(0.85f)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
+            modifier = Modifier.fillMaxSize().padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(accentColor.copy(alpha = 0.12f)),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.size(56.dp).clip(CircleShape).background(accentColor.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center) {
                 if (item.spriteUrl.isNotEmpty()) {
-                    AsyncImage(
-                        model = item.spriteUrl,
-                        contentDescription = item.displayName,
-                        modifier = Modifier.size(40.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                    AsyncImage(model = item.spriteUrl, contentDescription = item.displayName,
+                        modifier = Modifier.size(40.dp), contentScale = ContentScale.Fit)
                 } else {
                     Text("?", fontSize = 20.sp, color = accentColor)
                 }
             }
-
             Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = item.displayName,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center,
-                lineHeight = 15.sp
-            )
-
+            Text(item.displayName, style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center, lineHeight = 15.sp)
             Spacer(Modifier.height(4.dp))
-
-            // Category pill
-            Surface(
-                shape = RoundedCornerShape(6.dp),
-                color = accentColor.copy(alpha = 0.15f)
-            ) {
-                Text(
-                    text = item.categoryDisplay
-                        .split(" ").firstOrNull() ?: item.categoryDisplay,
+            Surface(shape = RoundedCornerShape(6.dp), color = accentColor.copy(alpha = 0.15f)) {
+                Text(item.categoryDisplay.split(" ").firstOrNull() ?: item.categoryDisplay,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = accentColor,
-                    maxLines = 1
-                )
+                    style = MaterialTheme.typography.labelSmall, color = accentColor, maxLines = 1)
             }
         }
     }
@@ -244,40 +156,24 @@ fun ItemGridCard(
 
 @Composable
 private fun ItemGridSkeleton() {
-    val shimmer by rememberInfiniteTransition(label = "shimmer").animateFloat(
-        initialValue = 0.3f, targetValue = 0.7f,
-        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
-        label = "alpha"
-    )
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        contentPadding = PaddingValues(16.dp),
+    val shimmer by rememberInfiniteTransition(label = "s").animateFloat(
+        0.3f, 0.7f, infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "a")
+    LazyVerticalGrid(columns = GridCells.Fixed(3), contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.fillMaxSize(),
-        userScrollEnabled = false
-    ) {
+        modifier = Modifier.fillMaxSize(), userScrollEnabled = false) {
         items(18) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(0.85f)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = shimmer))
-            )
+            Box(Modifier.fillMaxWidth().aspectRatio(0.85f).clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = shimmer)))
         }
     }
 }
 
 @Composable
 private fun ItemListError(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("⚠️", fontSize = 40.sp)
-        Spacer(Modifier.height(8.dp))
+    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
+        Text("⚠️", fontSize = 40.sp); Spacer(Modifier.height(8.dp))
         Text("Failed to load items", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(16.dp))
         Button(onClick = onRetry) { Text("Retry") }

@@ -17,37 +17,53 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.BLUE
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.CARD
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.GREEN
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.PURPLE
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.RED
 
 @Composable
-fun QuickStatsRow(analysis: TeamAnalysis, teamWithTypes: List<TeamMemberWithTypes>) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        QuickStatCard(
-            modifier = Modifier.weight(1f),
-            label = "Types",
-            value = "${analysis.typeDiversity.uniqueTypes}",
-            icon = "🎨",
-            color = Color(0xFF9C27B0)
+fun QuickStatsRow(analysis: TeamAnalysis, teamSize: Int) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        MiniStatChip(
+            Modifier.weight(1f), "⚔️",
+            "${analysis.offensiveCoverage.values.count { it > 0 }}/18",
+            "Coverage", BLUE
         )
+        MiniStatChip(
+            Modifier.weight(1f), "🎨",
+            "${analysis.typeDiversity.uniqueTypes}",
+            "Types", PURPLE
+        )
+        MiniStatChip(
+            Modifier.weight(1f), "🛡️",
+            "${analysis.defensiveWeaknesses.size}",
+            "Weaknesses",
+            if (analysis.defensiveWeaknesses.size <= 4) GREEN else RED
+        )
+    }
+}
 
-        QuickStatCard(
-            modifier = Modifier.weight(1f),
-            label = "Coverage",
-            value = "${analysis.offensiveCoverage.values.count { it > 0 }}/18",
-            icon = "⚔️",
-            color = Color(0xFFFF5722)
-        )
-
-        QuickStatCard(
-            modifier = Modifier.weight(1f),
-            label = "Weaknesses",
-            value = "${analysis.defensiveWeaknesses.size}",
-            icon = "🛡️",
-            color = Color(0xFF2196F3)
-        )
+@Composable
+private fun MiniStatChip(modifier: Modifier, icon: String, value: String, label: String, color: Color) {
+    Card(modifier = modifier, shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = CARD),
+        elevation = CardDefaults.cardElevation(2.dp)) {
+        Column(
+            Modifier.fillMaxWidth().padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(icon, fontSize = 20.sp)
+            Text(value, style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black, color = color)
+            Text(label, style = MaterialTheme.typography.labelSmall,
+                color = Color.White.copy(alpha = 0.5f), textAlign = TextAlign.Center)
+        }
     }
 }
 

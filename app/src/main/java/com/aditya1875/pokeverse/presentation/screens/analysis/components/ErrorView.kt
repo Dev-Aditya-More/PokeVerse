@@ -2,6 +2,7 @@ package com.aditya1875.pokeverse.presentation.screens.analysis.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,57 +25,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.BG
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.RED
 
 @Composable
 fun ErrorView(message: String, navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0F0F0F),
-                        Color(0xFF1A1A1A)
-                    )
-                )
-            )
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            Icons.Default.Warning,
-            contentDescription = null,
-            tint = Color(0xFFFF6B6B),
-            modifier = Modifier.size(72.dp)
-        )
-        Spacer(Modifier.height(24.dp))
-        Text(
-            "Analysis Failed",
-            color = Color.White,
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(Modifier.height(12.dp))
-        Text(
-            message,
-            color = Color.White.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(Modifier.height(32.dp))
-        Button(
-            onClick = { navController.popBackStack() },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFFFF6B6B)
-            ),
-            shape = RoundedCornerShape(12.dp)
+    Box(Modifier.fillMaxSize().background(BG), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                "Go Back",
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
-            )
+            Text("⚠️", fontSize = 56.sp)
+            Text("Analysis Failed", style = MaterialTheme.typography.headlineSmall,
+                color = Color.White, fontWeight = FontWeight.Bold)
+            Text(message, style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.6f), textAlign = TextAlign.Center)
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = { navController.popBackStack() },
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = RED)) {
+                Text("Go Back", modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+            }
         }
     }
 }
