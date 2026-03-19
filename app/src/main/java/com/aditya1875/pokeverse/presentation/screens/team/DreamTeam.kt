@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.aditya1875.pokeverse.navigation.components.Route
 import com.aditya1875.pokeverse.presentation.screens.team.components.CreateTeamDialog
 import com.aditya1875.pokeverse.presentation.screens.team.components.EmptyTeamView
 import com.aditya1875.pokeverse.presentation.screens.team.components.FavoritesContent
@@ -192,7 +193,6 @@ fun DreamTeam(
                                                 )
                                             }
 
-                                            // Dropdown menu for team selection
                                         DropdownMenu(
                                             expanded = showTeamOptionsMenu,
                                             onDismissRequest = { showTeamOptionsMenu = false }
@@ -370,7 +370,10 @@ fun DreamTeam(
                                     navController = navController,
                                     onRemove = { viewModel.removeFromTeam(it) },
                                     accentColor = MaterialTheme.colorScheme.primary,
-                                    assetsEnabled = originalAssetsEnabled
+                                    assetsEnabled = originalAssetsEnabled,
+                                    onAnalyze = {
+                                        navController.navigate(Route.Analysis.createRoute(currentTeam?.teamId.toString()))
+                                    }
                                 )
                                 1 -> FavoritesContent(
                                     favorites = favorites,

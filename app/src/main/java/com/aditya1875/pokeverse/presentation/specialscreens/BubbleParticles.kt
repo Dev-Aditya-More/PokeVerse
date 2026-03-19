@@ -22,18 +22,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.delay
 import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-@Preview
+@Preview(showBackground = true)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun HydroPumpParticles(
     modifier: Modifier = Modifier,
-    particleCount: Int = 18,
-    spawnRateMs: Long = 300L,
+    particleCount: Int = 44,
+    spawnRateMs: Long = 70L,
     colors: List<Color> = listOf(
-        Color(0xFF90CAF9),
+        Color(0xFF244B6C),
         Color(0xFF64B5F6),
         Color(0xFFB3E5FC),
         Color(0xFF81D4FA),
@@ -53,7 +54,6 @@ fun HydroPumpParticles(
                 float2 uv = fragCoord / iResolution;
                 float t = iTime * 0.15;
 
-                // Slow, long-wavelength undulation
                 float wave = sin(uv.x * 3.0 + t) * 0.012
                            + cos(uv.y * 2.5 - t * 0.5) * 0.008;
 
@@ -62,7 +62,6 @@ fun HydroPumpParticles(
 
                 float shimmer = 0.5 + 0.5 * sin(t * 0.8 + uv.y * 8.0 + uv.x * 4.0);
 
-                // Very desaturated, icy blue — just a hint of atmosphere
                 return half4(0.1, 0.3, 0.55, vignette * shimmer * 0.04);
             }
             """.trimIndent()
@@ -70,10 +69,11 @@ fun HydroPumpParticles(
     }
 
     val time = remember { mutableFloatStateOf(0f) }
+
     LaunchedEffect(Unit) {
         while (true) {
             time.floatValue += 0.016f
-            delay(16L)
+            delay(16)
         }
     }
 
@@ -87,30 +87,43 @@ fun HydroPumpParticles(
         }
     }
 
+    // Particle physics
     LaunchedEffect(Unit) {
         while (true) {
+
             val iterator = particles.listIterator()
+
             while (iterator.hasNext()) {
+
                 val p = iterator.next()
                 val age = p.age + 1
                 val progress = age.toFloat() / p.lifetime
 
-                val sway = (
-                        sin(progress * PI * 1.8 + p.phaseOffset) * 0.018 +
-                                sin(progress * PI * 3.2 + p.phaseOffset * 2.1) * 0.006
-                        ).toFloat()
+                // Spiral wobble
+                val swirl =
+                    sin(progress * PI * 2.4 + p.phaseOffset) * 0.03 +
+                            cos(progress * PI * 1.6 + p.phaseOffset * 1.3) * 0.015
+
+                val sway = swirl.toFloat()
 
                 val newX = p.x + sway * p.driftSign
-                val speed = p.velocityY * (1f + progress * 0.4f)
-                val newY = p.y - speed
 
-                val fadeIn  = (progress / 0.15f).coerceIn(0f, 1f)
+                val speed = p.velocityY * (1f + progress * 0.4f)
+
+                // vertical bounce
+                val bounce =
+                    sin(progress * PI * 6 + p.phaseOffset) * 0.003f
+
+                val newY = p.y - speed + bounce
+
+                val fadeIn = (progress / 0.15f).coerceIn(0f, 1f)
                 val fadeOut = ((1f - progress) / 0.25f).coerceIn(0f, 1f)
+
                 val newAlpha = (fadeIn * fadeOut * p.peakAlpha).coerceIn(0f, 1f)
 
                 val newParticle = p.copy(
                     x = newX,
-                    y = newY,
+                    y = newY.toFloat(),
                     alpha = newAlpha,
                     age = age
                 )
@@ -118,16 +131,23 @@ fun HydroPumpParticles(
                 if (newParticle.isAlive()) iterator.set(newParticle)
                 else iterator.remove()
             }
-            delay(16L)
+
+            delay(16)
         }
     }
 
-    Canvas(modifier = modifier.fillMaxSize().clipToBounds()) {
+    Canvas(
+        modifier = modifier
+            .fillMaxSize()
+            .clipToBounds()
+    ) {
+
         val w = size.width
         val h = size.height
 
         hydroShader.setFloatUniform("iResolution", w, h)
         hydroShader.setFloatUniform("iTime", time.floatValue)
+
         drawRect(
             brush = ShaderBrush(hydroShader),
             size = size,
@@ -136,8 +156,14 @@ fun HydroPumpParticles(
         )
 
         particles.forEach { p ->
+
             val center = Offset(p.x * w, p.y * h)
-            val r = p.baseRadius * density
+
+            // size pulsing
+            val pulse =
+                1f + (sin(p.age * 0.15 + p.phaseOffset) * 0.12f).toFloat()
+
+            val r = p.baseRadius * density * pulse
             val a = p.alpha
 
             drawCircle(
@@ -172,14 +198,13 @@ fun HydroPumpParticles(
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color.Transparent,                             // hollow center
                         Color.Transparent,
-                        p.color.copy(alpha = a * 0.22f),              // thin colored rim
+                        Color.Transparent,
+                        p.color.copy(alpha = a * 0.22f),
                         Color.White.copy(alpha = a * 0.08f)
                     ),
                     center = center,
-                    radius = r,
-                    // Shift gradient stop weights toward the edge
+                    radius = r
                 ),
                 radius = r,
                 center = center,
@@ -214,7 +239,6 @@ fun HydroPumpParticles(
                 blendMode = BlendMode.Screen
             )
 
-            // Layer 6 — secondary smaller highlight (bottom-right, opposite refraction)
             drawCircle(
                 color = Color.White.copy(alpha = a * 0.12f),
                 radius = r * 0.1f,
@@ -244,33 +268,37 @@ data class BubbleParticle(
     fun isAlive(): Boolean = age < lifetime
 
     companion object {
+
         fun generate(colors: List<Color>): BubbleParticle {
-            // Two size classes: small crisp bubbles and larger diffuse ones
-            val isLarge = Random.nextFloat() < 0.25f
-            val radius = if (isLarge) {
-                Random.nextFloat() * 5f + 8f    // 8–13 dp — rare large
-            } else {
-                Random.nextFloat() * 4f + 2.5f  // 2.5–6.5 dp — common small
+
+            val r = Random.nextFloat()
+
+            val isLarge = r < 0.20f
+            val isMicro = r > 0.80f
+
+            val radius = when {
+                isLarge -> Random.nextFloat() * 5f + 8f
+                isMicro -> Random.nextFloat() * 1.2f + 0.8f
+                else -> Random.nextFloat() * 4f + 2.5f
             }
 
-            // Large bubbles are more transparent — they're ambient, not focal
-            val peak = if (isLarge) {
-                Random.nextFloat() * 0.12f + 0.08f   // 0.08–0.20
-            } else {
-                Random.nextFloat() * 0.20f + 0.20f   // 0.20–0.40
-            }
+            val peak =
+                if (isLarge)
+                    Random.nextFloat() * 0.12f + 0.08f
+                else
+                    Random.nextFloat() * 0.20f + 0.20f
 
             return BubbleParticle(
-                x            = Random.nextFloat() * 0.90f + 0.05f,  // Full width, small margin
-                y            = 0.75f + Random.nextFloat() * 0.30f,  // Bottom quarter
-                baseRadius   = radius,
-                velocityY    = Random.nextFloat() * 0.0010f + 0.0008f, // Very slow rise
-                driftSign    = if (Random.nextBoolean()) 1f else -1f,
-                phaseOffset  = Random.nextDouble() * PI * 2.0,
-                alpha        = 0f,
-                peakAlpha    = peak,
-                lifetime     = 220 + Random.nextInt(120),            // 3.5–5.5 seconds
-                color        = colors.random()
+                x = Random.nextFloat() * 0.90f + 0.05f,
+                y = 0.75f + Random.nextFloat() * 0.30f,
+                baseRadius = radius,
+                velocityY = Random.nextFloat() * 0.0010f + 0.0008f,
+                driftSign = if (Random.nextBoolean()) 1f else -1f,
+                phaseOffset = Random.nextDouble() * PI * 2.0,
+                alpha = 0f,
+                peakAlpha = peak,
+                lifetime = 220 + Random.nextInt(120),
+                color = colors.random()
             )
         }
     }

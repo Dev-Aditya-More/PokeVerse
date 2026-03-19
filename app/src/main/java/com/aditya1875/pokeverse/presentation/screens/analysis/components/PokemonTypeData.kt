@@ -2,10 +2,6 @@ package com.aditya1875.pokeverse.presentation.screens.analysis.components
 
 import androidx.compose.ui.graphics.Color
 
-/**
- * Pokemon Type System and Team Analysis Utilities
- */
-
 object PokemonTypeData {
 
     // All Pokemon types
@@ -161,9 +157,6 @@ object PokemonTypeData {
     }
 }
 
-/**
- * Team Analysis Data Classes
- */
 data class TeamAnalysis(
     val coverageScore: Int, // 0-100
     val offensiveCoverage: Map<String, Int>, // Type -> number of team members that can hit it effectively
@@ -181,9 +174,6 @@ data class TypeDiversity(
     val missingCriticalTypes: List<String>
 )
 
-/**
- * Team Analyzer - Main analysis engine
- */
 object TeamAnalyzer {
 
     fun analyzeTeam(team: List<TeamMemberWithTypes>): TeamAnalysis {
@@ -290,14 +280,12 @@ object TeamAnalyzer {
         val avgDepth = coverage.values.average() / teamSize.toDouble()   // normalised by team size
         val coverageScore = ((coverageRatio * 25) + (avgDepth * 15)).coerceIn(0.0, 40.0).toInt()
 
-        // ── DIVERSITY (30 pts) ────────────────────────────────────────────────
         // Max possible unique types for a team of N: N * 2 (dual types), capped at 18
         val maxPossibleTypes = minOf(teamSize * 2, 18)
         val diversityRatio = diversity.uniqueTypes.toDouble() / maxPossibleTypes
         val missingPenalty = diversity.missingCriticalTypes.size * 2.0
         val diversityScore = ((diversityRatio * 30) - missingPenalty).coerceIn(0.0, 30.0).toInt()
 
-        // ── DEFENSE (30 pts) ──────────────────────────────────────────────────
         // Use ratios so small teams aren't punished for having fewer total Pokémon
         val weaknessRatio =
             weaknesses.size.toDouble() / 18.0     // fraction of types you're weak to

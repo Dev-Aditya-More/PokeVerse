@@ -146,7 +146,7 @@ fun ProfileHeader(
             if(!profile.isGuest) {
                 Surface(
                     shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(0.6f),
                     modifier = Modifier.scale(levelScale)
                 ) {
                     Text(

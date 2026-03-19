@@ -15,32 +15,24 @@ data class DailyTriviaState(
     val pokemonName: String,
     val spriteUrl: String,
     val types: List<String>,
-    val height: Int,        // in decimetres
-    val weight: Int,        // in hectograms
-    val baseStats: Map<String, Int>,   // hp, attack, defense, speed, etc.
+    val height: Int,
+    val weight: Int,
+    val baseStats: Map<String, Int>,
     val generation: Int,
-    val date: String,       // "yyyy-MM-dd"
+    val date: String,
     val isAnswered: Boolean = false,
     val wasCorrect: Boolean = false,
+    val options: List<String> = emptyList(),
 )
 
-// These are "special" Pokémon — legendaries, mythicals, pseudo-legendaries
-// Hand-picked for the daily trivia to make it feel premium
 private val SPECIAL_POKEMON_IDS = listOf(
-    // Gen 1 legendaries + starters
     6, 9, 3, 65, 68, 94, 130, 131, 143, 144, 145, 146, 149, 150, 151,
-    // Gen 2
     157, 160, 196, 197, 212, 230, 243, 244, 245, 248, 249, 250, 251,
-    // Gen 3
     254, 257, 260, 282, 306, 373, 376, 380, 381, 382, 383, 384, 385, 386,
-    // Gen 4
     392, 395, 398, 445, 448, 461, 462, 463, 464, 466, 467, 483, 484, 485,
     486, 487, 491, 492, 493,
-    // Gen 5
     497, 500, 503, 534, 609, 637, 641, 642, 643, 644, 645, 646, 647, 648, 649,
-    // Gen 6
     654, 658, 681, 700, 716, 717, 718, 719, 720, 721,
-    // Gen 7 + 8 highlights
     724, 727, 730, 745, 746, 785, 786, 787, 788, 800, 801, 802,
     812, 818, 823, 887, 888, 889, 890, 891, 892, 893, 894, 895, 896, 897, 898
 )
@@ -57,46 +49,67 @@ class DailyTriviaManager(
         val POKEMON_ID = intPreferencesKey("trivia_pokemon_id")
         val POKEMON_NAME = stringPreferencesKey("trivia_pokemon_name")
         val SPRITE_URL = stringPreferencesKey("trivia_sprite_url")
-        val TYPES = stringPreferencesKey("trivia_types")       // comma-separated
+        val TYPES = stringPreferencesKey("trivia_types")
         val HEIGHT = intPreferencesKey("trivia_height")
         val WEIGHT = intPreferencesKey("trivia_weight")
-        val STATS = stringPreferencesKey("trivia_stats")       // "hp:45,attack:49,..."
+        val STATS = stringPreferencesKey("trivia_stats")
         val GENERATION = intPreferencesKey("trivia_generation")
         val IS_ANSWERED = booleanPreferencesKey("trivia_answered")
         val WAS_CORRECT = booleanPreferencesKey("trivia_correct")
+        val OPTIONS = stringPreferencesKey("trivia_options")  // comma-separated names
     }
 
-    // ── Main entry point: get today's trivia (cache or fetch) ─────────────────
     suspend fun getDailyTrivia(): Result<DailyTriviaState> {
         val today = dateFormat.format(Date())
         val prefs = ds.data.first()
 
-        // Cache hit: same day and we have a sprite
         if (prefs[Keys.DATE] == today && !prefs[Keys.SPRITE_URL].isNullOrEmpty()) {
             return Result.success(prefsToState(prefs, today))
         }
 
-        // Cache miss: fetch new Pokémon for today
         return fetchTodaysPokemon(today)
     }
 
-    // ── Deterministic daily selection: same Pokémon for everyone on same day ──
     private suspend fun fetchTodaysPokemon(today: String): Result<DailyTriviaState> {
         return try {
-            // Use date as seed so everyone gets the same Pokémon
+            // Seed with today's date — same Pokémon + same options for everyone on the same day
             val seed = today.replace("-", "").toLong()
             val rng = Random(seed)
-            val pokemonId = SPECIAL_POKEMON_IDS[rng.nextInt(SPECIAL_POKEMON_IDS.size)]
 
+            // ── Today's Pokémon ───────────────────────────────────────────────
+            val pokemonId = SPECIAL_POKEMON_IDS[rng.nextInt(SPECIAL_POKEMON_IDS.size)]
             val pokemon = pokemonRepo.getPokemonByName(pokemonId.toString())
             val spriteUrl = pokemon.sprites.other?.officialArtwork?.frontDefault
-                ?: pokemon.sprites.front_default
-                ?: ""
-
+                ?: pokemon.sprites.front_default ?: ""
             val stats = pokemon.stats.associate { it.stat.name to it.base_stat }
-            val statsString = stats.entries.joinToString(",") { "${it.key}:${it.value}" }
             val types = pokemon.types.map { it.type.name }
             val generation = getGeneration(pokemonId)
+
+            // ── 3 wrong options (deterministic with same seed) ────────────────
+            // Shuffle the pool excluding today's ID, pick first 3.
+            // This is one deterministic operation — no extra randomness.
+            val wrongIds = SPECIAL_POKEMON_IDS
+                .filter { it != pokemonId }
+                .shuffled(rng)
+                .take(3)
+
+            // Fetch names only (no sprites needed for option buttons)
+            val wrongNames = wrongIds.mapNotNull { id ->
+                try {
+                    pokemonRepo.getPokemonByName(id.toString()).name
+                } catch (e: Exception) {
+                    null
+                }
+            }.toMutableList()
+
+            // Fallback if a fetch fails (offline edge case)
+            val fallbacks = listOf("Snorlax", "Gengar", "Machamp")
+            while (wrongNames.size < 3) {
+                wrongNames.add(fallbacks[wrongNames.size % fallbacks.size])
+            }
+
+            // Shuffle all 4 with the same RNG — deterministic order per day
+            val options = (wrongNames.take(3) + pokemon.name).shuffled(rng)
 
             val state = DailyTriviaState(
                 pokemonId = pokemonId,
@@ -110,9 +123,11 @@ class DailyTriviaManager(
                 date = today,
                 isAnswered = false,
                 wasCorrect = false,
+                options = options,
             )
 
-            // Cache it
+            val statsString = stats.entries.joinToString(",") { "${it.key}:${it.value}" }
+
             ds.edit { p ->
                 p[Keys.DATE] = today
                 p[Keys.POKEMON_ID] = pokemonId
@@ -125,6 +140,7 @@ class DailyTriviaManager(
                 p[Keys.GENERATION] = generation
                 p[Keys.IS_ANSWERED] = false
                 p[Keys.WAS_CORRECT] = false
+                p[Keys.OPTIONS] = options.joinToString(",")
             }
 
             Result.success(state)
@@ -133,7 +149,6 @@ class DailyTriviaManager(
         }
     }
 
-    // ── Mark today's trivia as answered ───────────────────────────────────────
     suspend fun markAnswered(correct: Boolean) {
         ds.edit { p ->
             p[Keys.IS_ANSWERED] = true
@@ -141,28 +156,21 @@ class DailyTriviaManager(
         }
     }
 
-    // ── Check if today is already answered ────────────────────────────────────
     suspend fun isTodayAnswered(): Boolean {
         val today = dateFormat.format(Date())
         val prefs = ds.data.first()
         return prefs[Keys.DATE] == today && prefs[Keys.IS_ANSWERED] == true
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
-    private fun prefsToState(
-        prefs: Preferences,
-        today: String
-    ): DailyTriviaState {
-        val statsString = prefs[Keys.STATS] ?: ""
-        val stats: Map<String, Int> =
-            statsString
-                .split(",")
-                .mapNotNull {
-                    val parts = it.split(":")
-                    if (parts.size == 2) parts[0] to (parts[1].toIntOrNull() ?: 0)
-                    else null
-                }
-                .toMap()
+    private fun prefsToState(prefs: Preferences, today: String): DailyTriviaState {
+        val stats = (prefs[Keys.STATS] ?: "").split(",").mapNotNull {
+            val p = it.split(":")
+            if (p.size == 2) p[0] to (p[1].toIntOrNull() ?: 0) else null
+        }.toMap()
+
+        val optionsRaw = prefs[Keys.OPTIONS] ?: ""
+        val options = if (optionsRaw.isBlank()) emptyList()
+        else optionsRaw.split(",").map { it.trim() }.filter { it.isNotBlank() }
 
         return DailyTriviaState(
             pokemonId = prefs[Keys.POKEMON_ID] ?: 0,
@@ -176,6 +184,7 @@ class DailyTriviaManager(
             date = today,
             isAnswered = prefs[Keys.IS_ANSWERED] ?: false,
             wasCorrect = prefs[Keys.WAS_CORRECT] ?: false,
+            options = options,
         )
     }
 

@@ -38,6 +38,7 @@ import com.aditya1875.pokeverse.navigation.components.Route
 
 @Composable
 fun TeamContent(
+    onAnalyze: () -> Unit,
     team: List<TeamMemberEntity>,
     navController: NavController,
     onRemove: (TeamMemberEntity) -> Unit,
@@ -115,7 +116,7 @@ fun TeamContent(
 
             // Analyze Button
             Button(
-                onClick = { navController.navigate(Route.Analysis.route) },
+                onClick = onAnalyze,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(

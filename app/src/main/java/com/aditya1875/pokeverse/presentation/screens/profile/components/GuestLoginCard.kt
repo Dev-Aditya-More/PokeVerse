@@ -1,31 +1,14 @@
 package com.aditya1875.pokeverse.presentation.screens.profile.components
 
 import android.app.Activity
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,17 +19,43 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.ProfileViewModel
 import kotlinx.coroutines.launch
-import org.koin.compose.viewmodel.koinViewModel
+import org.koin.androidx.compose.koinViewModel
+
+private fun Context.findActivity(): Activity? {
+    var ctx = this
+    while (ctx is ContextWrapper) {
+        if (ctx is Activity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
+}
 
 @Composable
-fun GuestLoginCard(
-    viewModel: ProfileViewModel = koinViewModel()
-) {
-
+fun GuestLoginCard(viewModel: ProfileViewModel = koinViewModel()) {
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isLoading by remember { mutableStateOf(false) }
+
+    // Map raw error codes to friendly user-facing messages.
+    // Raw messages like "Failed to launch selector UI..." are developer hints, not UX.
+    val friendlyError: String? = when {
+        authState !is AuthState.Error -> null
+        else -> {
+            val raw = (authState as AuthState.Error).message.lowercase()
+            when {
+                "cancelled" in raw -> null  // user dismissed — no message
+                "no_credentials" in raw -> "No Google account found on this device. Add one in Settings → Accounts."
+                "network" in raw ||
+                        "internet" in raw -> "No internet connection. Please check your network."
+
+                "sign_in_failed" in raw ||
+                        "credential_error" in raw -> "Sign-in failed. Please try again."
+
+                else -> "Something went wrong. Try again in a moment."
+            }
+        }
+    }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -55,41 +64,31 @@ fun GuestLoginCard(
             containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
         )
     ) {
-
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 "Create a Trainer Account",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-
             Spacer(Modifier.height(6.dp))
-
-            Text(
-                "Sign in to appear on leaderboards and sync your progress across devices."
-            )
-
+            Text("Sign in to appear on leaderboards and sync your progress across devices.")
             Spacer(Modifier.height(12.dp))
 
             Button(
                 onClick = {
+                    val activity = context.findActivity()
+                        ?: return@Button  // Should never be null in normal usage
                     scope.launch {
                         isLoading = true
-                        val result = viewModel.signInWithGoogle(context as Activity)
+                        viewModel.signInWithGoogle(activity)
                         isLoading = false
-                        // Handle result if needed
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4285F4)
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4285F4)),
                 enabled = !isLoading
             ) {
                 if (isLoading) {
@@ -104,10 +103,8 @@ fun GuestLoginCard(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
+                            Icons.Default.AccountCircle, null,
+                            tint = Color.White, modifier = Modifier.size(24.dp)
                         )
                         Text(
                             "Sign In with Google",
@@ -119,10 +116,11 @@ fun GuestLoginCard(
                 }
             }
 
-            if (authState is AuthState.Error) {
+            // Only show error when it's actionable — never show "cancelled"
+            if (friendlyError != null) {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    text = (authState as AuthState.Error).message,
+                    text = friendlyError,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )

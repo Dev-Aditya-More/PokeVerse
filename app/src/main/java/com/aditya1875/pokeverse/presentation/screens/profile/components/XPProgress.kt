@@ -39,7 +39,6 @@ fun XPProgress(profile: UserProfile) {
     val targetProgress = (profile.currentXp.toFloat() / profile.nextLevelXp.toFloat())
         .coerceIn(0f, 1f)
 
-    // Smoothly animate bar whenever XP changes
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
         animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
@@ -58,7 +57,6 @@ fun XPProgress(profile: UserProfile) {
                 .fillMaxWidth()
                 .padding(18.dp)
         ) {
-            // ── Header row ──────────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -108,7 +106,6 @@ fun XPProgress(profile: UserProfile) {
 
             Spacer(Modifier.height(8.dp))
 
-            // ── XP numbers + streak ──────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

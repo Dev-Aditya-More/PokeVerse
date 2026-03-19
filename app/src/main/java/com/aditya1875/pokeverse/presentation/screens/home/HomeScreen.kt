@@ -114,6 +114,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import androidx.core.net.toUri
+import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.presentation.screens.home.components.HomeContentMode
 import com.aditya1875.pokeverse.presentation.screens.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
@@ -140,6 +141,8 @@ fun HomeScreen(
     val triviaState by triviaViewModel.state.collectAsStateWithLifecycle()
     val showBadge by triviaViewModel.showBadge.collectAsStateWithLifecycle()
     var showTriviaSheet by remember { mutableStateOf(false) }
+
+    val isTypeFiltering by viewModel.isTypeFiltering.collectAsStateWithLifecycle()
 
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
 
@@ -233,9 +236,21 @@ fun HomeScreen(
         onGoPremium = {
             settingsViewModel.markPremiumPromptShown()
             showPremiumSheet = true
+        },
+        onGoUpdate = {
+            settingsViewModel.markUpdateDialogShown(BuildConfig.VERSION_CODE.toLong())
+            val uri = "market://details?id=${context.packageName}".toUri()
+            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            try {
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                val webUri = "https://play.google.com/store/apps/details?id=${context.packageName}".toUri()
+                context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
+            }
         }
     )
-
 
     if (showPremiumSheet) {
         PremiumBottomSheet(
@@ -398,7 +413,8 @@ fun HomeScreen(
                             FilterBar(
                                 currentFilter = filterState,
                                 onRegionChange = { viewModel.setRegionFilter(it) },
-                                onTypeChange = { viewModel.setTypeFilter(it) }
+                                onTypeChange = { viewModel.setTypeFilter(it) },
+                                isTypeFiltering = isTypeFiltering
                             )
                         }
 

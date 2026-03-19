@@ -78,7 +78,7 @@ fun GameStatsSection(profile: UserProfile) {
             icon = Icons.Default.SportsEsports,
             title = "Type Rush",
             bestScore = profile.bestTypeRushScore,
-            accentColor = Color(0xFFA93128)
+            accentColor = Color(0xFF3F51B5)
         )
         GameStatRow(
             icon = Icons.Default.Quiz,

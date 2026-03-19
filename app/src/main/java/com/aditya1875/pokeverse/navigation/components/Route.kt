@@ -49,7 +49,10 @@ sealed class Route(val route: String) {
     }
 
     // Other screens
-    object Analysis : Route("team_analysis")
+    object Analysis : Route("analysis?teamId={teamId}") {
+        fun createRoute(teamId: String) = "analysis?teamId=$teamId"
+    }
+
     object ThemeSelector : Route("theme_selector")
 
     object Details : Route("pokemon_detail/{pokemonName}") {

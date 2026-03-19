@@ -98,7 +98,7 @@ class ProfileViewModel(
     }
 
     suspend fun signInWithGoogle(activity: Activity): AuthResult {
-        val result = authManager.signInWithGoogle()
+        val result = authManager.signInWithGoogle(activity)
         if (result is AuthResult.Success) {
             viewModelScope.launch {
                 val uid = result.user.uid

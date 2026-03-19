@@ -9,9 +9,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,12 +23,14 @@ import com.aditya1875.pokeverse.data.remote.model.PokemonFilter
 import com.aditya1875.pokeverse.data.remote.model.PokemonType
 import com.aditya1875.pokeverse.data.remote.model.Region
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FilterBar(
     currentFilter: PokemonFilter,
     onRegionChange: (Region?) -> Unit,
     onTypeChange: (PokemonType?) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isTypeFiltering: Boolean
 ) {
     Column(
         modifier = modifier
@@ -35,7 +39,6 @@ fun FilterBar(
             .padding(top = 8.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
-        // Region Filter Row
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
@@ -89,7 +92,6 @@ fun FilterBar(
             }
         }
 
-        // Type Filter Row
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
@@ -102,12 +104,16 @@ fun FilterBar(
                     selected = selected,
                     leadingIcon = if (selected) {
                         {
-                            Icon(
-                                imageVector = Icons.Filled.Done,
-                                contentDescription = "Selected",
-                                modifier = Modifier.size(FilterChipDefaults.IconSize),
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
+                            if(!isTypeFiltering) {
+                                Icon(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = "Selected",
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            } else {
+                                LoadingIndicator()
+                            }
                         }
                     } else null,
                     modifier = Modifier.padding(vertical = 2.dp),

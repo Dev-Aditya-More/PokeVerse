@@ -145,12 +145,6 @@ fun DifficultyCard(
                     }
                 }
 
-                Text(
-                    text = "${difficulty.pairs} pairs • ${difficulty.timeSeconds}s • ${difficulty.gridColumns}×${difficulty.gridRows}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (canPlay) 1f else 0.4f)
-                )
-
                 bestScore?.let {
                     Spacer(Modifier.height(4.dp))
                     Text(

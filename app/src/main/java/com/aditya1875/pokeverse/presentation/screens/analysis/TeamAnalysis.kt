@@ -6,28 +6,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -46,16 +38,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import com.aditya1875.pokeverse.navigation.components.Route
+import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.BLUE
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.AnalysisContent
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.ErrorView
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.LoadingView
-import com.aditya1875.pokeverse.presentation.screens.analysis.components.PokemonTypeData
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamAnalysis
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamAnalyzer
 import com.aditya1875.pokeverse.presentation.screens.analysis.components.TeamMemberWithTypes
-import com.aditya1875.pokeverse.presentation.screens.analysis.components.TypeDiversity
-import com.aditya1875.pokeverse.navigation.components.Route
-import com.aditya1875.pokeverse.presentation.screens.analysis.AnalysisColors.BLUE
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
 import org.koin.androidx.compose.koinViewModel
 
@@ -74,9 +64,16 @@ object AnalysisColors {
 @Composable
 fun TeamAnalysisScreen(
     navController: NavController,
-    viewModel: PokemonViewModel = koinViewModel()
+    viewModel: PokemonViewModel = koinViewModel(),
+    teamId: String? = null
 ) {
-    val team by viewModel.team.collectAsStateWithLifecycle()
+    val team by remember(teamId) {
+        if (teamId != null) {
+            viewModel.getTeamMembers(teamId)
+        } else {
+            viewModel.currentTeamMembers
+        }
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
 
     var teamWithTypes by remember { mutableStateOf<List<TeamMemberWithTypes>>(emptyList()) }
     var analysis by remember { mutableStateOf<TeamAnalysis?>(null) }
@@ -186,112 +183,6 @@ fun TeamAnalysisScreen(
                         teamWithTypes = teamWithTypes
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun TypeDiversityCard(diversity: TypeDiversity) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF2A2A2A)),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Text(
-                text = "Type Diversity",
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Unique types count
-            InfoRow(
-                label = "Unique Types",
-                value = "${diversity.uniqueTypes}/18",
-                color = when {
-                    diversity.uniqueTypes >= 10 -> Color(0xFF4CAF50)
-                    diversity.uniqueTypes >= 6 -> Color(0xFFFFC107)
-                    else -> Color(0xFFFF5252)
-                }
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            // Type distribution
-            Text(
-                text = "Type Distribution",
-                style = MaterialTheme.typography.bodyMedium,
-                color = Color.White.copy(alpha = 0.7f),
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                diversity.typeDistribution.entries.sortedByDescending { it.value }.forEach { (type, count) ->
-                    TypeChip(type = type, count = count)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun InfoRow(label: String, value: String, color: Color) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            color = Color.White.copy(alpha = 0.7f),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Text(
-            text = value,
-            color = color,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-@Composable
-fun TypeChip(type: String, count: Int) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = PokemonTypeData.getTypeColor(type)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text(
-                text = type.replaceFirstChar { it.uppercase() },
-                color = Color.White,
-                style = MaterialTheme.typography.bodySmall,
-                fontWeight = FontWeight.Bold
-            )
-            if (count > 1) {
-                Text(
-                    text = "×$count",
-                    color = Color.White.copy(alpha = 0.8f),
-                    style = MaterialTheme.typography.labelSmall
-                )
             }
         }
     }

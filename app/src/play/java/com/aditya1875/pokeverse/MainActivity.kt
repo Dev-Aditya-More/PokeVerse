@@ -75,6 +75,9 @@ import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
 
+    private var sessionStartMs = 0L
+    private val settingsViewModel: SettingsViewModel by inject()
+
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -310,7 +313,6 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // PokeGuess Integration
                         composable(Route.GuessDifficulty.route) {
                             PokeGuessDifficultyScreen(
                                 onDifficultySelected = { difficulty ->
@@ -364,9 +366,23 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // ── OTHER SCREENS ─────────────────────────────────────
-                        composable(Route.Analysis.route) {
-                            TeamAnalysisScreen(navController = navController)
+                        composable(
+                            route = Route.Analysis.route,
+                            arguments = listOf(
+                                navArgument("teamId") {
+                                    type = NavType.StringType
+                                    nullable = true
+                                    defaultValue = null
+                                }
+                            )
+                        ) { backStackEntry ->
+
+                            val teamId = backStackEntry.arguments?.getString("teamId")
+
+                            TeamAnalysisScreen(
+                                navController = navController,
+                                teamId = teamId
+                            )
                         }
 
                         composable(Route.Details.route) { backStackEntry ->
@@ -404,6 +420,21 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        sessionStartMs = System.currentTimeMillis()
+    }
+
+    override fun onStop() {
+        super.onStop()
+
+        val minutes = (System.currentTimeMillis() - sessionStartMs) / 60_000L
+
+        if (minutes >= 1) {
+            settingsViewModel.recordSessionMinutes(minutes)
         }
     }
 

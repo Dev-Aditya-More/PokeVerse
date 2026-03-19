@@ -77,6 +77,9 @@ class PokemonViewModel(
 
     private val _searchQuery = MutableStateFlow("")
 
+    private val _isTypeFiltering = MutableStateFlow(false)
+    val isTypeFiltering: StateFlow<Boolean> = _isTypeFiltering
+
     @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
     val searchUiState: StateFlow<SearchUiState> = _searchQuery
         .debounce(300)
@@ -312,8 +315,6 @@ class PokemonViewModel(
             val defaultTeam = teamDao.getDefaultTeam()
             _selectedTeamId.value = defaultTeam?.teamId ?: allTeams.value.firstOrNull()?.teamId
         }
-
-        loadAllTypeData()
     }
 
     private fun loadAllTypeData() {
@@ -341,12 +342,60 @@ class PokemonViewModel(
 
     fun setTypeFilter(type: PokemonType?) {
         _filters.update { it.copy(selectedType = type) }
-        applyCurrentFilters()
+
+        if (type == null) {
+            // Clear type filter — show region-filtered list
+            _pokemonList.value = allPokemonInRegion
+            return
+        }
+
+        // Check cache first
+        val cached = typePokemonCache[type]
+        if (cached != null) {
+            applyTypeFilterFromCache(type, cached)
+            return
+        }
+
+        viewModelScope.launch {
+            _isTypeFiltering.value = true
+            try {
+                val typeResponse = repository.getPokemonByType(type.name.lowercase())
+                val pokemonIds = typeResponse.pokemon.map { extractIdFromUrl(it.pokemon.url) }.toSet()
+                typePokemonCache[type] = pokemonIds
+
+                val filtered = typeResponse.pokemon
+                    .map { it.pokemon }     // PokemonResult(name, url)
+                    .filter { pokemon ->
+                        val id = extractIdFromUrl(pokemon.url)
+                        val region = _filters.value.selectedRegion
+                        region == null || (region.range.contains(id))
+                    }
+                _pokemonList.value = filtered
+            } catch (e: Exception) {
+                Log.e("PokeVM", "Failed to load type filter for ${type.name}", e)
+                // Fall back to filtering the loaded list
+                val cached2 = typePokemonCache[type]
+                if (cached2 != null) applyTypeFilterFromCache(type, cached2)
+            } finally {
+                _isTypeFiltering.value = false
+            }
+        }
     }
 
-    fun setRegionFilter(region: Region?) {
-        _filters.update { it.copy(selectedRegion = region) }
 
+    private fun applyTypeFilterFromCache(type: PokemonType, typeIds: Set<Int>) {
+        val region = _filters.value.selectedRegion
+        _pokemonList.value = allPokemonInRegion.filter { pokemon ->
+            val id = extractIdFromUrl(pokemon.url)
+            typeIds.contains(id) && (region == null || region.range.contains(id))
+        }
+    }
+
+    // ── Region filter: clean reset, single load call ─────────────────────────────
+    fun setRegionFilter(region: Region?) {
+        _filters.update { it.copy(selectedRegion = region, selectedType = null) }
+
+        // Reset everything before loading
         currentOffset = region?.offset ?: 0
         endReached = false
         isLoading = false
@@ -362,7 +411,6 @@ class PokemonViewModel(
         if (selectedType == null) {
             _pokemonList.value = allPokemonInRegion
         } else {
-            // Filter by type using cached data
             val typeIds = typePokemonCache[selectedType] ?: emptySet()
             _pokemonList.value = allPokemonInRegion.filter { pokemonResult ->
                 val id = extractIdFromUrl(pokemonResult.url)
@@ -679,6 +727,10 @@ class PokemonViewModel(
                 }
             }.map { it.team }
         }
+    }
+
+    fun getTeamMembers(teamId: String): Flow<List<TeamMemberEntity>> {
+        return teamDao.getTeamMembers(teamId)
     }
 
     fun refreshList() {
