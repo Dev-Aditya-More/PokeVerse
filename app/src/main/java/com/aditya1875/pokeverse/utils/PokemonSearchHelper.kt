@@ -1,6 +1,6 @@
 package com.aditya1875.pokeverse.utils
 
-import com.aditya1875.pokeverse.data.remote.model.PokemonResult
+import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.PokemonResult
 
 object PokemonSearchHelper {
     fun getBaseName(name: String): String {

@@ -1,10 +1,10 @@
 package com.aditya1875.pokeverse.di
 
 import com.aditya1875.pokeverse.data.billing.BillingManager
-import com.aditya1875.pokeverse.data.billing.IBillingManager
-import com.aditya1875.pokeverse.data.firebase.UserProfileRepository
-import com.aditya1875.pokeverse.domain.trivia.DailyTriviaManager
-import com.aditya1875.pokeverse.domain.xp.XPManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
+import com.aditya1875.pokeverse.feature.pokemon.home.domain.trivia.DailyTriviaManager
+import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.presentation.auth.AuthManager
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.google.gson.Gson

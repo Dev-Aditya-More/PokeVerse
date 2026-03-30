@@ -1,0 +1,217 @@
+package com.aditya1875.pokeverse.feature.analysis.presentation.screens
+
+import android.util.Log
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import com.aditya1875.pokeverse.feature.core.navigation.components.Route
+import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.BLUE
+import com.aditya1875.pokeverse.feature.analysis.presentation.components.AnalysisContent
+import com.aditya1875.pokeverse.feature.analysis.presentation.components.ErrorView
+import com.aditya1875.pokeverse.feature.analysis.presentation.components.LoadingView
+import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamAnalysis
+import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamAnalyzer
+import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamMemberWithTypes
+import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels.PokemonDetailsViewModel
+import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
+import org.koin.androidx.compose.koinViewModel
+
+object AnalysisColors {
+    val BG = Color(0xFF0B0E17)
+    val CARD = Color(0xFF141820)
+    val CARD2 = Color(0xFF1C2230)
+    val GREEN = Color(0xFF00E676)
+    val RED = Color(0xFFFF4C60)
+    val AMBER = Color(0xFFFFB300)
+    val BLUE = Color(0xFF40C4FF)
+    val PURPLE = Color(0xFFCE93D8)
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@Composable
+fun TeamAnalysisScreen(
+    navController: NavController,
+    viewModel: TeamViewModel = koinViewModel(),
+    pokemonDetailsViewModel: PokemonDetailsViewModel = koinViewModel(),
+    teamId: String? = null
+) {
+    val team by remember(teamId) {
+        if (teamId != null) {
+            viewModel.getTeamMembers(teamId)
+        } else {
+            viewModel.currentTeamMembers
+        }
+    }.collectAsStateWithLifecycle(initialValue = emptyList())
+
+    var teamWithTypes by remember { mutableStateOf<List<TeamMemberWithTypes>>(emptyList()) }
+    var analysis by remember { mutableStateOf<TeamAnalysis?>(null) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // Fetch types when team changes
+    LaunchedEffect(team) {
+        if (team.isEmpty()) {
+            teamWithTypes = emptyList()
+            analysis = null
+            return@LaunchedEffect
+        }
+
+        isLoading = true
+        errorMessage = null
+
+        try {
+            val withTypes = mutableListOf<TeamMemberWithTypes>()
+
+            team.forEach { member ->
+                try {
+                    val pokemon = pokemonDetailsViewModel.getPokemonByName(member.name)
+                    val types = pokemon.types.map { it.type.name }
+
+                    withTypes.add(
+                        TeamMemberWithTypes(
+                            name = member.name,
+                            types = types,
+                            imageUrl = member.imageUrl
+                        )
+                    )
+                } catch (e: Exception) {
+                    Log.e("TeamAnalysis", "Failed to fetch data for ${member.name}", e)
+                    withTypes.add(
+                        TeamMemberWithTypes(
+                            name = member.name,
+                            types = listOf("normal"),
+                            imageUrl = member.imageUrl
+                        )
+                    )
+                }
+            }
+
+            teamWithTypes = withTypes
+            analysis = TeamAnalyzer.analyzeTeam(withTypes)
+
+            Log.d("TeamAnalysis", "Analysis complete: score=${analysis?.coverageScore}")
+
+        } catch (e: Exception) {
+            Log.e("TeamAnalysis", "Failed to analyze team", e)
+            errorMessage = "Failed to analyze team: ${e.message}"
+        } finally {
+            isLoading = false
+        }
+    }
+
+    Scaffold(
+        containerColor = Color(0xFF0F0F0F),
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "Team Analysis",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back",
+                            tint = Color.White
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color(0xFF1A1A1A)
+                )
+            )
+        }
+    ) { padding ->
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            when {
+                team.isEmpty() -> {
+                    EmptyAnalysisView(navController)
+                }
+
+                isLoading -> {
+                    LoadingView()
+                }
+
+                errorMessage != null -> {
+                    ErrorView(errorMessage!!, navController)
+                }
+
+                analysis != null -> {
+                    AnalysisContent(
+                        analysis = analysis!!,
+                        teamWithTypes = teamWithTypes
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyAnalysisView(navController: NavController) {
+    Box(Modifier.fillMaxSize().background(AnalysisColors.BG), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text("📋", fontSize = 56.sp)
+            Text("No Team Yet", style = MaterialTheme.typography.headlineSmall,
+                color = Color.White, fontWeight = FontWeight.Bold)
+            Text("Build a team to unlock analysis",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.6f), textAlign = TextAlign.Center)
+            Spacer(Modifier.height(8.dp))
+            Button(
+                onClick = { navController.navigate(Route.BottomBar.Home.route) },
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = BLUE)
+            ) {
+                Text("Build Team", modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+            }
+        }
+    }
+}

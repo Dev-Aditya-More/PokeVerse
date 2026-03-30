@@ -1,13 +1,14 @@
 package com.aditya1875.pokeverse.di
 
+import android.database.Cursor
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.aditya1875.pokeverse.data.local.PokemonDatabase
-import com.aditya1875.pokeverse.data.local.TeamDatabase
-import com.aditya1875.pokeverse.data.local.dao.TeamDao
-import com.aditya1875.pokeverse.data.local.entity.TeamEntity
+import com.aditya1875.pokeverse.feature.pokemon.home.data.source.local.db.PokemonDatabase
+import com.aditya1875.pokeverse.feature.team.data.local.db.TeamDatabase
+import com.aditya1875.pokeverse.feature.team.data.local.dao.TeamDao
+import com.aditya1875.pokeverse.feature.team.data.local.entity.TeamEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,6 +26,7 @@ val databaseModule = module {
 
         override fun migrate(db: SupportSQLiteDatabase) {
 
+            // Create teams table if it does not exist
             db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS teams (
@@ -38,13 +40,15 @@ val databaseModule = module {
 
             val defaultTeamId = UUID.randomUUID().toString()
 
+            // Insert default team safely
             db.execSQL(
                 """
-                INSERT INTO teams (teamId, teamName, createdAt, isDefault)
+                INSERT OR IGNORE INTO teams (teamId, teamName, createdAt, isDefault)
                 VALUES ('$defaultTeamId', 'My Team', ${System.currentTimeMillis()}, 1)
                 """
             )
 
+            // Create new team_members table
             db.execSQL(
                 """
                 CREATE TABLE IF NOT EXISTS team_members_new (
@@ -58,20 +62,31 @@ val databaseModule = module {
                 """
             )
 
-            db.execSQL(
-                """
-                INSERT INTO team_members_new (id, teamId, name, imageUrl, addedAt)
-                SELECT 
-                    LOWER(HEX(RANDOMBLOB(16))),
-                    '$defaultTeamId',
-                    name,
-                    imageUrl,
-                    ${System.currentTimeMillis()}
-                FROM team_members
-                """
+            // Check if old table exists before migrating data
+            val cursor: Cursor = db.query(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='team_members'"
             )
 
-            db.execSQL("DROP TABLE team_members")
+            val teamMembersExists = cursor.count > 0
+            cursor.close()
+
+            if (teamMembersExists) {
+
+                db.execSQL(
+                    """
+                    INSERT INTO team_members_new (id, teamId, name, imageUrl, addedAt)
+                    SELECT 
+                        LOWER(HEX(RANDOMBLOB(16))),
+                        '$defaultTeamId',
+                        name,
+                        imageUrl,
+                        ${System.currentTimeMillis()}
+                    FROM team_members
+                    """
+                )
+
+                db.execSQL("DROP TABLE IF EXISTS team_members")
+            }
 
             db.execSQL("ALTER TABLE team_members_new RENAME TO team_members")
 
@@ -96,17 +111,13 @@ val databaseModule = module {
 
                 override fun onCreate(db: SupportSQLiteDatabase) {
                     super.onCreate(db)
-
-                    get<CoroutineScope>().launch {
-
-                        get<TeamDao>().createTeam(
-                            TeamEntity(
-                                teamName = "My Team",
-                                isDefault = true
-                            )
-                        )
-
-                    }
+                    // Use raw SQL to avoid circular dependency with Koin/DAO during initialization
+                    val teamId = UUID.randomUUID().toString()
+                    val now = System.currentTimeMillis()
+                    db.execSQL(
+                        "INSERT INTO teams (teamId, teamName, createdAt, isDefault) VALUES (?, ?, ?, ?)",
+                        arrayOf<Any>(teamId, "My Team", now, 1)
+                    )
                 }
 
             })
@@ -119,7 +130,6 @@ val databaseModule = module {
     single { get<TeamDatabase>().gameScoreDao() }
 
     single {
-
         Room.databaseBuilder(
             get(),
             PokemonDatabase::class.java,
@@ -128,6 +138,8 @@ val databaseModule = module {
 
     }
 
-    single { get<PokemonDatabase>().pokemonDao() }
+    single { get<PokemonDatabase>().pokemonlistDao() }
+
+    single { get<PokemonDatabase>().pokemonDetailDao() }
 
 }

@@ -1,8 +1,8 @@
 package com.aditya1875.pokeverse.utils
 
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.Chain
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionChainUi
-import com.aditya1875.pokeverse.data.remote.model.evolutionModels.EvolutionNode
+import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.evolutionModels.Chain
+import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.evolutionModels.EvolutionChainUi
+import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.evolutionModels.EvolutionNode
 
 object EvolutionChainMapper {
 

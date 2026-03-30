@@ -3,12 +3,11 @@ package com.aditya1875.pokeverse.presentation.viewmodel
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aditya1875.pokeverse.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 class BillingViewModel(
     private val billingManager: IBillingManager
