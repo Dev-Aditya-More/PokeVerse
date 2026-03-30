@@ -30,43 +30,44 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.aditya1875.pokeverse.data.billing.IBillingManager
-import com.aditya1875.pokeverse.data.preferences.ThemePreferences
-import com.aditya1875.pokeverse.domain.xp.XPResult
-import com.aditya1875.pokeverse.presentation.components.PokemonNotFoundScreen
-import com.aditya1875.pokeverse.presentation.screens.analysis.TeamAnalysisScreen
-import com.aditya1875.pokeverse.presentation.screens.detail.PokemonDetailScreen
-import com.aditya1875.pokeverse.presentation.screens.game.GameHubScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.PokeGuessDifficultyScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.PokeGuessGameScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokeguess.components.GuessDifficulty
-import com.aditya1875.pokeverse.presentation.screens.game.pokematch.GameScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokematch.components.DifficultyScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficultyScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.QuizGameScreen
-import com.aditya1875.pokeverse.presentation.screens.game.pokequiz.components.QuizDifficulty
-import com.aditya1875.pokeverse.presentation.screens.game.poketype.TypeRushScreen
-import com.aditya1875.pokeverse.presentation.screens.game.poketype.components.TypeRushDifficulty
-import com.aditya1875.pokeverse.presentation.screens.game.poketype.components.TypeRushDifficultyScreen
-import com.aditya1875.pokeverse.presentation.screens.home.HomeScreen
-import com.aditya1875.pokeverse.navigation.components.Route
-import com.aditya1875.pokeverse.presentation.screens.leaderboard.LeaderboardScreen
-import com.aditya1875.pokeverse.presentation.screens.leaderboard.components.XPOverlay
-import com.aditya1875.pokeverse.presentation.screens.onboarding.IntroScreen
-import com.aditya1875.pokeverse.presentation.screens.profile.ProfileScreen
-import com.aditya1875.pokeverse.presentation.screens.profile.components.EditProfileDialog
-import com.aditya1875.pokeverse.presentation.screens.settings.SettingsScreen
-import com.aditya1875.pokeverse.presentation.screens.splash.SplashScreen
-import com.aditya1875.pokeverse.presentation.screens.team.DreamTeam
-import com.aditya1875.pokeverse.presentation.screens.theme.ThemeSelectorScreen
-import com.aditya1875.pokeverse.presentation.ui.theme.AppTheme
-import com.aditya1875.pokeverse.presentation.ui.theme.PokeverseTheme
-import com.aditya1875.pokeverse.presentation.ui.viewmodel.ProfileViewModel
-import com.aditya1875.pokeverse.presentation.ui.viewmodel.SettingsViewModel
-import com.aditya1875.pokeverse.utils.Difficulty
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.pokemon.theme_selector.data.preferences.ThemePreferences
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
+import com.aditya1875.pokeverse.feature.core.ui.components.PokemonNotFoundScreen
+import com.aditya1875.pokeverse.feature.analysis.presentation.screens.TeamAnalysisScreen
+import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens.PokemonDetailScreen
+import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
+import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessDifficultyScreen
+import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.screens.PokeGuessGameScreen
+import com.aditya1875.pokeverse.feature.game.pokematch.presentation.screens.GameScreen
+import com.aditya1875.pokeverse.feature.game.pokematch.presentation.components.DifficultyScreen
+import com.aditya1875.pokeverse.feature.game.pokequiz.presentation.components.QuizDifficultyScreen
+import com.aditya1875.pokeverse.feature.game.pokequiz.presentation.screens.QuizGameScreen
+import com.aditya1875.pokeverse.feature.game.poketype.presentation.screens.TypeRushScreen
+import com.aditya1875.pokeverse.feature.game.poketype.presentation.components.TypeRushDifficultyScreen
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens.HomeScreen
+import com.aditya1875.pokeverse.feature.core.navigation.components.Route
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.screens.LeaderboardScreen
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
+import com.aditya1875.pokeverse.feature.pokemon.onboarding.IntroScreen
+import com.aditya1875.pokeverse.feature.pokemon.splash.SplashScreen
+import com.aditya1875.pokeverse.feature.team.presentation.screens.DreamTeam
+import com.aditya1875.pokeverse.feature.pokemon.theme_selector.ThemeSelectorScreen
+import com.aditya1875.pokeverse.ui.theme.AppTheme
+import com.aditya1875.pokeverse.ui.theme.PokeverseTheme
+import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
+import com.aditya1875.pokeverse.feature.game.pokematch.domain.model.Difficulty
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
-import com.aditya1875.pokeverse.navigation.components.WithBottomBar
+import com.aditya1875.pokeverse.feature.core.navigation.components.WithBottomBar
+import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
+import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.QuizDifficulty
+import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
+import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemListScreen
+import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.EditProfileDialog
+import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.screens.ProfileScreen
+import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
+import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.screens.SettingsScreen
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -174,6 +175,12 @@ class MainActivity : ComponentActivity() {
                         composable(Route.BottomBar.Home.route) {
                             WithBottomBar(navController) {
                                 HomeScreen(navController, settingsViewModel)
+                            }
+                        }
+
+                        composable(Route.ItemsScreen.route) {
+                            WithBottomBar(navController) {
+
                             }
                         }
 
