@@ -66,7 +66,7 @@ fun ImprovedPokemonCard(
     onRemoveFromFavorites: () -> Unit,
     onClick: () -> Unit,
     isAssetEnabled: Boolean,
-    viewModel: PokemonListViewModel = koinViewModel(),
+    modifier: Modifier = Modifier
 ) {
     val pokemonId = remember(pokemon.url) {
         pokemon.url.trimEnd('/')

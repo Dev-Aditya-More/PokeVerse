@@ -12,6 +12,9 @@ class LeaderboardViewModel(
     private val repository: LeaderboardRepository
 ) : ViewModel() {
 
+    private val _type = MutableStateFlow(LeaderboardType.GLOBAL)
+    val type: StateFlow<LeaderboardType> = _type
+
     private val _state = MutableStateFlow<LeaderboardState>(LeaderboardState.Loading)
     val state: StateFlow<LeaderboardState> = _state
 
@@ -25,24 +28,38 @@ class LeaderboardViewModel(
     fun load() {
         viewModelScope.launch {
             _state.value = LeaderboardState.Loading
-            _state.value = repository.getLeaderboard()
+            _state.value = repository.getLeaderboard(type = _type.value)
         }
     }
 
     fun refresh() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            _state.value = repository.getLeaderboard(forceRefresh = true)
+            _state.value = repository.getLeaderboard(
+                type = _type.value,
+                forceRefresh = true
+            )
             _isRefreshing.value = false
         }
+    }
+
+    fun switchType(type: LeaderboardType) {
+        if (_type.value == type) return
+        _type.value = type
+        load()
     }
 
     fun loadNextPage() {
         viewModelScope.launch {
             val current = _state.value
             if (current is LeaderboardState.Success && current.canLoadMore) {
-                _state.value = repository.loadNextPage()
+                _state.value = repository.loadNextPage(_type.value)
             }
         }
     }
+}
+
+enum class LeaderboardType {
+    GLOBAL,
+    WEEKLY
 }

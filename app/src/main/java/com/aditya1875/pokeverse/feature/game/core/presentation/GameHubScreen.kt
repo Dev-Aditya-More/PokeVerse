@@ -44,8 +44,10 @@ fun GameHubScreen(
     val billingViewModel: BillingViewModel = koinViewModel()
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
+    val lifetime by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
     val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
+    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
     val isBillingReady = monthlyProduct != null || yearlyProduct != null
 
     val context = LocalContext.current
@@ -227,8 +229,18 @@ fun GameHubScreen(
                     Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
                 }
             },
+            onSubscribeLifetime = {
+                showPremiumSheet = false
+                val activity = context as? Activity
+                if (activity != null) {
+                    billingViewModel.purchaseLifetime(activity)
+                } else {
+                    Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
+                }
+            },
             monthlyPrice = monthly,
             yearlyPrice = yearly,
+            lifetimePrice = lifetime,
             isSubscribeEnabled = isBillingReady
         )
     }

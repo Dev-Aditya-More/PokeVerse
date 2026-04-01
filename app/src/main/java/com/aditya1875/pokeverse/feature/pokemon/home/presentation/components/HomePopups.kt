@@ -46,21 +46,34 @@ fun HomePopupOrchestrator(
 ) {
     // No remember() — recomputes on every recompose so dialogs appear as soon as
     // DataStore emits the correct values (typically within one frame of HomeScreen entry)
-    val activePopup = when {
-        latestVersionCode > currentVersionCode &&
-                updateDialogShownVersion < latestVersionCode -> HomePopup.Update
+    var activePopup by remember { mutableStateOf<HomePopup>(HomePopup.None) }
 
-        !assetsBannerSeen && !originalAssetsEnabled -> HomePopup.Assets
+    LaunchedEffect(
+        assetsBannerSeen,
+        originalAssetsEnabled,
+        ratingPromptSeen,
+        premiumPromptShown,
+        totalSessionMinutes,
+        isGuest,
+        isPremium,
+        latestVersionCode,
+        updateDialogShownVersion,
+        currentVersionCode
+    ) {
+        activePopup = when {
+            latestVersionCode > currentVersionCode &&
+                    updateDialogShownVersion < latestVersionCode -> HomePopup.Update
 
-        // FIX: 10 min threshold (was 20 — new users never saw Rating or Premium)
-        !ratingPromptSeen && totalSessionMinutes >= 10 -> HomePopup.Rating
+            !assetsBannerSeen && !originalAssetsEnabled -> HomePopup.Assets
 
-        // Premium shows 10 min after rating was dismissed (total 20 min)
-        ratingPromptSeen && !premiumPromptShown &&
-                !isPremium && !isGuest &&
-                totalSessionMinutes >= 20 -> HomePopup.Premium
+            !ratingPromptSeen && totalSessionMinutes >= 10 -> HomePopup.Rating
 
-        else -> HomePopup.None
+            ratingPromptSeen && !premiumPromptShown &&
+                    !isPremium && !isGuest &&
+                    totalSessionMinutes >= 20 -> HomePopup.Premium
+
+            else -> HomePopup.None
+        }
     }
 
     when (activePopup) {
@@ -85,7 +98,9 @@ fun HomePopupOrchestrator(
             onDismiss = onDismissPremium
         )
 
-        HomePopup.None -> {}
+        HomePopup.None -> {
+
+        }
     }
 }
 

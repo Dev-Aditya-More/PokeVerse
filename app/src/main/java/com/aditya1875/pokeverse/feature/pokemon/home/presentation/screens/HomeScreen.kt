@@ -3,7 +3,10 @@ package com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens
 import android.app.Activity
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -32,14 +35,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -48,6 +57,8 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
@@ -65,15 +76,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -83,66 +95,73 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components.CustomProgressIndicator
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.FilterBar
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.ImprovedPokemonCard
-import com.aditya1875.pokeverse.feature.core.navigation.components.Route
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.SuggestionRow
-import com.aditya1875.pokeverse.utils.SearchResult
-import com.aditya1875.pokeverse.utils.UiError
+import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
+import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemGridCard
+import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemGridSkeleton
+import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemListError
+import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemListState
+import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
+import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DailyTriviaFab
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DailyTriviaSheet
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.FilterBar
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.HomeContentMode
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.HomePopupOrchestrator
-import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.ImprovedPokemonCard
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.SuggestionRow
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.DailyTriviaViewModel
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.SearchViewModel
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.TriviaUiState
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.TriviaUiState
+import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesViewModel
+import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.SoundManager
+import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
-import androidx.core.net.toUri
-import com.aditya1875.pokeverse.BuildConfig
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.HomeContentMode
-import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.SearchViewModel
-import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesViewModel
-import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
-import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class,
-    ExperimentalMaterialApi::class
+@OptIn(ExperimentalSharedTransitionApi::class,
+    ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class
 )
 @Composable
-fun HomeScreen(
+fun SharedTransitionScope.HomeScreen(
     navController: NavHostController,
-    settingsViewModel: SettingsViewModel,
-    viewModel: PokemonListViewModel = koinViewModel()
+    settingsViewModel: SettingsViewModel = koinViewModel(),
+    viewModel: PokemonListViewModel = koinViewModel(),
+    teamViewModel: TeamViewModel = koinViewModel(),
+    favouriteViewModel: FavouritesViewModel = koinViewModel(),
+    searchViewModel: SearchViewModel = koinViewModel(),
+    billingViewModel: BillingViewModel = koinViewModel(),
+    profileViewModel: ProfileViewModel = koinViewModel(),
+    triviaViewModel: DailyTriviaViewModel = koinViewModel(),
+    itemViewModel: ItemViewModel = koinViewModel(),
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val pokemonList by viewModel.pokemonList.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val endReached = viewModel.endReached
     var query by rememberSaveable { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
-    val listState = rememberLazyListState()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    val favouriteViewModel: FavouritesViewModel = koinViewModel()
-    val teamViewModel: TeamViewModel = koinViewModel()
-
-    val searchViewModel: SearchViewModel = koinViewModel()
     val searchUiState by searchViewModel.searchUiState.collectAsStateWithLifecycle()
 
-    val triviaViewModel: DailyTriviaViewModel = koinViewModel()
     val triviaState by triviaViewModel.state.collectAsStateWithLifecycle()
     val showBadge by triviaViewModel.showBadge.collectAsStateWithLifecycle()
     var showTriviaSheet by remember { mutableStateOf(false) }
@@ -167,14 +186,41 @@ fun HomeScreen(
 
     var showFilters by rememberSaveable { mutableStateOf(false) }
 
-    val shouldLoadMore by remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+    val pokemonGridState = rememberLazyGridState()
+    val itemGridState = rememberLazyGridState()
 
-            lastVisibleItemIndex >= pokemonList.size - 5 &&
+    val itemListState by itemViewModel.listState.collectAsStateWithLifecycle()
+    val filteredItems by itemViewModel.filteredItems.collectAsStateWithLifecycle()
+    val searchQuery by itemViewModel.searchQuery.collectAsStateWithLifecycle()
+
+    val textFieldValue =
+        if (contentMode == HomeContentMode.POKEMON) query
+        else searchQuery
+
+    val displayList =
+        if (searchQuery.isNotEmpty()) filteredItems
+        else (itemListState as? ItemListState.Success)?.items ?: emptyList()
+
+    val shouldLoadMorePokemons by remember {
+        derivedStateOf {
+            val lastVisible =
+                pokemonGridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+
+            lastVisible >= pokemonList.size - 6 &&
                     !isLoading &&
                     !endReached
+        }
+    }
+
+    val shouldLoadMoreItems by remember {
+        derivedStateOf {
+            val lastVisible = itemGridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val successState = itemListState as? ItemListState.Success
+
+            lastVisible >= displayList.size - 4 &&
+                    successState != null &&
+                    successState.canLoadMore &&
+                    searchQuery.isBlank()
         }
     }
 
@@ -182,9 +228,6 @@ fun HomeScreen(
 
     val billingManager: IBillingManager = koinInject()
 
-    val billingViewModel: BillingViewModel = koinViewModel()
-
-    val profileViewModel: ProfileViewModel = koinViewModel()
     val profile by profileViewModel.userProfile.collectAsStateWithLifecycle()
 
     val ratingPromptSeen by settingsViewModel.ratingPromptSeen.collectAsStateWithLifecycle()
@@ -199,22 +242,31 @@ fun HomeScreen(
     val activity = context as? Activity
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
+    val lifetime by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
     val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null
+    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
+    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
 
     var showPremiumSheet by remember { mutableStateOf(false) }
 
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore) {
+    LaunchedEffect(contentMode, shouldLoadMorePokemons) {
+        if (contentMode == HomeContentMode.POKEMON && shouldLoadMorePokemons) {
             viewModel.loadPokemonList()
+        }
+    }
+
+    LaunchedEffect(contentMode, shouldLoadMoreItems) {
+        if (contentMode == HomeContentMode.ITEMS && shouldLoadMoreItems) {
+            itemViewModel.loadMore()
         }
     }
 
     LaunchedEffect(Unit) {
         viewModel.loadPokemonList()
-        query = ""
+    }
 
+    LaunchedEffect(Unit) {
         triviaViewModel.xpResult.collect { pendingXp = it }
     }
 
@@ -269,9 +321,14 @@ fun HomeScreen(
                 showPremiumSheet = false
                 activity?.let { billingViewModel.purchaseYearly(it) }
             },
+            onSubscribeLifetime = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseLifetime(it) }
+            },
             monthlyPrice = monthly,
             yearlyPrice = yearly,
-            isSubscribeEnabled = isBillingReady
+            isSubscribeEnabled = isBillingReady,
+            lifetimePrice = lifetime
         )
     }
 
@@ -287,14 +344,82 @@ fun HomeScreen(
                 topBar = {
                     TopAppBar(
                         title = {
-                            Text(
-                                "Dexverse",
-                                style = MaterialTheme.typography.headlineSmall.copy(
-                                    fontSize = 26.sp,
-                                    letterSpacing = 0.5.sp
-                                ),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
+                            var showMenu by remember { mutableStateOf(false) }
+
+                            Box {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clickable { showMenu = true }
+                                        .padding(vertical = 4.dp)
+                                ) {
+                                    Text(
+                                        text = "Dexverse",
+                                        style = MaterialTheme.typography.headlineSmall.copy(
+                                            fontSize = 22.sp
+                                        ),
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDropDown,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = showMenu,
+                                    onDismissRequest = { showMenu = false }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Pokémon") },
+                                        trailingIcon = {
+                                            if (contentMode == HomeContentMode.POKEMON) {
+                                                Icon(Icons.Default.Check, contentDescription = null)
+                                            }
+                                        },
+                                        onClick = {
+                                            contentMode = HomeContentMode.POKEMON
+                                            showMenu = false
+                                        }
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = {
+                                            if (isPremium) {
+                                                Text("Items", color = MaterialTheme.colorScheme.onSurface)
+                                            } else {
+                                                Text(
+                                                    "Items",
+                                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                                )
+                                            }
+                                        },
+                                        trailingIcon = {
+                                            if (isPremium) {
+                                                if (contentMode == HomeContentMode.ITEMS) {
+                                                    Icon(
+                                                        Icons.Default.Check,
+                                                        contentDescription = null
+                                                    )
+                                                }
+                                            } else {
+                                                Icon(Icons.Default.Lock, contentDescription = null)
+                                            }
+                                        },
+                                        onClick = {
+                                            if (isPremium) {
+                                                contentMode = HomeContentMode.ITEMS
+                                                showMenu = false
+                                            } else{
+                                                showPremiumSheet = true
+                                            }
+                                        },
+                                        modifier = Modifier.alpha(if (isPremium) 1f else 0.5f),
+                                    )
+                                }
+                            }
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = MaterialTheme.colorScheme.primary,
@@ -306,7 +431,15 @@ fun HomeScreen(
                 floatingActionButton = {
 
                     val fabVisible by remember {
-                        derivedStateOf { listState.firstVisibleItemIndex > 5 }
+                        derivedStateOf {
+                            when (contentMode) {
+                                HomeContentMode.POKEMON ->
+                                    pokemonGridState.firstVisibleItemIndex > 5
+
+                                HomeContentMode.ITEMS ->
+                                    itemGridState.firstVisibleItemIndex > 5
+                            }
+                        }
                     }
 
                     Row(
@@ -320,12 +453,10 @@ fun HomeScreen(
                             DailyTriviaFab(
                                 showBadge = showBadge,
                                 onClick = {
-
                                     val alreadyDone =
                                         triviaState is TriviaUiState.Ready &&
                                                 (triviaState as TriviaUiState.Ready).trivia.isAnswered
 
-                                    // Play sound only if trivia not completed
                                     if (!alreadyDone) {
                                         soundManager.play(SoundManager.Sound.WHOS_THAT_POKEMON)
                                     }
@@ -336,7 +467,8 @@ fun HomeScreen(
                                         showTriviaSheet = true
                                         triviaViewModel.loadTrivia()
                                     }
-                                }
+                                },
+                                modifier = Modifier.size(40.dp)
                             )
                         }
 
@@ -348,7 +480,14 @@ fun HomeScreen(
                             FloatingActionButton(
                                 onClick = {
                                     coroutineScope.launch {
-                                        listState.animateScrollToItem(0)
+                                        when (contentMode) {
+                                            HomeContentMode.POKEMON -> {
+                                                pokemonGridState.animateScrollToItem(0)
+                                            }
+                                            HomeContentMode.ITEMS -> {
+                                                itemGridState.animateScrollToItem(0)
+                                            }
+                                        }
                                     }
                                 },
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,
@@ -426,25 +565,39 @@ fun HomeScreen(
 
 
                         OutlinedTextField(
-                            value = query,
+                            value = textFieldValue,
                             onValueChange = {
-                                query = it
-                                searchViewModel.onQueryChange(it)
-                            },
-                            label = { Text("Search a Monster..") },
-                            singleLine = true,
-                            leadingIcon = {
-                                IconButton(onClick = { showFilters = !showFilters }) {
-                                    Icon(
-                                        imageVector = Icons.Default.FilterList,
-                                        contentDescription = "Filters",
-                                        tint = if (showFilters)
-                                            MaterialTheme.colorScheme.primary
-                                        else
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
+                                if (contentMode == HomeContentMode.POKEMON) {
+                                    query = it
+                                    searchViewModel.onQueryChange(it)
+                                } else {
+                                    itemViewModel.onSearchChange(it)
                                 }
                             },
+                            label = {
+                                if (contentMode == HomeContentMode.POKEMON) {
+                                    Text("Search a Monster..")
+                                } else {
+                                    Text("Search a held Item..")
+                                }
+                            },
+                            singleLine = true,
+                            leadingIcon =
+                                if (contentMode == HomeContentMode.POKEMON) {
+                                    {
+                                        IconButton(onClick = { showFilters = !showFilters }, Modifier.animateContentSize()) {
+                                            Icon(
+                                                imageVector = Icons.Default.FilterList,
+                                                contentDescription = "Filters",
+                                                tint = if (showFilters)
+                                                    MaterialTheme.colorScheme.primary
+                                                else
+                                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                } else null ,
+
                             trailingIcon = {
                                 when {
                                     isSearching -> {
@@ -457,8 +610,12 @@ fun HomeScreen(
 
                                     query.isNotEmpty() -> {
                                         IconButton(onClick = {
-                                            query = ""
-                                            searchViewModel.onQueryChange("")
+                                            if (contentMode == HomeContentMode.POKEMON) {
+                                                query = ""
+                                                searchViewModel.onQueryChange("")
+                                            } else {
+                                                itemViewModel.onSearchChange("")
+                                            }
                                         }) {
                                             Icon(Icons.Default.Close, "Clear")
                                         }
@@ -479,7 +636,8 @@ fun HomeScreen(
 
 
                         AnimatedVisibility(
-                            visible = isSearchFocused &&
+                            visible = contentMode == HomeContentMode.POKEMON &&
+                                    isSearchFocused &&
                                     (searchUiState.showSuggestions || searchUiState.isLoading),
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically()
@@ -643,75 +801,134 @@ fun HomeScreen(
 
                             else -> {
                                 Box(modifier = Modifier.fillMaxSize()) {
-                                    val animatedIndices = remember { mutableStateSetOf<Int>() }
 
-                                    val visibleIndices by remember {
-                                        derivedStateOf {
-                                            listState.layoutInfo.visibleItemsInfo.map { it.index }
-                                                .toSet()
-                                        }
-                                    }
+                                    when (contentMode) {
 
-                                    LazyColumn(
-                                        state = listState,
-                                        contentPadding = PaddingValues(16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {
-                                        itemsIndexed(pokemonList) { index, pokemon ->
-                                            LaunchedEffect(index, visibleIndices) {
-                                                if (visibleIndices.contains(index)) {
-                                                    animatedIndices.add(index)
+                                        HomeContentMode.POKEMON -> {
+
+                                            LazyVerticalGrid(
+                                                columns = GridCells.Fixed(1),
+                                                state = pokemonGridState,
+                                                contentPadding = PaddingValues(
+                                                    start = 16.dp,
+                                                    end = 16.dp,
+                                                    top = 8.dp,
+                                                    bottom = 120.dp
+                                                ),
+                                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+
+                                                items(pokemonList, key = { it.name }) { pokemon ->
+
+                                                    val isFavorite by favouriteViewModel
+                                                        .isInFavorites(pokemon.name)
+                                                        .collectAsStateWithLifecycle(false)
+
+                                                    val isInTeam by teamViewModel
+                                                        .isInAnyTeam(pokemon.name)
+                                                        .collectAsStateWithLifecycle(false)
+
+                                                    ImprovedPokemonCard(
+                                                        pokemon = pokemon,
+                                                        isInTeam = isInTeam,
+                                                        isInFavorites = isFavorite,
+                                                        onAddToFavorites = {
+                                                            favouriteViewModel.addToFavorites(pokemon)
+                                                        },
+                                                        onRemoveFromFavorites = {
+                                                            favouriteViewModel.removeFromFavoritesByName(pokemon.name)
+                                                        },
+                                                        isAssetEnabled = originalAssetsEnabled,
+                                                        onClick = {
+                                                            navController.navigate(
+                                                                Route.Details.createDetails(pokemon.name)
+                                                            )
+                                                        }
+                                                    )
+                                                }
+
+                                                if (isLoading && pokemonList.isNotEmpty()) {
+                                                    item(span = { GridItemSpan(1) }) {
+                                                        Box(
+                                                            Modifier
+                                                                .fillMaxWidth()
+                                                                .padding(16.dp),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            CustomProgressIndicator()
+                                                        }
+                                                    }
                                                 }
                                             }
-
-                                            val isFavorite by favouriteViewModel.isInFavorites(pokemon.name)
-                                                .collectAsStateWithLifecycle(false)
-
-                                            val isInTeam by teamViewModel.isInAnyTeam(pokemon.name)
-                                                .collectAsStateWithLifecycle(false)
-
-                                            ImprovedPokemonCard(
-                                                pokemon = pokemon,
-                                                isInTeam = isInTeam,
-                                                isInFavorites = isFavorite,
-                                                onAddToFavorites = {
-                                                    favouriteViewModel.addToFavorites(
-                                                        pokemon
-                                                    )
-                                                },
-                                                onRemoveFromFavorites = {
-                                                    favouriteViewModel.removeFromFavoritesByName(pokemon.name)
-                                                },
-                                                isAssetEnabled = originalAssetsEnabled,
-                                                onClick = {
-                                                    navController.navigate(
-                                                        Route.Details.createDetails(
-                                                            pokemon.name
-                                                        )
-                                                    )
-                                                },
-                                            )
                                         }
 
-                                        if (isLoading && pokemonList.isNotEmpty()) {
-                                            item {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .padding(16.dp),
-                                                    contentAlignment = Alignment.Center
+                                        HomeContentMode.ITEMS -> {
+
+                                            when (itemListState) {
+
+                                                is ItemListState.Loading -> ItemGridSkeleton()
+
+                                                is ItemListState.Error -> ItemListError(
+                                                    message = (itemListState as ItemListState.Error).message
                                                 ) {
-                                                    CustomProgressIndicator(
-                                                        resId = R.raw.pokemon_animation
-                                                    )
+                                                    itemViewModel.loadItems()
+                                                }
+
+                                                is ItemListState.Success -> {
+                                                    val successState = itemListState as ItemListState.Success
+
+                                                    LazyVerticalGrid(
+                                                        columns = GridCells.Fixed(2),
+                                                        state = itemGridState,
+                                                        contentPadding = PaddingValues(
+                                                            start = 16.dp,
+                                                            end = 16.dp,
+                                                            top = 8.dp,
+                                                            bottom = 120.dp
+                                                        ),
+                                                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                        modifier = Modifier.fillMaxSize()
+                                                    ) {
+                                                        items(displayList, key = { it.id }) { item ->
+                                                            ItemGridCard(
+                                                                item = item,
+                                                                onClick = {
+                                                                    navController.navigate(
+                                                                        Route.ItemDetail.createRoute(
+                                                                            item.name
+                                                                        )
+                                                                    )
+                                                                },
+                                                                animatedVisibilityScope = animatedVisibilityScope
+                                                            )
+                                                        }
+
+                                                        if (successState.isLoadingMore) {
+                                                            item(span = { GridItemSpan(2) }) {
+                                                                Box(
+                                                                    Modifier
+                                                                        .fillMaxWidth()
+                                                                        .padding(16.dp),
+                                                                    contentAlignment = Alignment.Center
+                                                                ) {
+                                                                    CustomProgressIndicator()
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
 
                                     PullRefreshIndicator(
-                                        refreshing = isLoading,
+                                        refreshing = when (contentMode) {
+                                            HomeContentMode.POKEMON -> isLoading
+                                            HomeContentMode.ITEMS -> itemListState is ItemListState.Loading
+                                        },
                                         state = pullRefreshState,
                                         modifier = Modifier.align(Alignment.TopCenter),
                                     )

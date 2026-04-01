@@ -2,7 +2,7 @@ package com.aditya1875.pokeverse.di
 
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.PokemonDetailsApi
 import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.PokemonListApi
-import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.ItemApiService
+import com.aditya1875.pokeverse.feature.item.data.source.remote.model.ItemApiService
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 import retrofit2.Retrofit

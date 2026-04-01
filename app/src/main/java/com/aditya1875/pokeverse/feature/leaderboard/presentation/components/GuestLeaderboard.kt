@@ -79,7 +79,7 @@ fun GuestLeaderboardLocked() {
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "Sign in to appear on the global leaderboard.",
+                    text = "Sign in to appear on the global and weekly leaderboard.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center

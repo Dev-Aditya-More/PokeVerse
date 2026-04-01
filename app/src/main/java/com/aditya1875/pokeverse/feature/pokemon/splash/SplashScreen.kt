@@ -62,7 +62,7 @@ private val CyanGlow = Color(0xFF29C6E0)
 private val RedGlow = Color(0xFFE05A29)
 private val White = Color(0xFFEEF4FF)
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = false)
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun SplashScreen() {

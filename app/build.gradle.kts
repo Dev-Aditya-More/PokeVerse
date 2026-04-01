@@ -154,6 +154,7 @@ dependencies {
 //    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.animation)
     implementation(libs.googleid)
+    implementation(libs.androidx.animation)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
@@ -221,5 +222,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    debugImplementation(libs.preview)
     testImplementation(kotlin("test"))
 }

@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.premium.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,20 +9,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Leaderboard
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
@@ -57,13 +58,15 @@ fun PremiumBottomSheet(
     onDismiss: () -> Unit,
     onSubscribeMonthly: () -> Unit,
     onSubscribeYearly: () -> Unit,
+    onSubscribeLifetime: () -> Unit,
     monthlyPrice: String,
     yearlyPrice: String,
+    lifetimePrice: String,
     isSubscribeEnabled: Boolean
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    var selectedPlan by remember { mutableStateOf(PremiumPlan.MONTHLY) }
+    var selectedPlan by remember { mutableStateOf(PremiumPlan.YEARLY) }
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -74,8 +77,9 @@ fun PremiumBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 18.dp)
+                .padding(bottom = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Box(
@@ -121,9 +125,8 @@ fun PremiumBottomSheet(
             Spacer(Modifier.height(24.dp))
 
             val features = listOf(
-                Triple(Icons.Default.SportsEsports, "Unlimited Games", "Play all upcoming games"),
                 Triple(Icons.Default.EmojiEvents, "Hard Mode", "You get to play the ultimate challenge"),
-                Triple(Icons.Default.Leaderboard, "Full Leaderboard", "Track all scores across difficulties"),
+                Triple(Icons.Default.CatchingPokemon, "Item Exploration", "Explore all the items in the game"),
                 Triple(Icons.Default.Palette, "Exclusive themes", "Get all the themes and features"),
             )
 
@@ -142,19 +145,52 @@ fun PremiumBottomSheet(
 
             Spacer(Modifier.height(20.dp))
 
-            Row(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 FilterChip(
                     selected = selectedPlan == PremiumPlan.MONTHLY,
                     onClick = { selectedPlan = PremiumPlan.MONTHLY },
-                    label = { Text("Monthly") }
+                    label = { Text("Monthly 🚀") },
+                    border = BorderStroke(
+                        1.dp,
+                        if (selectedPlan == PremiumPlan.MONTHLY)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.outlineVariant
+                    )
                 )
                 FilterChip(
                     selected = selectedPlan == PremiumPlan.YEARLY,
                     onClick = { selectedPlan = PremiumPlan.YEARLY },
-                    label = { Text("Yearly • Save more") }
+                    label = {
+                        Row {
+                            Text("Yearly • Save 33%")
+                            Spacer(Modifier.width(6.dp))
+                            Text("BEST", color = Color(0xFFFF9800), fontSize = 10.sp)
+                        }
+                    },
+                    border = BorderStroke(
+                        1.dp,
+                        if (selectedPlan == PremiumPlan.YEARLY)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.outlineVariant
+                    )
+                )
+                FilterChip(
+                    selected = selectedPlan == PremiumPlan.LIFETIME,
+                    onClick = { selectedPlan = PremiumPlan.LIFETIME },
+                    label = { Text("Lifetime • Save 40% 🔥") },
+                    border = BorderStroke(
+                        1.dp,
+                        if (selectedPlan == PremiumPlan.LIFETIME)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.outlineVariant
+                    )
                 )
             }
 
@@ -167,6 +203,7 @@ fun PremiumBottomSheet(
                 val price = when (selectedPlan) {
                     PremiumPlan.MONTHLY -> monthlyPrice
                     PremiumPlan.YEARLY -> yearlyPrice
+                    PremiumPlan.LIFETIME -> lifetimePrice
                 }
 
                 Text(
@@ -174,26 +211,39 @@ fun PremiumBottomSheet(
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.ExtraBold
                 )
+
                 Spacer(Modifier.width(4.dp))
-                Text(text = if (selectedPlan == PremiumPlan.MONTHLY) "/ month" else "/ year")
+
+                val suffix = when (selectedPlan) {
+                    PremiumPlan.MONTHLY -> "/ month"
+                    PremiumPlan.YEARLY -> "/ year"
+                    PremiumPlan.LIFETIME -> "one-time"
+                }
+
+                Text(text = suffix)
             }
 
             Spacer(Modifier.height(20.dp))
 
             Button(
                 onClick = {
-                    if (selectedPlan == PremiumPlan.MONTHLY) {
-                        onSubscribeMonthly()
-                    } else {
-                        onSubscribeYearly()
+                    when (selectedPlan) {
+                        PremiumPlan.MONTHLY -> {
+                            onSubscribeMonthly()
+                        }
+                        PremiumPlan.YEARLY -> {
+                            onSubscribeYearly()
+                        }
+                        PremiumPlan.LIFETIME -> {
+                            onSubscribeLifetime()
+                        }
                     }
                 },
                 enabled = isSubscribeEnabled,
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
-                Text("Get Premium")
+                Text("Unlock Premium 🚀")
             }
-
 
             Spacer(Modifier.height(12.dp))
 
@@ -201,30 +251,6 @@ fun PremiumBottomSheet(
                 Text(
                     text = "Maybe later",
                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                TrustBadge(
-                    icon = Icons.Default.Security,
-                    text = "Google Pay\nProtected"
-                )
-                TrustBadge(
-                    icon = Icons.Default.Cancel,
-                    text = "Cancel\nAnytime"
-                )
-                TrustBadge(
-                    icon = Icons.Default.Refresh,
-                    text = "Restore\nPurchase"
-                )
-                TrustBadge(
-                    icon = Icons.Default.Lock,
-                    text = "Secure\nCheckout"
                 )
             }
 
@@ -238,6 +264,9 @@ fun PremiumBottomSheet(
                 lineHeight = 18.sp
             )
         }
+
+        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.navigationBarsPadding())
     }
 }
 
@@ -250,65 +279,23 @@ private fun PremiumFeatureRow(
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(40.dp)
+                .size(36.dp)
                 .clip(RoundedCornerShape(10.dp))
                 .background(Color(0xFFFFD700).copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = Color(0xFFFFD700),
-                modifier = Modifier.size(22.dp)
-            )
+            Icon(icon, null, tint = Color(0xFFFFD700), modifier = Modifier.size(18.dp))
         }
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(title, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall)
         }
 
-        Icon(
-            imageVector = Icons.Default.Check,
-            contentDescription = null,
-            tint = Color(0xFF4CAF50),
-            modifier = Modifier.size(18.dp)
-        )
-    }
-}
-
-@Composable
-fun TrustBadge(icon: ImageVector, text: String) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-            modifier = Modifier.size(20.dp)
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-            textAlign = TextAlign.Center,
-            fontSize = 10.sp,
-            lineHeight = 14.sp
-        )
+        Icon(Icons.Default.Check, null, tint = Color(0xFF4CAF50))
     }
 }

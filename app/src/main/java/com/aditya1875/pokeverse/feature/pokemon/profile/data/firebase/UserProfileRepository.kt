@@ -27,6 +27,11 @@ class UserProfileRepository(private val context: Context) {
         val UID = stringPreferencesKey("uid")
         val USERNAME = stringPreferencesKey("username")
         val TOTAL_XP = intPreferencesKey("total_xp")
+
+        val WEEKLY_XP = intPreferencesKey("weekly_xp")
+
+        val LAST_WEEKLY_RESET = longPreferencesKey("last_weekly_reset")
+
         val GAMES_PLAYED = intPreferencesKey("games_played")
         val BEST_QUIZ = intPreferencesKey("best_quiz")
         val BEST_MATCH = intPreferencesKey("best_match")
@@ -48,6 +53,8 @@ class UserProfileRepository(private val context: Context) {
             uid = p[K.UID] ?: "guest",
             username = p[K.USERNAME] ?: "Trainer",
             totalXp = totalXp,
+            weeklyXp = p[K.WEEKLY_XP] ?: 0,
+            lastWeeklyReset = p[K.LAST_WEEKLY_RESET] ?: 0L,
             level = level,
             currentXp = currentXp,
             nextLevelXp = nextLevelXp,
@@ -71,6 +78,8 @@ class UserProfileRepository(private val context: Context) {
             p[K.UID] = profile.uid
             p[K.USERNAME] = profile.username
             p[K.TOTAL_XP] = profile.totalXp
+            p[K.WEEKLY_XP] = profile.weeklyXp
+            p[K.LAST_WEEKLY_RESET] = profile.lastWeeklyReset
             p[K.GAMES_PLAYED] = profile.gamesPlayed
             p[K.BEST_QUIZ] = profile.bestQuizScore
             p[K.BEST_MATCH] = profile.bestMatchScore
@@ -96,6 +105,8 @@ class UserProfileRepository(private val context: Context) {
                 uid = uid,
                 username = doc.getString("username") ?: "Trainer",
                 totalXp = totalXp,
+                weeklyXp = (doc.getLong("weeklyXp") ?: 0L).toInt(),
+                lastWeeklyReset = doc.getLong("lastWeeklyReset") ?: 0L,
                 level = level,
                 currentXp = currentXp,
                 nextLevelXp = nextLevelXp,
@@ -127,6 +138,8 @@ class UserProfileRepository(private val context: Context) {
                     "photoUrl" to profile.photoUrl,
                     "email" to profile.email,
                     "totalXp" to profile.totalXp,
+                    "weeklyXp" to profile.weeklyXp,
+                    "lastWeeklyReset" to profile.lastWeeklyReset,
                     "level" to profile.level,
                     "gamesPlayed" to profile.gamesPlayed,
                     "bestQuizScore" to profile.bestQuizScore,
@@ -147,6 +160,8 @@ class UserProfileRepository(private val context: Context) {
                     "displayName" to profile.username,
                     "photoUrl" to profile.photoUrl,
                     "totalXp" to profile.totalXp,
+                    "weeklyXp" to profile.weeklyXp,
+                    "lastWeeklyReset" to profile.lastWeeklyReset,
                     "level" to profile.level,
                     "updatedAt" to Timestamp.now(),
                 ),

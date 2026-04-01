@@ -14,8 +14,6 @@ import com.aditya1875.pokeverse.feature.core.navigation.BottomNavigationBar
 @Composable
 fun WithBottomBar(
     navController: NavHostController,
-    selectedRoute: Route = Route.BottomBar.Home,
-    onRouteChange: (Route.BottomBar) -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     Scaffold(
@@ -23,8 +21,6 @@ fun WithBottomBar(
         bottomBar = {
             BottomNavigationBar(
                 navController = navController,
-                selectedRoute = selectedRoute,
-                onRouteChange = onRouteChange
             )
         }
     ) { padding ->

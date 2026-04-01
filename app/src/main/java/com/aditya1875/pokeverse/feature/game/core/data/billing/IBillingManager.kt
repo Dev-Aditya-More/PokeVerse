@@ -12,6 +12,8 @@ interface IBillingManager {
 
     val yearlyProduct: StateFlow<ProductDetails?>
 
+    val lifetimeProduct: StateFlow<ProductDetails?>
+
     val billingError: StateFlow<String?>
 
     fun startConnection()
@@ -43,5 +45,6 @@ sealed class SubscriptionState {
 
 enum class PremiumPlan {
     MONTHLY,
-    YEARLY
+    YEARLY,
+    LIFETIME
 }

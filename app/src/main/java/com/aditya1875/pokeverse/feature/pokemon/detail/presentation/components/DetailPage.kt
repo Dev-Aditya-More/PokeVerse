@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -18,6 +19,8 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -102,8 +105,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
-    ExperimentalMaterial3Api::class,
-    ExperimentalMaterial3ExpressiveApi::class
+    ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class
 )
 @Composable
 fun PokemonDetailPage(
@@ -124,8 +126,12 @@ fun PokemonDetailPage(
     val isTtsReady by ttsManager.isReady.collectAsStateWithLifecycle()
     val isSpeaking by ttsManager.isSpeaking.collectAsStateWithLifecycle()
 
-    val mediaPlayer = remember { MediaPlayer() }
     var isPlayingCry by remember { mutableStateOf(false) }
+    val mediaPlayer = remember {
+        MediaPlayer().apply {
+            setOnCompletionListener { isPlayingCry = false }
+        }
+    }
 
     val teamViewModel: TeamViewModel = koinViewModel()
     val favouritesViewModel: FavouritesViewModel = koinViewModel()
@@ -720,31 +726,59 @@ fun PokemonDetailPage(
                             }
                         }
 
-                        // Types
                         item {
+                            var selectedType by remember { mutableStateOf<String?>(null) }
+
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
+
                                     Text(
                                         "Types",
                                         style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        fontWeight = FontWeight.Bold
                                     )
-                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        pokemon.types.forEach {
+
+                                    Spacer(Modifier.height(8.dp))
+
+                                    FlowRow(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        pokemon.types.forEach { type ->
+
+                                            val typeName = type.type.name
+
                                             AssistChip(
                                                 onClick = {
+                                                    selectedType =
+                                                        if (selectedType == typeName) null else typeName
                                                 },
                                                 label = {
-                                                    Text(
-                                                        it.type.name.uppercase(),
-                                                        color = MaterialTheme.colorScheme.onSurface
-                                                    )
+                                                    Text(typeName.uppercase())
                                                 },
                                                 colors = AssistChipDefaults.assistChipColors(
-                                                    containerColor = MaterialTheme.colorScheme.surface,
-                                                    labelColor = MaterialTheme.colorScheme.onSurface
+                                                    containerColor =
+                                                        if (selectedType == typeName)
+                                                            bgColor.copy(alpha = 0.3f)
+                                                        else
+                                                            MaterialTheme.colorScheme.surface
                                                 )
+                                            )
+                                        }
+                                    }
+
+                                    AnimatedVisibility(visible = selectedType != null) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .clip(RoundedCornerShape(10.dp))
+                                                .background(bgColor.copy(alpha = 0.15f))
+                                                .padding(10.dp)
+                                        ) {
+                                            Text(
+                                                text = typeHint(selectedType ?: ""),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurface
                                             )
                                         }
                                     }
@@ -756,6 +790,9 @@ fun PokemonDetailPage(
                         item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
+
+                                    var selectedAbility by remember { mutableStateOf<String?>(null) }
+
                                     Text(
                                         text = "Abilities",
                                         style = MaterialTheme.typography.titleMedium,
@@ -768,12 +805,40 @@ fun PokemonDetailPage(
                                     pokemon.abilities
                                         .sortedBy { it.slot }
                                         .forEach { ability ->
+
+                                            val abilityInfo = getAbilityInfo(ability.ability.name)
+
+                                            val abilityName = ability.ability.name
+
+                                            val backBrush =
+                                                if (selectedAbility == abilityName) {
+                                                    Brush.verticalGradient(
+                                                        listOf(
+                                                            bgColor.copy(alpha = 0.25f),
+                                                            bgColor.copy(alpha = 0.25f)
+                                                        )
+                                                    )
+                                                } else {
+                                                    Brush.verticalGradient(
+                                                        listOf(
+                                                            bgColor.copy(alpha = 0.15f),
+                                                            bgColor.copy(alpha = 0.05f)
+                                                        )
+                                                    )
+                                                }
+
                                             Row(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .clip(RoundedCornerShape(8.dp))
-                                                    .background(bgColor.copy(alpha = 0.12f))
-                                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                                    .background(
+                                                        backBrush
+                                                    )
+                                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                                                    .clickable {
+                                                        val name = ability.ability.name
+                                                        selectedAbility = if (selectedAbility == name) null else name
+                                                    },
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
@@ -795,7 +860,38 @@ fun PokemonDetailPage(
                                                 }
                                             }
 
-                                            Spacer(Modifier.height(8.dp))
+                                            Spacer(Modifier.height(4.dp))
+
+                                            AnimatedVisibility(visible = selectedAbility == abilityName) {
+                                                if (abilityInfo != null) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .fillMaxWidth()
+                                                            .clip(RoundedCornerShape(10.dp))
+                                                            .background(bgColor.copy(alpha = 0.15f))
+                                                            .padding(10.dp)
+                                                    ) {
+                                                        Column {
+                                                            Text(
+                                                                abilityInfo.short,
+                                                                style = MaterialTheme.typography.labelMedium,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = bgColor
+                                                            )
+
+                                                            Spacer(Modifier.height(4.dp))
+
+                                                            Text(
+                                                                abilityInfo.detailed,
+                                                                style = MaterialTheme.typography.bodySmall,
+                                                                color = MaterialTheme.colorScheme.onSurface
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            Spacer(Modifier.height(4.dp))
                                         }
                                 }
                             }
@@ -803,24 +899,17 @@ fun PokemonDetailPage(
 
                         if (descriptionText.isNotBlank()) {
                             item {
-                                GlossyCard(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Column(modifier = Modifier.padding(16.dp)) {
-                                        Text(
-                                            "Description",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = descriptionText,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            lineHeight = 20.sp,
-                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
-                                        )
-                                    }
+                                GlossyCard {
+                                    InfoBlock(
+                                        title = "Overview",
+                                        accentColor = MaterialTheme.colorScheme.onSurface,
+                                        content = {
+                                            Text(
+                                                simplifyPokemonDescription(descriptionText),
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -858,7 +947,7 @@ fun PokemonDetailPage(
                                                 horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
                                                 Text(
-                                                    text = stat.stat.name.replace("-", " ")
+                                                    text = statLabel(stat.stat.name).replace("-", " ")
                                                         .replaceFirstChar { it.uppercase() },
                                                     style = MaterialTheme.typography.bodyMedium,
                                                     color = MaterialTheme.colorScheme.onSurface.copy(
@@ -922,7 +1011,7 @@ fun PokemonDetailPage(
                                         )
                                     }
                                 }
-                                .groupBy { it.second } // group by method
+                                .groupBy { it.second }
                                 .mapValues { (_, entries) ->
                                     entries
                                         .groupBy { it.first }
@@ -953,7 +1042,7 @@ fun PokemonDetailPage(
 
                                     Spacer(Modifier.height(12.dp))
 
-                                    movesByMethod.forEach { (method, entries) ->
+                                    movesByMethod.forEach { (method, moves) ->
 
                                         val displayName = when (method) {
                                             "level-up" -> "Level Up"
@@ -965,83 +1054,57 @@ fun PokemonDetailPage(
 
                                         val isExpanded = expandedMethod == method
 
-                                        // Header row
+                                        // Header
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
                                                 .clip(RoundedCornerShape(8.dp))
                                                 .background(bgColor.copy(alpha = 0.18f))
                                                 .clickable {
-                                                    expandedMethod =
-                                                        if (isExpanded) null else method
+                                                    expandedMethod = if (isExpanded) null else method
                                                 }
                                                 .padding(horizontal = 12.dp, vertical = 10.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Text(
-                                                text = "$displayName (${entries.size})",
-                                                fontWeight = FontWeight.SemiBold,
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-
+                                            Text("$displayName (${moves.size})")
                                             Icon(
                                                 imageVector = if (isExpanded)
                                                     Icons.Default.KeyboardArrowUp
                                                 else
                                                     Icons.Default.KeyboardArrowDown,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurface
+                                                contentDescription = null
                                             )
                                         }
 
-                                        if (isExpanded) {
-                                            Spacer(Modifier.height(8.dp))
+                                        Spacer(Modifier.height(8.dp))
 
-                                            movesByMethod[method]?.forEach { move ->
-                                                Row(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .clip(RoundedCornerShape(8.dp))
-                                                        .background(bgColor.copy(alpha = 0.12f))
-                                                        .padding(
-                                                            horizontal = 12.dp,
-                                                            vertical = 10.dp
-                                                        ),
-                                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                                    verticalAlignment = Alignment.CenterVertically
-                                                ) {
-                                                    Text(
-                                                        text = move.name
-                                                            .replace("-", " ")
-                                                            .replaceFirstChar { it.uppercase() },
-                                                        color = MaterialTheme.colorScheme.onSurface,
-                                                        style = MaterialTheme.typography.bodyMedium,
-                                                        modifier = Modifier.weight(1f)
-                                                    )
+                                        moves.take(6).forEach { move ->
+                                            MoveRow(move, method, bgColor)
+                                        }
 
-                                                    if (method == "level-up" && move.level != null) {
-                                                        Box(
-                                                            modifier = Modifier
-                                                                .clip(RoundedCornerShape(6.dp))
-                                                                .background(bgColor.copy(alpha = 0.4f))
-                                                                .padding(
-                                                                    horizontal = 10.dp,
-                                                                    vertical = 4.dp
-                                                                )
-                                                        ) {
-                                                            Text(
-                                                                text = if (move.level > 0) "Lv. ${move.level}" else "Start",
-                                                                color = MaterialTheme.colorScheme.onSurface,
-                                                                style = MaterialTheme.typography.labelMedium,
-                                                                fontWeight = FontWeight.Bold
-                                                            )
-                                                        }
-                                                    }
+                                        AnimatedVisibility(visible = isExpanded) {
+                                            Column {
+                                                moves.drop(6).forEach { move ->
+                                                    MoveRow(move, method, bgColor)
                                                 }
-
-                                                Spacer(Modifier.height(6.dp))
                                             }
+                                        }
+
+                                        // Toggle
+                                        if (moves.size > 6) {
+                                            Text(
+                                                text = if (isExpanded) "Show less" else "Show all",
+                                                modifier = Modifier
+                                                    .align(Alignment.End)
+                                                    .clickable {
+                                                        expandedMethod =
+                                                            if (isExpanded) null else method
+                                                    }
+                                                    .padding(6.dp),
+                                                color = bgColor,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
                                         }
 
                                         Spacer(Modifier.height(12.dp))
@@ -1100,7 +1163,6 @@ fun PokemonDetailPage(
                         }
 
                         item {
-
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
@@ -1184,5 +1246,175 @@ fun PokemonDetailPage(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MoveRow(move: DisplayMove, method: String, bgColor: Color) {
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(bgColor.copy(alpha = 0.12f))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = move.name.replace("-", " ")
+                .replaceFirstChar { it.uppercase() },
+            modifier = Modifier.weight(1f)
+        )
+
+        if (method == "level-up" && move.level != null) {
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(bgColor.copy(alpha = 0.4f))
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+                Text("Lv. ${move.level}")
+            }
+        }
+    }
+
+    Spacer(Modifier.height(6.dp))
+}
+
+@Composable
+fun InfoBlock(
+    title: String,
+    accentColor: Color,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.background)
+            .padding(14.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        content()
+    }
+}
+
+fun simplifyPokemonDescription(text: String): String {
+    return text
+        .replace("\n", " ")
+        .replace(Regex("\\s+"), " ")
+        .trim()
+}
+
+data class AbilityInfo(
+    val short: String,
+    val detailed: String
+)
+fun getAbilityInfo(name: String): AbilityInfo? {
+
+    val abilityMap = mapOf(
+        "overgrow" to AbilityInfo(
+            "Boosts Grass moves at low HP",
+            "When HP is below 1/3, Grass-type moves deal 50% more damage."
+        ),
+        "blaze" to AbilityInfo(
+            "Boosts Fire moves at low HP",
+            "Fire-type moves become significantly stronger when HP is low."
+        ),
+        "torrent" to AbilityInfo(
+            "Boosts Water moves at low HP",
+            "Water-type moves gain power when HP drops below 1/3."
+        ),
+        "intimidate" to AbilityInfo(
+            "Lowers opponent Attack",
+            "On entry, reduces the opponent's Attack stat."
+        ),
+        "levitate" to AbilityInfo(
+            "Immune to Ground moves",
+            "Avoids all Ground-type attacks and hazards."
+        ),
+        "pressure" to AbilityInfo(
+            "Drains opponent PP faster",
+            "Opponents use extra PP when attacking this Pokémon."
+        ),
+        "static" to AbilityInfo(
+            "May paralyze on contact",
+            "Physical contact has a chance to paralyze the attacker."
+        ),
+        "swift-swim" to AbilityInfo(
+            "Faster in rain",
+            "Speed doubles during rain."
+        ),
+        "chlorophyll" to AbilityInfo(
+            "Faster in sunlight",
+            "Speed doubles in sunny weather."
+        ),
+        "huge-power" to AbilityInfo(
+            "Doubles Attack stat",
+            "Greatly increases physical damage output."
+        ),
+        "guts" to AbilityInfo(
+            "Boosts Attack when statused",
+            "Attack increases if affected by burn, poison, etc."
+        ),
+        "shed-skin" to AbilityInfo(
+            "Heals status over time",
+            "Chance to cure status conditions each turn."
+        ),
+        "soundproof" to AbilityInfo(
+            "Immune to sound-based moves",
+            "Avoids sound-based attacks."
+        ),
+        "adaptability" to AbilityInfo(
+            "Boosts Attack",
+            "Increases Attack stat."
+        )
+    )
+
+    return abilityMap[name]
+}
+
+fun typeHint(type: String): String {
+    return when (type.lowercase()) {
+        "fire" -> "Strong vs Grass, Bug, Ice | Weak vs Water, Rock"
+        "water" -> "Strong vs Fire, Rock | Weak vs Electric, Grass"
+        "grass" -> "Strong vs Water, Rock | Weak vs Fire, Ice"
+        "electric" -> "Strong vs Water, Flying | Weak vs Ground"
+        "ice" -> "Strong vs Dragon, Flying | Weak vs Fire, Rock"
+        "fighting" -> "Strong vs Normal, Rock | Weak vs Psychic, Fairy"
+        "poison" -> "Strong vs Grass, Fairy | Weak vs Ground"
+        "ground" -> "Strong vs Fire, Electric | Weak vs Water, Grass"
+        "flying" -> "Strong vs Grass, Fighting | Weak vs Electric, Ice"
+        "psychic" -> "Strong vs Fighting, Poison | Weak vs Dark"
+        "bug" -> "Strong vs Grass, Psychic | Weak vs Fire"
+        "rock" -> "Strong vs Fire, Flying | Weak vs Water, Grass"
+        "ghost" -> "Strong vs Psychic | Weak vs Dark"
+        "dragon" -> "Strong vs Dragon | Weak vs Ice, Fairy"
+        "dark" -> "Strong vs Psychic, Ghost | Weak vs Fighting"
+        "steel" -> "Strong vs Ice, Rock | Weak vs Fire"
+        "fairy" -> "Strong vs Dragon, Dark | Weak vs Steel"
+        "normal" -> "No strengths | Weak vs Fighting"
+        else -> ""
+    }
+}
+
+fun statLabel(stat: String): String {
+    return when (stat) {
+        "hp" -> "Health"
+        "attack" -> "Attack"
+        "defense" -> "Defense"
+        "special-attack" -> "Sp. Attack"
+        "special-defense" -> "Sp. Defense"
+        "speed" -> "Speed"
+        else -> stat
     }
 }

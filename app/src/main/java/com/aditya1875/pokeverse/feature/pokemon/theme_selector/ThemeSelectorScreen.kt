@@ -50,6 +50,20 @@ fun ThemeSelectorScreen(
     val subscriptionState by billingViewModel.subscriptionState.collectAsStateWithLifecycle()
 
     val isPremium = subscriptionState is SubscriptionState.Premium
+    val isLoading = subscriptionState is SubscriptionState.Loading
+
+    LaunchedEffect(subscriptionState, currentTheme) {
+        val isPremium = subscriptionState is SubscriptionState.Premium
+
+        val isCurrentThemePremium = getStarterThemes()
+            .firstOrNull { it.theme == currentTheme }
+            ?.premium == true
+
+        if (!isPremium && isCurrentThemePremium) {
+            themePreferences.setTheme(AppTheme.DEXVERSE)
+            onThemeSelected(AppTheme.DEXVERSE)
+        }
+    }
 
     var showPremiumSheet by remember { mutableStateOf(false) }
 
@@ -126,13 +140,14 @@ fun ThemeSelectorScreen(
                     isSelected = currentTheme == starterTheme.theme,
                     isLocked = locked,
                     onClick = {
-                        if (canUseTheme) {
-                            scope.launch {
-                                themePreferences.setTheme(starterTheme.theme)
-                                onThemeSelected(starterTheme.theme)
-                            }
-                        } else {
+                        if (starterTheme.premium && subscriptionState !is SubscriptionState.Premium) {
                             showPremiumSheet = true
+                            return@StarterThemeCard
+                        }
+
+                        scope.launch {
+                            themePreferences.setTheme(starterTheme.theme)
+                            onThemeSelected(starterTheme.theme)
                         }
                     }
                 )

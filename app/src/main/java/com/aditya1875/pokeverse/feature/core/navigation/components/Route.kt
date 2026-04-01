@@ -22,6 +22,10 @@ sealed class Route(val route: String) {
     }
 
     object ItemsScreen : Route("items")
+
+    object ItemDetail : Route("item_detail/{itemName}") {
+        fun createRoute(name: String) = "item_detail/$name"
+    }
     object EditProfile : Route("edit_profile")
 
     object Settings : Route("settings")

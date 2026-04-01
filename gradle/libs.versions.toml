@@ -34,6 +34,7 @@ materialIconsCore = "1.7.8"
 materialIconsExtended = "1.7.8"
 navigationCompose = "2.9.7"
 playServicesAuth = "21.5.1"
+preview = "1.1.1"
 retrofit = "3.0.0"
 roomRuntime = "2.8.4"
 koin-core = "4.1.1"
@@ -46,6 +47,7 @@ aboutLibraries = "13.2.1"
 workRuntimeKtx = "2.11.1"
 animationCore = "1.10.5"
 animation = "1.10.5"
+animationVersion = "1.10.6"
 
 [libraries]
 accompanist-navigation-animation-v0340 = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimationVersion" }
@@ -109,12 +111,14 @@ lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "
 material3-window-size-class1 = { module = "androidx.compose.material3:material3-window-size-class" }
 moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshi" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "playServicesAuth" }
+preview = { module = "com.github.skydoves.compose.hotswan:preview", version.ref = "preview" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 turbine = { module = "app.cash.turbine:turbine", version.ref = "turbine" }
 ui = { module = "androidx.compose.ui:ui"}
 aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
+androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
