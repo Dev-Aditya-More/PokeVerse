@@ -61,13 +61,6 @@ class TeamViewModel(
             }
             .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), emptyList())
 
-    init {
-        viewModelScope.launch {
-            val defaultTeam = teamDao.getDefaultTeam()
-            _selectedTeamId.value = defaultTeam?.teamId
-                ?: allTeams.value.firstOrNull()?.teamId
-        }
-    }
 
     // -------------------------
     // Team Selection

@@ -126,7 +126,7 @@ fun PremiumBottomSheet(
 
             val features = listOf(
                 Triple(Icons.Default.EmojiEvents, "Hard Mode", "You get to play the ultimate challenge"),
-                Triple(Icons.Default.CatchingPokemon, "Item Exploration", "Explore all the items in the game"),
+                Triple(Icons.Default.CatchingPokemon, "Item Exploration", "Explore the held items in the game"),
                 Triple(Icons.Default.Palette, "Exclusive themes", "Get all the themes and features"),
             )
 

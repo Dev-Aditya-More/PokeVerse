@@ -55,6 +55,7 @@ class LeaderboardRepository {
         return try {
             val snapshot = firestore.collection("leaderboard")
                 .orderBy(field, Query.Direction.DESCENDING)
+                .orderBy("updatedAt", Query.Direction.ASCENDING)
                 .limit(PAGE_SIZE)
                 .get().await()
 
@@ -68,6 +69,15 @@ class LeaderboardRepository {
 
             buildState(entries, canLoadMore = entries.size.toLong() == PAGE_SIZE)
         } catch (e: Exception) {
+            val cachedEntries = cache[type]
+
+            if (!cachedEntries.isNullOrEmpty()) {
+                return buildState(
+                    cachedEntries,
+                    canLoadMore = cachedEntries.size.toLong() == PAGE_SIZE
+                )
+            }
+
             LeaderboardState.Error(e.message ?: "Failed to load leaderboard")
         }
     }
@@ -76,18 +86,17 @@ class LeaderboardRepository {
     suspend fun loadNextPage(
         type: LeaderboardType = LeaderboardType.GLOBAL
     ): LeaderboardState {
-        val cursor = lastDocument ?: return LeaderboardState.Error("No more pages")
+        val cursor = lastDocs[type] ?: return LeaderboardState.Error("No more pages")
         val field = when (type) {
             LeaderboardType.GLOBAL -> "totalXp"
             LeaderboardType.WEEKLY -> "weeklyXp"
         }
         val cachedEntries = cache[type] ?: emptyList()
-        val lastDocument = lastDocs[type]
-        val cacheTimestamp = cacheTimestamps[type] ?: 0L
 
         return try {
             val snapshot = firestore.collection("leaderboard")
                 .orderBy(field, Query.Direction.DESCENDING)
+                .orderBy("updatedAt", Query.Direction.ASCENDING)
                 .startAfter(cursor)
                 .limit(PAGE_SIZE)
                 .get().await()
@@ -99,7 +108,14 @@ class LeaderboardRepository {
             cache[type] = cachedEntries + newEntries
             lastDocs[type] = snapshot.documents.lastOrNull()
 
-            buildState(cachedEntries, canLoadMore = newEntries.size.toLong() == PAGE_SIZE)
+            val updated = cachedEntries + newEntries
+
+            cache[type] = updated
+
+            buildState(
+                updated,
+                canLoadMore = newEntries.size.toLong() == PAGE_SIZE
+            )
         } catch (e: Exception) {
             LeaderboardState.Error(e.message ?: "Failed to load more")
         }
@@ -136,10 +152,14 @@ class LeaderboardRepository {
     private fun DocumentSnapshot.toLeaderboardEntry(rank: Int) = LeaderboardEntry(
         uid = getString("uid") ?: id,
         displayName = getString("displayName") ?: "Trainer",
+        email = getString("email") ?: "trainer@dexverse",
         photoUrl = getString("photoUrl") ?: "",
         totalXp = (getLong("totalXp") ?: 0L).toInt(),
+        weeklyXp = (getLong("weeklyXp") ?: 0L).toInt(),
         level = (getLong("level") ?: 1L).toInt(),
         rank = rank,
+        previousRank = (getLong("previousRank") ?: 0L).toInt(),
+        lastWeeklyReset = getLong("lastWeeklyReset")
     )
 
     fun invalidateCache(type: LeaderboardType = LeaderboardType.GLOBAL) {

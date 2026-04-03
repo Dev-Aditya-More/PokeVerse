@@ -26,7 +26,7 @@ kotlinxCoroutinesTest = "1.10.2"
 kotlinxSerializationJson = "1.10.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
-composeBom = "2026.03.00"
+composeBom = "2026.03.01"
 liquid = "1.1.1"
 lottieCompose = "6.7.1"
 material3Expressive = "1.5.0-alpha14"
@@ -37,17 +37,18 @@ playServicesAuth = "21.5.1"
 preview = "1.1.1"
 retrofit = "3.0.0"
 roomRuntime = "2.8.4"
-koin-core = "4.1.1"
-koin-android = "4.1.1"
-koin-compose = "4.1.1"
+koin-core = "4.2.0"
+koin-android = "4.2.0"
+koin-compose = "4.2.0"
 moshi = "1.15.2"
 turbine = "1.2.1"
-uiTextGoogleFontsVersion = "1.10.3"
+uiTextGoogleFontsVersion = "1.10.6"
 aboutLibraries = "13.2.1"
-workRuntimeKtx = "2.11.1"
-animationCore = "1.10.5"
-animation = "1.10.5"
+workRuntimeKtx = "2.11.2"
+animationCore = "1.10.6"
+animation = "1.10.6"
 animationVersion = "1.10.6"
+volley = "1.2.1"
 
 [libraries]
 accompanist-navigation-animation-v0340 = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimationVersion" }
@@ -119,6 +120,7 @@ aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-com
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
+volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

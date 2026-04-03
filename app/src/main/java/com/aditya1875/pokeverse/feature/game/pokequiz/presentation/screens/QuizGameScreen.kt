@@ -184,7 +184,6 @@ private fun QuizPlayingContent(
             .padding(horizontal = 20.dp)
             .padding(top = 16.dp)
     ) {
-        // ── HUD ───────────────────────────────────────────────────────────────
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

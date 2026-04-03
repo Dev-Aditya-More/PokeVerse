@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.leaderboard.presentation.screens
 
+import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -51,8 +55,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -63,11 +69,13 @@ import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.feature.leaderboard.data.remote.model.LeaderboardEntry
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardState
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.ConfettiOverlay
-import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.GuestLeaderboardLocked
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.RankCelebrationDialog
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardType
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardViewModel
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
+import com.aditya1875.pokeverse.presentation.auth.AuthState
+import com.aditya1875.pokeverse.utils.ScreenStateManager
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
@@ -82,10 +90,6 @@ fun LeaderboardScreen(
     val pullState = rememberPullToRefreshState()
     val authState by profileViewModel.authState.collectAsStateWithLifecycle()
     val type by viewModel.type.collectAsStateWithLifecycle()
-
-    var showConfetti by remember { mutableStateOf(false) }
-    var confettiRank by remember { mutableIntStateOf(0) }
-    var lastCelebratedRank by remember { mutableStateOf<Int?>(null) }
 
     if (authState !is AuthState.Authenticated) {
         GuestLeaderboardLocked()
@@ -102,21 +106,47 @@ fun LeaderboardScreen(
                 is LeaderboardState.Error -> LeaderboardError(s.message) { viewModel.load() }
                 is LeaderboardState.Success -> {
 
-                    LaunchedEffect(s.userEntry?.rank) {
-                        val rank = s.userEntry?.rank ?: return@LaunchedEffect
+                    val context = LocalContext.current
+                    var lastCelebratedRank by remember { mutableIntStateOf(-1) }
 
-                        if (rank in 1..3 && rank != lastCelebratedRank) {
-                            lastCelebratedRank = rank
-                            showConfetti = true
-                            confettiRank = rank
+                    var showDialog by remember { mutableStateOf(false) }
+                    var rank by remember { mutableIntStateOf(0) }
 
-                            delay(2500)
-                            showConfetti = false
+                    LaunchedEffect(Unit) {
+                        lastCelebratedRank = ScreenStateManager.getLastCelebratedRank(context)
+                    }
+
+                    LaunchedEffect(s.userEntry?.previousRank, type) {
+
+                        // Only for WEEKLY leaderboard
+                        if (type != LeaderboardType.WEEKLY) return@LaunchedEffect
+
+                        val user = s.userEntry ?: return@LaunchedEffect
+
+                        val lastReset = user.lastWeeklyReset ?: return@LaunchedEffect
+
+                        val lastSeenReset = ScreenStateManager.getLastSeenReset(context)
+
+                        val isNewWeek = lastReset > lastSeenReset
+
+                        if (isNewWeek && user.previousRank in 1..3) {
+
+                            ScreenStateManager.setLastSeenReset(context, lastReset)
+
+                            rank = user.previousRank
+                            showDialog = true
                         }
                     }
 
-                    if (showConfetti) {
-                        ConfettiOverlay(rank = confettiRank)
+                    if (showDialog && type == LeaderboardType.WEEKLY) {
+                        RankCelebrationDialog(
+                            rank = rank,
+                            displayName = s.userEntry?.displayName
+                                ?.split(" ")
+                                ?.firstOrNull()
+                                ?: "",
+                            onDismiss = { showDialog = false }
+                        )
                     }
 
                     PullToRefreshBox(
@@ -169,7 +199,6 @@ private fun LeaderboardList(
 ) {
     val listState = rememberLazyListState()
 
-    // Trigger load-more when near end
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -217,7 +246,8 @@ private fun LeaderboardList(
             LeaderboardRow(
                 type = type,
                 entry = entry,
-                isUser = isUser
+                isUser = isUser,
+                maxXp = entries[0].totalXp
             )
         }
 
@@ -274,7 +304,7 @@ private fun LeaderboardHeader(
 
         Text(
             if (type == LeaderboardType.WEEKLY)
-                "Top trainers this week"
+                "Resets every Monday 12:00 AM IST"
             else
                 "Top trainers of all time",
             style = MaterialTheme.typography.bodyMedium,
@@ -406,6 +436,9 @@ private fun PodiumColumn(
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
+        Log.d("PodiumColumn", "xpToShow: $xpToShow")
+        Log.d("PodiumColumn", "level: $level")
+
         Spacer(Modifier.height(6.dp))
 
         // Podium block
@@ -439,7 +472,8 @@ private fun PodiumColumn(
 private fun LeaderboardRow(
     type: LeaderboardType,
     entry: LeaderboardEntry,
-    isUser: Boolean
+    isUser: Boolean,
+    maxXp: Int
 ) {
     val bgColor = if (isUser)
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -447,6 +481,13 @@ private fun LeaderboardRow(
         Color.Transparent
 
     val xpToShow = if (type == LeaderboardType.WEEKLY) entry.weeklyXp else entry.totalXp
+
+    val progress = if (maxXp > 0) xpToShow / maxXp.toFloat() else 0f
+
+    val animatedProgress = remember { Animatable(0f) }
+    LaunchedEffect(xpToShow) {
+        animatedProgress.animateTo(progress, tween(600, easing = FastOutSlowInEasing))
+    }
 
     Row(
         modifier = Modifier

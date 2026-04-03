@@ -22,7 +22,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GuessGameState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -141,6 +143,8 @@ private fun SilhouetteScreen(
     val timerFraction = state.timeRemaining.toFloat() / difficulty.timePerQuestion
     val timeUp = state.timeRemaining <= 0
 
+    val context = LocalContext.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -236,10 +240,17 @@ private fun SilhouetteScreen(
                     .height(200.dp),
                 contentAlignment = Alignment.Center
             ) {
-                val painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current)
-                        .data(state.question.spriteUrl).crossfade(true).build()
-                )
+                val request = remember(state.question.spriteUrl) {
+                    ImageRequest.Builder(context)
+                        .data(state.question.spriteUrl)
+                        .memoryCachePolicy(CachePolicy.ENABLED)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .crossfade(false) // no fade for silhouettes — faster perceived render
+                        .size(Size.ORIGINAL)
+                        .build()
+                }
+                val painter = rememberAsyncImagePainter(request)
+
                 Image(
                     painter = painter,
                     contentDescription = null,

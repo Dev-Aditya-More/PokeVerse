@@ -1,8 +1,15 @@
 package com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels
 
+import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.ImageLoader
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
@@ -26,13 +33,16 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.collections.forEach
 
 class PokeGuessViewModel(
     gameScoreDao: GameScoreDao,
     billingManager: IBillingManager,
     private val xpManager: XPManager,
     private val userRepository: UserProfileRepository,
-    private val generateQuestionsUseCase: GeneratePokeGuessQuestionsUseCase
+    private val generateQuestionsUseCase: GeneratePokeGuessQuestionsUseCase,
+    private val imageLoader: ImageLoader,
+    private val context: Context
 ) : ViewModel() {
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
@@ -54,6 +64,17 @@ class PokeGuessViewModel(
 
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
         .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), emptyList())
+
+    fun prefetchSprites(questions: List<PokeGuessQuestion>) {
+        questions.forEach { question ->
+            val request = ImageRequest.Builder(context)
+                .data(question.spriteUrl)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .build()
+            imageLoader.enqueue(request)
+        }
+    }
 
     fun startGame(difficulty: GuessDifficulty) {
         viewModelScope.launch {
@@ -190,6 +211,8 @@ class PokeGuessViewModel(
         val currentState = _gameState.value
         if (currentState is GuessGameState.Revealing) {
             val nextIndex = currentState.currentQuestionIndex + 1
+            // Eagerly prefetch the one after next too
+            allQuestions.getOrNull(nextIndex + 1)?.let { prefetchSprites(listOf(it)) }
             showQuestion(nextIndex, difficulty)
         }
     }

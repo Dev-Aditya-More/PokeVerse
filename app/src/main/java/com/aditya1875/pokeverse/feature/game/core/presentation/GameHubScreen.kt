@@ -181,6 +181,17 @@ fun GameHubScreen(
         ) {
             item { Spacer(Modifier.height(4.dp)) }
 
+            if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
+                item {
+                    PremiumBanner(
+                        price = monthly,
+                        onSubscribe = { showPremiumSheet = true }
+                    )
+                }
+            }
+
+            item { Spacer(Modifier.height(6.dp)) }
+
             items(games) { game ->
                 FeaturedGameCard(
                     title = game.title,
@@ -195,16 +206,7 @@ fun GameHubScreen(
                 )
             }
 
-            if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
-                item {
-                    PremiumBanner(
-                        price = monthly,
-                        onSubscribe = { showPremiumSheet = true }
-                    )
-                }
-            }
-
-            item { Spacer(Modifier.height(24.dp)) }
+            item { Spacer(Modifier.height(10.dp)) }
         }
     }
 

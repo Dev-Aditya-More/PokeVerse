@@ -50,22 +50,17 @@ fun ThemeSelectorScreen(
     val subscriptionState by billingViewModel.subscriptionState.collectAsStateWithLifecycle()
 
     val isPremium = subscriptionState is SubscriptionState.Premium
-    val isLoading = subscriptionState is SubscriptionState.Loading
 
-    LaunchedEffect(subscriptionState, currentTheme) {
-        val isPremium = subscriptionState is SubscriptionState.Premium
+    val themes = remember { getStarterThemes() }
 
-        val isCurrentThemePremium = getStarterThemes()
-            .firstOrNull { it.theme == currentTheme }
-            ?.premium == true
+    val safeTheme = resolveTheme(currentTheme, isPremium, themes)
+    var showPremiumSheet by remember { mutableStateOf(false) }
 
-        if (!isPremium && isCurrentThemePremium) {
-            themePreferences.setTheme(AppTheme.DEXVERSE)
-            onThemeSelected(AppTheme.DEXVERSE)
+    LaunchedEffect(safeTheme) {
+        if (safeTheme != currentTheme) {
+            themePreferences.setTheme(safeTheme)
         }
     }
-
-    var showPremiumSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -132,15 +127,14 @@ fun ThemeSelectorScreen(
                 }
             }
 
-            items(getStarterThemes()) { starterTheme ->
-                val canUseTheme = !starterTheme.premium || isPremium
+            items(themes) { starterTheme ->
                 val locked = starterTheme.premium && !isPremium
                 StarterThemeCard(
                     starterTheme = starterTheme,
-                    isSelected = currentTheme == starterTheme.theme,
+                    isSelected = safeTheme == starterTheme.theme,
                     isLocked = locked,
                     onClick = {
-                        if (starterTheme.premium && subscriptionState !is SubscriptionState.Premium) {
+                        if (starterTheme.premium && !isPremium) {
                             showPremiumSheet = true
                             return@StarterThemeCard
                         }
@@ -308,7 +302,10 @@ fun StarterThemeCard(
                     )
                 } else Modifier
             )
-            .clickable(onClick = onClick),
+            .clickable(
+                enabled = !isLocked,
+                onClick = onClick
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
@@ -317,13 +314,11 @@ fun StarterThemeCard(
             defaultElevation = if (isSelected) 12.dp else 4.dp
         )
     ) {
-
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(20.dp)
         ) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -370,7 +365,6 @@ fun StarterThemeCard(
                 }
 
                 if (isLocked) {
-
                     Box(
                         modifier = Modifier
                             .size(40.dp)
@@ -474,5 +468,20 @@ fun StarterThemeCard(
                 }
             }
         }
+    }
+}
+
+fun resolveTheme(
+    currentTheme: AppTheme,
+    isPremium: Boolean,
+    themes: List<StarterTheme>
+): AppTheme {
+    val theme = getStarterThemes()
+        .firstOrNull { it.theme == currentTheme }
+
+    return if (theme?.premium == true && !isPremium) {
+        AppTheme.DEXVERSE
+    } else {
+        currentTheme
     }
 }

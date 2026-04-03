@@ -15,10 +15,12 @@ import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.Re
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.usecase.GetPokemonByTypeUseCase
 import com.aditya1875.pokeverse.feature.pokemon.home.domain.usecase.GetPokemonListUseCase
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels.PokemonDetailUiState
+import com.aditya1875.pokeverse.utils.UiError
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 class PokemonListViewModel(
     private val getPokemonListUseCase: GetPokemonListUseCase,
@@ -43,6 +45,8 @@ class PokemonListViewModel(
 
     private val _filters = MutableStateFlow(PokemonFilter())
     val filters: StateFlow<PokemonFilter> = _filters
+
+    private var hasError = false
 
     var endReached by mutableStateOf(false)
         private set
@@ -104,12 +108,23 @@ class PokemonListViewModel(
 
                 listError = null
 
+            } catch (e: IOException) {
+                hasError = true
+                _uiState.update { it.copy(error = UiError.Network(e.message)) }
             } catch (e: Exception) {
-                listError = e.message
+                _uiState.update {
+                    it.copy(error = UiError.Unexpected(e.message))
+                }
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    fun retry() {
+        hasError = false
+        listError = null
+        loadPokemonList()
     }
 
     // -------------------------
@@ -117,6 +132,7 @@ class PokemonListViewModel(
     // -------------------------
 
     fun setRegionFilter(region: Region?) {
+        hasError = false
         _filters.update { it.copy(selectedRegion = region, selectedType = null) }
 
         currentOffset = region?.offset ?: 0
@@ -129,40 +145,27 @@ class PokemonListViewModel(
 
     fun setTypeFilter(type: PokemonType?) {
         _filters.update { it.copy(selectedType = type) }
-
-        if (type == null) {
-            _pokemonList.value = allPokemonInRegion
-            return
-        }
-
+        if (type == null) { _pokemonList.value = allPokemonInRegion; return }
         val cached = typePokemonCache[type]
-        if (cached != null) {
-            applyTypeFilterFromCache(type, cached)
-            return
-        }
+        if (cached != null) { applyTypeFilterFromCache(type, cached); return }
 
         viewModelScope.launch {
             _isTypeFiltering.value = true
-
+            val capturedRegion = _filters.value.selectedRegion
             try {
                 val typeResponse = getPokemonByTypeUseCase(type.name.lowercase())
-
                 val pokemonIds = typeResponse.pokemon
                     .map { extractIdFromUrl(it.pokemon.url) }
                     .toSet()
-
                 typePokemonCache[type] = pokemonIds
 
                 val filtered = typeResponse.pokemon
                     .map { it.pokemon }
                     .filter { pokemon ->
                         val id = extractIdFromUrl(pokemon.url)
-                        val region = _filters.value.selectedRegion
-                        region == null || region.range.contains(id)
+                        capturedRegion == null || capturedRegion.range.contains(id)
                     }
-
                 _pokemonList.value = filtered
-
             } catch (e: Exception) {
                 val fallback = typePokemonCache[type]
                 if (fallback != null) applyTypeFilterFromCache(type, fallback)
@@ -201,8 +204,10 @@ class PokemonListViewModel(
     }
 
     private fun shouldAutoLoadMoreForFilter(): Boolean {
+        if (hasError || endReached || _isLoading.value) return false
         val selectedType = _filters.value.selectedType ?: return false
-        return _pokemonList.value.size < limit && !endReached && !_isLoading.value
+        val currentSize = _pokemonList.value.size
+        return currentSize < limit
     }
 
     // -------------------------
@@ -210,6 +215,7 @@ class PokemonListViewModel(
     // -------------------------
 
     fun refreshList() {
+        hasError = false
         currentOffset = _filters.value.selectedRegion?.offset ?: 0
         endReached = false
         allPokemonInRegion = emptyList()
@@ -220,14 +226,6 @@ class PokemonListViewModel(
     // -------------------------
     // Utils (TEMP — will move later)
     // -------------------------
-
-    private fun isNetworkAvailable(context: Context): Boolean {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = connectivityManager.activeNetwork ?: return false
-        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
-        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-    }
-
     private fun extractIdFromUrl(url: String): Int {
         return url.trimEnd('/')
             .split("/")

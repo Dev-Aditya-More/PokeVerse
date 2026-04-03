@@ -155,6 +155,7 @@ dependencies {
     implementation(libs.androidx.compose.animation)
     implementation(libs.googleid)
     implementation(libs.androidx.animation)
+    implementation(libs.volley)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
