@@ -26,14 +26,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -50,13 +47,11 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -87,13 +82,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -121,6 +113,7 @@ import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.Imp
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.SuggestionRow
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.DailyTriviaViewModel
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.ScreenState
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.SearchViewModel
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.TriviaUiState
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
@@ -163,6 +156,7 @@ fun SharedTransitionScope.HomeScreen(
     val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val searchUiState by searchViewModel.searchUiState.collectAsStateWithLifecycle()
 
     val triviaState by triviaViewModel.state.collectAsStateWithLifecycle()
@@ -178,7 +172,7 @@ fun SharedTransitionScope.HomeScreen(
     val soundManager: SoundManager = koinInject()
 
     val pullRefreshState = rememberPullRefreshState(
-        refreshing = isLoading,
+        refreshing = isLoading && pokemonList.isNotEmpty(),
         onRefresh = { viewModel.refreshList() }
     )
 
@@ -710,7 +704,11 @@ fun SharedTransitionScope.HomeScreen(
                                                 onClick = {
                                                     isSearchFocused = false
                                                     query = ""
-                                                    navController.navigate(Route.Details.createDetails(suggestion.pokemon.name))
+                                                    navController.navigate(
+                                                        Route.Details.createDetails(
+                                                            suggestion.pokemon.name
+                                                        )
+                                                    )
                                                 }
                                             )
                                         }
@@ -720,16 +718,17 @@ fun SharedTransitionScope.HomeScreen(
                         }
                     }
 
-                    when {
-                        isLoading && pokemonList.isEmpty() -> {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CustomProgressIndicator(
-                                    size = 80.dp
-                                )
+                    when (screenState) {
+                        ScreenState.LOADING -> {
+                            Box(
+                                Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CustomProgressIndicator(size = 80.dp)
                             }
                         }
 
-                        uiState.error != null && pokemonList.isEmpty() -> {
+                        ScreenState.ERROR -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -742,14 +741,8 @@ fun SharedTransitionScope.HomeScreen(
                                 ) {
                                     Image(
                                         painter = painterResource(R.drawable.nointrnet),
-                                        contentDescription = "No Internet",
-                                        modifier = Modifier
-                                            .size(260.dp)
-                                            .graphicsLayer {
-                                                alpha = 0.95f
-                                                scaleX = 1.05f
-                                                scaleY = 1.05f
-                                            },
+                                        contentDescription = null,
+                                        modifier = Modifier.size(260.dp),
                                         contentScale = ContentScale.Fit
                                     )
 
@@ -759,60 +752,17 @@ fun SharedTransitionScope.HomeScreen(
                                         else -> "Unknown Error" to "Please try again later."
                                     }
 
-                                    Text(
-                                        text = title,
-                                        style = MaterialTheme.typography.headlineSmall.copy(
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onBackground,
-                                            letterSpacing = 0.5.sp
-                                        ),
-                                        textAlign = TextAlign.Center
-                                    )
+                                    Text(title)
+                                    Text(subtitle)
 
-                                    Text(
-                                        text = subtitle,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = MaterialTheme.colorScheme.onBackground.copy(
-                                                alpha = 0.7f
-                                            )
-                                        ),
-                                        textAlign = TextAlign.Center
-                                    )
-
-                                    Spacer(Modifier.height(4.dp))
-
-                                    Button(
-                                        onClick = { viewModel.retry() },
-                                        shape = RoundedCornerShape(14.dp),
-                                        colors = ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primary,
-                                            contentColor = MaterialTheme.colorScheme.onPrimary
-                                        ),
-                                        elevation = ButtonDefaults.buttonElevation(8.dp),
-                                        contentPadding = PaddingValues(
-                                            horizontal = 22.dp,
-                                            vertical = 10.dp
-                                        )
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Refresh,
-                                            contentDescription = "Retry",
-                                            modifier = Modifier.size(18.dp)
-                                        )
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(
-                                            "Retry",
-                                            style = MaterialTheme.typography.labelLarge.copy(
-                                                fontWeight = FontWeight.Medium,
-                                                letterSpacing = 0.3.sp
-                                            )
-                                        )
+                                    Button(onClick = { viewModel.retry() }) {
+                                        Text("Retry")
                                     }
                                 }
                             }
                         }
 
-                        else -> {
+                        ScreenState.CONTENT ->
                             Box(modifier = Modifier.fillMaxSize()) {
 
                                 when (contentMode) {
@@ -848,7 +798,9 @@ fun SharedTransitionScope.HomeScreen(
                                                     isInTeam = isInTeam,
                                                     isInFavorites = isFavorite,
                                                     onAddToFavorites = {
-                                                        favouriteViewModel.addToFavorites(pokemon)
+                                                        favouriteViewModel.addToFavorites(
+                                                            pokemon
+                                                        )
                                                     },
                                                     onRemoveFromFavorites = {
                                                         favouriteViewModel.removeFromFavoritesByName(
@@ -904,11 +856,17 @@ fun SharedTransitionScope.HomeScreen(
                                                         top = 8.dp,
                                                         bottom = 120.dp
                                                     ),
-                                                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                    verticalArrangement = Arrangement.spacedBy(
+                                                        10.dp
+                                                    ),
+                                                    horizontalArrangement = Arrangement.spacedBy(
+                                                        10.dp
+                                                    ),
                                                     modifier = Modifier.fillMaxSize()
                                                 ) {
-                                                    items(displayList, key = { it.id }) { item ->
+                                                    items(
+                                                        displayList,
+                                                        key = { it.id }) { item ->
                                                         ItemGridCard(
                                                             item = item,
                                                             onClick = {
@@ -949,7 +907,6 @@ fun SharedTransitionScope.HomeScreen(
                                     modifier = Modifier.align(Alignment.TopCenter),
                                 )
                             }
-                        }
                     }
                 }
             }
