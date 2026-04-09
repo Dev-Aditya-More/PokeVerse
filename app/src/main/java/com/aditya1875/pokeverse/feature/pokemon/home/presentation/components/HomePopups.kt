@@ -12,6 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import com.aditya1875.pokeverse.utils.ScreenStateManager
+import kotlinx.coroutines.launch
 
 enum class HomePopup { None, Update, Assets, Rating, Premium }
 
@@ -24,68 +27,147 @@ enum class HomePopup { None, Update, Assets, Rating, Premium }
 
 @Composable
 fun HomePopupOrchestrator(
-    assetsBannerSeen: Boolean,
     originalAssetsEnabled: Boolean,
-    ratingPromptSeen: Boolean,
-    premiumPromptShown: Boolean,
     totalSessionMinutes: Long,
     isGuest: Boolean,
     isPremium: Boolean,
     // Update dialog — wire these from SettingsViewModel + BuildConfig
     latestVersionCode: Long = 0L,
-    updateDialogShownVersion: Long = 0L,
     currentVersionCode: Long = 0L,
     onEnableAssets: () -> Unit,
-    onDismissAssets: () -> Unit,
-    onDismissRating: () -> Unit,
     onRateNow: () -> Unit,
-    onDismissPremium: () -> Unit,
     onGoPremium: () -> Unit,
-    onDismissUpdate: () -> Unit = {},
     onGoUpdate: () -> Unit = {},
 ) {
-    // No remember() — recomputes on every recompose so dialogs appear as soon as
-    // DataStore emits the correct values (typically within one frame of HomeScreen entry)
-    val activePopup = when {
-        latestVersionCode > currentVersionCode &&
-                updateDialogShownVersion < latestVersionCode -> HomePopup.Update
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
-        !assetsBannerSeen && !originalAssetsEnabled -> HomePopup.Assets
+    var assetsShown by remember { mutableStateOf(false) }
+    var ratingShown by remember { mutableStateOf(false) }
+    var premiumShown by remember { mutableStateOf(false) }
+    var updateShownVersion by remember { mutableStateOf(0L) }
+    var isReady by remember { mutableStateOf(false) }
 
-        // FIX: 10 min threshold (was 20 — new users never saw Rating or Premium)
-        !ratingPromptSeen && totalSessionMinutes >= 10 -> HomePopup.Rating
+    LaunchedEffect(Unit) {
+        assetsShown = ScreenStateManager.isAssetsShown(context)
+        ratingShown = ScreenStateManager.isRatingShown(context)
+        premiumShown = ScreenStateManager.isPremiumShown(context)
+        updateShownVersion = ScreenStateManager.getUpdateShownVersion(context)
+        isReady = true
+    }
 
-        // Premium shows 10 min after rating was dismissed (total 20 min)
-        ratingPromptSeen && !premiumPromptShown &&
-                !isPremium && !isGuest &&
-                totalSessionMinutes >= 20 -> HomePopup.Premium
+    if (!isReady) return
 
-        else -> HomePopup.None
+    var activePopup by remember { mutableStateOf<HomePopup>(HomePopup.None) }
+
+    LaunchedEffect(
+        assetsShown,
+        originalAssetsEnabled,
+        ratingShown,
+        premiumShown,
+        totalSessionMinutes,
+        isGuest,
+        isPremium,
+        latestVersionCode,
+        updateShownVersion,
+        currentVersionCode
+    ) {
+        activePopup = when {
+            latestVersionCode > currentVersionCode &&
+                    updateShownVersion < latestVersionCode -> HomePopup.Update
+
+            !assetsShown && !originalAssetsEnabled -> HomePopup.Assets
+
+            !ratingShown && totalSessionMinutes >= 10 -> HomePopup.Rating
+
+            ratingShown && !premiumShown &&
+                    !isPremium && !isGuest &&
+                    totalSessionMinutes >= 20 -> HomePopup.Premium
+
+            else -> HomePopup.None
+        }
+    }
+
+    val dismissPopup: (suspend () -> Unit) -> Unit = { action ->
+        coroutineScope.launch {
+            action()
+        }
     }
 
     when (activePopup) {
         HomePopup.Update -> UpdateAvailableDialog(
-            onGoUpdate = onGoUpdate,
-            onDismiss = onDismissUpdate
+            onGoUpdate = {
+                dismissPopup {
+                    ScreenStateManager.markUpdateShown(context, latestVersionCode)
+                    updateShownVersion = latestVersionCode
+                }
+                onGoUpdate()
+            },
+            onDismiss = {
+                dismissPopup {
+                    ScreenStateManager.markUpdateShown(context, latestVersionCode)
+                    updateShownVersion = latestVersionCode
+                }
+            }
         )
 
         HomePopup.Assets -> AssetsOnboardingDialog(
-            onEnable = { onEnableAssets(); onDismissAssets() },
-            onDismiss = onDismissAssets
+            onEnable = { 
+                dismissPopup {
+                    ScreenStateManager.markAssetsShown(context)
+                    assetsShown = true
+                }
+                onEnableAssets() 
+            },
+            onDismiss = {
+                dismissPopup {
+                    ScreenStateManager.markAssetsShown(context)
+                    assetsShown = true
+                }
+            }
         )
 
         HomePopup.Rating -> RatingPromptDialog(
-            onRateNow = { onRateNow(); onDismissRating() },
-            onMaybeLater = onDismissRating,
-            onDontAsk = onDismissRating
+            onRateNow = { 
+                dismissPopup {
+                    ScreenStateManager.markRatingShown(context)
+                    ratingShown = true
+                }
+                onRateNow() 
+            },
+            onMaybeLater = {
+                dismissPopup {
+                    ScreenStateManager.markRatingShown(context)
+                    ratingShown = true
+                }
+            },
+            onDontAsk = {
+                dismissPopup {
+                    ScreenStateManager.markRatingShown(context)
+                    ratingShown = true
+                }
+            }
         )
 
         HomePopup.Premium -> PremiumUpsellDialog(
-            onGoPremium = onGoPremium,
-            onDismiss = onDismissPremium
+            onGoPremium = { 
+                dismissPopup {
+                    ScreenStateManager.markPremiumShown(context)
+                    premiumShown = true
+                }
+                onGoPremium() 
+            },
+            onDismiss = {
+                dismissPopup {
+                    ScreenStateManager.markPremiumShown(context)
+                    premiumShown = true
+                }
+            }
         )
 
-        HomePopup.None -> {}
+        HomePopup.None -> {
+
+        }
     }
 }
 

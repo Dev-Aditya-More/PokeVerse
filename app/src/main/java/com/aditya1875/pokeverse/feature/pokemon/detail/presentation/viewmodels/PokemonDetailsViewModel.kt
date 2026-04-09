@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 class PokemonDetailsViewModel(
     private val getPokemonDetailUseCase: GetPokemonDetailUseCase,
@@ -27,7 +28,7 @@ class PokemonDetailsViewModel(
 
     fun loadPokemon(name: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.update { it.copy(isLoading = true, error = null) }
 
             try {
                 val result = getPokemonDetailUseCase(name)
@@ -41,28 +42,38 @@ class PokemonDetailsViewModel(
                     )
                 }
 
-                val evolution = getEvolutionChainUiUseCase(name)
-
+            } catch (e: IOException) {
                 _uiState.update {
-                    it.copy(evolutionUi = evolution)
+                    it.copy(isLoading = false, error = UiError.Network(e.message))
                 }
-
+                return@launch
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = UiError.Unexpected(e.message)
-                )
+                _uiState.update {
+                    it.copy(isLoading = false, error = UiError.Unexpected(e.message))
+                }
+                return@launch
+            }
+
+            try {
+                val evolution = getEvolutionChainUiUseCase(name)
+                _uiState.update { it.copy(evolutionUi = evolution) }
+            } catch (_: Exception) {
+                // ignore or log → don't break UI
             }
         }
     }
 
     fun loadVarietyPokemon(name: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = false) }
+
+            val pokemon = getPokemonByNameUseCase(name)
+
+            _uiState.update {
+                it.copy(pokemon = pokemon)
+            }
 
             try {
-                val pokemon = getPokemonByNameUseCase(name)
-
                 _uiState.update {
                     it.copy(pokemon = pokemon, isLoading = false)
                 }

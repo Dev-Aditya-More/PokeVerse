@@ -1,4 +1,4 @@
-package com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.itemModels
+package com.aditya1875.pokeverse.feature.item.data.source.remote.model.itemModels
 
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.NamedApiResource
 import com.google.gson.annotations.SerializedName

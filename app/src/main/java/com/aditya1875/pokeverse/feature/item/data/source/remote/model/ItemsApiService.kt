@@ -1,7 +1,7 @@
-package com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model
+package com.aditya1875.pokeverse.feature.item.data.source.remote.model
 
-import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.itemModels.ItemDetail
-import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.itemModels.ItemListResponse
+import com.aditya1875.pokeverse.feature.item.data.source.remote.model.itemModels.ItemDetail
+import com.aditya1875.pokeverse.feature.item.data.source.remote.model.itemModels.ItemListResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query

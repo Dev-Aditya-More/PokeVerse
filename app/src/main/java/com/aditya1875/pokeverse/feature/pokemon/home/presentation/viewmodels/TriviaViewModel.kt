@@ -36,7 +36,6 @@ class DailyTriviaViewModel(
         checkBadge()
     }
 
-    // Called by FAB — load trivia on demand (not at startup to stay fast)
     fun loadTrivia() {
         viewModelScope.launch {
             _state.value = TriviaUiState.Loading

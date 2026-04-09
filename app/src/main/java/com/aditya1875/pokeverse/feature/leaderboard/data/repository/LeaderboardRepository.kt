@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse.feature.leaderboard.data.repository
 
 import com.aditya1875.pokeverse.feature.leaderboard.data.remote.model.LeaderboardEntry
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardType
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -20,27 +21,41 @@ sealed class LeaderboardState {
 }
 
 class LeaderboardRepository {
-
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
     private val PAGE_SIZE = 50L
 
     // ── In-memory cache (lives for the session) ───────────────────────────────
-    private var cachedEntries: List<LeaderboardEntry> = emptyList()
+    private val cache = mutableMapOf<LeaderboardType, List<LeaderboardEntry>>()
+    private val lastDocs = mutableMapOf<LeaderboardType, DocumentSnapshot?>()
+    private val cacheTimestamps = mutableMapOf<LeaderboardType, Long>()
     private var lastDocument: DocumentSnapshot? = null
-    private var cacheTimestamp: Long = 0L
     private val CACHE_TTL_MS = 5 * 60 * 1000L
 
-    suspend fun getLeaderboard(forceRefresh: Boolean = false): LeaderboardState {
+    suspend fun getLeaderboard(
+        type: LeaderboardType = LeaderboardType.GLOBAL,
+        forceRefresh: Boolean = false
+    ): LeaderboardState {
+
+        val cachedEntries = cache[type] ?: emptyList()
+        val lastDocument = lastDocs[type]
+        val cacheTimestamp = cacheTimestamps[type] ?: 0L
+
         val now = System.currentTimeMillis()
         if (!forceRefresh && cachedEntries.isNotEmpty() && (now - cacheTimestamp) < CACHE_TTL_MS) {
             return buildState(cachedEntries, canLoadMore = cachedEntries.size.toLong() == PAGE_SIZE)
         }
 
+        val field = when (type) {
+            LeaderboardType.GLOBAL -> "totalXp"
+            LeaderboardType.WEEKLY -> "weeklyXp"
+        }
+
         return try {
             val snapshot = firestore.collection("leaderboard")
-                .orderBy("totalXp", Query.Direction.DESCENDING)
+                .orderBy(field, Query.Direction.DESCENDING)
+                .orderBy("updatedAt", Query.Direction.ASCENDING)
                 .limit(PAGE_SIZE)
                 .get().await()
 
@@ -48,22 +63,40 @@ class LeaderboardRepository {
                 doc.toLeaderboardEntry(rank = index + 1)
             }
 
-            cachedEntries = entries
-            lastDocument = snapshot.documents.lastOrNull()
-            cacheTimestamp = now
+            cache[type] = entries
+            lastDocs[type] = snapshot.documents.lastOrNull()
+            cacheTimestamps[type] = now
 
             buildState(entries, canLoadMore = entries.size.toLong() == PAGE_SIZE)
         } catch (e: Exception) {
+            val cachedEntries = cache[type]
+
+            if (!cachedEntries.isNullOrEmpty()) {
+                return buildState(
+                    cachedEntries,
+                    canLoadMore = cachedEntries.size.toLong() == PAGE_SIZE
+                )
+            }
+
             LeaderboardState.Error(e.message ?: "Failed to load leaderboard")
         }
     }
 
     // ── Load next page (pagination) ───────────────────────────────────────────
-    suspend fun loadNextPage(): LeaderboardState {
-        val cursor = lastDocument ?: return LeaderboardState.Error("No more pages")
+    suspend fun loadNextPage(
+        type: LeaderboardType = LeaderboardType.GLOBAL
+    ): LeaderboardState {
+        val cursor = lastDocs[type] ?: return LeaderboardState.Error("No more pages")
+        val field = when (type) {
+            LeaderboardType.GLOBAL -> "totalXp"
+            LeaderboardType.WEEKLY -> "weeklyXp"
+        }
+        val cachedEntries = cache[type] ?: emptyList()
+
         return try {
             val snapshot = firestore.collection("leaderboard")
-                .orderBy("totalXp", Query.Direction.DESCENDING)
+                .orderBy(field, Query.Direction.DESCENDING)
+                .orderBy("updatedAt", Query.Direction.ASCENDING)
                 .startAfter(cursor)
                 .limit(PAGE_SIZE)
                 .get().await()
@@ -72,10 +105,17 @@ class LeaderboardRepository {
                 doc.toLeaderboardEntry(rank = cachedEntries.size + index + 1)
             }
 
-            cachedEntries = cachedEntries + newEntries
-            lastDocument = snapshot.documents.lastOrNull()
+            cache[type] = cachedEntries + newEntries
+            lastDocs[type] = snapshot.documents.lastOrNull()
 
-            buildState(cachedEntries, canLoadMore = newEntries.size.toLong() == PAGE_SIZE)
+            val updated = cachedEntries + newEntries
+
+            cache[type] = updated
+
+            buildState(
+                updated,
+                canLoadMore = newEntries.size.toLong() == PAGE_SIZE
+            )
         } catch (e: Exception) {
             LeaderboardState.Error(e.message ?: "Failed to load more")
         }
@@ -112,15 +152,19 @@ class LeaderboardRepository {
     private fun DocumentSnapshot.toLeaderboardEntry(rank: Int) = LeaderboardEntry(
         uid = getString("uid") ?: id,
         displayName = getString("displayName") ?: "Trainer",
+        email = getString("email") ?: "trainer@dexverse",
         photoUrl = getString("photoUrl") ?: "",
         totalXp = (getLong("totalXp") ?: 0L).toInt(),
+        weeklyXp = (getLong("weeklyXp") ?: 0L).toInt(),
         level = (getLong("level") ?: 1L).toInt(),
         rank = rank,
+        previousRank = (getLong("previousRank") ?: 0L).toInt(),
+        lastWeeklyReset = getLong("lastWeeklyReset")
     )
 
-    fun invalidateCache() {
-        cachedEntries = emptyList()
-        lastDocument = null
-        cacheTimestamp = 0L
+    fun invalidateCache(type: LeaderboardType = LeaderboardType.GLOBAL) {
+        cache[type] = emptyList()
+        lastDocs[type] = null
+        cacheTimestamps[type] = 0L
     }
 }

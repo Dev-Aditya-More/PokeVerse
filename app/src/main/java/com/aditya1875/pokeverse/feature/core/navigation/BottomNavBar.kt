@@ -27,13 +27,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 
 @Composable
 fun BottomNavigationBar(
-    navController: NavHostController,
-    selectedRoute: Route,
-    onRouteChange: (Route.BottomBar) -> Unit
+    navController: NavHostController
 ) {
     BottomAppBar(
         containerColor = MaterialTheme.colorScheme.surface,
@@ -48,7 +47,10 @@ fun BottomNavigationBar(
         )
 
         items.forEach { routeItem ->
-            val selected = routeItem == selectedRoute
+
+            val currentBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = currentBackStackEntry?.destination?.route
+            val selected = currentRoute == routeItem.route
 
             val accentColor = when (routeItem) {
                 Route.BottomBar.Home -> MaterialTheme.colorScheme.primary
@@ -89,9 +91,8 @@ fun BottomNavigationBar(
                 selected = selected,
                 onClick = {
                     if (!selected) {
-                        onRouteChange(routeItem)
                         navController.navigate(routeItem.route) {
-                            popUpTo(navController.graph.startDestinationId) {
+                            popUpTo(Route.BottomBar.Home.route) {
                                 saveState = true
                             }
                             launchSingleTop = true

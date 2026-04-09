@@ -99,9 +99,19 @@ class XPManager(
         val (newLevel, newCurrent, newNext) = LevelConfig.computeLevel(newTotal)
         val leveledUp = newLevel > profile.level
 
+        val now = System.currentTimeMillis()
+        val oneWeek = 7 * 24 * 60 * 60 * 1000L
+
+        val shouldReset = profile.lastWeeklyReset == 0L ||
+                now - profile.lastWeeklyReset > oneWeek
+
+        val baseWeeklyXp = if (shouldReset) 0 else profile.weeklyXp
+        val newWeeklyResetTime = if (shouldReset) now else profile.lastWeeklyReset
+
         val updated = extraUpdate(
             profile.copy(totalXp = newTotal, currentXp = newCurrent,
-                nextLevelXp = newNext, level = newLevel)
+                nextLevelXp = newNext, level = newLevel, weeklyXp = baseWeeklyXp + gained,
+                lastWeeklyReset = newWeeklyResetTime,)
         )
 
         repository.saveProfile(updated)

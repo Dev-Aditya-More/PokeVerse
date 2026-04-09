@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.leaderboard.presentation.screens
 
+import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,12 +48,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -59,10 +68,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.feature.leaderboard.data.remote.model.LeaderboardEntry
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardState
-import com.aditya1875.pokeverse.presentation.auth.AuthState
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.ConfettiOverlay
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.GuestLeaderboardLocked
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.RankCelebrationDialog
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardType
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardViewModel
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
+import com.aditya1875.pokeverse.presentation.auth.AuthState
+import com.aditya1875.pokeverse.utils.ScreenStateManager
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,6 +89,7 @@ fun LeaderboardScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullState = rememberPullToRefreshState()
     val authState by profileViewModel.authState.collectAsStateWithLifecycle()
+    val type by viewModel.type.collectAsStateWithLifecycle()
 
     if (authState !is AuthState.Authenticated) {
         GuestLeaderboardLocked()
@@ -90,6 +105,50 @@ fun LeaderboardScreen(
                 is LeaderboardState.Loading -> LeaderboardSkeleton()
                 is LeaderboardState.Error -> LeaderboardError(s.message) { viewModel.load() }
                 is LeaderboardState.Success -> {
+
+                    val context = LocalContext.current
+                    var lastCelebratedRank by remember { mutableIntStateOf(-1) }
+
+                    var showDialog by remember { mutableStateOf(false) }
+                    var rank by remember { mutableIntStateOf(0) }
+
+                    LaunchedEffect(Unit) {
+                        lastCelebratedRank = ScreenStateManager.getLastCelebratedRank(context)
+                    }
+
+                    LaunchedEffect(s.userEntry?.previousRank, type) {
+
+                        // Only for WEEKLY leaderboard
+                        if (type != LeaderboardType.WEEKLY) return@LaunchedEffect
+
+                        val user = s.userEntry ?: return@LaunchedEffect
+
+                        val lastReset = user.lastWeeklyReset ?: return@LaunchedEffect
+
+                        val lastSeenReset = ScreenStateManager.getLastSeenReset(context)
+
+                        val isNewWeek = lastReset > lastSeenReset
+
+                        if (isNewWeek && user.previousRank in 1..3) {
+
+                            ScreenStateManager.setLastSeenReset(context, lastReset)
+
+                            rank = user.previousRank
+                            showDialog = true
+                        }
+                    }
+
+                    if (showDialog && type == LeaderboardType.WEEKLY) {
+                        RankCelebrationDialog(
+                            rank = rank,
+                            displayName = s.userEntry?.displayName
+                                ?.split(" ")
+                                ?.firstOrNull()
+                                ?: "",
+                            onDismiss = { showDialog = false }
+                        )
+                    }
+
                     PullToRefreshBox(
                         isRefreshing = isRefreshing,
                         onRefresh = { viewModel.refresh() },
@@ -97,6 +156,10 @@ fun LeaderboardScreen(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         LeaderboardList(
+                            type = type,
+                            onTypeChange = { selectedType ->
+                                viewModel.switchType(selectedType)
+                            },
                             entries = s.entries,
                             userEntry = s.userEntry,
                             canLoadMore = s.canLoadMore,
@@ -112,7 +175,10 @@ fun LeaderboardScreen(
                                 .align(Alignment.BottomCenter)
                                 .padding(16.dp)
                         ) {
-                            UserRankBanner(entry = s.userEntry)
+                            UserRankBanner(
+                                type = type,
+                                entry = s.userEntry
+                            )
                         }
                     }
                 }
@@ -124,6 +190,8 @@ fun LeaderboardScreen(
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun LeaderboardList(
+    type: LeaderboardType,
+    onTypeChange: (LeaderboardType) -> Unit,
     entries: List<LeaderboardEntry>,
     userEntry: LeaderboardEntry?,
     canLoadMore: Boolean,
@@ -131,7 +199,6 @@ private fun LeaderboardList(
 ) {
     val listState = rememberLazyListState()
 
-    // Trigger load-more when near end
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
@@ -150,13 +217,17 @@ private fun LeaderboardList(
     ) {
         // Header
         item {
-            LeaderboardHeader()
+            LeaderboardHeader(
+                type = type,
+                onTypeChange = onTypeChange
+            )
         }
 
         // Top 3 podium
         if (entries.size >= 3) {
             item {
                 PodiumSection(
+                    type = type,
                     first = entries[0],
                     second = entries[1],
                     third = entries[2]
@@ -173,8 +244,10 @@ private fun LeaderboardList(
         ) { index, entry ->
             val isUser = entry.uid == userEntry?.uid
             LeaderboardRow(
+                type = type,
                 entry = entry,
-                isUser = isUser
+                isUser = isUser,
+                maxXp = entries[0].totalXp
             )
         }
 
@@ -195,7 +268,10 @@ private fun LeaderboardList(
 
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun LeaderboardHeader() {
+private fun LeaderboardHeader(
+    type: LeaderboardType,
+    onTypeChange: (LeaderboardType) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -206,8 +282,31 @@ private fun LeaderboardHeader() {
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Black
         )
+
+        Spacer(Modifier.height(8.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+
+            LeaderboardTab(
+                text = "Global",
+                selected = type == LeaderboardType.GLOBAL,
+                onClick = { onTypeChange(LeaderboardType.GLOBAL) }
+            )
+
+            LeaderboardTab(
+                text = "Weekly",
+                selected = type == LeaderboardType.WEEKLY,
+                onClick = { onTypeChange(LeaderboardType.WEEKLY) }
+            )
+        }
+
+        Spacer(Modifier.height(6.dp))
+
         Text(
-            "Top trainers by XP earned",
+            if (type == LeaderboardType.WEEKLY)
+                "Resets every Monday 12:00 AM IST"
+            else
+                "Top trainers of all time",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -215,7 +314,35 @@ private fun LeaderboardHeader() {
 }
 
 @Composable
+private fun LeaderboardTab(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(50),
+        color = if (selected)
+            MaterialTheme.colorScheme.primary
+        else
+            MaterialTheme.colorScheme.surfaceVariant
+    ) {
+        Text(
+            text = text,
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+            color = if (selected)
+                MaterialTheme.colorScheme.onPrimary
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+@Composable
 private fun PodiumSection(
+    type: LeaderboardType,
     first: LeaderboardEntry,
     second: LeaderboardEntry,
     third: LeaderboardEntry
@@ -231,26 +358,29 @@ private fun PodiumSection(
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        // #2
         PodiumColumn(
+            type = type,
             entry = second,
             rank = 2,
+            level = second.level,
             color = silver,
             avatarSize = 64.dp,
             podiumHeight = 70.dp
         )
-        // #1 — tallest
         PodiumColumn(
+            type = type,
             entry = first,
             rank = 1,
+            level = first.level,
             color = gold,
             avatarSize = 80.dp,
             podiumHeight = 96.dp
         )
-        // #3
         PodiumColumn(
+            type = type,
             entry = third,
             rank = 3,
+            level = third.level,
             color = bronze,
             avatarSize = 56.dp,
             podiumHeight = 52.dp
@@ -260,8 +390,10 @@ private fun PodiumSection(
 
 @Composable
 private fun PodiumColumn(
+    type: LeaderboardType,
     entry: LeaderboardEntry,
     rank: Int,
+    level: Int,
     color: Color,
     avatarSize: Dp,
     podiumHeight: Dp
@@ -270,10 +402,11 @@ private fun PodiumColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
-        // Crown for #1
         if (rank == 1) {
             Text("👑", fontSize = 22.sp)
         }
+
+        val xpToShow = if (type == LeaderboardType.WEEKLY) entry.weeklyXp else entry.totalXp
 
         TrainerAvatar(
             photoUrl = entry.photoUrl,
@@ -293,10 +426,18 @@ private fun PodiumColumn(
             modifier = Modifier.widthIn(max = 80.dp)
         )
         Text(
-            "${entry.totalXp} XP",
+            text = "$xpToShow XP",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
+        Text(
+            "Lv. $level",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Log.d("PodiumColumn", "xpToShow: $xpToShow")
+        Log.d("PodiumColumn", "level: $level")
 
         Spacer(Modifier.height(6.dp))
 
@@ -329,13 +470,24 @@ private fun PodiumColumn(
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun LeaderboardRow(
+    type: LeaderboardType,
     entry: LeaderboardEntry,
-    isUser: Boolean
+    isUser: Boolean,
+    maxXp: Int
 ) {
     val bgColor = if (isUser)
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
     else
         Color.Transparent
+
+    val xpToShow = if (type == LeaderboardType.WEEKLY) entry.weeklyXp else entry.totalXp
+
+    val progress = if (maxXp > 0) xpToShow / maxXp.toFloat() else 0f
+
+    val animatedProgress = remember { Animatable(0f) }
+    LaunchedEffect(xpToShow) {
+        animatedProgress.animateTo(progress, tween(600, easing = FastOutSlowInEasing))
+    }
 
     Row(
         modifier = Modifier
@@ -393,7 +545,7 @@ private fun LeaderboardRow(
         }
 
         Text(
-            "${entry.totalXp} XP",
+            "$xpToShow XP",
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
@@ -405,7 +557,16 @@ private fun LeaderboardRow(
 // Pinned bottom banner when user is outside top-50
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun UserRankBanner(entry: LeaderboardEntry) {
+private fun UserRankBanner(
+    type: LeaderboardType,
+    entry: LeaderboardEntry
+) {
+
+    val xpToShow = if (type == LeaderboardType.WEEKLY)
+        entry.weeklyXp
+    else
+        entry.totalXp
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -431,7 +592,7 @@ private fun UserRankBanner(entry: LeaderboardEntry) {
             )
             Spacer(Modifier.width(16.dp))
             Text(
-                "${entry.totalXp} XP",
+                "$xpToShow XP",
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold
             )

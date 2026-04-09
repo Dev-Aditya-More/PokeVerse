@@ -36,8 +36,10 @@ fun GameDifficultyLayout(
     val billingViewModel: BillingViewModel = koinViewModel()
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
+    val lifetime by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
     val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
+    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
 
     val isBillingReady = monthlyProduct != null || yearlyProduct != null
 
@@ -124,6 +126,11 @@ fun GameDifficultyLayout(
                 showPremiumSheet = false
                 activity?.let { billingViewModel.purchaseYearly(it) }
             },
+            onSubscribeLifetime = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseLifetime(it) }
+            },
+            lifetimePrice = lifetime,
             monthlyPrice = monthly,
             yearlyPrice = yearly,
             isSubscribeEnabled = isBillingReady

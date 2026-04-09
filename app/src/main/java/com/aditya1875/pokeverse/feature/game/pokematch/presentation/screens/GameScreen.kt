@@ -45,10 +45,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.ImageLoader
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.components.GameTimer
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.components.PokemonCard
@@ -224,6 +226,10 @@ fun GameScreen(
                                         userScrollEnabled = true
                                     ) {
                                         itemsIndexed(playing.cards) { index, card ->
+
+                                            val context = LocalContext.current
+                                            val imageLoader : ImageLoader = koinInject()
+
                                             PokemonCard(
                                                 card = card,
                                                 onClick = {
@@ -233,7 +239,7 @@ fun GameScreen(
                                                             HapticFeedbackType.LongPress
                                                         )
 
-                                                        viewModel.onCardClicked(index)
+                                                        viewModel.onCardFlipped(index)
                                                     }
                                                 },
                                                 modifier = Modifier

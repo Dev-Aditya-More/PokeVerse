@@ -23,6 +23,7 @@ class BillingManager(
     companion object {
         const val PRODUCT_MONTHLY = "pokeverse_premium_monthly"
         const val PRODUCT_YEARLY = "pokeverse_premium_yearly"
+        const val PRODUCT_LIFETIME = "dexverse_premium_lifetime"
     }
 
     private val billingClient: BillingClient =
@@ -44,6 +45,9 @@ class BillingManager(
 
     private val _yearlyProduct = MutableStateFlow<ProductDetails?>(null)
     override val yearlyProduct: StateFlow<ProductDetails?> = _yearlyProduct
+
+    private val _lifetimeProduct = MutableStateFlow<ProductDetails?>(null)
+    override val lifetimeProduct: StateFlow<ProductDetails?> = _lifetimeProduct
 
     private val _billingError = MutableStateFlow<String?>(null)
     override val billingError: StateFlow<String?> = _billingError
@@ -77,7 +81,8 @@ class BillingManager(
     private suspend fun queryProducts() {
         if (!billingClient.isReady) return
 
-        val productList = listOf(
+        // Separate products by type as queryProductDetails requires all products in a list to be of the same type
+        val subProducts = listOf(
             QueryProductDetailsParams.Product.newBuilder()
                 .setProductId(PRODUCT_MONTHLY)
                 .setProductType(BillingClient.ProductType.SUBS)
@@ -88,6 +93,20 @@ class BillingManager(
                 .build()
         )
 
+        val inAppProducts = listOf(
+            QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(PRODUCT_LIFETIME)
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        )
+
+        queryProductDetailsByType(subProducts)
+        queryProductDetailsByType(inAppProducts)
+    }
+
+    private suspend fun queryProductDetailsByType(productList: List<QueryProductDetailsParams.Product>) {
+        if (productList.isEmpty()) return
+
         val params = QueryProductDetailsParams.newBuilder()
             .setProductList(productList)
             .build()
@@ -95,17 +114,16 @@ class BillingManager(
         val result = billingClient.queryProductDetails(params)
 
         if (result.billingResult.responseCode == BillingResponseCode.OK) {
-
             result.productDetailsList?.forEach { product ->
                 when (product.productId) {
                     PRODUCT_MONTHLY -> _monthlyProduct.value = product
                     PRODUCT_YEARLY -> _yearlyProduct.value = product
+                    PRODUCT_LIFETIME -> _lifetimeProduct.value = product
                 }
             }
-
         } else {
-            _billingError.value =
-                "Product query failed: ${result.billingResult.debugMessage}"
+            Log.e("Billing", "Product query failed: ${result.billingResult.debugMessage}")
+            _billingError.value = "Product query failed: ${result.billingResult.debugMessage}"
         }
     }
 
@@ -113,72 +131,67 @@ class BillingManager(
 
         if (!billingClient.isReady) return
 
-        val params = QueryPurchasesParams.newBuilder()
-            .setProductType(BillingClient.ProductType.SUBS)
-            .build()
+        val subs = billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.SUBS)
+                .build()
+        )
 
-        val result = billingClient.queryPurchasesAsync(params)
+        val inApps = billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder()
+                .setProductType(BillingClient.ProductType.INAPP)
+                .build()
+        )
 
-        if (result.billingResult.responseCode != BillingResponseCode.OK) {
-            Log.e("Billing", "Query purchases failed: ${result.billingResult.debugMessage}")
-            return
-        }
+        val allPurchases = subs.purchasesList + inApps.purchasesList
 
-        val activePurchase = result.purchasesList.firstOrNull { purchase ->
+        val activePurchase = allPurchases.firstOrNull { purchase ->
             purchase.purchaseState == PurchaseState.PURCHASED &&
-                    (purchase.products.contains(PRODUCT_MONTHLY)
-                            || purchase.products.contains(PRODUCT_YEARLY))
+                    (
+                            purchase.products.contains(PRODUCT_MONTHLY) ||
+                                    purchase.products.contains(PRODUCT_YEARLY) ||
+                                    purchase.products.contains(PRODUCT_LIFETIME)
+                            )
         }
 
         _subscriptionState.value =
             if (activePurchase != null) {
-                val plan =
-                    if (activePurchase.products.contains(PRODUCT_YEARLY))
-                        PremiumPlan.YEARLY
-                    else
-                        PremiumPlan.MONTHLY
+                when {
+                    activePurchase.products.contains(PRODUCT_LIFETIME) ->
+                        SubscriptionState.Premium(PremiumPlan.LIFETIME)
 
-                SubscriptionState.Premium(plan)
+                    activePurchase.products.contains(PRODUCT_YEARLY) ->
+                        SubscriptionState.Premium(PremiumPlan.YEARLY)
 
+                    else ->
+                        SubscriptionState.Premium(PremiumPlan.MONTHLY)
+                }
             } else {
                 SubscriptionState.Free
             }
-
-        result.purchasesList
-            .filter { it.purchaseState == PurchaseState.PURCHASED }
-            .filter { !it.isAcknowledged }
-            .forEach { acknowledgePurchase(it) }
     }
 
     override fun launchPurchaseFlow(
         activity: Activity,
         productDetails: ProductDetails
     ) {
-
-        val offer = productDetails.subscriptionOfferDetails
-            ?.firstOrNull { it.pricingPhases.pricingPhaseList.isNotEmpty() }
-
-        val offerToken = offer?.offerToken ?: run {
-            _billingError.value = "No offer available"
-            return
-        }
-
-        val productParams =
+        val productParamsBuilder =
             BillingFlowParams.ProductDetailsParams.newBuilder()
                 .setProductDetails(productDetails)
-                .setOfferToken(offerToken)
-                .build()
+
+        productDetails.subscriptionOfferDetails?.firstOrNull()?.let { offer ->
+            productParamsBuilder.setOfferToken(offer.offerToken)
+        }
 
         val billingParams =
             BillingFlowParams.newBuilder()
-                .setProductDetailsParamsList(listOf(productParams))
+                .setProductDetailsParamsList(listOf(productParamsBuilder.build()))
                 .build()
 
         val result = billingClient.launchBillingFlow(activity, billingParams)
 
         if (result.responseCode != BillingResponseCode.OK) {
-            _billingError.value =
-                "Billing flow failed: ${result.debugMessage}"
+            _billingError.value = "Billing flow failed: ${result.debugMessage}"
         }
     }
 
@@ -202,11 +215,11 @@ class BillingManager(
 
                                 acknowledgePurchase(purchase)
 
-                                val plan =
-                                    if (purchase.products.contains(PRODUCT_YEARLY))
-                                        PremiumPlan.YEARLY
-                                    else
-                                        PremiumPlan.MONTHLY
+                                val plan = when {
+                                    purchase.products.contains(PRODUCT_LIFETIME) -> PremiumPlan.LIFETIME
+                                    purchase.products.contains(PRODUCT_YEARLY) -> PremiumPlan.YEARLY
+                                    else -> PremiumPlan.MONTHLY
+                                }
 
                                 _subscriptionState.value =
                                     SubscriptionState.Premium(plan)

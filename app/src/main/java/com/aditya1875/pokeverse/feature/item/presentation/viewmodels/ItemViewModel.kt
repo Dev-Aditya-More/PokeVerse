@@ -2,8 +2,8 @@ package com.aditya1875.pokeverse.feature.item.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.itemModels.ItemUiModel
-import com.aditya1875.pokeverse.feature.pokemon.home.data.repository.ItemRepository
+import com.aditya1875.pokeverse.feature.item.data.source.remote.model.itemModels.ItemUiModel
+import com.aditya1875.pokeverse.feature.item.data.repository.ItemRepository
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -16,15 +16,16 @@ sealed class ItemListState {
         val canLoadMore: Boolean,
         val isLoadingMore: Boolean = false
     ) : ItemListState()
+
     data class Error(val message: String) : ItemListState()
 }
 
 // ── Detail screen state ───────────────────────────────────────────────────────
 sealed class ItemDetailState {
-    object Idle    : ItemDetailState()
+    object Idle : ItemDetailState()
     object Loading : ItemDetailState()
     data class Success(val item: ItemUiModel) : ItemDetailState()
-    data class Error(val message: String)     : ItemDetailState()
+    data class Error(val message: String) : ItemDetailState()
 }
 
 @OptIn(FlowPreview::class)

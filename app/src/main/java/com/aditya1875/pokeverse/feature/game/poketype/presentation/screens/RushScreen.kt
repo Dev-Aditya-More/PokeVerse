@@ -22,7 +22,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import coil.compose.rememberAsyncImagePainter
+import coil.request.CachePolicy
 import coil.request.ImageRequest
+import coil.size.Size
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -121,6 +123,18 @@ private fun PlayingContent(
         }, label = "tc"
     )
     val glowColor = typeColor(state.question.correctTypes.first())
+
+    val context = LocalContext.current
+
+    val request = remember(state.question.spriteUrl) {
+        ImageRequest.Builder(context)
+            .data(state.question.spriteUrl)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .crossfade(false)
+            .size(Size.ORIGINAL)
+            .build()
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -223,10 +237,8 @@ private fun PlayingContent(
                             listOf(glowColor.copy(alpha = 0.2f), Color.Transparent)
                         ))
                 )
-                val painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current).data(state.question.spriteUrl)
-                        .crossfade(true).build()
-                )
+                val painter = rememberAsyncImagePainter(request)
+
                 Image(
                     painter = painter,
                     contentDescription = null,

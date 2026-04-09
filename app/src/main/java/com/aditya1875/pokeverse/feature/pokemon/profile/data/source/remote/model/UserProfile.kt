@@ -6,6 +6,8 @@ data class UserProfile(
     val level: Int = 1,
     val totalXp: Int = 0,
     val currentXp: Int = 0,
+    val weeklyXp: Int = 0,
+    val lastWeeklyReset: Long = 0L,
     val nextLevelXp: Int = 100,
     val gamesPlayed: Int = 0,
     val bestTypeRushScore: Int = 0,

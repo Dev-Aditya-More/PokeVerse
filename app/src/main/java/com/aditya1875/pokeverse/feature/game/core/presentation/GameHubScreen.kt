@@ -44,8 +44,10 @@ fun GameHubScreen(
     val billingViewModel: BillingViewModel = koinViewModel()
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
+    val lifetime by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
     val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
+    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
     val isBillingReady = monthlyProduct != null || yearlyProduct != null
 
     val context = LocalContext.current
@@ -179,6 +181,17 @@ fun GameHubScreen(
         ) {
             item { Spacer(Modifier.height(4.dp)) }
 
+            if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
+                item {
+                    PremiumBanner(
+                        price = monthly,
+                        onSubscribe = { showPremiumSheet = true }
+                    )
+                }
+            }
+
+            item { Spacer(Modifier.height(6.dp)) }
+
             items(games) { game ->
                 FeaturedGameCard(
                     title = game.title,
@@ -193,16 +206,7 @@ fun GameHubScreen(
                 )
             }
 
-            if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
-                item {
-                    PremiumBanner(
-                        price = monthly,
-                        onSubscribe = { showPremiumSheet = true }
-                    )
-                }
-            }
-
-            item { Spacer(Modifier.height(24.dp)) }
+            item { Spacer(Modifier.height(10.dp)) }
         }
     }
 
@@ -227,8 +231,18 @@ fun GameHubScreen(
                     Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
                 }
             },
+            onSubscribeLifetime = {
+                showPremiumSheet = false
+                val activity = context as? Activity
+                if (activity != null) {
+                    billingViewModel.purchaseLifetime(activity)
+                } else {
+                    Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
+                }
+            },
             monthlyPrice = monthly,
             yearlyPrice = yearly,
+            lifetimePrice = lifetime,
             isSubscribeEnabled = isBillingReady
         )
     }

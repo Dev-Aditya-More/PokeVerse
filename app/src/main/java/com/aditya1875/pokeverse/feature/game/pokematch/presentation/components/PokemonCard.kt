@@ -33,6 +33,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.feature.game.pokematch.domain.model.CardState
 
@@ -199,7 +200,9 @@ private fun CardFront(
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(card.spriteUrl)
-                    .crossfade(true)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .crossfade(false)
                     .build(),
                 contentDescription = card.pokemonName,
                 contentScale = ContentScale.Fit,

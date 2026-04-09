@@ -17,6 +17,8 @@ class BillingViewModel(
     val monthlyProduct = billingManager.monthlyProduct
     val yearlyProduct = billingManager.yearlyProduct
 
+    val lifetimeProduct = billingManager.lifetimeProduct
+
     init {
         billingManager.startConnection()
     }
@@ -45,6 +47,13 @@ class BillingViewModel(
             }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
+    val lifetimePrice: StateFlow<String> =
+        lifetimeProduct
+            .map { product ->
+                product?.oneTimePurchaseOfferDetails?.formattedPrice ?: ""
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
+
     fun purchaseMonthly(activity: Activity) {
         val product = monthlyProduct.value ?: return
         billingManager.launchPurchaseFlow(activity, product)
@@ -52,6 +61,11 @@ class BillingViewModel(
 
     fun purchaseYearly(activity: Activity) {
         val product = yearlyProduct.value ?: return
+        billingManager.launchPurchaseFlow(activity, product)
+    }
+
+    fun purchaseLifetime(activity: Activity) {
+        val product = lifetimeProduct.value ?: return
         billingManager.launchPurchaseFlow(activity, product)
     }
 

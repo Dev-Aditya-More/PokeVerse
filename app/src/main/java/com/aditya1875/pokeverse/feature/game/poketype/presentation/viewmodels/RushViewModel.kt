@@ -1,13 +1,18 @@
 package com.aditya1875.pokeverse.feature.game.poketype.presentation.viewmodels
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.ImageLoader
+import coil.request.CachePolicy
+import coil.request.ImageRequest
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.feature.game.core.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.feature.game.core.data.local.entity.GameScoreEntity
+import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.PokeGuessQuestion
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -26,6 +31,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.collections.forEach
 
 class TypeRushViewModel(
     private val xpManager: XPManager,
@@ -33,7 +39,9 @@ class TypeRushViewModel(
     billingManager: IBillingManager,
     gameScoreDao: GameScoreDao,
     private val generator: TypeRushQuestionGenerator,
-    private val engine: TypeRushEngine
+    private val engine: TypeRushEngine,
+    private val context: Context,
+    private val imageLoader: ImageLoader
 ) : ViewModel() {
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
@@ -56,6 +64,17 @@ class TypeRushViewModel(
 
     val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    fun prefetchSprites(questions: List<TypeRushQuestion>) {
+        questions.forEach { question ->
+            val request = ImageRequest.Builder(context)
+                .data(question.spriteUrl)
+                .memoryCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .build()
+            imageLoader.enqueue(request)
+        }
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     fun startGame(difficulty: TypeRushDifficulty) {
@@ -130,6 +149,7 @@ class TypeRushViewModel(
         if (nextIndex >= questions.size) {
             finishGame()
         } else {
+            prefetchSprites(listOf(questions[nextIndex]))
             showQuestion(nextIndex)
         }
     }

@@ -1,8 +1,8 @@
-package com.aditya1875.pokeverse.feature.pokemon.home.data.repository
+package com.aditya1875.pokeverse.feature.item.data.repository
 
-import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.ItemApiService
-import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.itemModels.ItemUiModel
-import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.itemModels.toUiModel
+import com.aditya1875.pokeverse.feature.item.data.source.remote.model.ItemApiService
+import com.aditya1875.pokeverse.feature.item.data.source.remote.model.itemModels.ItemUiModel
+import com.aditya1875.pokeverse.feature.item.data.source.remote.model.itemModels.toUiModel
 import kotlin.collections.set
 
 class ItemRepository(private val api: ItemApiService) {
