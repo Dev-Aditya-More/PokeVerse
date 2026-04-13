@@ -18,8 +18,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 57
-        versionName = "1.5.7"
+        versionCode = 58
+        versionName = "1.5.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -46,9 +46,11 @@ android {
         }
     }
 
-
     buildTypes {
-        getByName("release") {
+        debug {
+            isMinifyEnabled = false
+        }
+        release {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -160,7 +162,6 @@ dependencies {
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.converter.moshi)
-    implementation(libs.moshi.kotlin)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.kotlinx.serialization.json)
