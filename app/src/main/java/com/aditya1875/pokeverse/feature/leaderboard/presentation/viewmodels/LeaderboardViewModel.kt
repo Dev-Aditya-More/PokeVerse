@@ -27,7 +27,9 @@ class LeaderboardViewModel(
 
     fun load() {
         viewModelScope.launch {
-            _state.value = LeaderboardState.Loading
+            if (_state.value !is LeaderboardState.Success) {
+                _state.value = LeaderboardState.Loading
+            }
             _state.value = repository.getLeaderboard(type = _type.value)
         }
     }
@@ -35,11 +37,14 @@ class LeaderboardViewModel(
     fun refresh() {
         viewModelScope.launch {
             _isRefreshing.value = true
-            _state.value = repository.getLeaderboard(
-                type = _type.value,
-                forceRefresh = true
-            )
-            _isRefreshing.value = false
+            try {
+                _state.value = repository.getLeaderboard(
+                    type = _type.value,
+                    forceRefresh = true
+                )
+            } finally {
+                _isRefreshing.value = false
+            }
         }
     }
 
