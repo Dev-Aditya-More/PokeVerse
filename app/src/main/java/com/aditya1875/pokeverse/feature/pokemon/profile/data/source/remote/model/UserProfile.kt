@@ -20,6 +20,7 @@ data class UserProfile(
     val lastDailyXpDate: String = "",
     val dailyStreak: Int = 0,
     val lastActiveDateMillis: Long = 0L,
+    val lastExplorationXpDate: String = "",
 
     // Leaderboard
     val rank: Int = 0,

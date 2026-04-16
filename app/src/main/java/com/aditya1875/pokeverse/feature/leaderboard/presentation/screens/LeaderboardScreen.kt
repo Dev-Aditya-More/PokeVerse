@@ -108,13 +108,16 @@ fun LeaderboardScreen(
                 is LeaderboardState.Success -> {
 
                     if (s.entries.isEmpty()) {
-                        Text("No players yet this week",
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        return@Box
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                if (type == LeaderboardType.WEEKLY) "No players yet this week"
+                                else "No trainers on the leaderboard yet",
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                        return@Scaffold
                     }
 
                     val context = LocalContext.current

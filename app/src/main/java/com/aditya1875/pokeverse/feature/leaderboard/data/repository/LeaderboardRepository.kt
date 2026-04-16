@@ -55,11 +55,17 @@ class LeaderboardRepository {
         return try {
             val snapshot = firestore.collection("leaderboard")
                 .orderBy(field, Query.Direction.DESCENDING)
+                .orderBy("updatedAt", Query.Direction.ASCENDING)
                 .limit(PAGE_SIZE)
                 .get().await()
 
             if (snapshot.isEmpty) {
-                return buildState(emptyList(), canLoadMore = false)
+                return LeaderboardState.Success(
+                    entries = emptyList(),
+                    userEntry = null,
+                    userRank = 0,
+                    canLoadMore = false
+                )
             }
 
             val entries = snapshot.documents.mapIndexedNotNull { index, doc ->
@@ -81,7 +87,7 @@ class LeaderboardRepository {
                     canLoadMore = cachedEntries.size.toLong() == PAGE_SIZE
                 )
             } else {
-                buildState(emptyList(), canLoadMore = false)
+                LeaderboardState.Error(e.message ?: "Failed to load leaderboard")
             }
         }
     }

@@ -44,6 +44,7 @@ class XPManager(
 
     suspend fun awardGameXP(event: XPEvent): XPResult {
         val profile = repository.profileFlow.first()
+        val today = dateFormat.format(Date())
 
         if (profile.isGuest) return noOpResult(profile)
 
@@ -82,11 +83,17 @@ class XPManager(
                 XPValues.FIRST_GAME_OF_DAY to "First Game Today! +${XPValues.FIRST_GAME_OF_DAY} XP 🎮"
             is XPEvent.DailyLogin ->
                 XPValues.DAILY_LOGIN to "Daily Login +${XPValues.DAILY_LOGIN} XP"
+            is XPEvent.FirstExplorationOfDay -> {
+                if (profile.lastExplorationXpDate == today) return noOpResult(profile)
+                XPValues.FIRST_EXPLORATION_OF_DAY to "First Exploration Today! +${XPValues.FIRST_EXPLORATION_OF_DAY} XP 🔍"
+            }
         }
 
         if (gained == 0) return noOpResult(profile)
 
-        return applyXP(profile, gained, label)   // no extraUpdate = no gamesPlayed change
+        return applyXP(profile, gained, label) { updated ->
+            updated.copy(lastExplorationXpDate = today)
+        }
     }
 
     private suspend fun applyXP(
