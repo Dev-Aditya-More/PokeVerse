@@ -2,6 +2,8 @@ package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.PokemonResponse
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.PokemonVariety
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.evolutionModels.EvolutionChainUi
@@ -20,7 +22,8 @@ class PokemonDetailsViewModel(
     private val getPokemonDetailUseCase: GetPokemonDetailUseCase,
     private val getPokemonByNameUseCase: GetPokemonByNameUseCase,
     private val getEvolutionChainUiUseCase: GetEvolutionChainUiUseCase,
-    private val descriptionRepo: DescriptionRepo
+    private val descriptionRepo: DescriptionRepo,
+    private val xpManager: XPManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
@@ -28,6 +31,7 @@ class PokemonDetailsViewModel(
 
     fun loadPokemon(name: String) {
         viewModelScope.launch {
+            xpManager.awardGameXP(XPEvent.FirstExplorationOfDay)
             _uiState.update { it.copy(isLoading = true, error = null) }
 
             try {

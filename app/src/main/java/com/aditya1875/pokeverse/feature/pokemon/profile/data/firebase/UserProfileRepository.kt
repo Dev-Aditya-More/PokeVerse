@@ -40,6 +40,7 @@ class UserProfileRepository(private val context: Context) {
         val IS_GUEST = booleanPreferencesKey("is_guest")
         val LAST_DAILY_DATE = stringPreferencesKey("last_daily_date")
         val DAILY_STREAK = intPreferencesKey("daily_streak")
+        val LAST_EXPLORATION_DATE = stringPreferencesKey("last_exploration_date")
         val LAST_ACTIVE_MS = longPreferencesKey("last_active_ms")
         val PHOTO_URL = stringPreferencesKey("photo_url")
         val RANK = intPreferencesKey("rank")
@@ -60,6 +61,7 @@ class UserProfileRepository(private val context: Context) {
             nextLevelXp = nextLevelXp,
             gamesPlayed = p[K.GAMES_PLAYED] ?: 0,
             bestQuizScore = p[K.BEST_QUIZ] ?: 0,
+            lastExplorationXpDate = p[K.LAST_EXPLORATION_DATE] ?: "",
             bestMatchScore = p[K.BEST_MATCH] ?: 0,
             bestGuessScore = p[K.BEST_GUESS] ?: 0,
             bestTypeRushScore = p[K.BEST_TYPERUSH] ?: 0,
@@ -86,6 +88,7 @@ class UserProfileRepository(private val context: Context) {
             p[K.BEST_GUESS] = profile.bestGuessScore
             p[K.BEST_TYPERUSH] = profile.bestTypeRushScore
             p[K.IS_GUEST] = profile.isGuest
+            p[K.LAST_EXPLORATION_DATE] = profile.lastExplorationXpDate
             p[K.LAST_DAILY_DATE] = profile.lastDailyXpDate
             p[K.DAILY_STREAK] = profile.dailyStreak
             p[K.LAST_ACTIVE_MS] = profile.lastActiveDateMillis

@@ -1,8 +1,6 @@
-# PokéVerse
+# Dexverse (previously called Pokeverse)
 
 > Explore the legends like never before! ✨🚀
-
-
 
 ## Built using
 > [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Android/android2.svg">]()
@@ -44,6 +42,9 @@
 - 🎨 **Pokéball-Themed Background**  
   Home screen background mimics the iconic Pokéball design (red, black, gray).
 
+- 🎨 **Held Items Exploration**  
+  Explore all the held items of pokemon in one app!.
+  
 - ❄️ **Glassmorphic Cards**  
   Detail screen features frosted-glass UI components for stats and metadata.
 
@@ -79,11 +80,13 @@
 - [ ] 🧩 Advanced Filters (Types, Egg Groups, Regions, Generations)  
 - [ ] 🌍 Proper Region Pokédex (Kanto, Johto, Hisui, etc.)  
 - [x] 🎮 Mini games and subscription
-- [ ] ⚔️ Detailed Moves & Movesets (TMs, Egg Moves, Tutors)  
+- [x] ⚔️ Detailed Moves & Movesets (TMs, Egg Moves, Tutors)  
 - [x] 🧠 Smarter Team Builder (Type coverage & weaknesses)  
-- [ ] 🎨 Clean Welcome Screen
+- [x] 🎨 Clean Welcome Screen
 - [ ] 🏷️ Better Sorting (Stats, Name, Dex No, Type)  
-- [ ] 📱 UI & Performance Improvements  
+- [x] 📱 UI & Performance Improvements  
+- [ ] 🚀 Pokemon 3D Sprites without losing much performance
+- [ ] ✨ Pokemon Battle Simulator for more fun!
   
 ---
 
@@ -97,9 +100,8 @@
 
   * Coil for Image Loading
 
-  * Koin(for di)
-      
-    
+  * Koin (for di)
+
 ---
 
 📦 API Source
@@ -116,7 +118,11 @@ Data is fetched from ![PokeAPI](https://pokeapi.co/)
 
 ## Follow us on
 
-[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/Dexverse_App.svg?style=social&label=Follow%20%40Pokeverse_App)](https://twitter.com/Pokeverse_App)
+[![Twitter](https://img.shields.io/twitter/url/https/twitter.com/Dexverse_App.svg?style=social&label=Follow%20%40Dexverse_App)](https://twitter.com/Dexverse_App)
+
+## Checkout the website too!
+
+[![Website](https://img.shields.io/badge/Website-Visit-blue)](https://dexverse-web.vercel.app)
 
 --- 
 

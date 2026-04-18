@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -105,6 +106,19 @@ fun LeaderboardScreen(
                 is LeaderboardState.Loading -> LeaderboardSkeleton()
                 is LeaderboardState.Error -> LeaderboardError(s.message) { viewModel.load() }
                 is LeaderboardState.Success -> {
+
+                    if (s.entries.isEmpty()) {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text(
+                                if (type == LeaderboardType.WEEKLY) "No players yet this week"
+                                else "No trainers on the leaderboard yet",
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                        return@Scaffold
+                    }
 
                     val context = LocalContext.current
                     var lastCelebratedRank by remember { mutableIntStateOf(-1) }

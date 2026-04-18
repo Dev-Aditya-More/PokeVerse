@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,9 +19,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,26 +43,66 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
+import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.google.firebase.auth.FirebaseUser
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ProfileHeader(
     profile: UserProfile,
     currentUser: FirebaseUser? = null,
     onEditName: () -> Unit,
-    onEditPhoto: () -> Unit
+    onEditPhoto: () -> Unit,
+    viewModel: ProfileViewModel = koinViewModel()
 ) {
     var prevLevel by remember { mutableIntStateOf(profile.level) }
     var levelChanged by remember { mutableStateOf(false) }
+
+    var showNameDialog by remember { mutableStateOf(false) }
+    var nameInput by remember { mutableStateOf(profile.username) }
 
     LaunchedEffect(profile.level) {
         if (profile.level != prevLevel) {
             levelChanged = true
             prevLevel = profile.level
         }
+    }
+
+    if (showNameDialog) {
+        AlertDialog(
+            onDismissRequest = { showNameDialog = false },
+            title = { Text("Edit Display Name") },
+            text = {
+                OutlinedTextField(
+                    value = nameInput,
+                    onValueChange = { nameInput = it },
+                    label = { Text("Name") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Words,
+                        imeAction = ImeAction.Done
+                    )
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (nameInput.isNotBlank()) {
+                            viewModel.updateUsername(nameInput.trim())
+                            showNameDialog = false
+                        }
+                    }
+                ) { Text("Save") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNameDialog = false }) { Text("Cancel") }
+            }
+        )
     }
 
     val levelScale by animateFloatAsState(
@@ -122,7 +170,11 @@ fun ProfileHeader(
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.clickable {
+                    nameInput = profile.username
+                    showNameDialog = true
+                }
             ) {
                 Text(
                     text = profile.username,
@@ -131,16 +183,14 @@ fun ProfileHeader(
                     maxLines = 1
                 )
 
-//                IconButton(
-//                    onClick = onEditName,
-//                    modifier = Modifier.size(28.dp)
-//                ) {
-//                    Icon(
-//                        Icons.Default.Edit,
-//                        contentDescription = "Edit Name",
-//                        modifier = Modifier.size(16.dp)
-//                    )
-//                }
+                Spacer(Modifier.width(2.dp))
+
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit name",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             if(!profile.isGuest) {

@@ -75,9 +75,10 @@ class ProfileViewModel(
             val localDateIsNewer = local.lastDailyXpDate > cloudProfile.lastDailyXpDate
             repository.saveProfile(
                 cloudProfile.copy(
-                    // Never overwrite a custom username with cloud/Google value
-                    username        = if (local.username.isCustomUsername()) local.username
-                    else cloudProfile.username,
+                    username = if (local.username.isNotBlank() && local.username != "Trainer")
+                        local.username
+                    else
+                        cloudProfile.username,
                     lastDailyXpDate = if (localDateIsNewer) local.lastDailyXpDate
                     else cloudProfile.lastDailyXpDate,
                     dailyStreak     = if (localDateIsNewer) local.dailyStreak
@@ -126,7 +127,7 @@ class ProfileViewModel(
                     cloudProfile.totalXp >= local.totalXp -> {
                         val localDateIsNewer = local.lastDailyXpDate > cloudProfile.lastDailyXpDate
                         cloudProfile.copy(
-                            photoUrl = result.user.photoUrl?.toString() ?: cloudProfile.photoUrl,
+                            photoUrl = userProfile.value.photoUrl.ifEmpty { result.user.photoUrl?.toString() ?: cloudProfile.photoUrl },
                             username = if (local.username.isCustomUsername()) local.username
                             else cloudProfile.username,
                             isGuest = false,
@@ -162,7 +163,6 @@ class ProfileViewModel(
         viewModelScope.launch {
             val updated = userProfile.value.copy(photoUrl = url)
             repository.saveProfile(updated)
-            if (!updated.isGuest) repository.syncToFirestore(updated)
         }
     }
 
