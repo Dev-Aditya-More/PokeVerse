@@ -44,7 +44,7 @@
 
 - 🎨 **Held Items Exploration**  
   Explore all the held items of pokemon in one app!.
-- 
+  
 - ❄️ **Glassmorphic Cards**  
   Detail screen features frosted-glass UI components for stats and metadata.
 
