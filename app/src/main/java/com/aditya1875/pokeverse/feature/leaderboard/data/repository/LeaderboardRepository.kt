@@ -39,25 +39,42 @@ class LeaderboardRepository {
     ): LeaderboardState {
 
         val cachedEntries = cache[type] ?: emptyList()
-        val lastDocument = lastDocs[type]
         val cacheTimestamp = cacheTimestamps[type] ?: 0L
-
         val now = System.currentTimeMillis()
+
         if (!forceRefresh && cachedEntries.isNotEmpty() && (now - cacheTimestamp) < CACHE_TTL_MS) {
             return buildState(cachedEntries, canLoadMore = cachedEntries.size.toLong() == PAGE_SIZE)
         }
 
-        val field = when (type) {
-            LeaderboardType.GLOBAL -> "totalXp"
-            LeaderboardType.WEEKLY -> "weeklyXp"
-        }
-
         return try {
-            val snapshot = firestore.collection("leaderboard")
-                .orderBy(field, Query.Direction.DESCENDING)
-                .orderBy("updatedAt", Query.Direction.ASCENDING)
-                .limit(PAGE_SIZE)
-                .get().await()
+            val snapshot = when (type) {
+                LeaderboardType.GLOBAL -> {
+                    firestore.collection("leaderboard")
+                        .orderBy("totalXp", Query.Direction.DESCENDING)
+                        .orderBy("updatedAt", Query.Direction.ASCENDING)
+                        .limit(PAGE_SIZE)
+                        .get().await()
+                }
+                LeaderboardType.WEEKLY -> {
+                    // Primary: only weeklyActive players
+                    val primary = firestore.collection("leaderboard")
+                        .whereEqualTo("weeklyActive", true)
+                        .orderBy("weeklyXp", Query.Direction.DESCENDING)
+                        .orderBy("updatedAt", Query.Direction.ASCENDING)
+                        .limit(PAGE_SIZE)
+                        .get().await()
+
+                    // Fallback: weeklyActive flag may not be set yet on older docs
+                    if (primary.isEmpty) {
+                        firestore.collection("leaderboard")
+                            .whereGreaterThan("weeklyXp", 0)
+                            .orderBy("weeklyXp", Query.Direction.DESCENDING)
+                            .orderBy("updatedAt", Query.Direction.ASCENDING)
+                            .limit(PAGE_SIZE)
+                            .get().await()
+                    } else primary
+                }
+            }
 
             if (snapshot.isEmpty) {
                 return LeaderboardState.Success(
@@ -77,15 +94,12 @@ class LeaderboardRepository {
             cacheTimestamps[type] = now
 
             buildState(entries, canLoadMore = entries.size.toLong() == PAGE_SIZE)
-        } catch (e: Exception) {
-            e.printStackTrace() // ADD THIS
-            val cachedEntries = cache[type]
 
-            return if (!cachedEntries.isNullOrEmpty()) {
-                return buildState(
-                    cachedEntries,
-                    canLoadMore = cachedEntries.size.toLong() == PAGE_SIZE
-                )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            val cached = cache[type]
+            if (!cached.isNullOrEmpty()) {
+                buildState(cached, canLoadMore = cached.size.toLong() == PAGE_SIZE)
             } else {
                 LeaderboardState.Error(e.message ?: "Failed to load leaderboard")
             }

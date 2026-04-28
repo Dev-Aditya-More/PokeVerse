@@ -26,6 +26,7 @@ import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.core.navigation.components.WithBottomBar
 import com.aditya1875.pokeverse.feature.core.ui.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
+import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.screens.DuelGameScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessDifficultyScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.screens.PokeGuessGameScreen
@@ -184,6 +185,7 @@ fun AppNavGraph(
                     GameHubScreen(
                         onGameSelected = { gameId ->
                             when (gameId) {
+                                "pokeduel" -> navController.navigate(Route.DuelPlay.route)
                                 "poketype" -> navController.navigate(Route.TypeRushDifficulty.route)
                                 "pokematch" -> navController.navigate(Route.GameDifficulty.route)
                                 "pokequiz" -> navController.navigate(Route.QuizDifficulty.route)
@@ -363,6 +365,12 @@ fun AppNavGraph(
 
                 TypeRushScreen(
                     difficulty = difficulty,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Route.DuelPlay.route) {
+                DuelGameScreen(
                     onBack = { navController.popBackStack() }
                 )
             }

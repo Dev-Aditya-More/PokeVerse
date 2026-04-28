@@ -53,6 +53,8 @@ sealed class Route(val route: String) {
         fun createRoute(difficulty: String) = "typerush/play/$difficulty"
     }
 
+    object DuelPlay : Route("duel/play")
+
     // Other screens
     object Analysis : Route("analysis?teamId={teamId}") {
         fun createRoute(teamId: String) = "analysis?teamId=$teamId"

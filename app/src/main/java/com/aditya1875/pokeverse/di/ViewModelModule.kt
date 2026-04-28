@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.di
 
+import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.viewmodels.DuelViewModel
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels.PokeGuessViewModel
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.viewmodels.MatchViewModel
 import com.aditya1875.pokeverse.feature.game.pokequiz.presentation.viewmodels.QuizViewModel
@@ -14,9 +15,9 @@ import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
-import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 
 val viewModelModule = module {
 
@@ -35,4 +36,5 @@ val viewModelModule = module {
     viewModelOf(::PokeGuessViewModel)
     viewModelOf(::TypeRushViewModel)
     viewModelOf(::MatchViewModel)
+    viewModelOf(::DuelViewModel)
 }

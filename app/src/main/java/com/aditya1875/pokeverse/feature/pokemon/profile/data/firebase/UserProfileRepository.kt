@@ -152,7 +152,7 @@ class UserProfileRepository(private val context: Context) {
                     "dailyStreak" to profile.dailyStreak,
                     "lastDailyXpDate" to profile.lastDailyXpDate,
                     "lastActiveDateMs" to profile.lastActiveDateMillis,
-                    "updatedAt" to Timestamp.now(),
+                    "updatedAt" to Timestamp.now()
                 ),
                 SetOptions.merge()
             ).await()
@@ -167,6 +167,7 @@ class UserProfileRepository(private val context: Context) {
                     "lastWeeklyReset" to profile.lastWeeklyReset,
                     "level" to profile.level,
                     "updatedAt" to Timestamp.now(),
+                    "weeklyActive" to (profile.weeklyXp > 0),
                 ),
                 SetOptions.merge()
             ).await()
