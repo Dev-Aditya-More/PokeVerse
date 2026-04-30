@@ -37,6 +37,7 @@ class UserProfileRepository(private val context: Context) {
         val BEST_MATCH = intPreferencesKey("best_match")
         val BEST_GUESS = intPreferencesKey("best_guess")
         val BEST_TYPERUSH = intPreferencesKey("best_typerush")
+        val BEST_DUEL = intPreferencesKey("best_duel")
         val IS_GUEST = booleanPreferencesKey("is_guest")
         val LAST_DAILY_DATE = stringPreferencesKey("last_daily_date")
         val DAILY_STREAK = intPreferencesKey("daily_streak")
@@ -65,6 +66,7 @@ class UserProfileRepository(private val context: Context) {
             bestMatchScore = p[K.BEST_MATCH] ?: 0,
             bestGuessScore = p[K.BEST_GUESS] ?: 0,
             bestTypeRushScore = p[K.BEST_TYPERUSH] ?: 0,
+            bestDuelScore = p[K.BEST_DUEL] ?: 0,
             isGuest = p[K.IS_GUEST] ?: true,
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
             dailyStreak = p[K.DAILY_STREAK] ?: 0,
@@ -87,6 +89,7 @@ class UserProfileRepository(private val context: Context) {
             p[K.BEST_MATCH] = profile.bestMatchScore
             p[K.BEST_GUESS] = profile.bestGuessScore
             p[K.BEST_TYPERUSH] = profile.bestTypeRushScore
+            p[K.BEST_DUEL] = profile.bestDuelScore
             p[K.IS_GUEST] = profile.isGuest
             p[K.LAST_EXPLORATION_DATE] = profile.lastExplorationXpDate
             p[K.LAST_DAILY_DATE] = profile.lastDailyXpDate
@@ -118,6 +121,7 @@ class UserProfileRepository(private val context: Context) {
                 bestMatchScore = (doc.getLong("bestMatchScore") ?: 0L).toInt(),
                 bestGuessScore = (doc.getLong("bestGuessScore") ?: 0L).toInt(),
                 bestTypeRushScore = (doc.getLong("bestTypeRushScore") ?: 0L).toInt(),
+                bestDuelScore = (doc.getLong("bestDuelScore") ?: 0L).toInt(),
                 isGuest = false,
                 lastDailyXpDate = doc.getString("lastDailyXpDate") ?: "",
                 dailyStreak = (doc.getLong("dailyStreak") ?: 0L).toInt(),
@@ -149,6 +153,7 @@ class UserProfileRepository(private val context: Context) {
                     "bestMatchScore" to profile.bestMatchScore,
                     "bestGuessScore" to profile.bestGuessScore,
                     "bestTypeRushScore" to profile.bestTypeRushScore,
+                    "bestDuelScore" to profile.bestDuelScore,
                     "dailyStreak" to profile.dailyStreak,
                     "lastDailyXpDate" to profile.lastDailyXpDate,
                     "lastActiveDateMs" to profile.lastActiveDateMillis,
@@ -185,6 +190,7 @@ class UserProfileRepository(private val context: Context) {
                 "match" -> K.BEST_MATCH
                 "guess" -> K.BEST_GUESS
                 "typerush" -> K.BEST_TYPERUSH
+                "duel" -> K.BEST_DUEL
                 else -> return@edit
             }
             if (score > (p[key] ?: 0)) {
@@ -201,6 +207,7 @@ class UserProfileRepository(private val context: Context) {
             "match" -> "bestMatchScore"
             "guess" -> "bestGuessScore"
             "typerush" -> "bestTypeRushScore"
+            "duel" -> "bestDuelScore"
             else -> return
         }
         try {

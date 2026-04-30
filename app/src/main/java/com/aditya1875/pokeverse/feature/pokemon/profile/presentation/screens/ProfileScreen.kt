@@ -19,6 +19,7 @@ import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.XPProgress
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.auth.AuthState
+import com.aditya1875.pokeverse.utils.rememberAdaptiveHPaddingProfile
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -49,6 +50,8 @@ fun ProfileScreen(
         }
     }
 
+    val hPadding = rememberAdaptiveHPaddingProfile()
+
     XPOverlay(
         result = pendingXp,
         onDismiss = { pendingXp = null }
@@ -56,7 +59,7 @@ fun ProfileScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = hPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item { Spacer(Modifier.height(8.dp)) }

@@ -2,6 +2,7 @@ package com.aditya1875.pokeverse.feature.leaderboard.data.repository
 
 import com.aditya1875.pokeverse.feature.leaderboard.data.remote.model.LeaderboardEntry
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardType
+import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -57,15 +58,21 @@ class LeaderboardRepository {
                 }
                 LeaderboardType.WEEKLY -> {
                     // Primary: only weeklyActive players
-                    val primary = firestore.collection("leaderboard")
-                        .whereEqualTo("weeklyActive", true)
-                        .orderBy("weeklyXp", Query.Direction.DESCENDING)
-                        .orderBy("updatedAt", Query.Direction.ASCENDING)
-                        .limit(PAGE_SIZE)
-                        .get().await()
+                    // updatedAt direction matches the existing Firestore composite index
+                    // (weeklyActive ASC, weeklyXp DESC, updatedAt DESC)
+                    val primary = try {
+                        firestore.collection("leaderboard")
+                            .whereEqualTo("weeklyActive", true)
+                            .orderBy("weeklyXp", Query.Direction.DESCENDING)
+                            .orderBy("updatedAt", Query.Direction.DESCENDING)
+                            .limit(PAGE_SIZE)
+                            .get().await()
+                    } catch (e: Exception) {
+                        null
+                    }
 
                     // Fallback: weeklyActive flag may not be set yet on older docs
-                    if (primary.isEmpty) {
+                    if (primary == null || primary.isEmpty) {
                         firestore.collection("leaderboard")
                             .whereGreaterThan("weeklyXp", 0)
                             .orderBy("weeklyXp", Query.Direction.DESCENDING)
@@ -184,7 +191,13 @@ class LeaderboardRepository {
         level = (getLong("level") ?: 1L).toInt(),
         rank = rank,
         previousRank = (getLong("previousRank") ?: 0L).toInt(),
-        lastWeeklyReset = getLong("lastWeeklyReset")
+        // Cloud function writes this as Firestore Timestamp; Android app writes it as Long.
+        // Handle both to avoid RuntimeException from getLong() on a Timestamp field.
+        lastWeeklyReset = when (val raw = get("lastWeeklyReset")) {
+            is Long -> raw
+            is Timestamp -> raw.toDate().time
+            else -> null
+        }
     )
 
     fun invalidateCache(type: LeaderboardType = LeaderboardType.GLOBAL) {

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
+import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.FlavorTextEntry
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.PokemonResponse
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.PokemonVariety
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.evolutionModels.EvolutionChainUi
@@ -42,6 +43,7 @@ class PokemonDetailsViewModel(
                         pokemon = result.pokemon,
                         description = result.description,
                         varieties = result.varieties,
+                        flavorTextEntries = result.flavorTextEntries,
                         isLoading = false
                     )
                 }
@@ -106,5 +108,6 @@ data class PokemonDetailUiState(
     val isLoading: Boolean = false,
     val error: UiError? = null,
     val varieties: List<PokemonVariety> = emptyList(),
-    val evolutionUi: EvolutionChainUi? = null
+    val evolutionUi: EvolutionChainUi? = null,
+    val flavorTextEntries: List<FlavorTextEntry> = emptyList()
 )

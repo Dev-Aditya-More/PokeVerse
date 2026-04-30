@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
@@ -42,7 +43,9 @@ fun TeamContent(
     navController: NavController,
     onRemove: (TeamMemberEntity) -> Unit,
     accentColor: Color? = null,
-    assetsEnabled: Boolean
+    assetsEnabled: Boolean,
+    onShare: (() -> Unit)? = null,
+    analysisUsesLeft: Int? = null
 ) {
     val progressColor = accentColor ?: MaterialTheme.colorScheme.primary
 
@@ -113,28 +116,72 @@ fun TeamContent(
 
             Spacer(Modifier.height(16.dp))
 
-            // Analyze Button
-            Button(
-                onClick = onAnalyze,
+            // Action buttons row
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.tertiary,
-                    contentColor = MaterialTheme.colorScheme.onTertiary
-                ),
-                contentPadding = PaddingValues(vertical = 14.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = "Analyze Team",
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = "Analyze Team",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Button(
+                    onClick = onAnalyze,
+                    modifier = Modifier.weight(1f),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (analysisUsesLeft == 0)
+                            MaterialTheme.colorScheme.error
+                        else
+                            MaterialTheme.colorScheme.tertiary,
+                        contentColor = if (analysisUsesLeft == 0)
+                            MaterialTheme.colorScheme.onError
+                        else
+                            MaterialTheme.colorScheme.onTertiary
+                    ),
+                    contentPadding = PaddingValues(vertical = 14.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Info,
+                        contentDescription = "Analyze Team",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "Analyze",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        if (analysisUsesLeft != null && analysisUsesLeft >= 0) {
+                            Text(
+                                text = if (analysisUsesLeft == 0) "Go Premium" else "$analysisUsesLeft left",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
+                    }
+                }
+                if (onShare != null) {
+                    Button(
+                        onClick = onShare,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                            contentColor = MaterialTheme.colorScheme.onSecondary
+                        ),
+                        contentPadding = PaddingValues(vertical = 14.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.IosShare,
+                            contentDescription = "Share Team",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "Share",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height(16.dp))

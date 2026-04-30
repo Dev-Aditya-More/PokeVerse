@@ -4,7 +4,9 @@ import android.content.Context
 import android.os.Build
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.utils.ScreenStateManager
@@ -24,11 +26,13 @@ class SettingsViewModel(
     private val supportsShaders = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
     private val ORIGINAL_ASSETS_KEY = booleanPreferencesKey("original_assets_enabled")
+    private val SELECTED_GAME_KEY = stringPreferencesKey("selected_game")
     val ASSETS_BANNER_SEEN = booleanPreferencesKey("assets_banner_seen")
     val RATING_PROMPT_SEEN = booleanPreferencesKey("rating_prompt_seen")
     val PREMIUM_PROMPT_SHOWN = booleanPreferencesKey("premium_prompt_shown")
     val TOTAL_SESSION_MINUTES = longPreferencesKey("total_session_minutes")
     val UPDATE_DIALOG_SHOWN_VERSION = longPreferencesKey("update_dialog_shown_version")
+    private val ANALYSIS_USE_COUNT = intPreferencesKey("analysis_use_count")
 
     // ── Special effects (synced with ScreenStateManager) ─────────────────────
     private val _specialEffectsEnabled = MutableStateFlow(false)
@@ -61,23 +65,27 @@ class SettingsViewModel(
     // ── Popup state flows from DataStore ──────────────────────────────────────
     val assetsBannerSeen: StateFlow<Boolean> = context.dataStore.data
         .map { it[ASSETS_BANNER_SEEN] ?: false }
-        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val ratingPromptSeen: StateFlow<Boolean> = context.dataStore.data
         .map { it[RATING_PROMPT_SEEN] ?: false }
-        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val premiumPromptShown: StateFlow<Boolean> = context.dataStore.data
         .map { it[PREMIUM_PROMPT_SHOWN] ?: false }
-        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, false)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     val totalSessionMinutes: StateFlow<Long> = context.dataStore.data
         .map { it[TOTAL_SESSION_MINUTES] ?: 0L }
-        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, 0L)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
     val updateDialogShownVersion: StateFlow<Long> = context.dataStore.data
         .map { it[UPDATE_DIALOG_SHOWN_VERSION] ?: 0L }
-        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, 0L)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
+
+    val analysisUseCount: StateFlow<Int> = context.dataStore.data
+        .map { it[ANALYSIS_USE_COUNT] ?: 0 }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
 
     // ── Popup actions ─────────────────────────────────────────────────────────
     fun dismissAssetsBanner() {
@@ -90,6 +98,13 @@ class SettingsViewModel(
 
     fun markPremiumPromptShown() {
         viewModelScope.launch { context.dataStore.edit { it[PREMIUM_PROMPT_SHOWN] = true } }
+    }
+
+    fun incrementAnalysisCount() {
+        viewModelScope.launch {
+            val current = analysisUseCount.value
+            context.dataStore.edit { it[ANALYSIS_USE_COUNT] = current + 1 }
+        }
     }
 
     fun markUpdateDialogShown(versionCode: Long) {
@@ -108,6 +123,19 @@ class SettingsViewModel(
         }
     }   // ← FIX: was missing closing brace here, causing toggleOriginalAssetsEnabled
     //   and toggleSpecialEffects to be nested INSIDE recordSessionMinutes as dead code
+
+    val selectedGame: StateFlow<String?> = context.dataStore.data
+        .map { it[SELECTED_GAME_KEY] }
+        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, null)
+
+    fun setSelectedGame(gameId: String?) {
+        viewModelScope.launch {
+            context.dataStore.edit {
+                if (gameId != null) it[SELECTED_GAME_KEY] = gameId
+                else it.remove(SELECTED_GAME_KEY)
+            }
+        }
+    }
 
     fun toggleSpecialEffects(enabled: Boolean) {
         val safeValue = enabled && supportsShaders

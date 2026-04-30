@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -46,12 +47,16 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedAssistChip
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
@@ -69,6 +74,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -93,6 +99,8 @@ import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.Po
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens.GlossyCard
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens.getPokemonBackgroundColor
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels.PokemonDetailsViewModel
+import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.FlavorTextEntry
+import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.PokeGame
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.AddToTeamBottomSheet
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.components.CreateTeamDialog
@@ -101,6 +109,8 @@ import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesV
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
 import com.aditya1875.pokeverse.utils.DisplayMove
 import com.aditya1875.pokeverse.utils.UiError
+import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
+import com.aditya1875.pokeverse.utils.rememberDetailHeaderMaxWidth
 import org.koin.androidx.compose.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
@@ -215,6 +225,10 @@ fun PokemonDetailPage(
     val speechText = "$name. A $type type Pokémon. $cleanText"
 
     var isSpriteChanged by rememberSaveable { mutableStateOf(false) }
+
+    val selectedGameId by settingsViewModel.selectedGame.collectAsStateWithLifecycle()
+    val selectedGame = remember(selectedGameId) { selectedGameId?.let { PokeGame.fromId(it) } }
+
     val evolutionUi = uiState.evolutionUi
     val listState = rememberLazyListState()
 
@@ -258,6 +272,10 @@ fun PokemonDetailPage(
         )
     }
 
+    val show3DModel = currentSpriteSource == "go"
+    val adaptiveHPadding = rememberAdaptiveHPadding()
+    val headerMaxWidth = rememberDetailHeaderMaxWidth()
+
     fun getSpriteUrl(source: String, shiny: Boolean): String? {
         return when (source) {
             "official-artwork" -> {
@@ -296,10 +314,12 @@ fun PokemonDetailPage(
     }
 
     LaunchedEffect(isShinyEnabled) {
-        val newUrl = getSpriteUrl(currentSpriteSource, isShinyEnabled)
-        if (newUrl != null && newUrl != currentSpriteUrl) {
-            currentSpriteUrl = newUrl
-            showLoader = true
+        if (currentSpriteSource != "go") {
+            val newUrl = getSpriteUrl(currentSpriteSource, isShinyEnabled)
+            if (newUrl != null && newUrl != currentSpriteUrl) {
+                currentSpriteUrl = newUrl
+                showLoader = true
+            }
         }
     }
 
@@ -350,26 +370,29 @@ fun PokemonDetailPage(
                     actions = {
                         IconButton(
                             onClick = {
-                                val orderedSprites = listOf(
-                                    "official-artwork" to (pokemon?.sprites?.other?.officialArtwork?.frontDefault
-                                        ?: pokemon?.sprites?.other?.officialArtwork?.frontShiny),
-                                    "home" to (pokemon?.sprites?.other?.home?.frontDefault
-                                        ?: pokemon?.sprites?.other?.home?.frontShiny),
-                                    "dream-world" to (pokemon?.sprites?.other?.dreamWorld?.frontDefault
-                                        ?: pokemon?.sprites?.other?.dreamWorld?.frontShiny),
-                                    "showdown" to (pokemon?.sprites?.other?.showdown?.frontDefault
-                                        ?: pokemon?.sprites?.other?.showdown?.frontShiny),
-                                ).filter { it.second != null }
+                                val orderedSources = buildList {
+                                    if (pokemon?.sprites?.other?.officialArtwork?.frontDefault != null ||
+                                        pokemon?.sprites?.other?.officialArtwork?.frontShiny != null)
+                                        add("official-artwork")
+                                    if (pokemon?.sprites?.other?.home?.frontDefault != null ||
+                                        pokemon?.sprites?.other?.home?.frontShiny != null)
+                                        add("home")
+                                    if (pokemon?.sprites?.other?.dreamWorld?.frontDefault != null ||
+                                        pokemon?.sprites?.other?.dreamWorld?.frontShiny != null)
+                                        add("dream-world")
+                                    if (pokemon?.sprites?.other?.showdown?.frontDefault != null ||
+                                        pokemon?.sprites?.other?.showdown?.frontShiny != null)
+                                        add("showdown")
+                                    add("go")
+                                }
 
-                                val currentIndex =
-                                    orderedSprites.indexOfFirst { it.first == currentSpriteSource }
-                                val nextIndex =
-                                    if (currentIndex == -1 || currentIndex == orderedSprites.lastIndex) 0 else currentIndex + 1
+                                val currentIndex = orderedSources.indexOf(currentSpriteSource)
+                                val nextIndex = if (currentIndex == -1 || currentIndex == orderedSources.lastIndex) 0 else currentIndex + 1
+                                val nextSource = orderedSources[nextIndex]
 
-                                val nextSource = orderedSprites.getOrNull(nextIndex)
-                                if (nextSource != null) {
-                                    currentSpriteSource = nextSource.first
-                                    val newUrl = getSpriteUrl(nextSource.first, isShinyEnabled)
+                                currentSpriteSource = nextSource
+                                if (nextSource != "go") {
+                                    val newUrl = getSpriteUrl(nextSource, isShinyEnabled)
                                     if (newUrl != null && newUrl != currentSpriteUrl) {
                                         currentSpriteUrl = newUrl
                                         showLoader = true
@@ -380,11 +403,15 @@ fun PokemonDetailPage(
                             modifier = Modifier.pointerInput(Unit) {
                                 detectTapGestures(
                                     onLongPress = {
-                                        Toast.makeText(
-                                            context,
-                                            "Tap to switch sprite style ✨",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                        val label = when (currentSpriteSource) {
+                                            "official-artwork" -> "Official Art"
+                                            "home" -> "Home"
+                                            "dream-world" -> "Dream World"
+                                            "showdown" -> "Showdown"
+                                            "go" -> "GO Sprite"
+                                            else -> "Sprite"
+                                        }
+                                        Toast.makeText(context, "Style: $label • tap to switch", Toast.LENGTH_SHORT).show()
                                     }
                                 )
                             }
@@ -392,7 +419,7 @@ fun PokemonDetailPage(
                             Icon(
                                 imageVector = Icons.Default.Shuffle,
                                 contentDescription = "Switch Sprite Style",
-                                tint = MaterialTheme.colorScheme.onSurface
+                                tint = if (show3DModel) bgColor else MaterialTheme.colorScheme.onSurface
                             )
                         }
 
@@ -675,35 +702,42 @@ fun PokemonDetailPage(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(padding)
-                            .padding(horizontal = 16.dp),
+                            .padding(horizontal = adaptiveHPadding),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         item {
-                            PokemonDetailHeader(
-                                pokemon = pokemon,
-                                bgColor = bgColor,
-                                specialEffectsEnabled = specialEffectsEnabled,
-                                spriteEffectsEnabled = spriteEffectsEnabled,
-                                spriteEffectsEnabledState = spriteEffectsEnabledState,
-                                isSpeaking = isSpeaking,
-                                spriteVisible = spriteVisible,
-                                evolutionUi = evolutionUi,
-                                onPokemonClick = { name ->
-                                    viewModel.loadPokemon(name)
-                                },
-                                isShinyEnabled = isShinyEnabled,
-                                onShinyToggle = { isShinyEnabled = it },
-                                currentSpriteUrl = currentSpriteUrl,
-                                onSpriteLoaded = { loaded ->
-                                    showLoader = !loaded
-                                },
-                                onSpriteError = { /* handle error if needed */ },
-                                showLoader = showLoader,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f),
-                                settingsViewModel = settingsViewModel
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                PokemonDetailHeader(
+                                    pokemon = pokemon,
+                                    bgColor = bgColor,
+                                    specialEffectsEnabled = specialEffectsEnabled,
+                                    spriteEffectsEnabled = spriteEffectsEnabled,
+                                    spriteEffectsEnabledState = spriteEffectsEnabledState,
+                                    isSpeaking = isSpeaking,
+                                    spriteVisible = spriteVisible,
+                                    evolutionUi = evolutionUi,
+                                    onPokemonClick = { name ->
+                                        viewModel.loadPokemon(name)
+                                    },
+                                    isShinyEnabled = isShinyEnabled,
+                                    onShinyToggle = { isShinyEnabled = it },
+                                    currentSpriteUrl = currentSpriteUrl,
+                                    onSpriteLoaded = { loaded ->
+                                        showLoader = !loaded
+                                    },
+                                    onSpriteError = { /* handle error if needed */ },
+                                    showLoader = showLoader,
+                                    show3DModel = show3DModel,
+                                    modifier = Modifier
+                                        .widthIn(max = headerMaxWidth)
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f),
+                                    settingsViewModel = settingsViewModel
+                                )
+                            }
                         }
 
                         // Basic Info

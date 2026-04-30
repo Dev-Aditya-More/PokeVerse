@@ -122,6 +122,7 @@ import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesV
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import com.aditya1875.pokeverse.utils.SearchResult
+import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.utils.UiError
 import com.google.firebase.firestore.FirebaseFirestore
@@ -764,17 +765,18 @@ fun SharedTransitionScope.HomeScreen(
 
                         ScreenState.CONTENT ->
                             Box(modifier = Modifier.fillMaxSize()) {
+                                val hPadding = rememberAdaptiveHPadding()
 
                                 when (contentMode) {
 
                                     HomeContentMode.POKEMON -> {
 
                                         LazyVerticalGrid(
-                                            columns = GridCells.Fixed(1),
+                                            columns = GridCells.Adaptive(minSize = 320.dp),
                                             state = pokemonGridState,
                                             contentPadding = PaddingValues(
-                                                start = 16.dp,
-                                                end = 16.dp,
+                                                start = hPadding,
+                                                end = hPadding,
                                                 top = 8.dp,
                                                 bottom = 120.dp
                                             ),
@@ -817,7 +819,7 @@ fun SharedTransitionScope.HomeScreen(
                                             }
 
                                             if (isLoading && pokemonList.isNotEmpty()) {
-                                                item(span = { GridItemSpan(1) }) {
+                                                item(span = { GridItemSpan(maxLineSpan) }) {
                                                     Box(
                                                         Modifier
                                                             .fillMaxWidth()
@@ -848,11 +850,11 @@ fun SharedTransitionScope.HomeScreen(
                                                     itemListState as ItemListState.Success
 
                                                 LazyVerticalGrid(
-                                                    columns = GridCells.Fixed(2),
+                                                    columns = GridCells.Adaptive(minSize = 180.dp),
                                                     state = itemGridState,
                                                     contentPadding = PaddingValues(
-                                                        start = 16.dp,
-                                                        end = 16.dp,
+                                                        start = hPadding,
+                                                        end = hPadding,
                                                         top = 8.dp,
                                                         bottom = 120.dp
                                                     ),
@@ -881,7 +883,7 @@ fun SharedTransitionScope.HomeScreen(
                                                     }
 
                                                     if (successState.isLoadingMore) {
-                                                        item(span = { GridItemSpan(2) }) {
+                                                        item(span = { GridItemSpan(maxLineSpan) }) {
                                                             Box(
                                                                 Modifier
                                                                     .fillMaxWidth()

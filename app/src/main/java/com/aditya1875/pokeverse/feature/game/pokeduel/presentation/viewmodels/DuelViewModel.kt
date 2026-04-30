@@ -10,17 +10,20 @@ import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.usecase.GetPokemonByNameUseCase
+import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class DuelViewModel(
     private val getPokemonByName: GetPokemonByNameUseCase,
     private val engine: DuelGameEngine,
-    private val xpManager: XPManager
+    private val xpManager: XPManager,
+    private val userRepository: UserProfileRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<DuelGameState>(DuelGameState.Idle)
@@ -72,10 +75,13 @@ class DuelViewModel(
             if (newLives <= 0) {
                 val xp = xpManager.awardGameXP(XPEvent.GuessComplete)
                 if (xp.xpGained > 0) _xpResult.emit(xp)
+                val currentBest = userRepository.profileFlow.first().bestDuelScore
+                userRepository.updateBestScore("duel", newScore)
+                userRepository.incrementGamesPlayed()
                 _state.value = DuelGameState.GameOver(
                     score = newScore,
                     round = current.round,
-                    isNewBest = false // wire up to DAO if you want persistence
+                    isNewBest = newScore > currentBest
                 )
             } else {
                 loadNextRound(

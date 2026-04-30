@@ -16,11 +16,17 @@ data class PokemonSpeciesResponse(
 
 data class FlavorTextEntry(
     @SerializedName("flavor_text") val flavorText: String,
-    val language: Language
+    val language: Language,
+    val version: VersionInfo? = null
 )
 
 data class Language(
     val name: String
+)
+
+data class VersionInfo(
+    val name: String,
+    val url: String
 )
 
 data class PokemonVariety(

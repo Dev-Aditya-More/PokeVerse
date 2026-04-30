@@ -11,18 +11,19 @@ class GetPokemonDetailUseCase(
         val pokemon = repo.getPokemonByName(name)
         val species = repo.getPokemonSpeciesByName(name)
 
-        val description = species.flavorTextEntries.firstOrNull {
-            it.language.name == "en"
-        }?.flavorText
+        val englishEntries = species.flavorTextEntries.filter { it.language.name == "en" }
+
+        val description = englishEntries.firstOrNull()?.flavorText
             ?.replace("\n", " ")
-            ?.replace("\u000c", " ")
+            ?.replace("", " ")
             ?: "No description"
 
         return PokemonDetailDomainModel(
             pokemon = pokemon,
             description = description,
             varieties = species.varieties,
-            evolutionChainUrl = species.evolutionChain?.url
+            evolutionChainUrl = species.evolutionChain?.url,
+            flavorTextEntries = englishEntries
         )
     }
 }
