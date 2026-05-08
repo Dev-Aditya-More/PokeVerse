@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.pokematch.presentation.components
 
+import android.app.Activity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,18 +27,28 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.core.data.local.entity.GameScoreEntity
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameDifficultyLayout
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.viewmodels.MatchViewModel
 import com.aditya1875.pokeverse.feature.game.pokematch.domain.model.Difficulty
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -45,9 +57,36 @@ fun DifficultyScreen(
     onBack: () -> Unit,
     viewModel: MatchViewModel = koinViewModel()
 ) {
-
     val topScores by viewModel.topScores.collectAsStateWithLifecycle()
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
+    val isPremium = subscriptionState is SubscriptionState.Premium
+
+    val adManager = koinInject<IRewardedAdManager>()
+    val adState by adManager.adState.collectAsStateWithLifecycle()
+
+    var showAdDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    LaunchedEffect(adState) {
+        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    }
+
+    if (showAdDialog) {
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        showAdDialog = false
+                        onDifficultySelected(Difficulty.HARD)
+                    }
+                }
+            },
+            onDismiss = { showAdDialog = false }
+        )
+    }
 
     GameDifficultyLayout(
         gameTitle = "PokéMatch",
@@ -56,19 +95,21 @@ fun DifficultyScreen(
         onBack = onBack,
         subscriptionState = subscriptionState
     ) {
-
         items(Difficulty.entries.toTypedArray()) { difficulty ->
-
-            val canPlay = viewModel.canPlayDifficulty(difficulty)
-
+            val canPlay = when (difficulty) {
+                Difficulty.HARD -> isPremium
+                else -> true
+            }
             DifficultyCard(
                 difficulty = difficulty,
                 canPlay = canPlay,
+                adAvailable = !canPlay && difficulty == Difficulty.HARD && adState is RewardedAdState.Ready,
                 bestScore = topScores
                     .filter { it.difficulty == difficulty.name }
                     .maxByOrNull { it.score },
                 onSelect = {
                     if (canPlay) onDifficultySelected(difficulty)
+                    else if (difficulty == Difficulty.HARD) showAdDialog = true
                 }
             )
         }
@@ -80,7 +121,8 @@ fun DifficultyCard(
     difficulty: Difficulty,
     canPlay: Boolean,
     bestScore: GameScoreEntity?,
-    onSelect: () -> Unit
+    onSelect: () -> Unit,
+    adAvailable: Boolean = false
 ) {
     val difficultyColor = when (difficulty) {
         Difficulty.EASY -> Color(0xFF4CAF50)
@@ -141,6 +183,24 @@ fun DifficultyCard(
                             contentDescription = "Locked",
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                             modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
+                if (adAvailable) {
+                    Spacer(Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.OndemandVideo,
+                            contentDescription = null,
+                            tint = Color(0xFF2196F3),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = "Watch ad to play this round",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF2196F3)
                         )
                     }
                 }

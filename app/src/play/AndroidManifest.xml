@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="com.android.vending.BILLING" />
     <application android:icon="@mipmap/ic_launcher">
+        <!-- Replace with your production AdMob App ID from admob.google.com -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-5302526681326969~4341690986" />
         <service
             android:name=".fcm.PokeVerseFirebaseMessagingService"
             android:exported="false">

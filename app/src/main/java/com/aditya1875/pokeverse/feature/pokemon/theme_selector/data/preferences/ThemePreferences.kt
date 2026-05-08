@@ -20,7 +20,7 @@ class ThemePreferences(private val context: Context) {
 
     val selectedTheme: Flow<AppTheme> = context.dataStore.data
         .map { preferences ->
-            val themeName = preferences[THEME_KEY] ?: AppTheme.CHARIZARD.name
+            val themeName = preferences[THEME_KEY] ?: AppTheme.DEXVERSE.name
             try {
                 AppTheme.valueOf(themeName)
             } catch (e: IllegalArgumentException) {

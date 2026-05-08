@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -58,6 +59,7 @@ fun ProfileHeader(
     currentUser: FirebaseUser? = null,
     onEditName: () -> Unit,
     onEditPhoto: () -> Unit,
+    photoUploading: Boolean = false,
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     var prevLevel by remember { mutableIntStateOf(profile.level) }
@@ -135,7 +137,7 @@ fun ProfileHeader(
                     CircleShape
                 )
                 .combinedClickable(
-                    onClick = {},
+                    onClick = onEditPhoto,
                     onLongClick = onEditPhoto
                 ),
             contentAlignment = Alignment.Center
@@ -162,6 +164,21 @@ fun ProfileHeader(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+            }
+
+            if (photoUploading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                }
             }
         }
 

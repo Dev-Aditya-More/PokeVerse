@@ -12,7 +12,7 @@ import com.aditya1875.pokeverse.feature.team.data.local.entity.TeamMemberEntity
 
 @Database(
     entities = [TeamEntity::class, TeamMemberEntity::class, FavouriteEntity::class, GameScoreEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class TeamDatabase : RoomDatabase() {

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -31,13 +32,14 @@ fun ProfileScreen(
     val profile by viewModel.userProfile.collectAsStateWithLifecycle()
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
+    val photoUploading by viewModel.photoUploading.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        uri?.let {
-            viewModel.updatePhoto(it.toString())
-        }
+        uri?.let { viewModel.uploadAndSetPhoto(context, it) }
     }
 
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
@@ -69,8 +71,9 @@ fun ProfileScreen(
                     profile = profile,
                     currentUser = currentUser,
                     onEditName = onEditName,
+                    photoUploading = photoUploading,
                     onEditPhoto = {
-                        imagePicker.launch("image/*")
+                        if (!photoUploading) imagePicker.launch("image/*")
                     }
                 )
             }

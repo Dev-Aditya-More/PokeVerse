@@ -90,6 +90,7 @@ android {
             buildConfigField("boolean", "USE_FIREBASE", "true")
             buildConfigField("Boolean", "ENABLE_BILLING", "true")
             buildConfigField("Boolean", "ENABLE_PREMIUM_GAMES", "true")
+            buildConfigField("Boolean", "ENABLE_ADS", "true")
         }
         create("foss") {
             dimension = "distribution"
@@ -99,6 +100,7 @@ android {
             buildConfigField("boolean", "USE_FIREBASE", "false")
             buildConfigField("Boolean", "ENABLE_BILLING", "false")
             buildConfigField("Boolean", "ENABLE_PREMIUM_GAMES", "false")
+            buildConfigField("Boolean", "ENABLE_ADS", "false")
         }
     }
 
@@ -200,8 +202,10 @@ dependencies {
 
     add("playImplementation", libs.firebase.auth)
     add("playImplementation", libs.firebase.database)
+    add("playImplementation", libs.firebase.storage)
 
     add("playImplementation", libs.play.services.auth)
+    add("playImplementation", libs.play.services.ads)
 
     // Glance Widget
     implementation (libs.androidx.glance.appwidget)

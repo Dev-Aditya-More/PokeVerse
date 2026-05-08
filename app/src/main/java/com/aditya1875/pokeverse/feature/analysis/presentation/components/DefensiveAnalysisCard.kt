@@ -178,7 +178,7 @@ fun DefensiveTypeRow(
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
-                text = if (isWeakness) "⚠️ ${(count * 100 / total)}%" else "✓ ${(count * 100 / total)}%",
+                text = if (isWeakness) "⚠️ ${if (total > 0) count * 100 / total else 0}%" else "✓ ${if (total > 0) count * 100 / total else 0}%",
                 color = if (isWeakness) Color(0xFFFF6B6B) else Color(0xFF00E676),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold

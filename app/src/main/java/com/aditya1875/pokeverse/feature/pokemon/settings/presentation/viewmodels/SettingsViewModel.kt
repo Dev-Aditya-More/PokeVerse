@@ -34,8 +34,7 @@ class SettingsViewModel(
     val UPDATE_DIALOG_SHOWN_VERSION = longPreferencesKey("update_dialog_shown_version")
     private val ANALYSIS_USE_COUNT = intPreferencesKey("analysis_use_count")
 
-    // ── Special effects (synced with ScreenStateManager) ─────────────────────
-    private val _specialEffectsEnabled = MutableStateFlow(false)
+    private val _specialEffectsEnabled = MutableStateFlow(true)
     val specialEffectsEnabled: StateFlow<Boolean> = _specialEffectsEnabled.asStateFlow()
 
     init {

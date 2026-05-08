@@ -44,6 +44,7 @@ class UserProfileRepository(private val context: Context) {
         val LAST_EXPLORATION_DATE = stringPreferencesKey("last_exploration_date")
         val LAST_ACTIVE_MS = longPreferencesKey("last_active_ms")
         val PHOTO_URL = stringPreferencesKey("photo_url")
+
         val RANK = intPreferencesKey("rank")
         val EMAIL = stringPreferencesKey("email")
     }

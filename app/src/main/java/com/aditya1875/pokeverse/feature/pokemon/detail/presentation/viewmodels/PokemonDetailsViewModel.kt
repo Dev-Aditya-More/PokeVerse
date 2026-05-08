@@ -71,24 +71,14 @@ class PokemonDetailsViewModel(
 
     fun loadVarietyPokemon(name: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = false) }
-
-            val pokemon = getPokemonByNameUseCase(name)
-
-            _uiState.update {
-                it.copy(pokemon = pokemon)
-            }
-
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                _uiState.update {
-                    it.copy(pokemon = pokemon, isLoading = false)
-                }
-
+                val pokemon = getPokemonByNameUseCase(name)
+                _uiState.update { it.copy(pokemon = pokemon, isLoading = false) }
+            } catch (e: IOException) {
+                _uiState.update { it.copy(isLoading = false, error = UiError.Network(e.message)) }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = UiError.Unexpected(e.message)
-                )
+                _uiState.update { it.copy(isLoading = false, error = UiError.Unexpected(e.message)) }
             }
         }
     }

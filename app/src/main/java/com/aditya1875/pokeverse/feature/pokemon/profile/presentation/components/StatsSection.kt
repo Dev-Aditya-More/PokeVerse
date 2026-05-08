@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Quiz
@@ -74,7 +75,7 @@ fun StatsSection(profile: UserProfile) {
 fun GameStatsSection(profile: UserProfile) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         GameStatRow(
-            icon = Icons.Default.Shield,
+            icon = Icons.Default.FlashOn,
             title = "Who Wins?",
             bestScore = profile.bestDuelScore,
             accentColor = Color(0xFFE53935)

@@ -20,15 +20,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.core.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels.PokeGuessViewModel
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameDifficultyLayout
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameResultLayout
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatChips
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatRow
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
-import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -37,26 +39,40 @@ import org.koin.compose.koinInject
 @Composable
 fun PokeGuessDifficultyScreen(
     onDifficultySelected: (GuessDifficulty) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val viewModel: PokeGuessViewModel = koinViewModel()
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
-
     val topScores by viewModel.topScores.collectAsStateWithLifecycle()
+    val isPremium = subscriptionState is SubscriptionState.Premium
 
-    var showPremiumSheet by remember { mutableStateOf(false) }
+    val adManager = koinInject<IRewardedAdManager>()
+    val adState by adManager.adState.collectAsStateWithLifecycle()
 
-    val billingViewModel: BillingViewModel = koinViewModel()
-    val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
-    val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
-    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
-    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null
+    var showAdDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val activity = context as? Activity
 
-    val isPremium = subscriptionState is SubscriptionState.Premium
+    LaunchedEffect(adState) {
+        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    }
+
+    if (showAdDialog) {
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        showAdDialog = false
+                        onDifficultySelected(GuessDifficulty.HARD)
+                    }
+                }
+            },
+            onDismiss = { showAdDialog = false }
+        )
+    }
 
     GameDifficultyLayout(
         gameTitle = "Who's That Pokémon?",
@@ -69,36 +85,43 @@ fun PokeGuessDifficultyScreen(
             GuessDifficultyCard(
                 difficulty = GuessDifficulty.EASY,
                 locked = false,
+                adAvailable = false,
                 bestScore = topScores
                     .filter { it.difficulty == GuessDifficulty.EASY.name }
                     .maxByOrNull { it.score },
-            ) { onDifficultySelected(GuessDifficulty.EASY) }
+                onClick = {
+                    onDifficultySelected(GuessDifficulty.EASY)
+                },
+            )
         }
 
         item {
             GuessDifficultyCard(
                 difficulty = GuessDifficulty.MEDIUM,
                 locked = false,
+                adAvailable = false,
                 bestScore = topScores
                     .filter { it.difficulty == GuessDifficulty.MEDIUM.name }
                     .maxByOrNull { it.score },
-            ) { onDifficultySelected(GuessDifficulty.MEDIUM) }
+                onClick = {
+                    onDifficultySelected(GuessDifficulty.MEDIUM)
+                },
+            )
         }
 
         item {
             GuessDifficultyCard(
                 difficulty = GuessDifficulty.HARD,
                 locked = !isPremium,
+                adAvailable = !isPremium && adState is RewardedAdState.Ready,
                 bestScore = topScores
                     .filter { it.difficulty == GuessDifficulty.HARD.name }
                     .maxByOrNull { it.score },
-            ) {
-                if (isPremium) {
-                    onDifficultySelected(GuessDifficulty.HARD)
-                } else {
-                    showPremiumSheet = true
+                onClick = {
+                    if (isPremium) onDifficultySelected(GuessDifficulty.HARD)
+                    else showAdDialog = true
                 }
-            }
+            )
         }
     }
 }
@@ -108,7 +131,8 @@ private fun GuessDifficultyCard(
     difficulty: GuessDifficulty,
     locked: Boolean,
     bestScore: GameScoreEntity?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    adAvailable: Boolean = false
 ) {
     val color = when (difficulty) {
         GuessDifficulty.EASY -> Color(0xFF4CAF50)
@@ -169,6 +193,24 @@ private fun GuessDifficultyCard(
                             contentDescription = "Locked",
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                             modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
+                if (adAvailable) {
+                    Spacer(Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.OndemandVideo,
+                            contentDescription = null,
+                            tint = Color(0xFF2196F3),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = "Watch ad to play this round",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF2196F3)
                         )
                     }
                 }

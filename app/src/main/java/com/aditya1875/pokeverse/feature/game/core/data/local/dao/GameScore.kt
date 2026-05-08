@@ -14,6 +14,9 @@ interface GameScoreDao {
     @Query("SELECT * FROM game_scores ORDER BY score DESC LIMIT 10")
     fun getTopScores(): Flow<List<GameScoreEntity>>
 
+    @Query("SELECT * FROM game_scores WHERE gameType = :gameType ORDER BY score DESC LIMIT 10")
+    fun getTopScoresForGame(gameType: String): Flow<List<GameScoreEntity>>
+
     @Query("SELECT * FROM game_scores WHERE difficulty = :diff ORDER BY score DESC LIMIT 1")
     suspend fun getBestScore(diff: String): GameScoreEntity?
 

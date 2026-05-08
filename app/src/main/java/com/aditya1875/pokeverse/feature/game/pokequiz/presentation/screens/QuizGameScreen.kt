@@ -169,7 +169,7 @@ private fun QuizPlayingContent(
     modifier: Modifier
 ) {
     val currentQuestion = gameState.questions[gameState.currentQuestionIndex]
-    val timerFraction = gameState.timeRemaining.toFloat() / gameState.totalTimePerQuestion
+    val timerFraction = (gameState.timeRemaining.toFloat() / gameState.totalTimePerQuestion.coerceAtLeast(1)).coerceIn(0f, 1f)
     val timerColor by animateColorAsState(
         targetValue = when {
             gameState.timeRemaining <= 5 -> Color(0xFFFF1744)
