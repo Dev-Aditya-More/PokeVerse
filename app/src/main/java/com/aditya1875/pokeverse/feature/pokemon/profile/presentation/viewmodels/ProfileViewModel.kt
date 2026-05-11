@@ -1,6 +1,8 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels
 
 import android.app.Activity
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
@@ -11,15 +13,19 @@ import com.aditya1875.pokeverse.presentation.auth.AuthManager
 import com.aditya1875.pokeverse.presentation.auth.AuthResult
 import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 class ProfileViewModel(
     private val authManager: AuthManager,
@@ -38,6 +44,9 @@ class ProfileViewModel(
 
     private val _xpEvent = MutableSharedFlow<XPResult>(extraBufferCapacity = 8)
     val xpEvent: SharedFlow<XPResult> = _xpEvent.asSharedFlow()
+
+    private val _photoUploading = MutableStateFlow(false)
+    val photoUploading: StateFlow<Boolean> = _photoUploading.asStateFlow()
 
     private var hasSyncedThisSession = false
 
@@ -79,6 +88,7 @@ class ProfileViewModel(
                         local.username
                     else
                         cloudProfile.username,
+                    photoUrl = local.photoUrl.ifEmpty { cloudProfile.photoUrl },
                     lastDailyXpDate = if (localDateIsNewer) local.lastDailyXpDate
                     else cloudProfile.lastDailyXpDate,
                     dailyStreak     = if (localDateIsNewer) local.dailyStreak
@@ -159,10 +169,24 @@ class ProfileViewModel(
         }
     }
 
-    fun updatePhoto(url: String) {
+    fun uploadAndSetPhoto(context: Context, uri: Uri) {
+        val uid = authManager.currentUser.value?.uid ?: return
         viewModelScope.launch {
-            val updated = userProfile.value.copy(photoUrl = url)
-            repository.saveProfile(updated)
+            _photoUploading.value = true
+            try {
+                val ref = FirebaseStorage.getInstance()
+                    .reference.child("profile_photos/$uid.jpg")
+                val stream = context.contentResolver.openInputStream(uri) ?: return@launch
+                ref.putStream(stream).await()
+                stream.close()
+                val downloadUrl = ref.downloadUrl.await().toString()
+                val updated = userProfile.value.copy(photoUrl = downloadUrl)
+                repository.saveProfile(updated)
+                repository.syncToFirestore(updated)
+            } catch (_: Exception) {
+            } finally {
+                _photoUploading.value = false
+            }
         }
     }
 

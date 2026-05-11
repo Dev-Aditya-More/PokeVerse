@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -19,6 +20,7 @@ import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.XPProgress
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.auth.AuthState
+import com.aditya1875.pokeverse.utils.rememberAdaptiveHPaddingProfile
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -30,13 +32,14 @@ fun ProfileScreen(
     val profile by viewModel.userProfile.collectAsStateWithLifecycle()
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
+    val photoUploading by viewModel.photoUploading.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
 
     val imagePicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri ->
-        uri?.let {
-            viewModel.updatePhoto(it.toString())
-        }
+        uri?.let { viewModel.uploadAndSetPhoto(context, it) }
     }
 
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
@@ -49,6 +52,8 @@ fun ProfileScreen(
         }
     }
 
+    val hPadding = rememberAdaptiveHPaddingProfile()
+
     XPOverlay(
         result = pendingXp,
         onDismiss = { pendingXp = null }
@@ -56,7 +61,7 @@ fun ProfileScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = hPadding),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item { Spacer(Modifier.height(8.dp)) }
@@ -66,8 +71,9 @@ fun ProfileScreen(
                     profile = profile,
                     currentUser = currentUser,
                     onEditName = onEditName,
+                    photoUploading = photoUploading,
                     onEditPhoto = {
-                        imagePicker.launch("image/*")
+                        if (!photoUploading) imagePicker.launch("image/*")
                     }
                 )
             }

@@ -30,7 +30,7 @@ fun GameTimer(
     totalTime: Int,
     modifier: Modifier = Modifier
 ) {
-    val progress = timeRemaining.toFloat() / totalTime
+    val progress = if (totalTime > 0) (timeRemaining.toFloat() / totalTime).coerceIn(0f, 1f) else 0f
     val isLow = timeRemaining <= 10
     val isCritical = timeRemaining <= 5
 

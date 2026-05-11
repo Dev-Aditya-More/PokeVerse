@@ -22,6 +22,14 @@ val databaseModule = module {
         CoroutineScope(Dispatchers.IO + SupervisorJob())
     }
 
+    val migration45 = object : Migration(4, 5) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE game_scores ADD COLUMN gameType TEXT NOT NULL DEFAULT 'match'"
+            )
+        }
+    }
+
     val migration23 = object : Migration(2, 3) {
 
         override fun migrate(db: SupportSQLiteDatabase) {
@@ -106,7 +114,7 @@ val databaseModule = module {
             TeamDatabase::class.java,
             "pokeverseTeam_db"
         )
-            .addMigrations(migration23)
+            .addMigrations(migration23, migration45)
             .addCallback(object : RoomDatabase.Callback() {
 
                 override fun onCreate(db: SupportSQLiteDatabase) {

@@ -37,7 +37,7 @@ class TypeRushViewModel(
     private val xpManager: XPManager,
     private val repository: UserProfileRepository,
     billingManager: IBillingManager,
-    gameScoreDao: GameScoreDao,
+    private val gameScoreDao: GameScoreDao,
     private val generator: TypeRushQuestionGenerator,
     private val engine: TypeRushEngine,
     private val context: Context,
@@ -62,7 +62,7 @@ class TypeRushViewModel(
 
     fun canPlayHard() = subscriptionState.value is SubscriptionState.Premium
 
-    val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
+    val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScoresForGame("typerush")
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     fun prefetchSprites(questions: List<TypeRushQuestion>) {
@@ -226,6 +226,22 @@ class TypeRushViewModel(
 
             repository.updateBestScore("typerush", currentScore)
             repository.incrementGamesPlayed()
+
+            val totalQ = questions.size.coerceAtLeast(1)
+            gameScoreDao.insertScore(
+                GameScoreEntity(
+                    gameType = "typerush",
+                    difficulty = currentDifficulty.name,
+                    score = currentScore,
+                    moves = 0,
+                    timeSeconds = 0,
+                    stars = when {
+                        correctRounds.toFloat() / totalQ > 0.8f -> 3
+                        correctRounds.toFloat() / totalQ > 0.5f -> 2
+                        else -> 1
+                    }
+                )
+            )
         }
 
         _state.value = TypeRushState.Finished(

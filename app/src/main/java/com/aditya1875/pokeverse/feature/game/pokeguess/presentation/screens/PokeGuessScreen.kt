@@ -140,7 +140,7 @@ private fun SilhouetteScreen(
             else -> Color(0xFFFFD700)
         }, label = "tc"
     )
-    val timerFraction = state.timeRemaining.toFloat() / difficulty.timePerQuestion
+    val timerFraction = (state.timeRemaining.toFloat() / difficulty.timePerQuestion.coerceAtLeast(1)).coerceIn(0f, 1f)
     val timeUp = state.timeRemaining <= 0
 
     val context = LocalContext.current
@@ -224,7 +224,7 @@ private fun SilhouetteScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Silhouette card
+        // Silhouette card — height scales with available width so it fits on small screens
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -234,10 +234,15 @@ private fun SilhouetteScreen(
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.15f)),
             elevation = CardDefaults.cardElevation(0.dp)
         ) {
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+            val cardHeight = (maxWidth * 0.56f).coerceAtMost(200.dp)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .height(cardHeight),
                 contentAlignment = Alignment.Center
             ) {
                 val request = remember(state.question.spriteUrl) {
@@ -264,7 +269,8 @@ private fun SilhouetteScreen(
                     contentScale = ContentScale.Fit
                 )
             }
-        }
+            } // BoxWithConstraints
+        } // Card
 
         Spacer(Modifier.height(20.dp))
 

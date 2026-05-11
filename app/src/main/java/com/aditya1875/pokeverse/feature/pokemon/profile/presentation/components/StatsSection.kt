@@ -16,9 +16,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
@@ -72,6 +74,12 @@ fun StatsSection(profile: UserProfile) {
 @Composable
 fun GameStatsSection(profile: UserProfile) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        GameStatRow(
+            icon = Icons.Default.FlashOn,
+            title = "Who Wins?",
+            bestScore = profile.bestDuelScore,
+            accentColor = Color(0xFFE53935)
+        )
         GameStatRow(
             icon = Icons.Default.SportsEsports,
             title = "Type Rush",

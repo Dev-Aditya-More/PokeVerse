@@ -70,6 +70,7 @@ import com.aditya1875.pokeverse.ui.theme.AppTheme
 import com.aditya1875.pokeverse.ui.theme.PokeverseTheme
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
+import com.google.android.gms.ads.MobileAds
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
@@ -87,6 +88,8 @@ class MainActivity : ComponentActivity() {
 
         val billingManager by inject<IBillingManager>()
         billingManager.startConnection()
+
+        MobileAds.initialize(this)
 
         enableEdgeToEdge()
 

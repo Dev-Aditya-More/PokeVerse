@@ -7,6 +7,7 @@ import java.util.UUID
 @Entity(tableName = "game_scores")
 data class GameScoreEntity(
     @PrimaryKey val id: String = UUID.randomUUID().toString(),
+    val gameType: String = "match",
     val difficulty: String,
     val score: Int,
     val moves: Int,

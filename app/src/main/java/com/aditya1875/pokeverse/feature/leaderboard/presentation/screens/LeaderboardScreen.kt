@@ -107,15 +107,23 @@ fun LeaderboardScreen(
                 is LeaderboardState.Error -> LeaderboardError(s.message) { viewModel.load() }
                 is LeaderboardState.Success -> {
 
-                    if (s.entries.isEmpty()) {
+                    if (s.entries.isEmpty() && type == LeaderboardType.WEEKLY) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                if (type == LeaderboardType.WEEKLY) "No players yet this week"
-                                else "No trainers on the leaderboard yet",
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onBackground
-                            )
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("🏆", fontSize = 48.sp)
+                                Spacer(Modifier.height(12.dp))
+                                Text(
+                                    "New week, fresh start!",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(Modifier.height(4.dp))
+                                Text(
+                                    "Be the first to earn XP this week",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                         return@Scaffold
                     }

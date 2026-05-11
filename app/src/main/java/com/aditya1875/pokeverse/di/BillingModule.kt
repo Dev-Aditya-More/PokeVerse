@@ -1,6 +1,8 @@
 package com.aditya1875.pokeverse.di
 
+import com.aditya1875.pokeverse.data.ads.RewardedAdManager
 import com.aditya1875.pokeverse.data.billing.BillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.pokemon.home.domain.trivia.DailyTriviaManager
@@ -21,6 +23,10 @@ val billingModule = module {
 
     single<IBillingManager> {
         BillingManager(get(), get())
+    }
+
+    single<IRewardedAdManager> {
+        RewardedAdManager()
     }
 
     single {

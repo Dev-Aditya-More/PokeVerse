@@ -14,15 +14,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.aditya1875.pokeverse.utils.ScreenStateManager
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+private const val RATING_MIN_MINUTES = 20L
+private const val PREMIUM_MIN_MINUTES = 40L
+private const val MIN_GAP_BETWEEN_POPUPS_MINUTES = 5L
+private const val SLOW_POPUP_STARTUP_DELAY_MS = 4_000L
 
 enum class HomePopup { None, Update, Assets, Rating, Premium }
 
 // Single dialog visible at a time. Priority:
-//   1. Update  — if latestVersionCode > currentVersionCode and not yet shown
-//   2. Assets  — immediately on first ever HomeScreen entry
-//   3. Rating  — after 10 cumulative minutes (was 20 — too long for new users)
-//   4. Premium — 10 min after rating was handled (totalSessionMinutes >= 20)
+//   1. Update  — urgent, shows as soon as DataStore is ready
+//   2. Assets  — first-ever launch only, shows after DataStore is ready
+//   3. Rating  — after RATING_MIN_MINUTES cumulative AND 4s startup delay AND 5-min gap since last popup
+//   4. Premium — after PREMIUM_MIN_MINUTES cumulative AND same guards as Rating
 // All thresholds use accumulated DataStore minutes so they work across sessions.
 
 @Composable
@@ -46,14 +52,19 @@ fun HomePopupOrchestrator(
     var ratingShown by remember { mutableStateOf(false) }
     var premiumShown by remember { mutableStateOf(false) }
     var updateShownVersion by remember { mutableStateOf(0L) }
+    var lastPopupAtMinutes by remember { mutableLongStateOf(0L) }
     var isReady by remember { mutableStateOf(false) }
+    var slowPopupsUnlocked by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         assetsShown = ScreenStateManager.isAssetsShown(context)
         ratingShown = ScreenStateManager.isRatingShown(context)
         premiumShown = ScreenStateManager.isPremiumShown(context)
         updateShownVersion = ScreenStateManager.getUpdateShownVersion(context)
+        lastPopupAtMinutes = ScreenStateManager.getLastPopupShownAtMinutes(context)
         isReady = true
+        delay(SLOW_POPUP_STARTUP_DELAY_MS)
+        slowPopupsUnlocked = true
     }
 
     if (!isReady) return
@@ -70,19 +81,29 @@ fun HomePopupOrchestrator(
         isPremium,
         latestVersionCode,
         updateShownVersion,
-        currentVersionCode
+        currentVersionCode,
+        slowPopupsUnlocked,
+        lastPopupAtMinutes
     ) {
+        val minutesSinceLastPopup = totalSessionMinutes - lastPopupAtMinutes
+        val cooldownPassed = minutesSinceLastPopup >= MIN_GAP_BETWEEN_POPUPS_MINUTES
+
         activePopup = when {
             latestVersionCode > currentVersionCode &&
                     updateShownVersion < latestVersionCode -> HomePopup.Update
 
             !assetsShown && !originalAssetsEnabled -> HomePopup.Assets
 
-            !ratingShown && totalSessionMinutes >= 10 -> HomePopup.Rating
+            !ratingShown &&
+                    slowPopupsUnlocked &&
+                    totalSessionMinutes >= RATING_MIN_MINUTES &&
+                    cooldownPassed -> HomePopup.Rating
 
             ratingShown && !premiumShown &&
                     !isPremium && !isGuest &&
-                    totalSessionMinutes >= 20 -> HomePopup.Premium
+                    slowPopupsUnlocked &&
+                    totalSessionMinutes >= PREMIUM_MIN_MINUTES &&
+                    cooldownPassed -> HomePopup.Premium
 
             else -> HomePopup.None
         }
@@ -90,6 +111,8 @@ fun HomePopupOrchestrator(
 
     val dismissPopup: (suspend () -> Unit) -> Unit = { action ->
         coroutineScope.launch {
+            ScreenStateManager.markLastPopupShownAt(context, totalSessionMinutes)
+            lastPopupAtMinutes = totalSessionMinutes
             action()
         }
     }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
+import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.FlavorTextEntry
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.PokemonResponse
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.PokemonVariety
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.evolutionModels.EvolutionChainUi
@@ -42,6 +43,7 @@ class PokemonDetailsViewModel(
                         pokemon = result.pokemon,
                         description = result.description,
                         varieties = result.varieties,
+                        flavorTextEntries = result.flavorTextEntries,
                         isLoading = false
                     )
                 }
@@ -69,24 +71,14 @@ class PokemonDetailsViewModel(
 
     fun loadVarietyPokemon(name: String) {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = false) }
-
-            val pokemon = getPokemonByNameUseCase(name)
-
-            _uiState.update {
-                it.copy(pokemon = pokemon)
-            }
-
+            _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                _uiState.update {
-                    it.copy(pokemon = pokemon, isLoading = false)
-                }
-
+                val pokemon = getPokemonByNameUseCase(name)
+                _uiState.update { it.copy(pokemon = pokemon, isLoading = false) }
+            } catch (e: IOException) {
+                _uiState.update { it.copy(isLoading = false, error = UiError.Network(e.message)) }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    error = UiError.Unexpected(e.message)
-                )
+                _uiState.update { it.copy(isLoading = false, error = UiError.Unexpected(e.message)) }
             }
         }
     }
@@ -106,5 +98,6 @@ data class PokemonDetailUiState(
     val isLoading: Boolean = false,
     val error: UiError? = null,
     val varieties: List<PokemonVariety> = emptyList(),
-    val evolutionUi: EvolutionChainUi? = null
+    val evolutionUi: EvolutionChainUi? = null,
+    val flavorTextEntries: List<FlavorTextEntry> = emptyList()
 )

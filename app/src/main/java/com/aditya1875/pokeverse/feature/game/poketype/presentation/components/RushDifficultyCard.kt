@@ -12,11 +12,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -38,7 +40,8 @@ fun TypeRushDifficultyCard(
     difficulty: TypeRushDifficulty,
     canPlay: Boolean,
     bestScore: GameScoreEntity?,
-    onSelect: () -> Unit
+    onSelect: () -> Unit,
+    adAvailable: Boolean = false
 ) {
 
     val difficultyColor = when (difficulty) {
@@ -117,6 +120,24 @@ fun TypeRushDifficultyCard(
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                             modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+
+                if (adAvailable) {
+                    Spacer(Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.OndemandVideo,
+                            contentDescription = null,
+                            tint = Color(0xFF2196F3),
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = "Watch ad to play this round",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF2196F3)
                         )
                     }
                 }

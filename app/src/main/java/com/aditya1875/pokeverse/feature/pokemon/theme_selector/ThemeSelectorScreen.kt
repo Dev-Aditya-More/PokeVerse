@@ -88,90 +88,86 @@ fun ThemeSelectorScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
 
+        val selectedThemeData = themes.firstOrNull { it.theme == safeTheme }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
+            // Live gradient banner for selected theme
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = CardDefaults.cardElevation(4.dp)
-                ) {
-
-                    Column(
-                        modifier = Modifier.padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                selectedThemeData?.let { active ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .background(
+                                Brush.linearGradient(active.colors)
+                            ),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            "Choose Your Theme",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "Pick a theme to personalize your Pokéverse experience",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            textAlign = TextAlign.Center
-                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = active.emoji,
+                                fontSize = 36.sp
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = active.pokemonName,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Active theme",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.75f)
+                            )
+                        }
                     }
                 }
             }
 
-            items(themes) { starterTheme ->
-                val locked = starterTheme.premium && !isPremium
-                StarterThemeCard(
-                    starterTheme = starterTheme,
-                    isSelected = safeTheme == starterTheme.theme,
-                    isLocked = locked,
-                    onClick = {
-                        if (starterTheme.premium && !isPremium) {
-                            showPremiumSheet = true
-                            return@StarterThemeCard
-                        }
-
-                        scope.launch {
-                            themePreferences.setTheme(starterTheme.theme)
-                            onThemeSelected(starterTheme.theme)
-                        }
-                    }
-                )
-            }
+            item { Spacer(Modifier.height(20.dp)) }
 
             item {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.Info,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(Modifier.width(12.dp))
-                        Text(
-                            "Your theme choice will be saved and applied across the entire app",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
+                Text(
+                    text = "Choose Your Vibe",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = "Tap a theme to apply it instantly",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
+            items(themes) { starterTheme ->
+                val locked = starterTheme.premium && !isPremium
+                Box(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
+                    StarterThemeCard(
+                        starterTheme = starterTheme,
+                        isSelected = safeTheme == starterTheme.theme,
+                        isLocked = locked,
+                        onClick = {
+                            if (starterTheme.premium && !isPremium) {
+                                showPremiumSheet = true
+                                return@StarterThemeCard
+                            }
+                            scope.launch {
+                                themePreferences.setTheme(starterTheme.theme)
+                                onThemeSelected(starterTheme.theme)
+                            }
+                        }
+                    )
                 }
             }
         }

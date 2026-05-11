@@ -114,7 +114,7 @@ private fun PlayingContent(
     onBack: () -> Unit,
     modifier: Modifier
 ) {
-    val timerFraction = state.timeRemaining.toFloat() / difficulty.timePerRound
+    val timerFraction = (state.timeRemaining.toFloat() / difficulty.timePerRound.coerceAtLeast(1)).coerceIn(0f, 1f)
     val timerColor by animateColorAsState(
         targetValue = when {
             state.timeRemaining <= 3 -> Color(0xFFFF1744)
@@ -229,25 +229,34 @@ private fun PlayingContent(
 
             Spacer(Modifier.height(16.dp))
 
-            // Sprite
-            Box(modifier = Modifier.fillMaxWidth().height(190.dp), contentAlignment = Alignment.Center) {
-                Box(
-                    modifier = Modifier.size(175.dp).clip(CircleShape)
-                        .background(Brush.radialGradient(
-                            listOf(glowColor.copy(alpha = 0.2f), Color.Transparent)
-                        ))
-                )
+            // Sprite — size scales with available width so it doesn't clip on small screens
+            BoxWithConstraints(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                val spriteSize = (maxWidth * 0.46f).coerceAtMost(165.dp)
+                val glowSize = spriteSize * 1.06f
                 val painter = rememberAsyncImagePainter(request)
-
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier.size(165.dp).graphicsLayer {
-                        colorFilter = if (!difficulty.showName && !state.isLocked)
-                            ColorFilter.tint(Color.Black, BlendMode.SrcAtop) else null
-                    },
-                    contentScale = ContentScale.Fit
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth().height(spriteSize + 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier.size(glowSize).clip(CircleShape)
+                            .background(Brush.radialGradient(
+                                listOf(glowColor.copy(alpha = 0.2f), Color.Transparent)
+                            ))
+                    )
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier.size(spriteSize).graphicsLayer {
+                            colorFilter = if (!difficulty.showName && !state.isLocked)
+                                ColorFilter.tint(Color.Black, BlendMode.SrcAtop) else null
+                        },
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
 
             Text(

@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class QuizViewModel(
-    gameScoreDao: GameScoreDao,
+    private val gameScoreDao: GameScoreDao,
     billingManager: IBillingManager,
     private val xpManager: XPManager,
     private val repository: UserProfileRepository
@@ -41,7 +41,7 @@ class QuizViewModel(
 
     private var timerJob: Job? = null
 
-    val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
+    val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScoresForGame("quiz")
         .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), emptyList())
 
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
@@ -194,6 +194,17 @@ class QuizViewModel(
 
             repository.updateBestScore("quiz", gameState.score)
             repository.incrementGamesPlayed()
+
+            gameScoreDao.insertScore(
+                GameScoreEntity(
+                    gameType = "quiz",
+                    difficulty = gameState.difficulty.name,
+                    score = gameState.score,
+                    moves = 0,
+                    timeSeconds = 0,
+                    stars = stars
+                )
+            )
         }
 
         _uiState.value = QuizUiState.Finished(

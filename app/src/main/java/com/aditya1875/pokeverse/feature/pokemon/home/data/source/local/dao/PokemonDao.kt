@@ -9,7 +9,6 @@ import com.aditya1875.pokeverse.feature.pokemon.home.data.source.local.entity.Po
 
 @Dao
 interface PokemonListDao {
-
     // List
     @Query("SELECT * FROM pokemon_list WHERE page = :page")
     suspend fun getPokemonList(page: Int): PokemonListEntity?

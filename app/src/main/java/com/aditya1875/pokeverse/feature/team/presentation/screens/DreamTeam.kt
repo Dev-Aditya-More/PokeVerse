@@ -63,8 +63,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import android.app.Activity
+import android.widget.Toast
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.feature.team.presentation.components.CreateTeamDialog
+import com.aditya1875.pokeverse.feature.team.presentation.components.TeamShareDialog
+import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.components.EmptyTeamView
 import com.aditya1875.pokeverse.feature.team.presentation.components.FavoritesContent
 import com.aditya1875.pokeverse.feature.team.presentation.components.TabButton
@@ -73,7 +80,10 @@ import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesV
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,13 +92,16 @@ fun DreamTeam(
     viewModel: TeamViewModel = koinViewModel(),
     favouritesViewModel: FavouritesViewModel = koinViewModel(),
     pokemonListViewModel: PokemonListViewModel = koinViewModel(),
-    settingsViewModel: SettingsViewModel = koinViewModel()
+    settingsViewModel: SettingsViewModel = koinViewModel(),
+    profileViewModel: ProfileViewModel = koinViewModel(),
+    billingViewModel: BillingViewModel = koinViewModel()
 ) {
     val haptic = LocalHapticFeedback.current
     val favorites by favouritesViewModel.favourites.collectAsStateWithLifecycle()
     val allTeams by viewModel.allTeams.collectAsStateWithLifecycle()
     val currentTeam by viewModel.currentTeam.collectAsStateWithLifecycle()
     val currentTeamMembers by viewModel.currentTeamMembers.collectAsStateWithLifecycle()
+    val userProfile by profileViewModel.userProfile.collectAsStateWithLifecycle()
 
     val loading by pokemonListViewModel.isLoading.collectAsStateWithLifecycle()
 
@@ -99,6 +112,27 @@ fun DreamTeam(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var isEditingTeamName by remember { mutableStateOf(false) }
     var editedTeamName by remember { mutableStateOf("") }
+    var showShareDialog by remember { mutableStateOf(false) }
+    var showPremiumSheet by remember { mutableStateOf(false) }
+    val adaptiveHPadding = rememberAdaptiveHPadding()
+
+    val billingManager: IBillingManager = koinInject()
+    val subscriptionState by billingManager.subscriptionState.collectAsStateWithLifecycle()
+    val isPremium = subscriptionState is SubscriptionState.Premium
+
+    val analysisUseCount by settingsViewModel.analysisUseCount.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
+    val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
+    val lifetime by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
+    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
+    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
+    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
+    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
+
+    val analysisLimit = 10
 
     val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
         .collectAsStateWithLifecycle()
@@ -152,7 +186,7 @@ fun DreamTeam(
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 20.dp)
+                            .padding(horizontal = adaptiveHPadding)
                     ) {
                         Spacer(Modifier.height(32.dp))
 
@@ -378,8 +412,19 @@ fun DreamTeam(
                                     accentColor = MaterialTheme.colorScheme.primary,
                                     assetsEnabled = originalAssetsEnabled,
                                     onAnalyze = {
-                                        navController.navigate(Route.Analysis.createRoute(currentTeam?.teamId.toString()))
-                                    }
+                                        if (!isPremium && analysisUseCount >= analysisLimit) {
+                                            showPremiumSheet = true
+                                            Toast.makeText(
+                                                context, "You have reached the maximum number of analysis uses", Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            settingsViewModel.incrementAnalysisCount()
+                                            navController.navigate(Route.Analysis.createRoute(currentTeam?.teamId.toString()))
+                                        }
+                                    },
+                                    onShare = if (currentTeamMembers.isNotEmpty()) {
+                                        { showShareDialog = true }
+                                    } else null
                                 )
                                 1 -> FavoritesContent(
                                     favorites = favorites,
@@ -415,6 +460,41 @@ fun DreamTeam(
                     teamCreationError = null
                 },
                 errorMessage = teamCreationError
+            )
+        }
+
+        // Analysis paywall sheet
+        if (showPremiumSheet) {
+            PremiumBottomSheet(
+                onDismiss = { showPremiumSheet = false },
+                onSubscribeMonthly = {
+                    showPremiumSheet = false
+                    activity?.let { billingViewModel.purchaseMonthly(it) }
+                },
+                onSubscribeYearly = {
+                    showPremiumSheet = false
+                    activity?.let { billingViewModel.purchaseYearly(it) }
+                },
+                onSubscribeLifetime = {
+                    showPremiumSheet = false
+                    activity?.let { billingViewModel.purchaseLifetime(it) }
+                },
+                monthlyPrice = monthly,
+                yearlyPrice = yearly,
+                isSubscribeEnabled = isBillingReady,
+                lifetimePrice = lifetime
+            )
+        }
+
+        // Share Team Dialog
+        if (showShareDialog) {
+            TeamShareDialog(
+                team = currentTeamMembers,
+                teamName = currentTeam?.teamName ?: "My Team",
+                trainerName = userProfile.username,
+                trainerLevel = userProfile.level,
+                totalXp = userProfile.totalXp,
+                onDismiss = { showShareDialog = false }
             )
         }
 

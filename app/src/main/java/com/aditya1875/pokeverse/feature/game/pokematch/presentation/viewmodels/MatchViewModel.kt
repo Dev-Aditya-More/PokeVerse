@@ -52,7 +52,7 @@ class MatchViewModel(
     val xpResult: SharedFlow<XPResult> = _xpResult.asSharedFlow()
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
-    val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
+    val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScoresForGame("match")
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
@@ -330,6 +330,7 @@ class MatchViewModel(
 
         gameScoreDao.insertScore(
             GameScoreEntity(
+                gameType = "match",
                 difficulty = state.difficulty.name,
                 score = state.score,
                 moves = state.moves,

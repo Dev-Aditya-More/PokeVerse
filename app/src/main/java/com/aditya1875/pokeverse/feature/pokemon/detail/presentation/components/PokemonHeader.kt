@@ -85,6 +85,7 @@ fun PokemonDetailHeader(
     onSpriteLoaded: (Boolean) -> Unit,
     onSpriteError: (Boolean) -> Unit,
     showLoader: Boolean,
+    show3DModel: Boolean = false,
     modifier: Modifier = Modifier,
     settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
@@ -167,106 +168,116 @@ fun PokemonDetailHeader(
             }
         }
 
-        // Pokemon sprite
+        // Pokemon sprite / 3D model
         Box(
             modifier = Modifier
                 .size(220.dp)
                 .align(Alignment.Center)
                 .zIndex(4f)
         ) {
-            val hasValidSprite = currentSpriteUrl != null && !spriteError
-
-            if (hasValidSprite) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context)
-                        .data(currentSpriteUrl)
-                        .decoderFactory(SvgDecoder.Factory())
-                        .crossfade(true)
-                        .allowHardware(false)
-                        .size(Size.ORIGINAL)
-                        .build(),
-                    contentDescription = pokemon?.name,
-                    contentScale = ContentScale.Fit,
-                    imageLoader = imageLoader,
-                    onLoading = {
-                        onSpriteLoaded(false)
-                        onSpriteError(false)
-                    },
-                    onSuccess = {
-                        spriteLoaded = true
-                        onSpriteLoaded(true)
-                        onSpriteError(false)
-                    },
-                    onError = {
-                        spriteLoaded = false
-                        onSpriteLoaded(false)
-                        onSpriteError(true)
-                    },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            alpha = animatedAlpha
-                            scaleX = pressScale.value
-                            scaleY = pressScale.value
-                            if (!originalAssetsEnabled) {
-                                colorFilter = when {
-                                    isShinyEnabled -> ColorFilter.tint(
-                                        Color(0xFFFFD700),
-                                        blendMode = BlendMode.SrcAtop
-                                    )
-
-                                    else -> ColorFilter.tint(
-                                        bgColor,
-                                        blendMode = BlendMode.SrcAtop
-                                    )
-                                }
-                            }
-                        }
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onPress = {
-                                    pressScale.animateTo(1.1f, tween(150))
-                                    spriteEffectsEnabledState.value = true
-                                    tryAwaitRelease()
-                                    pressScale.animateTo(1.0f, tween(150))
-                                    spriteEffectsEnabledState.value = false
-                                }
-                            )
-                        }
-                )
-            } else {
-                SpritePlaceholder(
+            if (show3DModel && pokemon != null) {
+                LaunchedEffect(show3DModel) { spriteLoaded = true }
+                Pokemon3DModelViewer(
+                    pokemonName = pokemon.name,
                     isShiny = isShinyEnabled,
                     bgColor = bgColor,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .graphicsLayer {
-                            alpha = if (!spriteVisible) 0f else 1f
-                            scaleX = pressScale.value
-                            scaleY = pressScale.value
-                        }
+                    modifier = Modifier.fillMaxSize()
                 )
+            } else {
+                val hasValidSprite = currentSpriteUrl != null && !spriteError
 
-                LaunchedEffect(Unit) {
-                    spriteLoaded = true
+                if (hasValidSprite) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(currentSpriteUrl)
+                            .decoderFactory(SvgDecoder.Factory())
+                            .crossfade(true)
+                            .allowHardware(false)
+                            .size(Size.ORIGINAL)
+                            .build(),
+                        contentDescription = pokemon?.name,
+                        contentScale = ContentScale.Fit,
+                        imageLoader = imageLoader,
+                        onLoading = {
+                            onSpriteLoaded(false)
+                            onSpriteError(false)
+                        },
+                        onSuccess = {
+                            spriteLoaded = true
+                            onSpriteLoaded(true)
+                            onSpriteError(false)
+                        },
+                        onError = {
+                            spriteLoaded = false
+                            onSpriteLoaded(false)
+                            onSpriteError(true)
+                        },
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                alpha = animatedAlpha
+                                scaleX = pressScale.value
+                                scaleY = pressScale.value
+                                if (!originalAssetsEnabled) {
+                                    colorFilter = when {
+                                        isShinyEnabled -> ColorFilter.tint(
+                                            Color(0xFFFFD700),
+                                            blendMode = BlendMode.SrcAtop
+                                        )
+
+                                        else -> ColorFilter.tint(
+                                            bgColor,
+                                            blendMode = BlendMode.SrcAtop
+                                        )
+                                    }
+                                }
+                            }
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {
+                                        pressScale.animateTo(1.1f, tween(150))
+                                        spriteEffectsEnabledState.value = true
+                                        tryAwaitRelease()
+                                        pressScale.animateTo(1.0f, tween(150))
+                                        spriteEffectsEnabledState.value = false
+                                    }
+                                )
+                            }
+                    )
+                } else {
+                    SpritePlaceholder(
+                        isShiny = isShinyEnabled,
+                        bgColor = bgColor,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer {
+                                alpha = if (!spriteVisible) 0f else 1f
+                                scaleX = pressScale.value
+                                scaleY = pressScale.value
+                            }
+                    )
+
+                    LaunchedEffect(Unit) {
+                        spriteLoaded = true
+                    }
                 }
-            }
 
-            // Loading animation
-            AnimatedVisibility(
-                visible = showLoader,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                LottieAnimation(
-                    composition = rememberLottieComposition(
-                        LottieCompositionSpec.RawRes(R.raw.shine)
-                    ).value,
-                    iterations = LottieConstants.IterateForever,
-                    modifier = Modifier
-                        .size(200.dp)
-                        .align(Alignment.Center)
-                )
+                // Loading animation
+                AnimatedVisibility(
+                    visible = showLoader,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    LottieAnimation(
+                        composition = rememberLottieComposition(
+                            LottieCompositionSpec.RawRes(R.raw.shine)
+                        ).value,
+                        iterations = LottieConstants.IterateForever,
+                        modifier = Modifier
+                            .size(200.dp)
+                            .align(Alignment.Center)
+                    )
+                }
             }
         }
 

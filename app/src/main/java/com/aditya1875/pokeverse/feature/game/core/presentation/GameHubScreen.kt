@@ -84,6 +84,15 @@ fun GameHubScreen(
 
     val games = listOf(
         GameEntry(
+            id = "pokeduel",
+            title = "Who wins?",
+            description = "Predict battle outcomes based on type advantage!",
+            icon = Icons.Default.FlashOn,
+            accentColor = Color(0xFFFF9800),
+            tag = "Battle",
+            stats = "Strategy & Types"
+        ),
+        GameEntry(
             id = "poketype",
             title = "Type Combo",
             description = "Guess the type combo of monster",
@@ -378,151 +387,35 @@ fun FeaturedGameCard(
                     ) {
                         Box(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .clip(CircleShape)
+                                .background(accentColor.copy(alpha = 0.1f))
                                 .padding(horizontal = 10.dp, vertical = 4.dp)
                         ) {
                             Text(
                                 text = tag,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                fontWeight = FontWeight.Medium
+                                style = MaterialTheme.typography.labelMedium,
+                                color = accentColor,
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
-                        Text(
-                            text = stats,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (stats.isNotEmpty()) {
+                            Text(
+                                text = stats,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                            )
+                        }
                     }
 
-                    // Play button
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(accentColor)
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.PlayArrow,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Text(
-                            text = "Play",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.ArrowForwardIos,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(14.dp)
+                    )
                 }
             }
         }
     }
 }
-
-//@Composable
-//fun LockedGameCard(
-//    title: String,
-//    description: String,
-//    icon: ImageVector,
-//    accentColor: Color,
-//    tag: String,
-//    onClick: () -> Unit
-//) {
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .clickable(onClick = onClick),
-//        shape = RoundedCornerShape(16.dp),
-//        colors = CardDefaults.cardColors(
-//            containerColor = MaterialTheme.colorScheme.surface
-//        ),
-//        elevation = CardDefaults.cardElevation(2.dp),
-//        border = BorderStroke(
-//            1.dp,
-//            MaterialTheme.colorScheme.outline.copy(alpha = 0.2f)
-//        )
-//    ) {
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp),
-//            verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.spacedBy(16.dp)
-//        ) {
-//            Box(
-//                modifier = Modifier
-//                    .size(52.dp)
-//                    .clip(RoundedCornerShape(14.dp))
-//                    .background(
-//                        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-//                    ),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Icon(
-//                    imageVector = icon,
-//                    contentDescription = null,
-//                    tint = accentColor.copy(alpha = 0.35f),
-//                    modifier = Modifier.size(28.dp)
-//                )
-//            }
-//
-//            Column(modifier = Modifier.weight(1f)) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-//                ) {
-//                    Text(
-//                        text = title,
-//                        style = MaterialTheme.typography.titleMedium,
-//                        fontWeight = FontWeight.SemiBold,
-//                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-//                    )
-//                    Box(
-//                        modifier = Modifier
-//                            .clip(RoundedCornerShape(6.dp))
-//                            .background(MaterialTheme.colorScheme.surfaceVariant)
-//                            .padding(horizontal = 6.dp, vertical = 2.dp)
-//                    ) {
-//                        Text(
-//                            text = tag,
-//                            style = MaterialTheme.typography.labelSmall,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-//                        )
-//                    }
-//                }
-//
-//                Spacer(Modifier.height(2.dp))
-//
-//                Text(
-//                    text = description,
-//                    style = MaterialTheme.typography.bodySmall,
-//                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-//                    maxLines = 1,
-//                    overflow = TextOverflow.Ellipsis
-//                )
-//            }
-//
-//            // Lock icon
-//            Box(
-//                modifier = Modifier
-//                    .size(36.dp)
-//                    .clip(CircleShape)
-//                    .background(Color(0xFFFFD700).copy(alpha = 0.1f)),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.Lock,
-//                    contentDescription = "Locked",
-//                    tint = Color(0xFFFFD700).copy(alpha = 0.8f),
-//                    modifier = Modifier.size(18.dp)
-//                )
-//            }
-//        }
-//    }
-//}

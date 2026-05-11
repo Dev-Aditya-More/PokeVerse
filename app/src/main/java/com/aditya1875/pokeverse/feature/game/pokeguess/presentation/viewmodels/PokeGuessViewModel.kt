@@ -36,7 +36,7 @@ import kotlinx.coroutines.launch
 import kotlin.collections.forEach
 
 class PokeGuessViewModel(
-    gameScoreDao: GameScoreDao,
+    private val gameScoreDao: GameScoreDao,
     billingManager: IBillingManager,
     private val xpManager: XPManager,
     private val userRepository: UserProfileRepository,
@@ -59,7 +59,7 @@ class PokeGuessViewModel(
     private val allQuestions = mutableListOf<PokeGuessQuestion>()
     private var firstGameOfDayAwarded = false
 
-    val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScores()
+    val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScoresForGame("guess")
         .stateIn(viewModelScope, SharingStarted.Companion.WhileSubscribed(5000), emptyList())
 
     val recentScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getRecentScores()
@@ -224,6 +224,22 @@ class PokeGuessViewModel(
 
             userRepository.updateBestScore("guess", currentScore)
             userRepository.incrementGamesPlayed()
+
+            val totalQ = allQuestions.size.coerceAtLeast(1)
+            gameScoreDao.insertScore(
+                GameScoreEntity(
+                    gameType = "guess",
+                    difficulty = difficulty.name,
+                    score = currentScore,
+                    moves = 0,
+                    timeSeconds = 0,
+                    stars = when {
+                        correctAnswers.toFloat() / totalQ > 0.8f -> 3
+                        correctAnswers.toFloat() / totalQ > 0.5f -> 2
+                        else -> 1
+                    }
+                )
+            )
         }
 
         _gameState.value = GuessGameState.Finished(
