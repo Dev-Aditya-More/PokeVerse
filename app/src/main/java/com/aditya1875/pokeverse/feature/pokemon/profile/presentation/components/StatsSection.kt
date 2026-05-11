@@ -78,7 +78,7 @@ fun GameStatsSection(profile: UserProfile) {
             icon = Icons.Default.FlashOn,
             title = "Who Wins?",
             bestScore = profile.bestDuelScore,
-            accentColor = Color(0xFFE53935)
+            accentColor = Color(0xFFFF9800)
         )
         GameStatRow(
             icon = Icons.Default.SportsEsports,
