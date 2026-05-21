@@ -1,33 +1,25 @@
-# Dexverse (previously called Pokeverse)
+# Dexverse — *previously Pokeverse*
 
-> Explore the legends like never before! ✨🚀
+> **Explore the legends like never before.** ✨🚀  
+> A full-featured Pokémon companion built for trainers who want more than just a Pokédex.
 
-## Built using
-> [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Android/android2.svg">]()
-> [<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Kotlin/kotlin2.svg">]()
-
----
-
-> ## Get from
-
-  <a href="https://play.google.com/store/apps/details?id=com.aditya1875.pokeverse.play">
-    <img
-      alt="Get it on Google Play"
-      src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-      height="80"
-      />
-  </a>
-  <a href="https://github.com/Dev-Aditya-More/PokeVerse/releases">
-    <img
-      alt="Get it on GitHub"
-      src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea"
-      height="80"
-    />
-  </a>
+[<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Android/android2.svg">]()
+[<img src="https://ziadoua.github.io/m3-Markdown-Badges/badges/Kotlin/kotlin2.svg">]()
 
 ---
 
-## Screenshots (Play Store)
+## Get it
+
+<a href="https://play.google.com/store/apps/details?id=com.aditya1875.pokeverse.play">
+  <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="80"/>
+</a>
+<a href="https://github.com/Dev-Aditya-More/PokeVerse/releases">
+  <img alt="Get it on GitHub" src="https://github.com/vishal2376/snaptick/assets/38159691/f502e2ec-dbf4-4ed6-b23f-a47b74080fea" height="80"/>
+</a>
+
+---
+
+## Screenshots
 
 | ![1](fastlane/metadata/android/en-US/images/phoneScreenshots/1.png) | ![2](fastlane/metadata/android/en-US/images/phoneScreenshots/2.png) |
 |:-------------------------------------------------------------------:|:-------------------------------------------------------------------:|
@@ -35,97 +27,87 @@
 | ![5](fastlane/metadata/android/en-US/images/phoneScreenshots/5.png) | ![6](fastlane/metadata/android/en-US/images/phoneScreenshots/6.png) |
 | ![7](fastlane/metadata/android/en-US/images/phoneScreenshots/7.png) | ![8](fastlane/metadata/android/en-US/images/phoneScreenshots/8.png) |
 
----  
+---
 
 ## ✨ Features
 
-- 🎨 **Pokéball-Themed Background**  
-  Home screen background mimics the iconic Pokéball design (red, black, gray).
+**Dexverse isn't just a Pokédex — it's an experience.**
 
-- 🎨 **Held Items Exploration**  
-  Explore all the held items of pokemon in one app!.
-  
-- ❄️ **Glassmorphic Cards**  
-  Detail screen features frosted-glass UI components for stats and metadata.
+- 🎨 **Pokéball-Themed Home**  
+  The home screen takes after the iconic Pokéball design — red, black, gray. Subtle, but it hits.
 
-- ✨ **Exclusive Particle Effects**
-  Get customized particle effects for every single pokemon.
+- 🧊 **Glassmorphic Detail Cards**  
+  Frosted-glass UI on the detail screen makes stats and metadata feel premium, not sterile.
+
+- ✨ **Per-Pokémon Particle Effects**  
+  Every Pokémon gets its own custom particle effect. Yes, every single one.
 
 - 🌈 **Dynamic Type-Based Backgrounds**  
-  Background colors change based on the Pokémon’s primary type (e.g., Fire → red/orange, Water → blue).
+  Fire types burn orange. Water types flow blue. The UI reacts to the Pokémon, not the other way around.
 
-- 📸 **High-Quality Artwork**  
-  Uses official Pokémon artwork from the API for better visuals.
+- 🎒 **Held Items Explorer**  
+  Browse every held item in one place. No wiki tabs, no hunting around.
 
-- 🔙 **Smooth Navigation**  
-  Back arrow on detail screen for intuitive navigation.
+- 📸 **Official High-Quality Artwork**  
+  Pulls artwork straight from the official Pokémon API — crisp, clean, canonical.
 
----
-
-### 🧭 What's Next
-
-  - [x] 🔍 Search Pokémon by name
-
-  - [x] ⭐ Add to Favorites
-
-  - [x] 📊 Visual Stat Bars
-
-  - [x] 🗃️ Offline Support (Caching)
-
-  - [x] 🔄 Evolution Chain View
-
-  
-#### 🚀 Coming Soon
-
-- [ ] 🧩 Advanced Filters (Types, Egg Groups, Regions, Generations)  
-- [ ] 🌍 Proper Region Pokédex (Kanto, Johto, Hisui, etc.)  
-- [x] 🎮 Mini games and subscription
-- [x] ⚔️ Detailed Moves & Movesets (TMs, Egg Moves, Tutors)  
-- [x] 🧠 Smarter Team Builder (Type coverage & weaknesses)  
-- [x] 🎨 Clean Welcome Screen
-- [ ] 🏷️ Better Sorting (Stats, Name, Dex No, Type)  
-- [x] 📱 UI & Performance Improvements  
-- [ ] 🚀 Pokemon 3D Sprites without losing much performance
-- [ ] ✨ Pokemon Battle Simulator for more fun!
-  
----
-
-### 🔧 Tech Stack
-
-  * Jetpack Compose
-
-  * Retrofit2 + Coroutines
-
-  * Material 3 (M3)
-
-  * Coil for Image Loading
-
-  * Koin (for di)
+- 🔙 **Smooth, Intuitive Navigation**  
+  Clean transitions, back arrows where they belong, and navigation that just *feels* right.
 
 ---
 
-📦 API Source
+## 🗺️ Roadmap
 
-Data is fetched from ![PokeAPI](https://pokeapi.co/)
+### Already shipped
+- [x] 🔍 Search Pokémon by name
+- [x] ⭐ Favorites
+- [x] 📊 Visual stat bars
+- [x] 🗃️ Offline caching
+- [x] 🔄 Evolution chain view
+- [x] 🎮 Mini-games & subscription
+- [x] ⚔️ Detailed moves & movesets (TMs, Egg Moves, Tutors)
+- [x] 🧠 Team Builder with type coverage & weaknesses
+- [x] 🎨 Welcome screen polish
+- [x] 📱 UI & performance improvements
+
+### Coming up
+- [ ] 🧩 Advanced filters — types, egg groups, regions, generations
+- [ ] 🌍 Proper regional Pokédex (Kanto, Johto, Hisui, and more)
+- [ ] 🏷️ Better sorting — by stats, name, Dex No., type
+- [ ] 🚀 3D Pokémon sprites without the performance hit
+- [ ] ✨ Battle Simulator — because why not?
 
 ---
 
-## Get us a Coffee
+## 🔧 Tech Stack
+
+| Layer | Tech |
+|---|---|
+| UI | Jetpack Compose + Material 3 |
+| Networking | Retrofit 2 + Coroutines |
+| Images | Coil |
+| DI | Koin |
+
+---
+
+## 📦 Data
+
+Powered by [PokeAPI](https://pokeapi.co/) — the open, community-built Pokémon REST API.
+
+---
+
+## Support the project
 
 [![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-donate-yellow.svg)](https://buymeacoffee.com/aditya1875q)
 
 ---
 
-## Follow us on
+## Stay in the loop
 
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/Dexverse_App.svg?style=social&label=Follow%20%40Dexverse_App)](https://twitter.com/Dexverse_App)
-
-## Checkout the website too!
-
+&nbsp;
 [![Website](https://img.shields.io/badge/Website-Visit-blue)](https://dexverse-web.vercel.app)
 
---- 
+---
 
-💡 Credits
-
-Made with ❤️ by Aditya More.
+Made with ❤️ by [Aditya More](https://github.com/Dev-Aditya-More).
