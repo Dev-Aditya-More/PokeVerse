@@ -26,6 +26,7 @@ import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.core.navigation.components.WithBottomBar
 import com.aditya1875.pokeverse.feature.core.ui.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
+import com.aditya1875.pokeverse.feature.game.cardclash.presentation.screen.CardClashScreen
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.screens.DuelGameScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessDifficultyScreen
@@ -81,6 +82,7 @@ fun AppNavGraph(
             Route.BottomBar.Team.route -> Route.BottomBar.Team
             Route.BottomBar.Game.route -> Route.BottomBar.Game
             Route.BottomBar.Profile.route -> Route.BottomBar.Profile
+            Route.BottomBar.Clash.route -> Route.BottomBar.Clash
             else -> selectedRoute
         }
     }
@@ -216,6 +218,12 @@ fun AppNavGraph(
                             navController.navigate(Route.EditProfile.route)
                         }
                     )
+                }
+            }
+
+            composable(Route.BottomBar.Clash.route) {
+                WithBottomBar(navController = navController) {
+                    CardClashScreen()
                 }
             }
 
@@ -427,7 +435,8 @@ fun AppNavGraph(
             Route.BottomBar.Team.route,
             Route.BottomBar.Game.route,
             Route.BottomBar.Leaderboard.route,
-            Route.BottomBar.Profile.route
+            Route.BottomBar.Profile.route,
+            Route.BottomBar.Clash.route
         )
 
         LaunchedEffect(navController) {

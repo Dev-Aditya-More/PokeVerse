@@ -18,6 +18,11 @@ sealed class XPEvent {
     object FirstGameOfDay : XPEvent()
 
     object FirstExplorationOfDay : XPEvent()
+
+    // Card Clash multiplayer
+    object CardClashWin : XPEvent()
+    object CardClashRoundWin : XPEvent()
+    object CardClashPerfect : XPEvent()
 }
 
 object XPValues {
@@ -37,7 +42,11 @@ object XPValues {
     const val GUESS_COMPLETE = 20
 
     const val FIRST_GAME_OF_DAY = 50
-    const val FIRST_EXPLORATION_OF_DAY = 20  // ← NEW
+    const val FIRST_EXPLORATION_OF_DAY = 20
+
+    const val CLASH_WIN = 60
+    const val CLASH_ROUND_WIN = 8
+    const val CLASH_PERFECT = 40
 }
 
 // ─── Result returned after awarding XP ───────────────────────────────────────

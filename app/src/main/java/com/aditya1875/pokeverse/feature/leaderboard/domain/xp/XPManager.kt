@@ -87,6 +87,12 @@ class XPManager(
                 if (profile.lastExplorationXpDate == today) return noOpResult(profile)
                 XPValues.FIRST_EXPLORATION_OF_DAY to "First Exploration Today! +${XPValues.FIRST_EXPLORATION_OF_DAY} XP 🔍"
             }
+            is XPEvent.CardClashWin ->
+                XPValues.CLASH_WIN to "Clash Victory! +${XPValues.CLASH_WIN} XP"
+            is XPEvent.CardClashRoundWin ->
+                XPValues.CLASH_ROUND_WIN to "Round Won +${XPValues.CLASH_ROUND_WIN} XP"
+            is XPEvent.CardClashPerfect ->
+                XPValues.CLASH_PERFECT to "Perfect Sweep! +${XPValues.CLASH_PERFECT} XP"
         }
 
         if (gained == 0) return noOpResult(profile)

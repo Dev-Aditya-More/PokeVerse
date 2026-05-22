@@ -19,7 +19,7 @@
             android:name=".MainActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"
-            android:theme="@style/Theme.Dexverse">
+            android:theme="@style/Theme.PokeVerse">
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

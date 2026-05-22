@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.di
 
+import com.aditya1875.pokeverse.feature.game.cardclash.data.repository.CardClashRepository
+import com.aditya1875.pokeverse.feature.game.cardclash.data.repository.CardClashRepositoryImpl
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardRepository
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.PokemonDetailImpl
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.repository.PokemonDetailRepo
@@ -31,6 +33,8 @@ val repositoryModule = module {
     single { DescriptionRepo(get()) }
 
     single { LeaderboardRepository() }
+
+    single<CardClashRepository> { CardClashRepositoryImpl(get()) }
 
     single { TeamMapper }
 
