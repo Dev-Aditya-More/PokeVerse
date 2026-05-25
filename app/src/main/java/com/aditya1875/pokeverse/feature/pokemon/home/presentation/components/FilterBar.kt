@@ -18,7 +18,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.PokemonFilter
 import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.PokemonType
 import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.Region
@@ -47,13 +49,13 @@ fun FilterBar(
                 val selected = currentFilter.selectedRegion == null
                 FilterChip(
                     onClick = { onRegionChange(null) },
-                    label = { Text("All Regions") },
+                    label = { Text(stringResource(R.string.filter_all_regions)) },
                     selected = selected,
                     leadingIcon = if (selected) {
                         {
                             Icon(
                                 imageVector = Icons.Filled.Done,
-                                contentDescription = "Selected",
+                                contentDescription = stringResource(R.string.filter_selected),
                                 modifier = Modifier.size(FilterChipDefaults.IconSize),
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -77,7 +79,7 @@ fun FilterBar(
                         {
                             Icon(
                                 imageVector = Icons.Filled.Done,
-                                contentDescription = "Selected",
+                                contentDescription = stringResource(R.string.filter_selected),
                                 modifier = Modifier.size(FilterChipDefaults.IconSize),
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -100,14 +102,14 @@ fun FilterBar(
                 val selected = currentFilter.selectedType == null
                 FilterChip(
                     onClick = { onTypeChange(null) },
-                    label = { Text("All Types") },
+                    label = { Text(stringResource(R.string.filter_all_types)) },
                     selected = selected,
                     leadingIcon = if (selected) {
                         {
                             if(!isTypeFiltering) {
                                 Icon(
                                     imageVector = Icons.Filled.Done,
-                                    contentDescription = "Selected",
+                                    contentDescription = stringResource(R.string.filter_selected),
                                     modifier = Modifier.size(FilterChipDefaults.IconSize),
                                     tint = MaterialTheme.colorScheme.onPrimary
                                 )
@@ -134,7 +136,7 @@ fun FilterBar(
                         {
                             Icon(
                                 imageVector = Icons.Filled.Done,
-                                contentDescription = "Selected",
+                                contentDescription = stringResource(R.string.filter_selected),
                                 modifier = Modifier.size(FilterChipDefaults.IconSize),
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )

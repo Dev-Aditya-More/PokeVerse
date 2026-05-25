@@ -22,10 +22,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
+import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.feature.item.data.source.remote.model.itemModels.ItemUiModel
@@ -137,8 +139,8 @@ fun ItemListError(message: String, onRetry: () -> Unit) {
     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center) {
         Text("⚠️", fontSize = 40.sp); Spacer(Modifier.height(8.dp))
-        Text("Failed to load items", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.item_failed_to_load), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onRetry) { Text("Retry") }
+        Button(onClick = onRetry) { Text(stringResource(R.string.action_retry)) }
     }
 }

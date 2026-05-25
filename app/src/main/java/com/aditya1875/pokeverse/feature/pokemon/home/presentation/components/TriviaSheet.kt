@@ -15,9 +15,11 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
+import com.aditya1875.pokeverse.R
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.feature.pokemon.home.domain.model.DailyTriviaState
@@ -69,13 +71,13 @@ fun DailyTriviaSheet(state: TriviaUiState, onDismiss: () -> Unit, onAnswer: (cor
                 Column(horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     CircularProgressIndicator()
-                    Text("Loading today's Pokémon…", style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.trivia_loading), style = MaterialTheme.typography.bodyMedium)
                 }
             }
             is TriviaUiState.Ready -> TriviaContent(trivia = state.trivia, onAnswer = onAnswer, onDismiss = onDismiss)
             is TriviaUiState.Error -> Box(Modifier.fillMaxWidth().height(180.dp),
                 contentAlignment = Alignment.Center) {
-                Text("Couldn't load trivia. Try again later.",
+                Text(stringResource(R.string.trivia_error),
                     style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center)
             }
             else -> {}
@@ -90,12 +92,12 @@ private fun TriviaContent(trivia: DailyTriviaState, onAnswer: (Boolean) -> Unit,
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically) {
             Column {
-                Text("Daily Pokémon", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
-                Text("Who's that Pokémon?", style = MaterialTheme.typography.bodyMedium,
+                Text(stringResource(R.string.trivia_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                Text(stringResource(R.string.trivia_subtitle), style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Surface(shape = RoundedCornerShape(8.dp), color = MaterialTheme.colorScheme.secondaryContainer) {
-                Text("Gen ${trivia.generation}", modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                Text(stringResource(R.string.trivia_generation, trivia.generation), modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
             }
         }
@@ -161,10 +163,10 @@ private fun GuessingTriviaContent(trivia: DailyTriviaState, onAnswer: (Boolean) 
                 horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Text(if (gotIt) "🎉" else "💀", fontSize = 24.sp)
                 Column {
-                    Text(if (gotIt) "Nailed it!" else "So close!", fontWeight = FontWeight.Black,
+                    Text(if (gotIt) stringResource(R.string.trivia_nailed_it) else stringResource(R.string.trivia_so_close), fontWeight = FontWeight.Black,
                         color = if (gotIt) Color(0xFF4CAF50) else Color(0xFFFF1744))
-                    Text(if (gotIt) "Come back tomorrow for a new one."
-                    else "It was ${trivia.pokemonName.replaceFirstChar { it.uppercase() }}.",
+                    Text(if (gotIt) stringResource(R.string.trivia_come_back_tomorrow)
+                    else stringResource(R.string.trivia_it_was, trivia.pokemonName.replaceFirstChar { it.uppercase() }),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -260,8 +262,8 @@ private fun RevealedTriviaContent(trivia: DailyTriviaState, onDismiss: () -> Uni
         Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(if (trivia.wasCorrect) "✅" else "😅", fontSize = 22.sp)
-            Text(if (trivia.wasCorrect) "You guessed it! Come back tomorrow."
-            else "Better luck tomorrow!", style = MaterialTheme.typography.bodyMedium,
+            Text(if (trivia.wasCorrect) stringResource(R.string.trivia_guessed_correct)
+            else stringResource(R.string.trivia_better_luck), style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold)
         }
     }
@@ -279,7 +281,7 @@ private fun RevealedTriviaContent(trivia: DailyTriviaState, onDismiss: () -> Uni
     TriviaHints(trivia)
     Spacer(Modifier.height(20.dp))
     OutlinedButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp),
-        shape = RoundedCornerShape(12.dp)) { Text("Close") }
+        shape = RoundedCornerShape(12.dp)) { Text(stringResource(R.string.action_close)) }
 }
 
 @Composable
@@ -287,11 +289,11 @@ private fun TriviaHints(trivia: DailyTriviaState) {
     Card(shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Hints", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.trivia_hints_title), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 HintChip("📏 ${trivia.height / 10.0}m")
                 HintChip("⚖️ ${trivia.weight / 10.0}kg")
-                HintChip("Gen ${trivia.generation}")
+                HintChip(stringResource(R.string.trivia_generation, trivia.generation))
             }
             val statNames = mapOf("hp" to "HP", "attack" to "ATK", "defense" to "DEF",
                 "special-attack" to "SpA", "special-defense" to "SpD", "speed" to "SPD")

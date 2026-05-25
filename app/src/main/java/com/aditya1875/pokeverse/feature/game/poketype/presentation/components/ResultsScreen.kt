@@ -3,16 +3,19 @@ package com.aditya1875.pokeverse.feature.game.poketype.presentation.components
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Speed
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameResultLayout
+import com.aditya1875.pokeverse.feature.game.core.presentation.ResultHeroIcon
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatChips
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatRow
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushState
@@ -39,36 +42,43 @@ fun TypeRushResultScreen(
 
     GameResultLayout(
         title = when (stars) {
-            3 -> "Type Master!"
-            2 -> "Well Typed!"
-            1 -> "Keep Rushing!"
-            else -> "Type Learner"
+            3 -> stringResource(R.string.result_title_type_master)
+            2 -> stringResource(R.string.result_title_well_typed)
+            1 -> stringResource(R.string.result_title_keep_rushing)
+            else -> stringResource(R.string.result_title_type_learner)
         },
-        subtitle = "Pokémon Type Rush",
+        subtitle = stringResource(R.string.typerush_subtitle),
         score = state.score.toString(),
-        scoreLabel = "POINTS",
+        scoreLabel = stringResource(R.string.result_score_label_points),
         heroColor = heroColor,
         stars = stars,
         onPlayAgain = onPlayAgain,
         onBack = onBack,
         heroContent = {
-            Text("⚡", fontSize = 64.sp)
+            ResultHeroIcon(
+                icon = when (stars) {
+                    3    -> Icons.Default.EmojiEvents
+                    2    -> Icons.Default.Bolt
+                    else -> Icons.Default.Speed
+                },
+                heroColor = heroColor
+            )
         },
         statsContent = {
             ResultStatChips(
-                "Correct"  to "${state.correctRounds}/${state.totalRounds}",
-                "Accuracy" to "${(pct * 100).toInt()}%",
-                "Mode"     to state.difficulty.label
+                stringResource(R.string.typerush_stat_correct)  to "${state.correctRounds}/${state.totalRounds}",
+                stringResource(R.string.typerush_stat_accuracy) to "${(pct * 100).toInt()}%",
+                stringResource(R.string.typerush_stat_mode)     to state.difficulty.label
             )
             Spacer(Modifier.height(16.dp))
             ResultStatRow(
-                label = "Rounds completed",
+                label = stringResource(R.string.typerush_stat_rounds),
                 value = "${state.correctRounds} / ${state.totalRounds}",
                 icon = Icons.Default.CheckCircle,
                 valueColor = heroColor
             )
             ResultStatRow(
-                label = "Difficulty",
+                label = stringResource(R.string.label_difficulty),
                 value = state.difficulty.label,
                 icon = Icons.Default.Speed,
                 isLast = true

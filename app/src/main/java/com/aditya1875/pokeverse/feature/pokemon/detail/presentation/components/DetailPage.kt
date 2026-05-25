@@ -113,7 +113,7 @@ import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.aditya1875.pokeverse.utils.rememberDetailHeaderMaxWidth
 import org.koin.androidx.compose.koinViewModel
 
-@Suppress("ViewModelForwarding")
+@Suppress("EffectKeys")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class
@@ -129,7 +129,7 @@ fun PokemonDetailPage(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pokemon = uiState.pokemon
     val spriteEffectsEnabled = spriteEffectsEnabledState.value
-    val typeList = remember { pokemon?.types?.map { it.type.name } ?: emptyList() }
+    val typeList = pokemon?.types?.map { it.type.name } ?: emptyList()
     val currentNameForBg = pokemon?.name ?: ""
     val context = LocalContext.current
 
@@ -276,36 +276,6 @@ fun PokemonDetailPage(
     val show3DModel = currentSpriteSource == "go"
     val adaptiveHPadding = rememberAdaptiveHPadding()
     val headerMaxWidth = rememberDetailHeaderMaxWidth()
-
-    val movesByMethod: Map<String, List<DisplayMove>> =
-        remember {
-            pokemon?.moves
-                ?.flatMap { move ->
-                    move.version_group_details.map { detail ->
-                        Triple(
-                            move.move.name,
-                            detail.move_learn_method.name,
-                            detail.level_learned_at
-                        )
-                    }
-                }
-                ?.groupBy { it.second }
-                ?.mapValues { (_, entries) ->
-                    entries
-                        .groupBy { it.first }
-                        .map { (moveName, sameMoves) ->
-                            val minLevel = sameMoves.minOf { it.third }
-                            if (minLevel > 0)
-                                DisplayMove(moveName, minLevel)
-                            else
-                                DisplayMove(moveName, null)
-                        }
-                        .sortedWith(
-                            compareBy<DisplayMove> { it.level ?: Int.MAX_VALUE }
-                                .thenBy { it.name }
-                        )
-                } ?: emptyMap()
-        }
 
     fun getSpriteUrl(source: String, shiny: Boolean): String? {
         return when (source) {
@@ -736,7 +706,7 @@ fun PokemonDetailPage(
                             .padding(horizontal = adaptiveHPadding),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        item(contentType = "contentType1") {
+                        item {
                             Box(
                                 modifier = Modifier.fillMaxWidth(),
                                 contentAlignment = Alignment.Center
@@ -772,7 +742,7 @@ fun PokemonDetailPage(
                         }
 
                         // Basic Info
-                        item(contentType = "contentType2") {
+                        item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
@@ -791,7 +761,7 @@ fun PokemonDetailPage(
                             }
                         }
 
-                        item(contentType = "contentType3") {
+                        item {
                             var selectedType by remember { mutableStateOf<String?>(null) }
 
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
@@ -852,7 +822,7 @@ fun PokemonDetailPage(
                         }
 
                         // Abilities
-                        item(contentType = "contentType4") {
+                        item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
 
@@ -893,14 +863,17 @@ fun PokemonDetailPage(
                                                 }
 
                                             Row(
-                                                modifier = Modifier.fillMaxWidth()
-                                                    .clip(RoundedCornerShape(8.dp)).background(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clip(RoundedCornerShape(8.dp))
+                                                    .background(
                                                         backBrush
-                                                    ).clickable {
+                                                    )
+                                                    .padding(horizontal = 12.dp, vertical = 10.dp)
+                                                    .clickable {
                                                         val name = ability.ability.name
-                                                        selectedAbility =
-                                                            if (selectedAbility == name) null else name
-                                                    }.padding(horizontal = 12.dp, vertical = 10.dp),
+                                                        selectedAbility = if (selectedAbility == name) null else name
+                                                    },
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
@@ -960,7 +933,7 @@ fun PokemonDetailPage(
                         }
 
                         if (descriptionText.isNotBlank()) {
-                            item(contentType = "contentType5") {
+                            item {
                                 GlossyCard {
                                     InfoBlock(
                                         title = "Overview",
@@ -977,7 +950,7 @@ fun PokemonDetailPage(
                         }
 
                         // stats
-                        item(contentType = "contentType6") {
+                        item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
@@ -1009,10 +982,7 @@ fun PokemonDetailPage(
                                                 horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
                                                 Text(
-                                                    text = statLabel(stat.stat.name).replace(
-                                                        "-",
-                                                        " "
-                                                    )
+                                                    text = statLabel(stat.stat.name).replace("-", " ")
                                                         .replaceFirstChar { it.uppercase() },
                                                     style = MaterialTheme.typography.bodyMedium,
                                                     color = MaterialTheme.colorScheme.onSurface.copy(
@@ -1061,20 +1031,107 @@ fun PokemonDetailPage(
                                             }
                                         }
                                     }
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                    )
+
+                                    val totalBst = pokemon.stats.sumOf { it.base_stat }
+                                    val totalAnimated by animateFloatAsState(
+                                        targetValue = (totalBst / 720f).coerceIn(0f, 1f),
+                                        animationSpec = tween(
+                                            durationMillis = 2500,
+                                            delayMillis = pokemon.stats.size * 120,
+                                            easing = FastOutSlowInEasing
+                                        ),
+                                        label = "totalBstAnimation"
+                                    )
+
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 6.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = "Total",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            Text(
+                                                text = totalBst.toString(),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = bgColor,
+                                                modifier = Modifier.width(40.dp),
+                                                textAlign = TextAlign.End
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(10.dp)
+                                                .clip(RoundedCornerShape(50))
+                                                .background(
+                                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                                                )
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(totalAnimated)
+                                                    .fillMaxHeight()
+                                                    .clip(RoundedCornerShape(50))
+                                                    .background(
+                                                        Brush.horizontalGradient(
+                                                            listOf(bgColor.copy(alpha = 0.7f), bgColor)
+                                                        )
+                                                    )
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
 
-                        item(contentType = "contentType7") {
-                            var selectedMethod by rememberSaveable { mutableStateOf<String?>(null) }
+                        val movesByMethod: Map<String, List<DisplayMove>> =
+                            pokemon.moves
+                                .flatMap { move ->
+                                    move.version_group_details.map { detail ->
+                                        Triple(
+                                            move.move.name,
+                                            detail.move_learn_method.name,
+                                            detail.level_learned_at
+                                        )
+                                    }
+                                }
+                                .groupBy { it.second }
+                                .mapValues { (_, entries) ->
+                                    entries
+                                        .groupBy { it.first }
+                                        .map { (moveName, sameMoves) ->
+                                            val minLevel = sameMoves.minOf { it.third }
+                                            if (minLevel > 0)
+                                                DisplayMove(moveName, minLevel)
+                                            else
+                                                DisplayMove(moveName, null)
+                                        }
+                                        .sortedWith(
+                                            compareBy<DisplayMove> { it.level ?: Int.MAX_VALUE }
+                                                .thenBy { it.name }
+                                        )
+                                }
 
-                            val orderedMethods = listOf("level-up", "machine", "tutor", "egg")
-                            val availableMethods = remember {
-                                orderedMethods.filter { movesByMethod.containsKey(it) } +
-                                        movesByMethod.keys.filter { it !in orderedMethods }
-                            }
-                            val activeMethod = selectedMethod?.takeIf { it in availableMethods }
-                                ?: availableMethods.firstOrNull()
+                        item {
+                            var expandedMethod by rememberSaveable { mutableStateOf<String?>(null) }
 
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
@@ -1087,72 +1144,90 @@ fun PokemonDetailPage(
 
                                     Spacer(Modifier.height(12.dp))
 
-                                    LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        items(availableMethods) { method ->
-                                            val label = when (method) {
-                                                "level-up" -> "Level Up"
-                                                "machine" -> "TM / HM"
-                                                "tutor" -> "Tutor"
-                                                "egg" -> "Egg"
-                                                else -> method.replaceFirstChar { it.uppercase() }
-                                            }
-                                            val count = movesByMethod[method]?.size ?: 0
-                                            FilterChip(
-                                                selected = method == activeMethod,
-                                                onClick = { selectedMethod = method },
-                                                label = {
-                                                    Text(
-                                                        text = "$label ($count)",
-                                                        style = MaterialTheme.typography.labelMedium
-                                                    )
-                                                },
-                                                colors = FilterChipDefaults.filterChipColors(
-                                                    selectedContainerColor = bgColor.copy(alpha = 0.22f),
-                                                    selectedLabelColor = MaterialTheme.colorScheme.onSurface,
-                                                    labelColor = MaterialTheme.colorScheme.onSurface.copy(
-                                                        alpha = 0.55f
-                                                    )
-                                                )
-                                            )
+                                    movesByMethod.forEach { (method, moves) ->
+
+                                        val displayName = when (method) {
+                                            "level-up" -> "Level Up"
+                                            "machine" -> "TM / HM"
+                                            "tutor" -> "Move Tutor"
+                                            "egg" -> "Egg Moves"
+                                            else -> method.replaceFirstChar { it.uppercase() }
                                         }
-                                    }
 
-                                    Spacer(Modifier.height(10.dp))
+                                        val isExpanded = expandedMethod == method
 
-                                    activeMethod?.let { method ->
+                                        // Header
                                         Row(
                                             modifier = Modifier
                                                 .fillMaxWidth()
-                                                .padding(horizontal = 4.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .background(bgColor.copy(alpha = 0.18f))
+                                                .clickable {
+                                                    expandedMethod = if (isExpanded) null else method
+                                                }
+                                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Text(
-                                                text = "Move",
-                                                style = MaterialTheme.typography.labelSmall,
-                                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                                    alpha = 0.4f
-                                                ),
-                                                modifier = Modifier.weight(1f)
+                                            Text("$displayName (${moves.size})")
+                                            Icon(
+                                                imageVector = if (isExpanded)
+                                                    Icons.Default.KeyboardArrowUp
+                                                else
+                                                    Icons.Default.KeyboardArrowDown,
+                                                contentDescription = null
                                             )
-                                            if (method == "level-up") {
-                                                Text(
-                                                    text = "Level",
-                                                    style = MaterialTheme.typography.labelSmall,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(
-                                                        alpha = 0.4f
-                                                    )
-                                                )
+                                        }
+
+                                        Spacer(Modifier.height(8.dp))
+
+                                        moves.take(6).chunked(2).forEach { pair ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                pair.forEach { move ->
+                                                    MoveChip(move, method, bgColor, Modifier.weight(1f))
+                                                }
+                                                if (pair.size < 2) Spacer(Modifier.weight(1f))
+                                            }
+                                            Spacer(Modifier.height(6.dp))
+                                        }
+
+                                        AnimatedVisibility(visible = isExpanded) {
+                                            Column {
+                                                moves.drop(6).chunked(2).forEach { pair ->
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                    ) {
+                                                        pair.forEach { move ->
+                                                            MoveChip(move, method, bgColor, Modifier.weight(1f))
+                                                        }
+                                                        if (pair.size < 2) Spacer(Modifier.weight(1f))
+                                                    }
+                                                    Spacer(Modifier.height(6.dp))
+                                                }
                                             }
                                         }
 
-                                        Spacer(Modifier.height(4.dp))
-                                        HorizontalDivider(color = bgColor.copy(alpha = 0.18f))
-                                        Spacer(Modifier.height(6.dp))
-
-                                        val moves = movesByMethod[method] ?: emptyList()
-                                        moves.forEach { move ->
-                                            MoveRow(move, method, bgColor)
+                                        // Toggle
+                                        if (moves.size > 6) {
+                                            Text(
+                                                text = if (isExpanded) "Show less" else "Show all",
+                                                modifier = Modifier
+                                                    .align(Alignment.End)
+                                                    .clickable {
+                                                        expandedMethod =
+                                                            if (isExpanded) null else method
+                                                    }
+                                                    .padding(6.dp),
+                                                color = bgColor,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
                                         }
+
+                                        Spacer(Modifier.height(12.dp))
                                     }
                                 }
                             }
@@ -1160,7 +1235,7 @@ fun PokemonDetailPage(
 
                         // Mega Evolutions / Other Forms
                         if (uiState.varieties.isNotEmpty()) {
-                            item(contentType = "contentType9") {
+                            item {
                                 GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                     Column(modifier = Modifier.padding(16.dp)) {
                                         Text(
@@ -1172,9 +1247,7 @@ fun PokemonDetailPage(
                                         Spacer(modifier = Modifier.height(12.dp))
 
                                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                            items(
-                                                items = uiState.varieties,
-                                                contentType = { _ -> "contentType1" }) { variety ->
+                                            items(uiState.varieties) { variety ->
                                                 ElevatedAssistChip(
                                                     onClick = {
                                                         val formName = variety.pokemon.name
@@ -1209,7 +1282,7 @@ fun PokemonDetailPage(
                             }
                         }
 
-                        item(contentType = "contentType11") {
+                        item {
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
@@ -1297,55 +1370,39 @@ fun PokemonDetailPage(
 }
 
 @Composable
-fun MoveRow(move: DisplayMove, method: String, bgColor: Color) {
+fun MoveChip(move: DisplayMove, method: String, bgColor: Color, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(bgColor.copy(alpha = 0.08f))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .background(bgColor.copy(alpha = 0.12f))
+            .padding(horizontal = 10.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(7.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(bgColor.copy(alpha = 0.5f))
-        )
-
-        Spacer(Modifier.width(10.dp))
-
         Text(
-            text = move.name
-                .replace("-", " ")
-                .split(" ")
-                .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } },
+            text = move.name.replace("-", " ").replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
             modifier = Modifier.weight(1f),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
-
-        if (method == "level-up") {
-            val levelLabel = if (move.level != null) "Lv. ${move.level}" else "Lv. 1"
+        if (method == "level-up" && move.level != null) {
+            Spacer(Modifier.width(4.dp))
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(bgColor.copy(alpha = 0.2f))
-                    .padding(horizontal = 10.dp, vertical = 4.dp),
-                contentAlignment = Alignment.Center
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(bgColor.copy(alpha = 0.4f))
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
-                    text = levelLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = "${move.level}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
     }
-
-    Spacer(Modifier.height(4.dp))
 }
 
 @Composable

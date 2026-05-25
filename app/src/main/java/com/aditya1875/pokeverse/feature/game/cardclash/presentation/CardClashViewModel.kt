@@ -91,7 +91,7 @@ class CardClashViewModel(
                         isPlayer1 = false
                         onJoinedAsPlayer2(matchId)
                     } else {
-                        // No open match — create one and wait
+                        // No open match — create one and wait for anyone to join
                         isPlayer1 = true
                         runCatching { repository.createMatch(myId, myName) }
                             .onSuccess { newMatchId ->
@@ -99,7 +99,8 @@ class CardClashViewModel(
                                     it.copy(
                                         phase = ClashPhase.WAITING_FOR_OPPONENT,
                                         matchId = newMatchId,
-                                        isLoading = false
+                                        isLoading = false,
+                                        isRandomWait = true
                                     )
                                 }
                                 startObserving(newMatchId)

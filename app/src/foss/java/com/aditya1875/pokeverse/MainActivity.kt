@@ -40,6 +40,7 @@ import com.aditya1875.pokeverse.presentation.screens.splash.SplashScreen
 import com.aditya1875.pokeverse.presentation.screens.team.DreamTeam
 import com.aditya1875.pokeverse.presentation.screens.theme.ThemeSelectorScreen
 import com.aditya1875.pokeverse.presentation.ui.viewmodel.PokemonViewModel
+import com.aditya1875.pokeverse.utils.LocaleHelper
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.aditya1875.pokeverse.utils.WithBottomBar
@@ -50,6 +51,10 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.context.GlobalContext.startKoin
 class MainActivity : ComponentActivity() {
+
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)

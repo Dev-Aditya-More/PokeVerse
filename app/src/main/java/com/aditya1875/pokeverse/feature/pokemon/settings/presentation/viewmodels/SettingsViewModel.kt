@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.utils.LocaleHelper
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.aditya1875.pokeverse.utils.ScreenStateManager.dataStore
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -142,5 +143,14 @@ class SettingsViewModel(
         viewModelScope.launch {
             ScreenStateManager.setSpecialEffectsEnabled(context, safeValue)
         }
+    }
+
+    // ── Language preference ───────────────────────────────────────────────────
+    private val _selectedLanguage = MutableStateFlow(LocaleHelper.getSelectedLanguage(context))
+    val selectedLanguage: StateFlow<String> = _selectedLanguage.asStateFlow()
+
+    fun setLanguage(languageTag: String) {
+        LocaleHelper.setSelectedLanguage(context, languageTag)
+        _selectedLanguage.value = languageTag
     }
 }

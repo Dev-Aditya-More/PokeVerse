@@ -118,37 +118,37 @@ class LeaderboardRepository {
         type: LeaderboardType = LeaderboardType.GLOBAL
     ): LeaderboardState {
         val cursor = lastDocs[type] ?: return LeaderboardState.Error("No more pages")
-        val field = when (type) {
-            LeaderboardType.GLOBAL -> "totalXp"
-            LeaderboardType.WEEKLY -> "weeklyXp"
-        }
         val cachedEntries = cache[type] ?: emptyList()
 
         return try {
-            val snapshot = firestore.collection("leaderboard")
-                .orderBy(field, Query.Direction.DESCENDING)
-                .orderBy("updatedAt", Query.Direction.ASCENDING)
-                .startAfter(cursor)
-                .limit(PAGE_SIZE)
-                .get().await()
+            // Query must exactly mirror the initial load query for startAfter cursor to work
+            val snapshot = when (type) {
+                LeaderboardType.GLOBAL -> firestore.collection("leaderboard")
+                    .orderBy("totalXp", Query.Direction.DESCENDING)
+                    .orderBy("updatedAt", Query.Direction.ASCENDING)
+                    .startAfter(cursor)
+                    .limit(PAGE_SIZE)
+                    .get().await()
+                LeaderboardType.WEEKLY -> firestore.collection("leaderboard")
+                    .whereEqualTo("weeklyActive", true)
+                    .orderBy("weeklyXp", Query.Direction.DESCENDING)
+                    .orderBy("updatedAt", Query.Direction.DESCENDING)
+                    .startAfter(cursor)
+                    .limit(PAGE_SIZE)
+                    .get().await()
+            }
 
             val newEntries = snapshot.documents.mapIndexedNotNull { index, doc ->
                 doc.toLeaderboardEntry(rank = cachedEntries.size + index + 1)
             }
 
-            cache[type] = cachedEntries + newEntries
+            val updated = cachedEntries + newEntries
+            cache[type] = updated
             lastDocs[type] = snapshot.documents.lastOrNull()
 
-            val updated = cachedEntries + newEntries
-
-            cache[type] = updated
-
-            buildState(
-                updated,
-                canLoadMore = newEntries.size.toLong() == PAGE_SIZE
-            )
+            buildState(updated, canLoadMore = newEntries.size.toLong() == PAGE_SIZE)
         } catch (e: Exception) {
-            e.printStackTrace() // ADD THIS
+            e.printStackTrace()
             LeaderboardState.Error(e.message ?: "Failed to load more")
         }
     }
@@ -167,16 +167,21 @@ class LeaderboardRepository {
         }
     }
 
-    private fun buildState(
+    private suspend fun buildState(
         entries: List<LeaderboardEntry>,
         canLoadMore: Boolean
     ): LeaderboardState {
         val uid = auth.currentUser?.uid
         val userInList = entries.find { it.uid == uid }
+        // Fetch user's own doc from Firestore when outside the loaded page so
+        // the sticky rank banner always has a rank to display.
+        val userEntry = userInList ?: if (uid != null) {
+            try { getUserEntry() } catch (_: Exception) { null }
+        } else null
         return LeaderboardState.Success(
             entries = entries,
-            userEntry = userInList,
-            userRank = userInList?.rank ?: 0,
+            userEntry = userEntry,
+            userRank = userEntry?.rank ?: 0,
             canLoadMore = canLoadMore
         )
     }

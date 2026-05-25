@@ -44,7 +44,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.aditya1875.pokeverse.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -158,16 +160,16 @@ fun SharedTransitionScope.ItemDetailScreen(
                                 modifier = Modifier.padding(16.dp)
                             ) {
                                 Text(
-                                    "Basic Info",
+                                    stringResource(R.string.item_detail_basic_info),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
 
                                 Spacer(Modifier.height(8.dp))
 
-                                InfoRow("Cost", "${item.cost}")
-                                InfoRow("Category", item.categoryDisplay)
-                                InfoRow("Fling Power", item.flingPower?.toString() ?: "—")
+                                InfoRow(stringResource(R.string.item_detail_label_cost), "${item.cost}")
+                                InfoRow(stringResource(R.string.item_detail_label_category), item.categoryDisplay)
+                                InfoRow(stringResource(R.string.item_detail_label_fling_power), item.flingPower?.toString() ?: "—")
                             }
                         }
                     }
@@ -176,7 +178,7 @@ fun SharedTransitionScope.ItemDetailScreen(
                         item {
                             GlossyCard {
                                 InfoBlock(
-                                    title = "Effect",
+                                    title = stringResource(R.string.item_detail_effect),
                                     accentColor = bgColor
                                 ) {
                                     Box(
@@ -202,7 +204,7 @@ fun SharedTransitionScope.ItemDetailScreen(
                         item {
                             GlossyCard {
                                 InfoBlock(
-                                    title = "Description",
+                                    title = stringResource(R.string.item_detail_description),
                                     accentColor = bgColor
                                 ) {
                                     Column {
@@ -230,7 +232,7 @@ fun SharedTransitionScope.ItemDetailScreen(
                         item {
                             GlossyCard {
                                 InfoBlock(
-                                    title = "Attributes",
+                                    title = stringResource(R.string.item_detail_attributes),
                                     accentColor = bgColor
                                 ) {
                                     FlowRow(
@@ -257,7 +259,7 @@ fun SharedTransitionScope.ItemDetailScreen(
                     item {
                         GlossyCard {
                             InfoBlock(
-                                title = "Best Use",
+                                title = stringResource(R.string.item_detail_best_use),
                                 accentColor = bgColor
                             ) {
                                 Row(
@@ -292,7 +294,7 @@ fun SharedTransitionScope.ItemDetailScreen(
                         item {
                             GlossyCard {
                                 InfoBlock(
-                                    title = "Held By Pokémon",
+                                    title = stringResource(R.string.item_detail_held_by),
                                     accentColor = bgColor
                                 ) {
                                     FlowRow(
@@ -321,7 +323,7 @@ fun SharedTransitionScope.ItemDetailScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("Failed to load item")
+                Text(stringResource(R.string.item_detail_error))
             }
         }
 

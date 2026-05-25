@@ -11,8 +11,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.R
 import com.google.firebase.auth.FirebaseUser
 
 @Composable
@@ -44,12 +46,12 @@ fun SignedInCard(
                 )
                 Column {
                     Text(
-                        "Account Connected",
+                        stringResource(R.string.profile_account_connected),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        "Your progress is synced across devices",
+                        stringResource(R.string.profile_synced),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -72,7 +74,7 @@ fun SignedInCard(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(Modifier.width(8.dp))
-                Text("Sign Out")
+                Text(stringResource(R.string.action_sign_out))
             }
         }
     }
@@ -81,8 +83,8 @@ fun SignedInCard(
     if (showSignOutDialog) {
         AlertDialog(
             onDismissRequest = { showSignOutDialog = false },
-            title = { Text("Sign Out?") },
-            text = { Text("Are you sure you want to sign out? You'll need to sign in again to sync your progress.") },
+            title = { Text(stringResource(R.string.profile_sign_out_dialog_title)) },
+            text = { Text(stringResource(R.string.profile_sign_out_dialog_body)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -93,12 +95,12 @@ fun SignedInCard(
                         contentColor = MaterialTheme.colorScheme.error
                     )
                 ) {
-                    Text("Sign Out")
+                    Text(stringResource(R.string.action_sign_out))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showSignOutDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

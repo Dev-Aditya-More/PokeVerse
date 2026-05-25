@@ -25,6 +25,14 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
+import android.app.Activity
+import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -58,6 +66,16 @@ fun TypeRushScreen(
     var showExitDialog by remember { mutableStateOf(false) }
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
 
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
+    val adManager = koinInject<IRewardedAdManager>()
+    val adState by adManager.adState.collectAsStateWithLifecycle()
+    var showAdForReplay by remember { mutableStateOf(false) }
+    LaunchedEffect(adState) {
+        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    }
+
     LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }
     BackHandler { showExitDialog = true }
     LaunchedEffect(difficulty) { viewModel.startGame(difficulty) }
@@ -84,7 +102,11 @@ fun TypeRushScreen(
                 )
                 is TypeRushState.Finished -> TypeRushResultScreen(
                     state = s,
-                    onPlayAgain = { viewModel.startGame(difficulty) },
+                    onPlayAgain = {
+                        if (difficulty == TypeRushDifficulty.HARD && subscriptionState !is SubscriptionState.Premium)
+                            showAdForReplay = true
+                        else viewModel.startGame(difficulty)
+                    },
                     onBack = onBack
                 )
             }
@@ -94,14 +116,30 @@ fun TypeRushScreen(
     if (showExitDialog) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
-            title = { Text("Exit game?") },
-            text = { Text("Your progress will be lost.") },
+            title = { Text(stringResource(R.string.dialog_exit_game_title)) },
+            text = { Text(stringResource(R.string.rush_progress_lost)) },
             confirmButton = {
                 TextButton(onClick = { showExitDialog = false; viewModel.resetGame(); onBack() }) {
-                    Text("Exit", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.quiz_exit_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text("Cancel") } }
+            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text(stringResource(R.string.cancel)) } }
+        )
+    }
+
+    if (showAdForReplay) {
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        showAdForReplay = false
+                        viewModel.startGame(difficulty)
+                    }
+                }
+            },
+            onDismiss = { showAdForReplay = false },
+            onRetry = { adManager.loadAd(context) }
         )
     }
 }
@@ -484,7 +522,7 @@ private fun TypeRushLoadingContent() {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("⚡", fontSize = 52.sp)
             CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 3.dp)
-            Text("Loading types…", style = MaterialTheme.typography.bodyLarge,
+            Text(stringResource(R.string.rush_loading_types), style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }

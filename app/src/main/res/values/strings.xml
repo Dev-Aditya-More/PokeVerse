@@ -1,3 +1,428 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Dexverse</string>
+
+    <!-- Common actions -->
+    <string name="back">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_close">Close</string>
+    <string name="action_later">Later</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_not_now">Not Now</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_play_again">Play Again</string>
+    <string name="action_back_to_menu">Back to Menu</string>
+    <string name="action_start">Start Dueling</string>
+    <string name="action_next_question">Next Question →</string>
+    <string name="action_see_results">See Results →</string>
+    <string name="action_build_team">Build Team</string>
+    <string name="action_maybe_later">Maybe later</string>
+    <string name="action_unlock_premium">Unlock Premium 🚀</string>
+    <string name="action_go_premium">Go Premium 👑</string>
+    <string name="action_update_now">Update Now</string>
+    <string name="action_watch_ad">Watch Ad</string>
+    <string name="action_reload_ad">Reload Ad</string>
+    <string name="action_sign_in_google">Sign In with Google</string>
+    <string name="action_sign_out">Sign Out</string>
+    <string name="action_try_again">Try Again</string>
+    <string name="settings_understand_enable">I Understand, Enable</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_crafted">Crafted with ❤ using Jetpack Compose</string>
+    <string name="settings_about_version">Version %1$s</string>
+    <string name="settings_original_assets">Original Assets</string>
+    <string name="settings_original_assets_desc">Enable original franchise visuals and media.</string>
+    <string name="settings_original_assets_dialog_body">This feature enables original franchise visuals and audio. These assets may be protected by intellectual property laws. This app is unofficial and not affiliated with any franchise owner.</string>
+    <string name="settings_special_effects">Special Effects</string>
+    <string name="settings_special_effects_requires">Enhanced visual effects require Android 13 or newer.</string>
+    <string name="settings_special_effects_desc">You\'ll see enhanced visual effects in Pokemon details.</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_desc">Choose your starter theme</string>
+    <string name="settings_theme_change">Change theme</string>
+    <string name="settings_share">Share Dexverse</string>
+    <string name="settings_share_desc">Tell your friends about Dexverse!</string>
+    <string name="settings_share_message">Hey mate, Check out Dexverse — a clean Pokédex app for Pokémon fans:\nhttps://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="settings_share_chooser">Share Dexverse via</string>
+    <string name="settings_rate">Rate us on Google Play</string>
+    <string name="settings_rate_desc">If you like Dexverse, please take a moment to rate it on Play Store. It really helps.</string>
+    <string name="settings_privacy">Privacy Policy</string>
+    <string name="settings_privacy_desc">View our privacy policy</string>
+    <string name="settings_help">Help &amp; Support</string>
+    <string name="settings_help_desc">Contact support or report an issue</string>
+    <string name="settings_socials">Socials</string>
+    <string name="settings_attribution_title">Content &amp; Attribution</string>
+    <string name="settings_attribution_1">Dexverse is an independent application and is not affiliated with or endorsed by any franchise owner.</string>
+    <string name="settings_attribution_2">All trademarks and registered trademarks are property of their respective owners.</string>
+    <string name="settings_copyright">© Dexverse 2026</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_dialog_title">Choose Language</string>
+    <string name="language_english">English</string>
+    <string name="language_portuguese_br">Português (Brasil)</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_brand">DEXVERSE</string>
+    <string name="onboarding_cta">Get Started</string>
+    <string name="onboarding_slide_1_badge">Pokédex</string>
+    <string name="onboarding_slide_1_headline">Your ultimate\nPokémon companion</string>
+    <string name="onboarding_slide_1_subtitle">Explore the complete Pokédex with rich stats, moves, and lore.</string>
+    <string name="onboarding_slide_2_badge">Mini Games</string>
+    <string name="onboarding_slide_2_headline">Play. Compete.\nMaster.</string>
+    <string name="onboarding_slide_2_subtitle">Test your knowledge with PokeGuess, PokeQuiz, PokeMatch &amp; more.</string>
+    <string name="onboarding_slide_3_badge">Leaderboard</string>
+    <string name="onboarding_slide_3_headline">Rise among the\nbest trainers</string>
+    <string name="onboarding_slide_3_subtitle">Earn XP, level up, and compete with trainers worldwide.</string>
+
+    <!-- Filter Bar -->
+    <string name="filter_all_regions">All Regions</string>
+    <string name="filter_all_types">All Types</string>
+    <string name="filter_selected">Selected</string>
+
+    <!-- Home Screen -->
+    <string name="home_search_pokemon">Search a Monster..</string>
+    <string name="home_search_item">Search a held Item..</string>
+    <string name="home_no_pokemon_found">No Pokémon found</string>
+    <string name="home_scroll_to_top">Scroll to top</string>
+    <string name="home_filters">Filters</string>
+    <string name="home_clear_search">Clear</string>
+    <string name="home_search">Search</string>
+    <string name="home_tab_pokemon">Pokémon</string>
+    <string name="home_tab_items">Items</string>
+
+    <!-- Home Popups -->
+    <string name="popup_update_title">Update Available</string>
+    <string name="popup_update_body">A new version of Dexverse is ready with bug fixes and new features.</string>
+    <string name="popup_update_tip">Update now for the best experience.</string>
+    <string name="popup_assets_title">Original Visuals Available</string>
+    <string name="popup_assets_body">Dexverse can show original franchise sprites and play authentic audio for a richer experience.</string>
+    <string name="popup_assets_disclaimer">⚠️  These assets belong to their respective owners. This app is unofficial and unaffiliated.</string>
+    <string name="popup_assets_change_hint">You can always change this in Settings → Original Assets.</string>
+    <string name="popup_premium_title">Pokeverse Premium</string>
+    <string name="popup_premium_subtitle">Unlock the full experience</string>
+    <string name="popup_premium_feature_hard_mode">Hard mode in all 4 games</string>
+    <string name="popup_premium_feature_experience">Full Dexverse Experience</string>
+    <string name="popup_premium_feature_themes">Exclusive themes &amp; badges</string>
+    <string name="popup_premium_feature_support">Support Dexverse\'s growth</string>
+
+    <!-- Pokemon Card -->
+    <string name="card_in_team">In Team</string>
+    <string name="card_add_to_team">Add to Team</string>
+    <string name="card_remove_from_favorites">Remove from Favorites</string>
+    <string name="card_add_to_favorites">Add to Favorites</string>
+    <string name="card_please_create_team">Please create a team first</string>
+    <string name="card_team_full_create_new">Team is full! Create a new team.</string>
+    <string name="card_already_in_team">Already in team</string>
+    <string name="card_team_full">Team is full!</string>
+    <string name="card_added_to">Added to %1$s!</string>
+    <string name="card_removed_from">Removed from %1$s</string>
+    <string name="card_team_created">Team \"%1$s\" created!</string>
+
+    <!-- Game Hub -->
+    <string name="game_hub_title">Mini Games</string>
+    <string name="game_hub_subtitle">Take a break, have fun!</string>
+    <string name="game_hub_tag_free">FREE</string>
+    <string name="game_hub_purchase_error">Unable to start purchase</string>
+    <string name="game_name_pokeduel_title">Who wins?</string>
+    <string name="game_name_pokeduel_desc">Predict battle outcomes based on type advantage!</string>
+    <string name="game_name_typecombo_title">Type Combo</string>
+    <string name="game_name_typecombo_desc">Guess the type combo of monster</string>
+    <string name="game_name_pokematch_title">Match \'Em All</string>
+    <string name="game_name_pokematch_desc">Flip cards and match pairs before time runs out!</string>
+    <string name="game_name_pokequiz_title">Do you know it?</string>
+    <string name="game_name_pokequiz_desc">Test your knowledge across generations!</string>
+    <string name="game_name_pokeguess_title">Who\'s That Monster?</string>
+    <string name="game_name_pokeguess_desc">Guess the monsters from its silhouette!</string>
+    <string name="label_premium">Premium</string>
+
+    <!-- Ad Unlock Dialog -->
+    <string name="ad_dialog_title">Unlock Hard Mode</string>
+    <string name="ad_dialog_ready">Watch a short ad to unlock Hard mode for this round. Premium subscribers skip ads permanently.</string>
+    <string name="ad_dialog_loading">Loading ad — please wait a moment.</string>
+    <string name="ad_dialog_error">Ad couldn\'t load right now. Tap Reload to try again, or play on an easier difficulty.</string>
+    <string name="ad_dialog_loading_btn">Loading…</string>
+
+    <!-- Result / Game Over -->
+    <string name="result_play_again">Play Again</string>
+    <string name="result_back_to_menu">Back to Menu</string>
+    <string name="result_new_best">NEW BEST</string>
+    <string name="result_title_perfect">Perfect!</string>
+    <string name="result_title_great_job">Great Job!</string>
+    <string name="result_title_good_try">Good Try!</string>
+    <string name="result_title_keep_practicing">Keep Practicing</string>
+    <string name="result_title_excellent">Excellent!</string>
+    <string name="result_title_keep_going">Keep Going!</string>
+    <string name="result_title_you_win">You Win!</string>
+    <string name="result_title_new_best">New Best!</string>
+    <string name="result_title_times_up">Time\'s Up!</string>
+    <string name="result_title_game_over">Game Over</string>
+    <string name="result_title_type_master">Type Master!</string>
+    <string name="result_title_well_typed">Well Typed!</string>
+    <string name="result_title_keep_rushing">Keep Rushing!</string>
+    <string name="result_title_type_learner">Type Learner</string>
+    <string name="result_score_label_points">POINTS</string>
+    <string name="result_score_label_score">SCORE</string>
+    <string name="result_pairs_found">%1$d/%2$d pairs found</string>
+
+    <!-- Quiz -->
+    <string name="quiz_game_title">PokéQuiz</string>
+    <string name="quiz_game_subtitle">Test your Pokémon knowledge!</string>
+    <string name="quiz_difficulty_hint">Answer Pokémon questions correctly.</string>
+    <string name="quiz_loading">Loading questions…</string>
+    <string name="quiz_exit_title">Exit quiz?</string>
+    <string name="quiz_exit_body">Your progress will be lost.</string>
+    <string name="quiz_exit_confirm">Exit</string>
+    <string name="quiz_correct">Correct!</string>
+    <string name="quiz_incorrect">Incorrect</string>
+    <string name="quiz_did_you_know">Did you know?</string>
+    <string name="quiz_stat_correct">Correct</string>
+    <string name="quiz_stat_wrong">Wrong</string>
+    <string name="quiz_stat_accuracy">Accuracy</string>
+    <string name="quiz_stat_questions_answered">Questions answered</string>
+    <string name="quiz_stat_score_per_question">Score per question</string>
+    <string name="label_difficulty">Difficulty</string>
+
+    <!-- PokéMatch -->
+    <string name="match_game_title">PokéMatch</string>
+    <string name="match_game_subtitle">Match all Pokémon pairs to win!</string>
+    <string name="match_difficulty_hint">Flip cards and match all pairs.</string>
+    <string name="match_stat_score">Score</string>
+    <string name="match_stat_moves">Moves</string>
+    <string name="match_stat_time">Time</string>
+    <string name="match_stat_moves_used">Moves used</string>
+    <string name="match_stat_time_taken">Time taken</string>
+    <string name="match_cleared">%1$s cleared</string>
+
+    <!-- PokeGuess -->
+    <string name="guess_game_title">Who\'s That Pokémon?</string>
+    <string name="guess_game_subtitle">Guess from silhouettes!</string>
+    <string name="guess_difficulty_hint">Identify Pokémon from shadows.</string>
+    <string name="guess_subtitle">Who\'s That Pokémon?</string>
+    <string name="guess_stat_correct">Correct</string>
+    <string name="guess_stat_missed">Missed</string>
+    <string name="guess_stat_rate">Rate</string>
+    <string name="guess_stat_total_score">Total score</string>
+    <string name="guess_stat_questions">Questions</string>
+    <string name="guess_watch_ad">Watch ad to play this round</string>
+    <string name="guess_best_score">Best: %1$d</string>
+    <string name="label_locked">Locked</string>
+
+    <!-- Type Rush -->
+    <string name="typerush_game_title">Type Rush</string>
+    <string name="typerush_game_subtitle">Guess Pokémon types as fast as you can!</string>
+    <string name="typerush_difficulty_hint">Speed matters. Think fast!</string>
+    <string name="typerush_subtitle">Pokémon Type Rush</string>
+    <string name="typerush_stat_correct">Correct</string>
+    <string name="typerush_stat_accuracy">Accuracy</string>
+    <string name="typerush_stat_mode">Mode</string>
+    <string name="typerush_stat_rounds">Rounds completed</string>
+
+    <!-- PokéDuel -->
+    <string name="duel_game_title">PokéDuel</string>
+    <string name="duel_intro_body">Two Pokémon face off!\nPick the winner based on type advantage.</string>
+    <string name="duel_loading">Finding opponents...</string>
+    <string name="duel_who_wins">Who wins in a battle?</string>
+    <string name="duel_draw">🤝 It\'s a Draw</string>
+    <string name="duel_new_best">🏆 New Best!</string>
+    <string name="duel_round_score">Round %1$d • %2$d pts</string>
+    <string name="duel_round">Round %1$d</string>
+    <string name="duel_score_pts">%1$d pts</string>
+
+    <!-- Leaderboard -->
+    <string name="screen_title_leaderboard">Leaderboard</string>
+    <string name="leaderboard_tab_global">Global</string>
+    <string name="leaderboard_tab_weekly">Weekly</string>
+    <string name="leaderboard_weekly_reset">Resets every Monday 12:00 AM IST</string>
+    <string name="leaderboard_all_time">Top trainers of all time</string>
+    <string name="leaderboard_weekly_empty_title">New week, fresh start!</string>
+    <string name="leaderboard_weekly_empty_subtitle">Be the first to earn XP this week</string>
+    <string name="leaderboard_you_label">You</string>
+    <string name="leaderboard_your_rank">Your Rank</string>
+    <string name="leaderboard_error">Couldn\'t load leaderboard</string>
+
+    <!-- XP Overlay -->
+    <string name="xp_level_up">LEVEL UP!</string>
+    <string name="xp_reached_level">You reached Level %1$d</string>
+    <string name="xp_gained">+%1$d XP</string>
+
+    <!-- Dream Team / My Team -->
+    <string name="team_default_name">My Team</string>
+    <string name="team_create_new">Create new team</string>
+    <string name="team_select">Select team</string>
+    <string name="team_tab_team">Team (%1$d)</string>
+    <string name="team_tab_favorites">Favorites (%1$d)</string>
+    <string name="team_is_default">Default</string>
+    <string name="team_confirm_icon">Confirm</string>
+    <string name="team_edit_name">Edit team name</string>
+    <string name="team_delete">Delete team</string>
+    <string name="dialog_delete_team_title">Delete Team?</string>
+    <string name="dialog_delete_team_body">Are you sure you want to delete \"%1$s\"? All Pokémon in this team will be removed.</string>
+    <string name="team_analysis_max_reached">You have reached the maximum number of analysis uses</string>
+
+    <!-- Team Analysis -->
+    <string name="screen_title_team_analysis">Team Analysis</string>
+    <string name="analysis_empty_title">No Team Yet</string>
+    <string name="analysis_empty_subtitle">Build a team to unlock analysis</string>
+
+    <!-- Item Detail -->
+    <string name="item_detail_basic_info">Basic Info</string>
+    <string name="item_detail_effect">Effect</string>
+    <string name="item_detail_description">Description</string>
+    <string name="item_detail_attributes">Attributes</string>
+    <string name="item_detail_best_use">Best Use</string>
+    <string name="item_detail_held_by">Held By Pokémon</string>
+    <string name="item_detail_error">Failed to load item</string>
+    <string name="item_detail_label_cost">Cost</string>
+    <string name="item_detail_label_category">Category</string>
+    <string name="item_detail_label_fling_power">Fling Power</string>
+
+    <!-- Profile -->
+    <string name="profile_create_account_title">Create a Trainer Account</string>
+    <string name="profile_create_account_subtitle">Sign in to appear on leaderboards and sync your progress across devices.</string>
+    <string name="profile_account_connected">Account Connected</string>
+    <string name="profile_synced">Your progress is synced across devices</string>
+    <string name="profile_sign_out_dialog_title">Sign Out?</string>
+    <string name="profile_sign_out_dialog_body">Are you sure you want to sign out? You\'ll need to sign in again to sync your progress.</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_error_no_credentials">No Google account found on this device. Add one in Settings → Accounts.</string>
+    <string name="profile_error_no_internet">No internet connection. Please check your network.</string>
+    <string name="profile_error_sign_in_failed">Sign-in failed. Please try again.</string>
+    <string name="profile_error_generic">Something went wrong. Try again in a moment.</string>
+
+    <!-- Premium -->
+    <string name="premium_sheet_title">Dexverse Premium</string>
+    <string name="premium_sheet_subtitle">Unlock the full Dexverse experience</string>
+    <string name="premium_feature_hard_mode_title">Hard Mode</string>
+    <string name="premium_feature_hard_mode_subtitle">You get to play the ultimate challenge</string>
+    <string name="premium_feature_items_title">Item Exploration</string>
+    <string name="premium_feature_items_subtitle">Explore the held items in the game</string>
+    <string name="premium_feature_themes_title">Exclusive themes</string>
+    <string name="premium_feature_themes_subtitle">Get all the themes and features</string>
+    <string name="premium_plan_monthly">Monthly 🚀</string>
+    <string name="premium_plan_yearly">Yearly • Save 33%</string>
+    <string name="premium_plan_yearly_best">BEST</string>
+    <string name="premium_plan_lifetime">Lifetime • Save 40% 🔥</string>
+    <string name="premium_price_loading">Loading...</string>
+    <string name="premium_suffix_month">/ month</string>
+    <string name="premium_suffix_year">/ year</string>
+    <string name="premium_suffix_onetime">one-time</string>
+    <string name="premium_payment_notice">🔒 Payment processed securely by Google Play.\nYour details are never shared with us.</string>
+
+    <!-- Daily Trivia -->
+    <string name="trivia_loading">Loading today\'s Pokémon…</string>
+    <string name="trivia_error">Couldn\'t load trivia. Try again later.</string>
+    <string name="trivia_title">Daily Pokémon</string>
+    <string name="trivia_subtitle">Who\'s that Pokémon?</string>
+    <string name="trivia_generation">Gen %1$d</string>
+    <string name="trivia_nailed_it">Nailed it!</string>
+    <string name="trivia_so_close">So close!</string>
+    <string name="trivia_come_back_tomorrow">Come back tomorrow for a new one.</string>
+    <string name="trivia_it_was">It was %1$s.</string>
+    <string name="trivia_hints_title">Hints</string>
+    <string name="trivia_guessed_correct">You guessed it! Come back tomorrow.</string>
+    <string name="trivia_better_luck">Better luck tomorrow!</string>
+
+    <!-- Error states -->
+    <string name="error_no_internet_title">No Internet Connection</string>
+    <string name="error_no_internet_subtitle">Check your network and try again.</string>
+    <string name="error_unexpected_title">Something went wrong</string>
+    <string name="error_unexpected_subtitle">An unexpected error occurred.</string>
+    <string name="error_unknown_title">Unknown Error</string>
+    <string name="error_unknown_subtitle">Please try again later.</string>
+
+    <!-- Analysis components -->
+    <string name="analysis_defensive_analysis">Defensive Analysis</string>
+    <string name="analysis_weaknesses">WEAKNESSES</string>
+    <string name="analysis_resistances">RESISTANCES</string>
+    <string name="analysis_defensive_profile">Defensive Profile</string>
+    <string name="analysis_vulnerable_to">VULNERABLE TO</string>
+    <string name="analysis_resists">RESISTS</string>
+    <string name="analysis_failed_title">Analysis Failed</string>
+    <string name="action_go_back">Go Back</string>
+    <string name="analysis_loading_title">Analyzing your team…</string>
+    <string name="analysis_loading_subtitle">Calculating type coverage and synergies</string>
+
+    <!-- Game dialogs -->
+    <string name="match_preparing">Preparing Pokémon...</string>
+    <string name="match_paused">Paused</string>
+    <string name="match_resume">Resume</string>
+    <string name="match_restart">Restart</string>
+    <string name="match_exit_game">Exit Game</string>
+    <string name="dialog_exit_game_title">Exit game?</string>
+    <string name="dialog_exit_game_message">Are you sure you want to exit?</string>
+    <string name="rush_progress_lost">Your progress will be lost.</string>
+    <string name="rush_loading_types">Loading types…</string>
+
+    <!-- Item list -->
+    <string name="item_failed_to_load">Failed to load items</string>
+
+    <!-- Pokémon Detail -->
+    <string name="detail_hidden">Hidden</string>
+    <string name="detail_go_back">Go Back</string>
+    <string name="detail_try_pikachu">Try Pikachu</string>
+    <string name="detail_failed_to_load">Failed to load Pokémon</string>
+    <string name="detail_types">Types</string>
+    <string name="detail_abilities">Abilities</string>
+    <string name="detail_base_stats">Base Stats</string>
+    <string name="detail_moves">Moves</string>
+    <string name="detail_other_forms">Other Forms</string>
+    <string name="detail_overview">Overview</string>
+    <string name="detail_move_col">Move</string>
+    <string name="detail_level_col">Level</string>
+    <string name="detail_method_level_up">Level Up</string>
+    <string name="detail_method_tm">TM / HM</string>
+    <string name="detail_method_tutor">Tutor</string>
+    <string name="detail_method_egg">Egg</string>
+    <string name="detail_audio_pokedex_entry">Pokédex Entry</string>
+    <string name="detail_audio_stop_pokedex_entry">Stop Pokédex Entry</string>
+    <string name="detail_audio_cry">Pokémon Cry</string>
+    <string name="detail_audio_stop_cry">Stop Cry</string>
+
+    <!-- Asset Onboarding Banner -->
+    <string name="banner_original_visuals">Original Visuals</string>
+    <string name="banner_original_assets_desc">Enable original franchise sprites and audio for a richer experience. These assets belong to their respective owners — this app is unofficial and unaffiliated.</string>
+    <string name="banner_enable_original_assets">Enable original assets</string>
+    <string name="banner_settings_change_hint">You can always change this from Settings.</string>
+
+    <!-- Card Clash Game -->
+    <string name="clash_you">You</string>
+    <string name="clash_round_format">Round %1$d / 6</string>
+    <string name="clash_next_round">Next Round</string>
+    <string name="clash_exit">Exit</string>
+    <string name="clash_claim_win">Claim Win</string>
+    <string name="clash_wait_opponent">Wait for Opponent</string>
+    <string name="clash_pick_card_hint">Pick a card — you can\'t see what\'s inside!</string>
+    <string name="clash_locked_waiting">Locked In — Waiting for opponent...</string>
+    <string name="clash_lock_in">Lock In</string>
+
+    <!-- Card Clash Lobby -->
+    <string name="clash_lobby_title">PokeCard Clash</string>
+    <string name="clash_lobby_desc">6 mystery cards. 6 rounds.\nPure luck — neither player sees their cards!</string>
+    <string name="clash_lobby_play_random">Play Random</string>
+    <string name="clash_lobby_or">— or —</string>
+    <string name="clash_lobby_play_friend">Play a Friend</string>
+    <string name="clash_lobby_create_room">Create Room &amp; Share Code</string>
+    <string name="clash_lobby_enter_code">or enter a room code</string>
+    <string name="clash_lobby_code_placeholder">ABCD12</string>
+    <string name="clash_lobby_join">Join</string>
+    <string name="clash_opponent_locked">Locked In!</string>
+    <string name="clash_opponent_choosing">Choosing...</string>
+    <string name="clash_round_timer">Round Timer</string>
+    <string name="clash_connection_lost">Connection Lost</string>
+    <string name="clash_disconnected_message">%1$s may have disconnected.\nYou can wait or claim the win.</string>
+
+    <!-- Profile Edit -->
+    <string name="profile_edit_trainer_name">Edit Trainer Name</string>
+    <string name="profile_trainer_name_label">Trainer Name</string>
+    <string name="profile_edit_display_name">Edit Display Name</string>
+    <string name="profile_name_label">Name</string>
+    <string name="action_save">Save</string>
+
+    <!-- Team -->
+    <string name="team_create_new_team">Create New Team</string>
+    <string name="team_name_label">Team Name</string>
+    <string name="action_create">Create</string>
+    <string name="action_share">Share</string>
 </resources>

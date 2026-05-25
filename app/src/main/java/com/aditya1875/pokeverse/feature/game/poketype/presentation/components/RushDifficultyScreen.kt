@@ -10,7 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
@@ -55,14 +57,15 @@ fun TypeRushDifficultyScreen(
                     }
                 }
             },
-            onDismiss = { showAdDialog = false }
+            onDismiss = { showAdDialog = false },
+            onRetry = { adManager.loadAd(context) }
         )
     }
 
     GameDifficultyLayout(
-        gameTitle = "Type Rush",
-        gameSubtitle = "Guess Pokémon types as fast as you can!",
-        difficultyHint = "Speed matters. Think fast!",
+        gameTitle = stringResource(R.string.typerush_game_title),
+        gameSubtitle = stringResource(R.string.typerush_game_subtitle),
+        difficultyHint = stringResource(R.string.typerush_difficulty_hint),
         onBack = onBack,
         subscriptionState = subscriptionState
     ) {
@@ -74,7 +77,7 @@ fun TypeRushDifficultyScreen(
             TypeRushDifficultyCard(
                 difficulty = difficulty,
                 canPlay = canPlay,
-                adAvailable = !canPlay && difficulty == TypeRushDifficulty.HARD && adState is RewardedAdState.Ready,
+                adAvailable = !canPlay && difficulty == TypeRushDifficulty.HARD,
                 bestScore = topScores
                     .filter { it.difficulty == difficulty.name }
                     .maxByOrNull { it.score },

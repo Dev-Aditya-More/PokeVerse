@@ -86,6 +86,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -121,6 +122,7 @@ import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.utils.IReviewManager
 import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.aditya1875.pokeverse.utils.SoundManager
@@ -171,6 +173,7 @@ fun SharedTransitionScope.HomeScreen(
     var contentMode by rememberSaveable { mutableStateOf(HomeContentMode.POKEMON) }
 
     val soundManager: SoundManager = koinInject()
+    val reviewManager: IReviewManager = koinInject()
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isLoading && pokemonList.isNotEmpty(),
@@ -289,11 +292,7 @@ fun SharedTransitionScope.HomeScreen(
         currentVersionCode = BuildConfig.VERSION_CODE.toLong(),
         onEnableAssets = { settingsViewModel.toggleOriginalAssetsEnabled() },
         onRateNow = {
-            val packageName = context.packageName
-
-            val uri = "market://details?id=$packageName".toUri()
-            val intent = Intent(Intent.ACTION_VIEW, uri)
-            context.startActivity(intent)
+            activity?.let { reviewManager.requestReview(it) }
         },
         onGoPremium = {
             showPremiumSheet = true
@@ -502,7 +501,7 @@ fun SharedTransitionScope.HomeScreen(
                         ) {
                             Icon(
                                 Icons.Default.KeyboardArrowUp,
-                                contentDescription = "Scroll to top",
+                                contentDescription = stringResource(R.string.home_scroll_to_top),
                                 tint = MaterialTheme.colorScheme.onPrimaryContainer
                             )
                         }
@@ -583,9 +582,9 @@ fun SharedTransitionScope.HomeScreen(
                         },
                         label = {
                             if (contentMode == HomeContentMode.POKEMON) {
-                                Text("Search a Monster..")
+                                Text(stringResource(R.string.home_search_pokemon))
                             } else {
-                                Text("Search a held Item..")
+                                Text(stringResource(R.string.home_search_item))
                             }
                         },
                         singleLine = true,
@@ -598,7 +597,7 @@ fun SharedTransitionScope.HomeScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.FilterList,
-                                            contentDescription = "Filters",
+                                            contentDescription = stringResource(R.string.home_filters),
                                             tint = if (showFilters)
                                                 MaterialTheme.colorScheme.primary
                                             else
@@ -629,12 +628,12 @@ fun SharedTransitionScope.HomeScreen(
                                             itemViewModel.onSearchChange("")
                                         }
                                     }) {
-                                        Icon(Icons.Default.Close, "Clear")
+                                        Icon(Icons.Default.Close, stringResource(R.string.home_clear_search))
                                     }
                                 }
 
                                 else -> {
-                                    Icon(Icons.Default.Search, "Search")
+                                    Icon(Icons.Default.Search, stringResource(R.string.home_search))
                                 }
                             }
                         },
@@ -684,7 +683,7 @@ fun SharedTransitionScope.HomeScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            "No Pokémon found",
+                                            stringResource(R.string.home_no_pokemon_found),
                                             color = MaterialTheme.colorScheme.onSurface.copy(
                                                 alpha = 0.6f
                                             )
@@ -748,16 +747,16 @@ fun SharedTransitionScope.HomeScreen(
                                     )
 
                                     val (title, subtitle) = when (uiState.error) {
-                                        is UiError.Network -> "No Internet Connection" to "Check your network and try again."
-                                        is UiError.Unexpected -> "Something went wrong" to "An unexpected error occurred."
-                                        else -> "Unknown Error" to "Please try again later."
+                                        is UiError.Network -> stringResource(R.string.error_no_internet_title) to stringResource(R.string.error_no_internet_subtitle)
+                                        is UiError.Unexpected -> stringResource(R.string.error_unexpected_title) to stringResource(R.string.error_unexpected_subtitle)
+                                        else -> stringResource(R.string.error_unknown_title) to stringResource(R.string.error_unknown_subtitle)
                                     }
 
                                     Text(title)
                                     Text(subtitle)
 
                                     Button(onClick = { viewModel.retry() }) {
-                                        Text("Retry")
+                                        Text(stringResource(R.string.action_retry))
                                     }
                                 }
                             }

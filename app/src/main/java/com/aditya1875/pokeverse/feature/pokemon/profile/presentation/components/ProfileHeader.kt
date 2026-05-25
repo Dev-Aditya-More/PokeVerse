@@ -43,7 +43,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.aditya1875.pokeverse.R
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -78,12 +80,12 @@ fun ProfileHeader(
     if (showNameDialog) {
         AlertDialog(
             onDismissRequest = { showNameDialog = false },
-            title = { Text("Edit Display Name") },
+            title = { Text(stringResource(R.string.profile_edit_display_name)) },
             text = {
                 OutlinedTextField(
                     value = nameInput,
                     onValueChange = { nameInput = it },
-                    label = { Text("Name") },
+                    label = { Text(stringResource(R.string.profile_name_label)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Words,
@@ -99,10 +101,10 @@ fun ProfileHeader(
                             showNameDialog = false
                         }
                     }
-                ) { Text("Save") }
+                ) { Text(stringResource(R.string.action_save)) }
             },
             dismissButton = {
-                TextButton(onClick = { showNameDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showNameDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }

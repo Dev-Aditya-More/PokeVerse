@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,18 +41,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPhase
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPokemon
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashUiState
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.MatchOutcome
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.RoundWinner
-import com.aditya1875.pokeverse.feature.game.cardclash.presentation.components.CardBack
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.components.ClashPokemonCard
-import com.aditya1875.pokeverse.feature.game.cardclash.presentation.components.typeColor
+import com.aditya1875.pokeverse.feature.game.cardclash.presentation.components.CardBack
 import kotlinx.coroutines.delay
 
 @Composable
@@ -137,12 +140,12 @@ private fun SelectingScreen(
 
         // My hand label
         Text(
-            text = "Your Hand",
+            text = stringResource(R.string.clash_pick_card_hint),
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.SemiBold
         )
 
-        // Card grid — available cards only
+        // Face-down card grid — mystery pick
         val availableCards = state.myHand.filter { it.id !in state.myUsedIds }
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
@@ -150,13 +153,12 @@ private fun SelectingScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            items(availableCards, key = { it.id }) { pokemon ->
-                ClashPokemonCard(
-                    pokemon = pokemon,
+            itemsIndexed(availableCards, key = { index, card -> "${card.id}_$index" }) { index, pokemon ->
+                SelectableCardBack(
+                    position = index + 1,
                     isSelected = state.selectedCardId == pokemon.id,
                     isLocked = state.myLocked,
-                    onClick = { onSelectCard(pokemon.id) },
-                    modifier = Modifier.height(150.dp)
+                    onClick = { onSelectCard(pokemon.id) }
                 )
             }
         }
@@ -172,7 +174,7 @@ private fun SelectingScreen(
             )
         ) {
             Text(
-                text = if (state.myLocked) "Locked In — Waiting for opponent..." else "Lock In",
+                text = if (state.myLocked) stringResource(R.string.clash_locked_waiting) else stringResource(R.string.clash_lock_in),
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp
             )
@@ -193,7 +195,7 @@ private fun ScoreRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(horizontalAlignment = Alignment.Start) {
-            Text("You", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.clash_you), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 formatScore(myScore),
                 style = MaterialTheme.typography.headlineSmall,
@@ -203,7 +205,7 @@ private fun ScoreRow(
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "Round $currentRound / 6",
+                stringResource(R.string.clash_round_format, currentRound),
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -251,7 +253,7 @@ private fun OpponentArea(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = if (opponentLocked) "Locked In!" else "Choosing...",
+                    text = if (opponentLocked) stringResource(R.string.clash_opponent_locked) else stringResource(R.string.clash_opponent_choosing),
                     style = MaterialTheme.typography.labelSmall,
                     color = if (opponentLocked) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -305,7 +307,7 @@ private fun RevealScreen(
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("You", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.clash_you), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
                         ClashPokemonCard(
                             pokemon = myCard,
                             isSelected = false,
@@ -351,7 +353,7 @@ private fun RevealScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Next Round", fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.clash_next_round), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -466,7 +468,7 @@ private fun MatchResultScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Play Again", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.action_play_again), fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
@@ -474,7 +476,7 @@ private fun MatchResultScreen(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Exit")
+            Text(stringResource(R.string.clash_exit))
         }
     }
 }
@@ -510,6 +512,55 @@ private fun RoundSummaryRow(roundNumber: Int, round: com.aditya1875.pokeverse.fe
 private fun formatScore(score: Float): String =
     if (score == score.toLong().toFloat()) score.toLong().toString() else score.toString()
 
+// ─── Face-down selectable card ────────────────────────────────────────────────
+
+@Composable
+private fun SelectableCardBack(
+    position: Int,
+    isSelected: Boolean,
+    isLocked: Boolean,
+    onClick: () -> Unit
+) {
+    val borderColor = when {
+        isLocked && isSelected -> Color(0xFF4CAF50)
+        isSelected -> MaterialTheme.colorScheme.primary
+        else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)
+    }
+    val borderWidth = if (isSelected) 2.5.dp else 1.dp
+    val bgColor = if (isSelected)
+        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+    else
+        MaterialTheme.colorScheme.surfaceVariant
+
+    Box(
+        modifier = Modifier
+            .height(120.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .border(borderWidth, borderColor, RoundedCornerShape(12.dp))
+            .background(bgColor)
+            .clickable(enabled = !isLocked, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "?",
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+            Text(
+                text = "Card $position",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 // ─── Timer bar ────────────────────────────────────────────────────────────────
 
 @Composable
@@ -530,7 +581,7 @@ private fun TimerBar(timerSeconds: Int) {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = "Round Timer",
+                text = stringResource(R.string.clash_round_timer),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -578,12 +629,12 @@ private fun DisconnectOverlay(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Connection Lost",
+                    text = stringResource(R.string.clash_connection_lost),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "${opponentName.take(16)} may have disconnected.\nYou can wait or claim the win.",
+                    text = stringResource(R.string.clash_disconnected_message, opponentName.take(16)),
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -594,14 +645,14 @@ private fun DisconnectOverlay(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
                 ) {
-                    Text("Claim Win", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.clash_claim_win), fontWeight = FontWeight.Bold)
                 }
                 OutlinedButton(
                     onClick = onWait,
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Wait for Opponent")
+                    Text(stringResource(R.string.clash_wait_opponent))
                 }
             }
         }

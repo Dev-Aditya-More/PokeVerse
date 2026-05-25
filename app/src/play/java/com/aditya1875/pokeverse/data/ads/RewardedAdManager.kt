@@ -9,66 +9,92 @@ import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.rewarded.RewardedAd
-import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAd
+import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoadCallback
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class RewardedAdManager : IRewardedAdManager {
 
     companion object {
-        // TODO: Replace with your production ad unit ID from admob.google.com
-        // Test ID is safe to use during development — it won't generate real revenue
-        private const val AD_UNIT_ID = "ca-app-pub-5302526681326969/7195763651"
+        private const val AD_UNIT_ID =
+            "ca-app-pub-5302526681326969/9257053855"
     }
 
     private val _adState = MutableStateFlow<RewardedAdState>(RewardedAdState.Idle)
     override val adState: StateFlow<RewardedAdState> = _adState
 
-    private var rewardedAd: RewardedAd? = null
+    private var rewardedAd: RewardedInterstitialAd? = null
 
     override fun loadAd(context: Context) {
-        if (_adState.value == RewardedAdState.Loading || _adState.value == RewardedAdState.Ready) return
+
+        if (
+            _adState.value == RewardedAdState.Loading ||
+            _adState.value == RewardedAdState.Ready
+        ) return
 
         _adState.value = RewardedAdState.Loading
 
-        RewardedAd.load(
+        RewardedInterstitialAd.load(
             context.applicationContext,
             AD_UNIT_ID,
             AdRequest.Builder().build(),
-            object : RewardedAdLoadCallback() {
-                override fun onAdLoaded(ad: RewardedAd) {
+            object : RewardedInterstitialAdLoadCallback() {
+
+                override fun onAdLoaded(ad: RewardedInterstitialAd) {
+
                     rewardedAd = ad
                     _adState.value = RewardedAdState.Ready
+
                     Log.d("RewardedAd", "Ad loaded successfully")
 
-                    ad.fullScreenContentCallback = object : FullScreenContentCallback() {
-                        override fun onAdDismissedFullScreenContent() {
-                            rewardedAd = null
-                            _adState.value = RewardedAdState.Idle
+                    ad.fullScreenContentCallback =
+                        object : FullScreenContentCallback() {
+
+                            override fun onAdDismissedFullScreenContent() {
+                                rewardedAd = null
+                                _adState.value = RewardedAdState.Idle
+                            }
+
+                            override fun onAdFailedToShowFullScreenContent(
+                                error: AdError
+                            ) {
+                                rewardedAd = null
+                                _adState.value = RewardedAdState.Idle
+
+                                Log.e(
+                                    "RewardedAd",
+                                    "Failed to show: ${error.message}"
+                                )
+                            }
                         }
-                        override fun onAdFailedToShowFullScreenContent(error: AdError) {
-                            rewardedAd = null
-                            _adState.value = RewardedAdState.Idle
-                            Log.e("RewardedAd", "Failed to show: ${error.message}")
-                        }
-                    }
                 }
 
                 override fun onAdFailedToLoad(error: LoadAdError) {
+
                     rewardedAd = null
                     _adState.value = RewardedAdState.Idle
-                    Log.w("RewardedAd", "Failed to load: ${error.message}")
+
+                    Log.w(
+                        "RewardedAd",
+                        "Failed to load: ${error.message}"
+                    )
                 }
             }
         )
     }
 
-    override fun showAd(activity: Activity, onRewarded: () -> Unit) {
-        val ad = rewardedAd
-        if (ad == null || _adState.value != RewardedAdState.Ready) return
+    override fun showAd(
+        activity: Activity,
+        onRewarded: () -> Unit
+    ) {
+
+        val ad = rewardedAd ?: return
 
         _adState.value = RewardedAdState.Showing
-        ad.show(activity) { _ -> onRewarded() }
+
+        ad.show(activity) { rewardItem ->
+            onRewarded()
+        }
     }
 }

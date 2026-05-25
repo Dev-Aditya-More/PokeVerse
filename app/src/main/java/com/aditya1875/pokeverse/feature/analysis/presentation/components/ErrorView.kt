@@ -17,11 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.BG
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.RED
 
@@ -34,7 +36,7 @@ fun ErrorView(message: String, navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text("⚠️", fontSize = 56.sp)
-            Text("Analysis Failed", style = MaterialTheme.typography.headlineSmall,
+            Text(stringResource(R.string.analysis_failed_title), style = MaterialTheme.typography.headlineSmall,
                 color = Color.White, fontWeight = FontWeight.Bold)
             Text(message, style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.6f), textAlign = TextAlign.Center)
@@ -42,7 +44,7 @@ fun ErrorView(message: String, navController: NavController) {
             Button(onClick = { navController.popBackStack() },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = RED)) {
-                Text("Go Back", modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+                Text(stringResource(R.string.action_go_back), modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
             }
         }
     }

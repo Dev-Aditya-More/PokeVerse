@@ -13,8 +13,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -31,7 +33,7 @@ fun EditProfileDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                "Edit Trainer Name",
+                stringResource(R.string.profile_edit_trainer_name),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -41,7 +43,7 @@ fun EditProfileDialog(
                 value = name,
                 onValueChange = { name = it },
                 singleLine = true,
-                label = { Text("Trainer Name") },
+                label = { Text(stringResource(R.string.profile_trainer_name_label)) },
                 modifier = Modifier.fillMaxWidth()
             )
         },
@@ -53,13 +55,13 @@ fun EditProfileDialog(
                     onDismiss()
                 }
             ) {
-                Text("Save")
+                Text(stringResource(R.string.action_save))
             }
         },
 
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

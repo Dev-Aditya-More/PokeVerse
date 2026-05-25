@@ -44,9 +44,11 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -206,7 +208,7 @@ fun ImprovedPokemonCard(
                     onClick = {
                         when {
                             allTeamsWithMembers.isEmpty() -> {
-                                Toast.makeText(context, "Please create a team first", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.card_please_create_team), Toast.LENGTH_SHORT).show()
                             }
                             allTeamsWithMembers.size == 1 -> {
                                 val team = allTeamsWithMembers.first()
@@ -217,16 +219,16 @@ fun ImprovedPokemonCard(
                                         when (result) {
                                             is TeamViewModel.TeamAdditionResult.Success -> {
                                                 val message = if (isInTeam)
-                                                    "Removed from ${result.teamName}"
+                                                    context.getString(R.string.card_removed_from, result.teamName)
                                                 else
-                                                    "Added to ${result.teamName}"
+                                                    context.getString(R.string.card_added_to, result.teamName)
                                                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                             }
                                             is TeamViewModel.TeamAdditionResult.TeamFull -> {
-                                                Toast.makeText(context, "Team is full! Create a new team.", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, context.getString(R.string.card_team_full_create_new), Toast.LENGTH_SHORT).show()
                                             }
                                             is TeamViewModel.TeamAdditionResult.AlreadyInTeam -> {
-                                                Toast.makeText(context, "Already in team", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, context.getString(R.string.card_already_in_team), Toast.LENGTH_SHORT).show()
                                             }
                                             is TeamViewModel.TeamAdditionResult.Error -> {
                                                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
@@ -245,7 +247,7 @@ fun ImprovedPokemonCard(
                 ) {
                     Icon(
                         imageVector = if (isInTeam) Icons.Default.Check else Icons.Default.Add,
-                        contentDescription = if (isInTeam) "In Team" else "Add to Team",
+                        contentDescription = if (isInTeam) stringResource(R.string.card_in_team) else stringResource(R.string.card_add_to_team),
                         tint = if (isInTeam) {
                             MaterialTheme.colorScheme.primary
                         } else {
@@ -268,7 +270,7 @@ fun ImprovedPokemonCard(
                 ) {
                     Icon(
                         imageVector = if (isInFavorites) Icons.Default.Star else Icons.Default.StarBorder,
-                        contentDescription = if (isInFavorites) "Remove from Favorites" else "Add to Favorites",
+                        contentDescription = if (isInFavorites) stringResource(R.string.card_remove_from_favorites) else stringResource(R.string.card_add_to_favorites),
                         tint = if (isInFavorites) {
                             MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
                         } else {
@@ -295,13 +297,13 @@ fun ImprovedPokemonCard(
                         when (result) {
                             is TeamViewModel.TeamAdditionResult.Success -> {
                                 val message = if (result.wasAdded)
-                                    "Added to ${result.teamName}!"
+                                    context.getString(R.string.card_added_to, result.teamName)
                                 else
-                                    "Removed from ${result.teamName}"
+                                    context.getString(R.string.card_removed_from, result.teamName)
                                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             }
                             is TeamViewModel.TeamAdditionResult.TeamFull -> {
-                                Toast.makeText(context, "Team is full!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.card_team_full), Toast.LENGTH_SHORT).show()
                             }
                             is TeamViewModel.TeamAdditionResult.Error -> {
                                 Toast.makeText(context, result.message, Toast.LENGTH_SHORT).show()
@@ -327,7 +329,7 @@ fun ImprovedPokemonCard(
                     onSuccess = {
                         showCreateTeamDialog = false
                         teamCreationError = null
-                        Toast.makeText(context, "Team \"$teamName\" created!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.card_team_created, teamName), Toast.LENGTH_SHORT).show()
                     },
                     onError = { error ->
                         teamCreationError = error

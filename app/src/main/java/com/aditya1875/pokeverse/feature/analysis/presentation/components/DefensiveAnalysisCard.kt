@@ -27,10 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.CARD
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.GREEN
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.RED
@@ -73,7 +75,7 @@ fun DefensiveAnalysisCard(
                 }
                 Spacer(Modifier.width(12.dp))
                 Text(
-                    text = "Defensive Analysis",
+                    text = stringResource(R.string.analysis_defensive_analysis),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -84,7 +86,7 @@ fun DefensiveAnalysisCard(
                 Spacer(Modifier.height(24.dp))
 
                 Text(
-                    text = "WEAKNESSES",
+                    text = stringResource(R.string.analysis_weaknesses),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color(0xFFFF6B6B),
                     letterSpacing = 1.sp,
@@ -109,7 +111,7 @@ fun DefensiveAnalysisCard(
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    text = "RESISTANCES",
+                    text = stringResource(R.string.analysis_resistances),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color(0xFF00E676),
                     letterSpacing = 1.sp,
@@ -201,13 +203,13 @@ fun DefenseSection(
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-            Text("🛡️ Defensive Profile",
+            Text("🛡️ ${stringResource(R.string.analysis_defensive_profile)}",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold, color = Color.White)
             HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
 
             if (weaknesses.isNotEmpty()) {
-                Text("VULNERABLE TO", style = MaterialTheme.typography.labelSmall,
+                Text(stringResource(R.string.analysis_vulnerable_to), style = MaterialTheme.typography.labelSmall,
                     color = RED.copy(alpha = 0.8f), letterSpacing = 1.5.sp)
                 weaknesses.entries.sortedByDescending { it.value.size }.take(6).forEach { (type, pokemon) ->
                     DefenseTypeBar(type = type, count = pokemon.size, total = teamSize, isWeakness = true)
@@ -215,7 +217,7 @@ fun DefenseSection(
             }
 
             if (resistances.isNotEmpty()) {
-                Text("RESISTS", style = MaterialTheme.typography.labelSmall,
+                Text(stringResource(R.string.analysis_resists), style = MaterialTheme.typography.labelSmall,
                     color = GREEN.copy(alpha = 0.8f), letterSpacing = 1.5.sp)
                 resistances.entries.sortedByDescending { it.value.size }.take(6).forEach { (type, pokemon) ->
                     DefenseTypeBar(type = type, count = pokemon.size, total = teamSize, isWeakness = false)

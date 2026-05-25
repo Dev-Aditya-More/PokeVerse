@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.pokematch.presentation.screens
 
+import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -47,10 +48,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.R
 import coil.ImageLoader
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.components.GameTimer
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.components.PokemonCard
@@ -80,6 +87,16 @@ fun GameScreen(
         viewModel.xpResult.collect { result ->
             pendingXp = result
         }
+    }
+
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
+    val adManager = koinInject<IRewardedAdManager>()
+    val adState by adManager.adState.collectAsStateWithLifecycle()
+    var showAdForReplay by remember { mutableStateOf(false) }
+    LaunchedEffect(adState) {
+        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
     }
 
     var showExitDialog by remember { mutableStateOf(false) }
@@ -119,7 +136,7 @@ fun GameScreen(
                                     color = MaterialTheme.colorScheme.primary
                                 )
                                 Text(
-                                    text = "Preparing Pokémon...",
+                                    text = stringResource(R.string.match_preparing),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
@@ -144,7 +161,7 @@ fun GameScreen(
                                 // Score
                                 Column {
                                     Text(
-                                        "Score",
+                                        stringResource(R.string.match_stat_score),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                                     )
@@ -167,7 +184,7 @@ fun GameScreen(
 
                                 Column(horizontalAlignment = Alignment.End) {
                                     Text(
-                                        "Moves",
+                                        stringResource(R.string.match_stat_moves),
                                         style = MaterialTheme.typography.labelMedium,
                                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                                     )
@@ -271,7 +288,7 @@ fun GameScreen(
                                         verticalArrangement = Arrangement.spacedBy(16.dp)
                                     ) {
                                         Text(
-                                            "Paused",
+                                            stringResource(R.string.match_paused),
                                             style = MaterialTheme.typography.headlineMedium,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -281,7 +298,7 @@ fun GameScreen(
                                         ) {
                                             Icon(Icons.Default.PlayArrow, null)
                                             Spacer(Modifier.width(8.dp))
-                                            Text("Resume")
+                                            Text(stringResource(R.string.match_resume))
                                         }
                                         OutlinedButton(
                                             onClick = { viewModel.restartGame() },
@@ -289,14 +306,14 @@ fun GameScreen(
                                         ) {
                                             Icon(Icons.Default.Refresh, null)
                                             Spacer(Modifier.width(8.dp))
-                                            Text("Restart")
+                                            Text(stringResource(R.string.match_restart))
                                         }
                                         TextButton(
                                             onClick = { showExitDialog = true },
                                             modifier = Modifier.fillMaxWidth()
                                         ) {
                                             Text(
-                                                "Exit Game",
+                                                stringResource(R.string.match_exit_game),
                                                 color = MaterialTheme.colorScheme.error
                                             )
                                         }
@@ -308,14 +325,22 @@ fun GameScreen(
 
                     is GameState.Victory -> VictoryScreen(
                         victory = state,
-                        onPlayAgain = { viewModel.startGame(state.difficulty) },
+                        onPlayAgain = {
+                            if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium)
+                                showAdForReplay = true
+                            else viewModel.startGame(state.difficulty)
+                        },
                         onChangeDifficulty = onBack,
                         onHome = { showExitDialog = true }
                     )
 
                     is GameState.TimeUp -> TimeUpScreen(
                         timeUp = state,
-                        onPlayAgain = { viewModel.startGame(state.difficulty) },
+                        onPlayAgain = {
+                            if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium)
+                                showAdForReplay = true
+                            else viewModel.startGame(state.difficulty)
+                        },
                         onBack = { showExitDialog = true }
                     )
 
@@ -326,8 +351,8 @@ fun GameScreen(
             if (showExitDialog) {
                 AlertDialog(
                     onDismissRequest = { showExitDialog = false },
-                    title = { Text("Exit game?") },
-                    text = { Text("Are you sure you want to exit?") },
+                    title = { Text(stringResource(R.string.dialog_exit_game_title)) },
+                    text = { Text(stringResource(R.string.dialog_exit_game_message)) },
                     confirmButton = {
                         TextButton(
                             onClick = {
@@ -336,16 +361,32 @@ fun GameScreen(
                                 onBack()
                             }
                         ) {
-                            Text("Exit", color = MaterialTheme.colorScheme.error)
+                            Text(stringResource(R.string.quiz_exit_confirm), color = MaterialTheme.colorScheme.error)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showExitDialog = false }) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel))
                         }
                     }
                 )
             }
         }
+    }
+
+    if (showAdForReplay) {
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        showAdForReplay = false
+                        viewModel.startGame(difficulty)
+                    }
+                }
+            },
+            onDismiss = { showAdForReplay = false },
+            onRetry = { adManager.loadAd(context) }
+        )
     }
 }

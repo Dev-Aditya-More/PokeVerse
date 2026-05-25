@@ -35,7 +35,8 @@ fun CardClashScreen(
             onPlayRandom = viewModel::joinRandom,
             onCreateFriendRoom = viewModel::createMatch,
             onJoinByCode = viewModel::joinByCode,
-            onCodeChanged = viewModel::updateEnteredCode
+            onCodeChanged = viewModel::updateEnteredCode,
+            onCancelWait = viewModel::reset
         )
     }
 }

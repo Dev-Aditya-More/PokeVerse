@@ -44,8 +44,7 @@ fun BottomNavigationBar(
             Route.BottomBar.Team,
             Route.BottomBar.Game,
             Route.BottomBar.Leaderboard,
-            Route.BottomBar.Profile,
-            Route.BottomBar.Clash
+            Route.BottomBar.Profile
         )
 
         items.forEach { routeItem ->

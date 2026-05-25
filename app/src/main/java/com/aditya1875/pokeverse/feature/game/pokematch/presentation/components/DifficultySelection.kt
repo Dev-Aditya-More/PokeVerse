@@ -37,8 +37,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
@@ -84,14 +86,15 @@ fun DifficultyScreen(
                     }
                 }
             },
-            onDismiss = { showAdDialog = false }
+            onDismiss = { showAdDialog = false },
+            onRetry = { adManager.loadAd(context) }
         )
     }
 
     GameDifficultyLayout(
-        gameTitle = "PokéMatch",
-        gameSubtitle = "Match all Pokémon pairs to win!",
-        difficultyHint = "Flip cards and match all pairs.",
+        gameTitle = stringResource(R.string.match_game_title),
+        gameSubtitle = stringResource(R.string.match_game_subtitle),
+        difficultyHint = stringResource(R.string.match_difficulty_hint),
         onBack = onBack,
         subscriptionState = subscriptionState
     ) {
@@ -103,7 +106,7 @@ fun DifficultyScreen(
             DifficultyCard(
                 difficulty = difficulty,
                 canPlay = canPlay,
-                adAvailable = !canPlay && difficulty == Difficulty.HARD && adState is RewardedAdState.Ready,
+                adAvailable = !canPlay && difficulty == Difficulty.HARD,
                 bestScore = topScores
                     .filter { it.difficulty == difficulty.name }
                     .maxByOrNull { it.score },
@@ -180,7 +183,7 @@ fun DifficultyCard(
                         Spacer(Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Locked",
+                            contentDescription = stringResource(R.string.label_locked),
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                             modifier = Modifier.size(16.dp)
                         )
@@ -198,7 +201,7 @@ fun DifficultyCard(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            text = "Watch ad to play this round",
+                            text = stringResource(R.string.guess_watch_ad),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFF2196F3)
                         )
@@ -208,7 +211,7 @@ fun DifficultyCard(
                 bestScore?.let {
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "Best: ${it.score}",
+                        text = stringResource(R.string.guess_best_score, it.score),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFFFFD700),
                         fontWeight = FontWeight.SemiBold

@@ -28,12 +28,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPhase
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashUiState
 
@@ -43,7 +45,8 @@ fun CardClashLobbyScreen(
     onPlayRandom: () -> Unit,
     onCreateFriendRoom: () -> Unit,
     onJoinByCode: (String) -> Unit,
-    onCodeChanged: (String) -> Unit
+    onCodeChanged: (String) -> Unit,
+    onCancelWait: () -> Unit
 ) {
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -56,8 +59,9 @@ fun CardClashLobbyScreen(
 
             state.phase == ClashPhase.WAITING_FOR_OPPONENT -> {
                 WaitingView(
-                    roomCode = state.roomCode,
-                    isRandom = state.roomCode.isNullOrBlank()
+                    roomCode = if (state.isRandomWait) null else state.roomCode,
+                    isRandom = state.isRandomWait,
+                    onCancel = onCancelWait
                 )
             }
 
@@ -90,12 +94,12 @@ private fun LobbyContent(
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         Text(
-            text = "PokeCard Clash",
+            text = stringResource(R.string.clash_lobby_title),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
         Text(
-            text = "6 secret cards. 6 rounds.\nType advantage decides the winner.",
+            text = stringResource(R.string.clash_lobby_desc),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -109,11 +113,11 @@ private fun LobbyContent(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Play Random", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
+            Text(stringResource(R.string.clash_lobby_play_random), fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
         }
 
         Text(
-            text = "— or —",
+            text = stringResource(R.string.clash_lobby_or),
             style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -154,7 +158,7 @@ private fun FriendRoomCard(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "Play a Friend",
+                text = stringResource(R.string.clash_lobby_play_friend),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
@@ -164,11 +168,11 @@ private fun FriendRoomCard(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp)
             ) {
-                Text("Create Room & Share Code")
+                Text(stringResource(R.string.clash_lobby_create_room))
             }
 
             Text(
-                text = "or enter a room code",
+                text = stringResource(R.string.clash_lobby_enter_code),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -180,7 +184,7 @@ private fun FriendRoomCard(
                 OutlinedTextField(
                     value = enteredCode,
                     onValueChange = onCodeChanged,
-                    placeholder = { Text("ABCD12") },
+                    placeholder = { Text(stringResource(R.string.clash_lobby_code_placeholder)) },
                     singleLine = true,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(10.dp),
@@ -195,7 +199,7 @@ private fun FriendRoomCard(
                     enabled = enteredCode.length == 6,
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Text("Join")
+                    Text(stringResource(R.string.clash_lobby_join))
                 }
             }
         }
@@ -203,18 +207,35 @@ private fun FriendRoomCard(
 }
 
 @Composable
-private fun WaitingView(roomCode: String?, isRandom: Boolean) {
+private fun WaitingView(roomCode: String?, isRandom: Boolean, onCancel: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.padding(24.dp)
     ) {
         CircularProgressIndicator(modifier = Modifier.size(48.dp))
-        Text(
-            text = if (isRandom) "Looking for an opponent..." else "Waiting for your friend...",
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center
-        )
+
+        if (isRandom) {
+            Text(
+                text = "No open matches found",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = "You're in the queue — any random player can join. Hang tight or cancel and try again later.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+        } else {
+            Text(
+                text = "Waiting for your friend...",
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center
+            )
+        }
+
         if (!roomCode.isNullOrBlank()) {
             Text(
                 text = "Share this code:",
@@ -228,6 +249,14 @@ private fun WaitingView(roomCode: String?, isRandom: Boolean) {
                 letterSpacing = 6.sp,
                 color = MaterialTheme.colorScheme.primary
             )
+        }
+
+        OutlinedButton(
+            onClick = onCancel,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(stringResource(R.string.cancel))
         }
     }
 }

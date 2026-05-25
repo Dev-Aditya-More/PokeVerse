@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.auth.AuthState
@@ -45,14 +47,14 @@ fun GuestLoginCard(viewModel: ProfileViewModel = koinViewModel()) {
             val raw = (authState as AuthState.Error).message.lowercase()
             when {
                 "cancelled" in raw -> null  // user dismissed — no message
-                "no_credentials" in raw -> "No Google account found on this device. Add one in Settings → Accounts."
+                "no_credentials" in raw -> context.getString(R.string.profile_error_no_credentials)
                 "network" in raw ||
-                        "internet" in raw -> "No internet connection. Please check your network."
+                        "internet" in raw -> context.getString(R.string.profile_error_no_internet)
 
                 "sign_in_failed" in raw ||
-                        "credential_error" in raw -> "Sign-in failed. Please try again."
+                        "credential_error" in raw -> context.getString(R.string.profile_error_sign_in_failed)
 
-                else -> "Something went wrong. Try again in a moment."
+                else -> context.getString(R.string.profile_error_generic)
             }
         }
     }
@@ -66,12 +68,12 @@ fun GuestLoginCard(viewModel: ProfileViewModel = koinViewModel()) {
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Create a Trainer Account",
+                stringResource(R.string.profile_create_account_title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(6.dp))
-            Text("Sign in to appear on leaderboards and sync your progress across devices.")
+            Text(stringResource(R.string.profile_create_account_subtitle))
             Spacer(Modifier.height(12.dp))
 
             Button(
@@ -107,7 +109,7 @@ fun GuestLoginCard(viewModel: ProfileViewModel = koinViewModel()) {
                             tint = Color.White, modifier = Modifier.size(24.dp)
                         )
                         Text(
-                            "Sign In with Google",
+                            stringResource(R.string.action_sign_in_google),
                             color = Color.White,
                             fontWeight = FontWeight.SemiBold,
                             style = MaterialTheme.typography.bodyLarge

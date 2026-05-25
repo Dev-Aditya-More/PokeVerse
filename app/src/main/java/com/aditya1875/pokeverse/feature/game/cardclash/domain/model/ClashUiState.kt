@@ -45,7 +45,10 @@ data class ClashUiState(
     val opponentDisconnected: Boolean = false,
 
     // Friend code input in lobby
-    val enteredCode: String = ""
+    val enteredCode: String = "",
+
+    // True when Play Random found no open match and created a waiting room as fallback
+    val isRandomWait: Boolean = false
 )
 
 enum class ClashPhase {

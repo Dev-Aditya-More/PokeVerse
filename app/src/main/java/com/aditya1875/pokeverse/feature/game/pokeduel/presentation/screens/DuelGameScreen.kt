@@ -42,10 +42,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.feature.game.pokeduel.domain.model.DuelGameState
 import com.aditya1875.pokeverse.feature.game.pokeduel.domain.model.DuelOutcome
@@ -156,7 +158,7 @@ private fun LoadingScreen(modifier: Modifier = Modifier) {
             )
             Spacer(Modifier.height(16.dp))
             Text(
-                "Finding opponents...",
+                stringResource(R.string.duel_loading),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -196,13 +198,13 @@ private fun DuelIdleScreen(
             Spacer(Modifier.height(20.dp))
 
             Text(
-                "PokéDuel",
+                stringResource(R.string.duel_game_title),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Black
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "Two Pokémon face off!\nPick the winner based on type advantage.",
+                stringResource(R.string.duel_intro_body),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -239,7 +241,7 @@ private fun DuelIdleScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Start Dueling", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(stringResource(R.string.action_start), fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
             Spacer(Modifier.height(12.dp))
             OutlinedButton(
@@ -249,7 +251,7 @@ private fun DuelIdleScreen(
                     .height(52.dp),
                 shape = RoundedCornerShape(14.dp)
             ) {
-                Text("Back")
+                Text(stringResource(R.string.back))
             }
         }
     }
@@ -303,12 +305,12 @@ private fun DuelingScreen(
                 }
             }
             Text(
-                "Round ${state.round}",
+                stringResource(R.string.duel_round, state.round),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                "${state.score} pts",
+                stringResource(R.string.duel_score_pts, state.score),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
@@ -318,7 +320,7 @@ private fun DuelingScreen(
         Spacer(Modifier.height(30.dp))
 
         Text(
-            "Who wins in a battle?",
+            stringResource(R.string.duel_who_wins),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
@@ -380,7 +382,7 @@ private fun DuelingScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("🤝 It's a Draw", fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.duel_draw), fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -402,28 +404,28 @@ private fun DuelGameOverScreen(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            "Game Over",
+            stringResource(R.string.result_title_game_over),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Black
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Round ${state.round} • ${state.score} pts",
+            stringResource(R.string.duel_round_score, state.round, state.score),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         if (state.isNewBest) {
             Spacer(Modifier.height(8.dp))
             Text(
-                "🏆 New Best!",
+                stringResource(R.string.duel_new_best),
                 color = Color(0xFFFFD700),
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
         }
         Spacer(Modifier.height(32.dp))
-        Button(onClick = onPlayAgain, modifier = Modifier.fillMaxWidth()) { Text("Play Again") }
+        Button(onClick = onPlayAgain, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.result_play_again)) }
         Spacer(Modifier.height(12.dp))
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text("Back") }
+        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.back)) }
     }
 }

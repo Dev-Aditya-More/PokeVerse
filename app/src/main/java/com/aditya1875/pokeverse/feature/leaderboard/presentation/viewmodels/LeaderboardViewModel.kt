@@ -54,11 +54,19 @@ class LeaderboardViewModel(
         load()
     }
 
+    private var isPaginating = false
+
     fun loadNextPage() {
+        if (isPaginating) return
         viewModelScope.launch {
             val current = _state.value
             if (current is LeaderboardState.Success && current.canLoadMore) {
-                _state.value = repository.loadNextPage(_type.value)
+                isPaginating = true
+                try {
+                    _state.value = repository.loadNextPage(_type.value)
+                } finally {
+                    isPaginating = false
+                }
             }
         }
     }

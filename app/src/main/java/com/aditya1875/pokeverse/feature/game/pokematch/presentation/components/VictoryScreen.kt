@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -28,10 +31,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameResultLayout
+import com.aditya1875.pokeverse.feature.game.core.presentation.ResultHeroIcon
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatChips
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatRow
 import com.aditya1875.pokeverse.feature.game.pokematch.domain.model.GameState
@@ -49,46 +54,51 @@ fun VictoryScreen(
     LaunchedEffect(Unit) { soundManager.play(SoundManager.Sound.GAME_WIN) }
 
     val heroColor = when (victory.stars) {
-        3 -> Color(0xFFFFD700)
-        2 -> Color(0xFF4CAF50)
-        else -> Color(0xFF2196F3)
+        3    -> Color(0xFFFFD700)
+        2    -> Color(0xFF4CAF50)
+        1    -> Color(0xFF2196F3)
+        else -> Color(0xFF9E9E9E)
     }
 
     GameResultLayout(
-        title = if (victory.isNewBest) "New Best!" else "You Win!",
-        subtitle = "${victory.difficulty.displayName} cleared",
+        title = if (victory.isNewBest) stringResource(R.string.result_title_new_best) else stringResource(R.string.result_title_you_win),
+        subtitle = stringResource(R.string.match_cleared, victory.difficulty.displayName),
         score = victory.score.toString(),
-        scoreLabel = "SCORE",
+        scoreLabel = stringResource(R.string.result_score_label_score),
         heroColor = heroColor,
         stars = victory.stars,
         isNewBest = victory.isNewBest,
         onPlayAgain = onPlayAgain,
         onBack = onHome,
         heroContent = {
-            Text(
-                text = when (victory.stars) { 3 -> "🏆"; 2 -> "🎖️"; else -> "🃏" },
-                fontSize = 64.sp
+            ResultHeroIcon(
+                icon = when (victory.stars) {
+                    3    -> Icons.Default.EmojiEvents
+                    2    -> Icons.Default.WorkspacePremium
+                    else -> Icons.Default.Style
+                },
+                heroColor = heroColor
             )
         },
         statsContent = {
             ResultStatChips(
-                "Score"  to victory.score.toString(),
-                "Moves"  to victory.moves.toString(),
-                "Time"   to "${victory.timeTaken}s"
+                stringResource(R.string.match_stat_score) to victory.score.toString(),
+                stringResource(R.string.match_stat_moves) to victory.moves.toString(),
+                stringResource(R.string.match_stat_time) to "${victory.timeTaken}s"
             )
             Spacer(Modifier.height(16.dp))
             ResultStatRow(
-                label = "Difficulty",
+                label = stringResource(R.string.label_difficulty),
                 value = victory.difficulty.displayName,
                 icon = Icons.Default.Speed
             )
             ResultStatRow(
-                label = "Moves used",
+                label = stringResource(R.string.match_stat_moves_used),
                 value = victory.moves.toString(),
                 icon = Icons.Default.TouchApp
             )
             ResultStatRow(
-                label = "Time taken",
+                label = stringResource(R.string.match_stat_time_taken),
                 value = "${victory.timeTaken}s",
                 icon = Icons.Default.Timer,
                 isLast = true
@@ -125,14 +135,14 @@ fun TimeUpScreen(
             )
 
             Text(
-                text = "Time's Up!",
+                text = stringResource(R.string.result_title_times_up),
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFFF1744)
             )
 
             Text(
-                text = "${timeUp.matchesFound}/${timeUp.totalPairs} pairs found",
+                text = stringResource(R.string.result_pairs_found, timeUp.matchesFound, timeUp.totalPairs),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -149,11 +159,11 @@ fun TimeUpScreen(
             ) {
                 Icon(Icons.Default.Refresh, null)
                 Spacer(Modifier.width(8.dp))
-                Text("Try Again")
+                Text(stringResource(R.string.action_try_again))
             }
 
             TextButton(onClick = onBack) {
-                Text("Back to Menu")
+                Text(stringResource(R.string.result_back_to_menu))
             }
         }
     }

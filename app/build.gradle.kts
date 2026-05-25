@@ -18,8 +18,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 66
-        versionName = "1.6.6"
+        versionCode = 68
+        versionName = "1.6.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -206,6 +206,7 @@ dependencies {
 
     add("playImplementation", libs.play.services.auth)
     add("playImplementation", libs.play.services.ads)
+    add("playImplementation", libs.play.review.ktx)
 
     // Glance Widget
     implementation (libs.androidx.glance.appwidget)

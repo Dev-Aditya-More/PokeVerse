@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.IosShare
@@ -192,7 +193,7 @@ fun TeamContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(team, key = { it.name }) { pokemon ->
+                itemsIndexed(team, key = { index, it -> "${it.name}_$index" }) { _, pokemon ->
                     ImprovedTeamCard(
                         pokemon = pokemon,
                         navController = navController,

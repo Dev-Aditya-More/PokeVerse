@@ -8,18 +8,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.utils.ScreenStateManager
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private const val RATING_MIN_MINUTES = 20L
 private const val PREMIUM_MIN_MINUTES = 40L
-private const val MIN_GAP_BETWEEN_POPUPS_MINUTES = 5L
+private const val MIN_GAP_BETWEEN_POPUPS_MINUTES = 30L
 private const val SLOW_POPUP_STARTUP_DELAY_MS = 4_000L
 
 enum class HomePopup { None, Update, Assets, Rating, Premium }
@@ -27,9 +28,8 @@ enum class HomePopup { None, Update, Assets, Rating, Premium }
 // Single dialog visible at a time. Priority:
 //   1. Update  — urgent, shows as soon as DataStore is ready
 //   2. Assets  — first-ever launch only, shows after DataStore is ready
-//   3. Rating  — after RATING_MIN_MINUTES cumulative AND 4s startup delay AND 5-min gap since last popup
-//   4. Premium — after PREMIUM_MIN_MINUTES cumulative AND same guards as Rating
-// All thresholds use accumulated DataStore minutes so they work across sessions.
+//   3. Rating  — signed-in users only; triggers Play In-App Review after RATING_MIN_MINUTES
+//   4. Premium — after PREMIUM_MIN_MINUTES, 30-min gap since last popup
 
 @Composable
 fun HomePopupOrchestrator(
@@ -37,7 +37,6 @@ fun HomePopupOrchestrator(
     totalSessionMinutes: Long,
     isGuest: Boolean,
     isPremium: Boolean,
-    // Update dialog — wire these from SettingsViewModel + BuildConfig
     latestVersionCode: Long = 0L,
     currentVersionCode: Long = 0L,
     onEnableAssets: () -> Unit,
@@ -63,7 +62,7 @@ fun HomePopupOrchestrator(
         updateShownVersion = ScreenStateManager.getUpdateShownVersion(context)
         lastPopupAtMinutes = ScreenStateManager.getLastPopupShownAtMinutes(context)
         isReady = true
-        delay(SLOW_POPUP_STARTUP_DELAY_MS)
+        kotlinx.coroutines.delay(SLOW_POPUP_STARTUP_DELAY_MS)
         slowPopupsUnlocked = true
     }
 
@@ -94,7 +93,7 @@ fun HomePopupOrchestrator(
 
             !assetsShown && !originalAssetsEnabled -> HomePopup.Assets
 
-            !ratingShown &&
+            !ratingShown && !isGuest &&
                     slowPopupsUnlocked &&
                     totalSessionMinutes >= RATING_MIN_MINUTES &&
                     cooldownPassed -> HomePopup.Rating
@@ -135,12 +134,12 @@ fun HomePopupOrchestrator(
         )
 
         HomePopup.Assets -> AssetsOnboardingDialog(
-            onEnable = { 
+            onEnable = {
                 dismissPopup {
                     ScreenStateManager.markAssetsShown(context)
                     assetsShown = true
                 }
-                onEnableAssets() 
+                onEnableAssets()
             },
             onDismiss = {
                 dismissPopup {
@@ -150,35 +149,24 @@ fun HomePopupOrchestrator(
             }
         )
 
-        HomePopup.Rating -> RatingPromptDialog(
-            onRateNow = { 
-                dismissPopup {
-                    ScreenStateManager.markRatingShown(context)
-                    ratingShown = true
-                }
-                onRateNow() 
-            },
-            onMaybeLater = {
-                dismissPopup {
-                    ScreenStateManager.markRatingShown(context)
-                    ratingShown = true
-                }
-            },
-            onDontAsk = {
-                dismissPopup {
-                    ScreenStateManager.markRatingShown(context)
-                    ratingShown = true
-                }
+        HomePopup.Rating -> {
+            // Trigger Play In-App Review silently — no custom dialog shown
+            LaunchedEffect(Unit) {
+                onRateNow()
+                ScreenStateManager.markLastPopupShownAt(context, totalSessionMinutes)
+                ScreenStateManager.markRatingShown(context)
+                lastPopupAtMinutes = totalSessionMinutes
+                ratingShown = true
             }
-        )
+        }
 
         HomePopup.Premium -> PremiumUpsellDialog(
-            onGoPremium = { 
+            onGoPremium = {
                 dismissPopup {
                     ScreenStateManager.markPremiumShown(context)
                     premiumShown = true
                 }
-                onGoPremium() 
+                onGoPremium()
             },
             onDismiss = {
                 dismissPopup {
@@ -188,9 +176,7 @@ fun HomePopupOrchestrator(
             }
         )
 
-        HomePopup.None -> {
-
-        }
+        HomePopup.None -> {}
     }
 }
 
@@ -211,7 +197,7 @@ fun UpdateAvailableDialog(onGoUpdate: () -> Unit, onDismiss: () -> Unit) {
         },
         title = {
             Text(
-                "Update Available",
+                stringResource(R.string.popup_update_title),
                 fontWeight = FontWeight.Black, textAlign = TextAlign.Center
             )
         },
@@ -221,7 +207,7 @@ fun UpdateAvailableDialog(onGoUpdate: () -> Unit, onDismiss: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    "A new version of Dexverse is ready with bug fixes and new features.",
+                    stringResource(R.string.popup_update_body),
                     style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
                 )
                 Surface(
@@ -229,7 +215,7 @@ fun UpdateAvailableDialog(onGoUpdate: () -> Unit, onDismiss: () -> Unit) {
                     color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                 ) {
                     Text(
-                        "Update now for the best experience.",
+                        stringResource(R.string.popup_update_tip),
                         modifier = Modifier.padding(10.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -240,10 +226,10 @@ fun UpdateAvailableDialog(onGoUpdate: () -> Unit, onDismiss: () -> Unit) {
         },
         confirmButton = {
             Button(onClick = onGoUpdate, shape = RoundedCornerShape(12.dp)) {
-                Text("Update Now", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.action_update_now), fontWeight = FontWeight.Bold)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Later") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_later)) } }
     )
 }
 
@@ -255,7 +241,7 @@ fun AssetsOnboardingDialog(onEnable: () -> Unit, onDismiss: () -> Unit) {
         icon = { Text("🎨", fontSize = 36.sp) },
         title = {
             Text(
-                "Original Visuals Available",
+                stringResource(R.string.popup_assets_title),
                 fontWeight = FontWeight.Black, textAlign = TextAlign.Center
             )
         },
@@ -265,7 +251,7 @@ fun AssetsOnboardingDialog(onEnable: () -> Unit, onDismiss: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    "Dexverse can show original franchise sprites and play authentic audio for a richer experience.",
+                    stringResource(R.string.popup_assets_body),
                     style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
                 )
                 Surface(
@@ -273,7 +259,7 @@ fun AssetsOnboardingDialog(onEnable: () -> Unit, onDismiss: () -> Unit) {
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Text(
-                        "⚠️  These assets belong to their respective owners. This app is unofficial and unaffiliated.",
+                        stringResource(R.string.popup_assets_disclaimer),
                         modifier = Modifier.padding(12.dp),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -281,7 +267,7 @@ fun AssetsOnboardingDialog(onEnable: () -> Unit, onDismiss: () -> Unit) {
                     )
                 }
                 Text(
-                    "You can always change this in Settings → Original Assets.",
+                    stringResource(R.string.popup_assets_change_hint),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center
@@ -290,67 +276,20 @@ fun AssetsOnboardingDialog(onEnable: () -> Unit, onDismiss: () -> Unit) {
         },
         confirmButton = {
             Button(onClick = onEnable, shape = RoundedCornerShape(12.dp)) {
-                Text("I Understand, Enable", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.settings_understand_enable), fontWeight = FontWeight.Bold)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Not Now") } }
-    )
-}
-
-@Composable
-fun RatingPromptDialog(onRateNow: () -> Unit, onMaybeLater: () -> Unit, onDontAsk: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onMaybeLater,
-        shape = RoundedCornerShape(24.dp),
-        icon = { Text("⭐", fontSize = 36.sp) },
-        title = {
-            Text(
-                "Enjoying Dexverse?",
-                fontWeight = FontWeight.Black, textAlign = TextAlign.Center
-            )
-        },
-        text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    repeat(5) { Text("⭐", fontSize = 22.sp) }
-                }
-                Text(
-                    "A quick rating helps us reach more Pokémon fans and keeps the app improving.",
-                    style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onRateNow, shape = RoundedCornerShape(12.dp)) {
-                Text("Rate Now ⭐", fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                TextButton(onClick = onMaybeLater) { Text("Maybe Later") }
-                TextButton(
-                    onClick = onDontAsk,
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    )
-                ) {
-                    Text("Don't ask again", style = MaterialTheme.typography.labelSmall)
-                }
-            }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_not_now)) } }
     )
 }
 
 @Composable
 fun PremiumUpsellDialog(onGoPremium: () -> Unit, onDismiss: () -> Unit) {
     val features = listOf(
-        "🎯" to "Hard mode in all 4 games",
-        "✨" to "Full Dexverse Experience",
-        "🔮" to "Exclusive themes & badges",
-        "🚀" to "Support Dexverse's growth",
+        "🎯" to stringResource(R.string.popup_premium_feature_hard_mode),
+        "✨" to stringResource(R.string.popup_premium_feature_experience),
+        "🔮" to stringResource(R.string.popup_premium_feature_themes),
+        "🚀" to stringResource(R.string.popup_premium_feature_support),
     )
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -360,11 +299,11 @@ fun PremiumUpsellDialog(onGoPremium: () -> Unit, onDismiss: () -> Unit) {
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    "Pokeverse Premium",
+                    stringResource(R.string.popup_premium_title),
                     fontWeight = FontWeight.Black, textAlign = TextAlign.Center
                 )
                 Text(
-                    "Unlock the full experience",
+                    stringResource(R.string.popup_premium_subtitle),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -390,8 +329,8 @@ fun PremiumUpsellDialog(onGoPremium: () -> Unit, onDismiss: () -> Unit) {
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFFFFD700), contentColor = Color.Black
                 )
-            ) { Text("Go Premium 👑", fontWeight = FontWeight.Black) }
+            ) { Text(stringResource(R.string.action_go_premium), fontWeight = FontWeight.Black) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Maybe Later") } }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_later)) } }
     )
 }

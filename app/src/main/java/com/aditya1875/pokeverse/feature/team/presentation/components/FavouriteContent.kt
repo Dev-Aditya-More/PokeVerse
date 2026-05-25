@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -82,7 +83,7 @@ fun FavoritesContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(favorites, key = { it.name }) { favorite ->
+                itemsIndexed(favorites, key = { index, it -> "${it.name}_$index" }) { _, favorite ->
                     ImprovedFavoriteCard(
                         favorite = favorite,
                         navController = navController,

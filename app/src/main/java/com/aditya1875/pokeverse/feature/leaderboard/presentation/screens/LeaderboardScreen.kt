@@ -59,7 +59,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.aditya1875.pokeverse.R
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -113,13 +115,13 @@ fun LeaderboardScreen(
                                 Text("🏆", fontSize = 48.sp)
                                 Spacer(Modifier.height(12.dp))
                                 Text(
-                                    "New week, fresh start!",
+                                    stringResource(R.string.leaderboard_weekly_empty_title),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    "Be the first to earn XP this week",
+                                    stringResource(R.string.leaderboard_weekly_empty_subtitle),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -189,8 +191,8 @@ fun LeaderboardScreen(
                         )
                     }
 
-                    val userInList = s.entries.any { it.uid == s.userEntry?.uid }
-                    if (s.userEntry != null && !userInList) {
+                    // Sticky rank banner — always visible so the user knows their position
+                    if (s.userEntry != null && s.userEntry.rank > 0) {
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -262,7 +264,7 @@ private fun LeaderboardList(
 
         itemsIndexed(
             items = entries.drop(3),
-            key = { _, e -> e.uid }
+            key = { index, e -> "${e.uid}_$index" }
         ) { index, entry ->
             val isUser = entry.uid == userEntry?.uid
             LeaderboardRow(
@@ -300,7 +302,7 @@ private fun LeaderboardHeader(
             .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
         Text(
-            "Leaderboard",
+            stringResource(R.string.screen_title_leaderboard),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Black
         )
@@ -310,13 +312,13 @@ private fun LeaderboardHeader(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
 
             LeaderboardTab(
-                text = "Global",
+                text = stringResource(R.string.leaderboard_tab_global),
                 selected = type == LeaderboardType.GLOBAL,
                 onClick = { onTypeChange(LeaderboardType.GLOBAL) }
             )
 
             LeaderboardTab(
-                text = "Weekly",
+                text = stringResource(R.string.leaderboard_tab_weekly),
                 selected = type == LeaderboardType.WEEKLY,
                 onClick = { onTypeChange(LeaderboardType.WEEKLY) }
             )
@@ -326,9 +328,9 @@ private fun LeaderboardHeader(
 
         Text(
             if (type == LeaderboardType.WEEKLY)
-                "Resets every Monday 12:00 AM IST"
+                stringResource(R.string.leaderboard_weekly_reset)
             else
-                "Top trainers of all time",
+                stringResource(R.string.leaderboard_all_time),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -542,7 +544,8 @@ private fun LeaderboardRow(
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = if (isUser) FontWeight.Bold else FontWeight.Normal,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 if (isUser) {
                     Spacer(Modifier.width(6.dp))
@@ -551,7 +554,7 @@ private fun LeaderboardRow(
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                     ) {
                         Text(
-                            "You",
+                            stringResource(R.string.leaderboard_you_label),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
@@ -559,11 +562,17 @@ private fun LeaderboardRow(
                     }
                 }
             }
-            Text(
-                "Lv. ${entry.level}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    "Lv. ${entry.level}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                LeagueBadge(rank = entry.rank)
+            }
         }
 
         Text(
@@ -604,7 +613,10 @@ private fun UserRankBanner(
         ) {
             Icon(Icons.Default.Person, null, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Your Rank", style = MaterialTheme.typography.labelMedium)
+            Column {
+                Text(stringResource(R.string.leaderboard_your_rank), style = MaterialTheme.typography.labelMedium)
+                LeagueBadge(rank = entry.rank)
+            }
             Spacer(Modifier.weight(1f))
             Text(
                 "#${entry.rank}",
@@ -712,6 +724,43 @@ private fun LeaderboardSkeleton() {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// League badge (Gold / Silver / Bronze) based on rank
+// ─────────────────────────────────────────────────────────────────────────────
+
+private data class League(val label: String, val color: Color, val emoji: String)
+
+private fun leagueFor(rank: Int): League? = when {
+    rank in 1..10   -> League("Gold",   Color(0xFFFFD700), "🥇")
+    rank in 11..30  -> League("Silver", Color(0xFFC0C0C0), "🥈")
+    rank in 31..100 -> League("Bronze", Color(0xFFCD7F32), "🥉")
+    else -> null
+}
+
+@Composable
+private fun LeagueBadge(rank: Int) {
+    val league = leagueFor(rank) ?: return
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = league.color.copy(alpha = 0.18f)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp)
+        ) {
+            Text(league.emoji, fontSize = 9.sp)
+            Text(
+                text = "${league.label} League",
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.Bold,
+                color = league.color,
+                fontSize = 9.sp
+            )
+        }
+    }
+}
+
 @Composable
 private fun LeaderboardError(message: String, onRetry: () -> Unit) {
     Column(
@@ -719,8 +768,8 @@ private fun LeaderboardError(message: String, onRetry: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("Couldn't load leaderboard", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.leaderboard_error), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
-        Button(onClick = onRetry) { Text("Retry") }
+        Button(onClick = onRetry) { Text(stringResource(R.string.action_retry)) }
     }
 }
