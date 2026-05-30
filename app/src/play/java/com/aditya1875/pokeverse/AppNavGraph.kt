@@ -21,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.TeamAnalysisScreen
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.core.navigation.components.WithBottomBar
@@ -221,10 +222,15 @@ fun AppNavGraph(
                 }
             }
 
-            composable(Route.BottomBar.Clash.route) {
-                WithBottomBar(navController = navController) {
-                    CardClashScreen()
-                }
+            composable(
+                route = "${Route.BottomBar.Clash.route}?code={code}",
+                arguments = listOf(navArgument("code") { type = NavType.StringType; defaultValue = "" }),
+                deepLinks = listOf(navDeepLink { uriPattern = "dexverse://clash?code={code}" })
+            ) { backStackEntry ->
+                CardClashScreen(
+                    onBack = { navController.popBackStack() },
+                    initialCode = backStackEntry.arguments?.getString("code") ?: ""
+                )
             }
 
             dialog(Route.EditProfile.route) {

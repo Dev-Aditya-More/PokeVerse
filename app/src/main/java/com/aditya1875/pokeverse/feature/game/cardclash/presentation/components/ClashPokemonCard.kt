@@ -31,30 +31,8 @@ import androidx.compose.ui.unit.sp
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPokemon
+import com.aditya1875.pokeverse.utils.pokemonTypeColor
 import org.koin.compose.koinInject
-
-private val typeColors = mapOf(
-    "fire" to Color(0xFFFF6B35),
-    "water" to Color(0xFF4FC3F7),
-    "grass" to Color(0xFF81C784),
-    "electric" to Color(0xFFFFD54F),
-    "psychic" to Color(0xFFF48FB1),
-    "ice" to Color(0xFF80DEEA),
-    "dragon" to Color(0xFF7986CB),
-    "dark" to Color(0xFF616161),
-    "fairy" to Color(0xFFF8BBD0),
-    "fighting" to Color(0xFFFF7043),
-    "poison" to Color(0xFFCE93D8),
-    "ground" to Color(0xFFBCAAA4),
-    "rock" to Color(0xFFA5D6A7),
-    "ghost" to Color(0xFF7E57C2),
-    "bug" to Color(0xFFAED581),
-    "steel" to Color(0xFFB0BEC5),
-    "flying" to Color(0xFF90CAF9),
-    "normal" to Color(0xFFEEEEEE)
-)
-
-fun typeColor(type: String) = typeColors[type.lowercase()] ?: Color(0xFFEEEEEE)
 
 @Composable
 fun ClashPokemonCard(
@@ -65,9 +43,9 @@ fun ClashPokemonCard(
     modifier: Modifier = Modifier
 ) {
     val imageLoader = koinInject<ImageLoader>()
-    val primaryColor = typeColor(pokemon.types.firstOrNull() ?: "normal")
+    val primaryColor = pokemonTypeColor(pokemon.types.firstOrNull() ?: "normal")
     val borderColor = when {
-        isLocked -> Color(0xFF4CAF50)
+        isLocked -> MaterialTheme.colorScheme.tertiary
         isSelected -> MaterialTheme.colorScheme.primary
         else -> primaryColor.copy(alpha = 0.4f)
     }
@@ -136,7 +114,7 @@ fun TypeChip(type: String) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(4.dp))
-            .background(typeColor(type).copy(alpha = 0.8f))
+            .background(pokemonTypeColor(type).copy(alpha = 0.8f))
             .padding(horizontal = 5.dp, vertical = 2.dp)
     ) {
         Text(

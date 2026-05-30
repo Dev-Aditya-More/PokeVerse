@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -8,6 +9,10 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -26,6 +31,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -38,6 +44,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -45,7 +53,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -59,6 +67,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -80,6 +89,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
@@ -134,6 +144,7 @@ import kotlinx.coroutines.tasks.await
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
+@Suppress("EffectKeys")
 @OptIn(
     ExperimentalSharedTransitionApi::class,
     ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class
@@ -236,6 +247,15 @@ fun SharedTransitionScope.HomeScreen(
     val isPremium = subscriptionState is SubscriptionState.Premium
 
     val context = LocalContext.current
+
+    val clashPrefs = remember { context.getSharedPreferences("clash_prefs", Context.MODE_PRIVATE) }
+    var showClashNewBadge by remember { mutableStateOf(!clashPrefs.getBoolean("fab_new_seen", false)) }
+    val clashBadgePulse by rememberInfiniteTransition(label = "clash_badge")
+        .animateFloat(
+            initialValue = 0.65f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "clash_badge_alpha"
+        )
 
     val activity = context as? Activity
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
@@ -435,18 +455,6 @@ fun SharedTransitionScope.HomeScreen(
             },
             floatingActionButton = {
 
-                val fabVisible by remember {
-                    derivedStateOf {
-                        when (contentMode) {
-                            HomeContentMode.POKEMON ->
-                                pokemonGridState.firstVisibleItemIndex > 5
-
-                            HomeContentMode.ITEMS ->
-                                itemGridState.firstVisibleItemIndex > 5
-                        }
-                    }
-                }
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -473,39 +481,51 @@ fun SharedTransitionScope.HomeScreen(
                                     triviaViewModel.loadTrivia()
                                 }
                             },
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(52.dp)
                         )
+                    } else {
+                        Spacer(Modifier.size(52.dp))
                     }
 
-                    AnimatedVisibility(
-                        visible = fabVisible,
-                        enter = fadeIn() + scaleIn(),
-                        exit = fadeOut() + scaleOut()
-                    ) {
-                        FloatingActionButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    when (contentMode) {
-                                        HomeContentMode.POKEMON -> {
-                                            pokemonGridState.animateScrollToItem(0)
-                                        }
-
-                                        HomeContentMode.ITEMS -> {
-                                            itemGridState.animateScrollToItem(0)
-                                        }
+                    Box {
+                            FloatingActionButton(
+                                onClick = {
+                                    if (showClashNewBadge) {
+                                        clashPrefs.edit().putBoolean("fab_new_seen", true).apply()
+                                        showClashNewBadge = false
                                     }
+                                    navController.navigate(Route.BottomBar.Clash.route)
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                                modifier = Modifier.size(52.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Groups,
+                                    contentDescription = stringResource(R.string.clash_lobby_title),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                            if (showClashNewBadge) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = 6.dp, y = (-6).dp)
+                                        .alpha(clashBadgePulse)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.fab_label_new),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onError,
+                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                    )
                                 }
-                            },
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            elevation = FloatingActionButtonDefaults.elevation(8.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.KeyboardArrowUp,
-                                contentDescription = stringResource(R.string.home_scroll_to_top),
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            }
                         }
-                    }
                 }
             },
             floatingActionButtonPosition = FabPosition.Center

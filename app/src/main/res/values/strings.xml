@@ -386,6 +386,9 @@
     <string name="banner_enable_original_assets">Enable original assets</string>
     <string name="banner_settings_change_hint">You can always change this from Settings.</string>
 
+    <!-- FAB badges -->
+    <string name="fab_label_new">NEW</string>
+
     <!-- Card Clash Game -->
     <string name="clash_you">You</string>
     <string name="clash_round_format">Round %1$d / 6</string>
@@ -412,6 +415,46 @@
     <string name="clash_round_timer">Round Timer</string>
     <string name="clash_connection_lost">Connection Lost</string>
     <string name="clash_disconnected_message">%1$s may have disconnected.\nYou can wait or claim the win.</string>
+    <string name="clash_disconnect_timer">%1$s has %2$ds to reconnect before you can claim the win.</string>
+    <string name="clash_quick_match">Quick Match</string>
+    <string name="clash_quick_match_desc">Get matched with a random online player</string>
+    <string name="clash_searching">Searching for a player…</string>
+    <string name="clash_queue_hint">You\'re in the queue — invite friends to grow the player pool!</string>
+    <string name="clash_invite_friends">Invite Friends</string>
+    <string name="clash_waiting_friend">Waiting for your friend…</string>
+    <string name="clash_room_code">Room Code</string>
+    <string name="clash_action_copy">Copy</string>
+    <string name="clash_round_reveal">Round %1$d Reveal</string>
+    <string name="clash_power">Power: %1$d</string>
+    <string name="clash_vs">vs %1$s</string>
+    <string name="clash_round_history">Round History</string>
+    <string name="clash_you_win_round">You win this round!</string>
+    <string name="clash_opponent_wins_round">Opponent wins this round</string>
+    <string name="clash_draw">Draw!</string>
+    <string name="clash_victory">Victory!</string>
+    <string name="clash_defeated">Defeated</string>
+    <string name="clash_timer_seconds">%1$ds</string>
+    <string name="clash_card_number">Card %1$d</string>
+    <!-- Guide dialog -->
+    <string name="clash_guide_title">How it works</string>
+    <string name="clash_guide_step_count">%1$d of %2$d</string>
+    <string name="clash_guide_confirm">Let\'s play!</string>
+    <string name="clash_guide_step1_title">You get 6 mystery cards</string>
+    <string name="clash_guide_step1_body">Each player starts with 6 face-down Pokémon. You can\'t see your own cards until you pick one — it\'s all about instinct.</string>
+    <string name="clash_guide_step2_title">Pick one each round</string>
+    <string name="clash_guide_step2_body">Every round, both players secretly choose a card. Once both lock in, cards flip at the same time.</string>
+    <string name="clash_guide_step3_title">Type matchup decides the winner</string>
+    <string name="clash_guide_step3_body">Each Pokémon\'s base stat total is multiplied by its type advantage over the opponent\'s type. Highest effective power takes the round.</string>
+    <string name="clash_guide_step4_title">First to 4 rounds wins</string>
+    <string name="clash_guide_step4_body">There are 6 rounds. Win 4 to claim victory. A draw is possible if both players end on 3.</string>
+    <string name="clash_guide_step5_title">Used cards are gone</string>
+    <string name="clash_guide_step5_body">Once you play a Pokémon it\'s removed from your hand — choose wisely, especially in the later rounds.</string>
+
+    <!-- Analysis ad gate -->
+    <string name="analysis_ad_title">Analyse Your Team</string>
+    <string name="analysis_ad_body">Watch a short ad to unlock a full breakdown of your team\'s strengths, weaknesses and type coverage.\n\nGo Premium to always skip ads.</string>
+    <string name="analysis_ad_loading">Loading ad…</string>
+    <string name="analysis_ad_unavailable">Ad unavailable right now. Try again later.</string>
 
     <!-- Profile Edit -->
     <string name="profile_edit_trainer_name">Edit Trainer Name</string>

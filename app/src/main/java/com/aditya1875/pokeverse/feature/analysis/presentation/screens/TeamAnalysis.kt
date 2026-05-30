@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.screens
 
+import android.app.Activity
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -8,13 +9,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,13 +29,16 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -41,6 +48,11 @@ import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import org.koin.compose.koinInject
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.BLUE
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.AnalysisContent
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.ErrorView
@@ -71,6 +83,25 @@ fun TeamAnalysisScreen(
     pokemonDetailsViewModel: PokemonDetailsViewModel = koinViewModel(),
     teamId: String? = null
 ) {
+    val billingManager: IBillingManager = koinInject()
+    val subscriptionState by billingManager.subscriptionState.collectAsState()
+    val isPremium = subscriptionState is SubscriptionState.Premium
+
+    val rewardedAdManager: IRewardedAdManager = koinInject()
+    val adState by rewardedAdManager.adState.collectAsState()
+    val context = LocalContext.current
+    val activity = context as? Activity
+
+    var adUnlocked by rememberSaveable { mutableStateOf(isPremium) }
+
+    LaunchedEffect(isPremium) {
+        if (isPremium) adUnlocked = true
+    }
+
+    LaunchedEffect(adUnlocked, isPremium) {
+        if (!adUnlocked && !isPremium) rewardedAdManager.loadAd(context)
+    }
+
     val team by remember(teamId) {
         if (teamId != null) {
             viewModel.getTeamMembers(teamId)
@@ -169,24 +200,103 @@ fun TeamAnalysisScreen(
                 .padding(padding)
         ) {
             when {
-                team.isEmpty() -> {
-                    EmptyAnalysisView(navController)
-                }
+                team.isEmpty() -> EmptyAnalysisView(navController)
 
-                isLoading -> {
-                    LoadingView()
-                }
+                !adUnlocked -> AnalysisAdGate(
+                    adState = adState,
+                    onWatchAd = {
+                        activity?.let {
+                            rewardedAdManager.showAd(it) { adUnlocked = true }
+                        }
+                    },
+                    onGetPremium = { navController.navigate(Route.BottomBar.Profile.route) }
+                )
 
-                errorMessage != null -> {
-                    ErrorView(errorMessage!!, navController)
-                }
+                isLoading -> LoadingView()
 
-                analysis != null -> {
-                    AnalysisContent(
-                        analysis = analysis!!,
-                        teamWithTypes = teamWithTypes
+                errorMessage != null -> ErrorView(errorMessage!!, navController)
+
+                analysis != null -> AnalysisContent(
+                    analysis = analysis!!,
+                    teamWithTypes = teamWithTypes
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AnalysisAdGate(
+    adState: RewardedAdState,
+    onWatchAd: () -> Unit,
+    onGetPremium: () -> Unit
+) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(AnalysisColors.BG),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            Modifier.padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                stringResource(R.string.analysis_ad_title),
+                style = MaterialTheme.typography.headlineSmall,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                stringResource(R.string.analysis_ad_body),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(8.dp))
+            when (adState) {
+                is RewardedAdState.Loading -> {
+                    CircularProgressIndicator(color = BLUE, modifier = Modifier.size(40.dp))
+                    Text(
+                        stringResource(R.string.analysis_ad_loading),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.5f)
                     )
                 }
+                is RewardedAdState.Ready, is RewardedAdState.Idle -> {
+                    Button(
+                        onClick = onWatchAd,
+                        enabled = adState is RewardedAdState.Ready,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = BLUE),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            if (adState is RewardedAdState.Ready) stringResource(R.string.action_watch_ad)
+                            else stringResource(R.string.analysis_ad_unavailable),
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+                    }
+                }
+                is RewardedAdState.Showing -> {
+                    CircularProgressIndicator(color = BLUE, modifier = Modifier.size(40.dp))
+                }
+            }
+            Button(
+                onClick = onGetPremium,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White.copy(alpha = 0.12f)
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    stringResource(R.string.action_go_premium),
+                    color = Color.White,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
             }
         }
     }
