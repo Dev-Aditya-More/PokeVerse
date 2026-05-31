@@ -50,7 +50,7 @@ fun GameHubScreen(
     val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
     val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null
+    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
 
     val context = LocalContext.current
     var showThankYouDialog by remember { mutableStateOf(false) }
@@ -222,34 +222,26 @@ fun GameHubScreen(
     }
 
     if (showPremiumSheet) {
+        val purchaseError = stringResource(R.string.game_hub_purchase_error)
         PremiumBottomSheet(
             onDismiss = { showPremiumSheet = false },
             onSubscribeMonthly = {
                 showPremiumSheet = false
                 val activity = context as? Activity
-                if (activity != null) {
-                    billingViewModel.purchaseMonthly(activity)
-                } else {
-                    Toast.makeText(context, context.getString(R.string.game_hub_purchase_error), Toast.LENGTH_SHORT).show()
-                }
+                if (activity != null) billingViewModel.purchaseMonthly(activity)
+                else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
             },
             onSubscribeYearly = {
                 showPremiumSheet = false
                 val activity = context as? Activity
-                if (activity != null) {
-                    billingViewModel.purchaseYearly(activity)
-                } else {
-                    Toast.makeText(context, context.getString(R.string.game_hub_purchase_error), Toast.LENGTH_SHORT).show()
-                }
+                if (activity != null) billingViewModel.purchaseYearly(activity)
+                else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
             },
             onSubscribeLifetime = {
                 showPremiumSheet = false
                 val activity = context as? Activity
-                if (activity != null) {
-                    billingViewModel.purchaseLifetime(activity)
-                } else {
-                    Toast.makeText(context, context.getString(R.string.game_hub_purchase_error), Toast.LENGTH_SHORT).show()
-                }
+                if (activity != null) billingViewModel.purchaseLifetime(activity)
+                else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
             },
             monthlyPrice = monthly,
             yearlyPrice = yearly,

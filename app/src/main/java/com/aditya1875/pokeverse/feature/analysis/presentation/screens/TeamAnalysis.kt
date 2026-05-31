@@ -2,6 +2,7 @@ package com.aditya1875.pokeverse.feature.analysis.presentation.screens
 
 import android.app.Activity
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -60,8 +61,10 @@ import com.aditya1875.pokeverse.feature.analysis.presentation.components.Loading
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamAnalysis
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamAnalyzer
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamMemberWithTypes
+import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels.PokemonDetailsViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import org.koin.androidx.compose.koinViewModel
 
 object AnalysisColors {
@@ -87,8 +90,18 @@ fun TeamAnalysisScreen(
     val subscriptionState by billingManager.subscriptionState.collectAsState()
     val isPremium = subscriptionState is SubscriptionState.Premium
 
+    var showPremiumSheet by remember { mutableStateOf(false) }
+    val billingViewModel: BillingViewModel = koinViewModel()
+    val monthlyPrice by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
+    val yearlyPrice by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
+    val lifetimePrice by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
+    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
+    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
+    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
+    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
+
     val rewardedAdManager: IRewardedAdManager = koinInject()
-    val adState by rewardedAdManager.adState.collectAsState()
+    val adState by rewardedAdManager.adState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = context as? Activity
 
@@ -209,7 +222,7 @@ fun TeamAnalysisScreen(
                             rewardedAdManager.showAd(it) { adUnlocked = true }
                         }
                     },
-                    onGetPremium = { navController.navigate(Route.BottomBar.Profile.route) }
+                    onGetPremium = { showPremiumSheet = true }
                 )
 
                 isLoading -> LoadingView()
@@ -221,6 +234,35 @@ fun TeamAnalysisScreen(
                     teamWithTypes = teamWithTypes
                 )
             }
+        }
+
+        if (showPremiumSheet) {
+            val purchaseError = stringResource(R.string.game_hub_purchase_error)
+            PremiumBottomSheet(
+                onDismiss = { showPremiumSheet = false },
+                onSubscribeMonthly = {
+                    showPremiumSheet = false
+                    val activity = context as? Activity
+                    if (activity != null) billingViewModel.purchaseMonthly(activity)
+                    else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
+                },
+                onSubscribeYearly = {
+                    showPremiumSheet = false
+                    val activity = context as? Activity
+                    if (activity != null) billingViewModel.purchaseYearly(activity)
+                    else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
+                },
+                onSubscribeLifetime = {
+                    showPremiumSheet = false
+                    val activity = context as? Activity
+                    if (activity != null) billingViewModel.purchaseLifetime(activity)
+                    else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
+                },
+                monthlyPrice = monthlyPrice,
+                yearlyPrice = yearlyPrice,
+                lifetimePrice = lifetimePrice,
+                isSubscribeEnabled = isBillingReady
+            )
         }
     }
 }

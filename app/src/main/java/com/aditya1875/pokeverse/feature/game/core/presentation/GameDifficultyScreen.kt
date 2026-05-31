@@ -41,7 +41,7 @@ fun GameDifficultyLayout(
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
     val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
 
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null
+    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
 
     val context = LocalContext.current
     val activity = context as? Activity

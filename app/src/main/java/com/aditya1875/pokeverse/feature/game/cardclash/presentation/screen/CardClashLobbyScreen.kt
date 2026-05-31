@@ -185,6 +185,7 @@ private fun LobbyContent(
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = stringResource(R.string.clash_lobby_desc),
                 style = MaterialTheme.typography.bodyMedium,
@@ -451,7 +452,13 @@ private fun WaitingView(roomCode: String?, isRandom: Boolean, onCancel: () -> Un
                         FilledTonalButton(
                             onClick = {
                                 val clipboard = context.getSystemService(ClipboardManager::class.java)
-                                clipboard?.setPrimaryClip(ClipData.newPlainText(context.getString(R.string.clash_room_code), roomCode))
+
+                                clipboard?.setPrimaryClip(
+                                    ClipData.newPlainText(
+                                        stringResource(R.string.clash_room_code),
+                                        roomCode
+                                    )
+                                )
                             },
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.weight(1f)

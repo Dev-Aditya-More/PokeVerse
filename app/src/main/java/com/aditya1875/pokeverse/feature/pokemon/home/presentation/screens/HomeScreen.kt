@@ -393,7 +393,7 @@ fun SharedTransitionScope.HomeScreen(
                                 onDismissRequest = { showMenu = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Pokémon") },
+                                    text = { Text("Pokémons") },
                                     trailingIcon = {
                                         if (contentMode == HomeContentMode.POKEMON) {
                                             Icon(Icons.Default.Check, contentDescription = null)

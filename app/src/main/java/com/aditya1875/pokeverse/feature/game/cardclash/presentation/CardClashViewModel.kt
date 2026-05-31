@@ -209,8 +209,13 @@ class CardClashViewModel(
                     )
                 }
 
-                // Transition into SELECTING phase once we have our hand
-                if (current.phase != ClashPhase.SELECTING && current.phase != ClashPhase.REVEALING) {
+                // Transition into SELECTING phase once we have our hand.
+                // Never re-enter SELECTING from MATCH_FINISHED (can happen if a stale
+                // "active" snapshot arrives after the "finished" one is already processed).
+                if (current.phase != ClashPhase.SELECTING
+                    && current.phase != ClashPhase.REVEALING
+                    && current.phase != ClashPhase.MATCH_FINISHED
+                ) {
                     if (current.myHand.isNotEmpty()) {
                         _uiState.update { it.copy(phase = ClashPhase.SELECTING) }
                         startRoundTimer()
@@ -239,6 +244,10 @@ class CardClashViewModel(
             }
 
             "finished" -> {
+                // Stop timer and heartbeat — no point continuing them after the match ends
+                timerJob?.cancel(); timerJob = null
+                heartbeatJob?.cancel(); heartbeatJob = null
+
                 if (current.phase != ClashPhase.MATCH_FINISHED) {
                     val myFinal = if (isPlayer1) state.p1Score.toFloat() else state.p2Score.toFloat()
                     val oppFinal = if (isPlayer1) state.p2Score.toFloat() else state.p1Score.toFloat()
@@ -269,9 +278,21 @@ class CardClashViewModel(
         val matchId = state.matchId
 
         viewModelScope.launch {
-            val myCard = pokemonCache[myCardId] ?: pendingCard ?: return@launch
+            // Resolve my card: prefer cache, then pendingCard, then fetch from API as last resort
+            val myCard = pokemonCache[myCardId]
+                ?: pendingCard?.takeIf { it.id == myCardId }
+                ?: repository.fetchPokemonById(myCardId)
+                ?: run {
+                    _uiState.update { it.copy(error = "Card data missing — please reconnect.") }
+                    return@launch
+                }
+            pokemonCache[myCardId] = myCard
+
             val oppCard = pokemonCache.getOrPut(oppCardId) {
-                repository.fetchPokemonById(oppCardId) ?: return@launch
+                repository.fetchPokemonById(oppCardId) ?: run {
+                    _uiState.update { it.copy(error = "Opponent card data missing.") }
+                    return@launch
+                }
             }
 
             val myEff = myCard.bst * duelEngine.computeAdvantage(myCard.toDuel(), oppCard.toDuel())
@@ -375,6 +396,26 @@ class CardClashViewModel(
 
     /** Called from the UI once the reveal animation finishes — ready for next round. */
     fun acknowledgeReveal() {
+        val state = _uiState.value
+
+        // Guard: if all 6 rounds have been played (or hand is exhausted), don't go back
+        // to SELECTING — Firestore will deliver the "finished" status imminently.
+        // Returning here keeps the user on the reveal screen until that update arrives,
+        // preventing the ghost "selecting with no cards" screen.
+        val roundsPlayed = state.roundHistory.size
+        val handEmpty = state.myUsedIds.size >= state.myHand.size && state.myHand.isNotEmpty()
+        if (roundsPlayed >= 6 || handEmpty) {
+            // Just clear the reveal data; phase will flip to MATCH_FINISHED via Firestore
+            _uiState.update {
+                it.copy(
+                    revealMyCard = null,
+                    revealOpponentCard = null,
+                    revealRound = null
+                )
+            }
+            return
+        }
+
         pendingCard = null
         _uiState.update {
             it.copy(

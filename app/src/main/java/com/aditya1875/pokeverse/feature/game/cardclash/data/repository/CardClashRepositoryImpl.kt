@@ -157,15 +157,25 @@ class CardClashRepositoryImpl(
     }
 
     override suspend fun revealMyCard(matchId: String, isPlayer1: Boolean, cardId: Int) {
-        val cardField = if (isPlayer1) "roundP1CardId" else "roundP2CardId"
-        matches.document(matchId).set(
-            mapOf(
-                cardField to cardId,
-                "roundRevealed" to true,
+        val myField = if (isPlayer1) "roundP1CardId" else "roundP2CardId"
+        val otherField = if (isPlayer1) "roundP2CardId" else "roundP1CardId"
+        val docRef = matches.document(matchId)
+
+        // Atomic transaction: write our card ID, and only set roundRevealed once
+        // BOTH cards are present. This prevents the race where the first writer's
+        // roundRevealed=true causes the second writer to skip their write entirely.
+        firestore.runTransaction { tx ->
+            val snap = tx.get(docRef)
+            val otherCardId = snap.getLong(otherField)?.toInt() ?: -1
+            val updates = mutableMapOf<String, Any>(
+                myField to cardId.toLong(),
                 "lastUpdated" to Timestamp.now()
-            ),
-            SetOptions.merge()
-        ).await()
+            )
+            if (otherCardId != -1) {
+                updates["roundRevealed"] = true
+            }
+            tx.update(docRef, updates)
+        }.await()
     }
 
     override suspend fun saveRoundResult(
