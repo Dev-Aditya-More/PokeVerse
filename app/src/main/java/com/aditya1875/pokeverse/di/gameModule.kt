@@ -2,6 +2,7 @@ package com.aditya1875.pokeverse.di
 
 import com.aditya1875.pokeverse.feature.game.pokeduel.domain.engine.DuelGameEngine
 import com.aditya1875.pokeverse.feature.game.pokematch.domain.engine.MatchGameEngine
+import com.aditya1875.pokeverse.feature.game.pokequiz.data.DynamicQuizRepository
 import com.aditya1875.pokeverse.feature.game.poketype.data.generator.TypeRushQuestionGenerator
 import com.aditya1875.pokeverse.feature.game.poketype.domain.engine.TypeRushEngine
 import org.koin.dsl.module
@@ -11,4 +12,5 @@ val gameModule = module {
     single { TypeRushEngine() }
     single { MatchGameEngine() }
     single { DuelGameEngine() }
+    single { DynamicQuizRepository(get()) }
 }

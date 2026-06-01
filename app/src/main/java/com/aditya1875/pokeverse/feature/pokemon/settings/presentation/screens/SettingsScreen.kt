@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.settings.presentation.screens
 
+import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.PrivacyTip
@@ -37,6 +39,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,6 +57,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -69,6 +73,7 @@ import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components.zigZagBackground
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
 import com.aditya1875.pokeverse.utils.EffectCapabilities
+import com.aditya1875.pokeverse.utils.LocaleHelper
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,20 +87,21 @@ fun SettingsScreen(
     val supportsShaders = EffectCapabilities.supportsShaders
 
     var isAboutExpanded by remember { mutableStateOf(false) }
-    var isSpecialEffectsExpanded by remember {
-        mutableStateOf(!supportsShaders)
-    }
+    var isSpecialEffectsExpanded by remember { mutableStateOf(!supportsShaders) }
 
     val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
         .collectAsStateWithLifecycle()
 
     var showOriginalAssetsDialog by remember { mutableStateOf(false) }
-
     var isPrivacyPolicyExpanded by remember { mutableStateOf(false) }
-
     var isHelpExpanded by remember { mutableStateOf(false) }
-
     var isAssetsExpanded by remember { mutableStateOf(false) }
+
+    val selectedLanguage by settingsViewModel.selectedLanguage.collectAsStateWithLifecycle()
+    var showLanguageDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val activity = context as? Activity
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -104,7 +110,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Settings",
+                        stringResource(R.string.settings_title),
                         style = MaterialTheme.typography.headlineSmall.copy(
                             fontSize = 26.sp,
                             letterSpacing = 0.5.sp
@@ -113,14 +119,10 @@ fun SettingsScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            navController.popBackStack()
-                        }
-                    ) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                         )
                     }
                 },
@@ -147,49 +149,117 @@ fun SettingsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // About Section
+                // About
                 SettingsCard(
-                    title = "About",
+                    title = stringResource(R.string.settings_about),
                     icon = Icons.Default.Info,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     expanded = isAboutExpanded,
                     onExpandToggle = { isAboutExpanded = !isAboutExpanded }
                 ) {
                     Text(
-                        "Crafted with ❤️ using Jetpack Compose",
+                        stringResource(R.string.settings_about_crafted),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
-                        "Version ${BuildConfig.VERSION_NAME}",
+                        stringResource(R.string.settings_about_version, BuildConfig.VERSION_NAME),
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
 
+                // Language selector
+                val currentLangName = when (selectedLanguage) {
+                    LocaleHelper.LANG_PORTUGUESE_BR -> stringResource(R.string.language_portuguese_br)
+                    LocaleHelper.LANG_HINDI -> stringResource(R.string.language_hindi)
+                    LocaleHelper.LANG_FRENCH -> stringResource(R.string.language_french)
+                    else -> stringResource(R.string.language_english)
+                }
                 SettingsCard(
-                    title = "Original Assets",
+                    title = stringResource(R.string.settings_language),
+                    icon = Icons.Default.Language,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = false,
+                    onExpandToggle = { showLanguageDialog = true },
+                    trailing = {
+                        TextButton(onClick = { showLanguageDialog = true }) {
+                            Text(
+                                currentLangName,
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                ) {}
+
+                if (showLanguageDialog) {
+                    val languages = listOf(
+                        LocaleHelper.LANG_ENGLISH to stringResource(R.string.language_english),
+                        LocaleHelper.LANG_PORTUGUESE_BR to stringResource(R.string.language_portuguese_br),
+                        LocaleHelper.LANG_HINDI to stringResource(R.string.language_hindi),
+                        LocaleHelper.LANG_FRENCH to stringResource(R.string.language_french)
+                    )
+                    AlertDialog(
+                        onDismissRequest = { showLanguageDialog = false },
+                        shape = RoundedCornerShape(24.dp),
+                        title = { Text(stringResource(R.string.settings_language_dialog_title)) },
+                        text = {
+                            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                languages.forEach { (tag, name) ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                if (tag != selectedLanguage) {
+                                                    settingsViewModel.setLanguage(tag)
+                                                    showLanguageDialog = false
+                                                    activity?.recreate()
+                                                } else {
+                                                    showLanguageDialog = false
+                                                }
+                                            }
+                                            .padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        RadioButton(
+                                            selected = selectedLanguage == tag,
+                                            onClick = null
+                                        )
+                                        Text(name, style = MaterialTheme.typography.bodyLarge)
+                                    }
+                                }
+                            }
+                        },
+                        confirmButton = {},
+                        dismissButton = {
+                            TextButton(onClick = { showLanguageDialog = false }) {
+                                Text(stringResource(R.string.cancel))
+                            }
+                        }
+                    )
+                }
+
+                // Original Assets
+                SettingsCard(
+                    title = stringResource(R.string.settings_original_assets),
                     icon = Icons.Default.PhotoLibrary,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     expanded = isAssetsExpanded,
-                    onExpandToggle = {
-                        isAssetsExpanded = !isAssetsExpanded
-                    },
+                    onExpandToggle = { isAssetsExpanded = !isAssetsExpanded },
                     trailing = {
                         ResponsiveMetaballSwitch(
                             checked = originalAssetsEnabled,
                             onCheckedChange = { checked ->
-                                if (checked) {
-                                    showOriginalAssetsDialog = true
-                                } else {
-                                    settingsViewModel.toggleOriginalAssetsEnabled()
-                                }
+                                if (checked) showOriginalAssetsDialog = true
+                                else settingsViewModel.toggleOriginalAssetsEnabled()
                             }
                         )
                     }
                 ) {
                     Text(
-                        "Enable original franchise visuals and media.",
+                        stringResource(R.string.settings_original_assets_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
@@ -198,145 +268,113 @@ fun SettingsScreen(
                 if (showOriginalAssetsDialog) {
                     AlertDialog(
                         onDismissRequest = { showOriginalAssetsDialog = false },
-                        title = { Text("Original Assets") },
-                        text = {
-                            Text(
-                                "This feature enables original franchise visuals and audio. " +
-                                        "These assets may be protected by intellectual property laws. " +
-                                        "This app is unofficial and not affiliated with any franchise owner."
-                            )
-                        },
+                        title = { Text(stringResource(R.string.settings_original_assets)) },
+                        text = { Text(stringResource(R.string.settings_original_assets_dialog_body)) },
                         confirmButton = {
-                            TextButton(
-                                onClick = {
-                                    settingsViewModel.toggleOriginalAssetsEnabled()
-                                    showOriginalAssetsDialog = false
-                                }
-                            ) {
-                                Text("I Understand, Enable")
+                            TextButton(onClick = {
+                                settingsViewModel.toggleOriginalAssetsEnabled()
+                                showOriginalAssetsDialog = false
+                            }) {
+                                Text(stringResource(R.string.settings_understand_enable))
                             }
                         },
                         dismissButton = {
-                            TextButton(
-                                onClick = { showOriginalAssetsDialog = false }
-                            ) {
-                                Text("Cancel")
+                            TextButton(onClick = { showOriginalAssetsDialog = false }) {
+                                Text(stringResource(R.string.cancel))
                             }
                         }
                     )
                 }
 
+                // Special Effects
                 SettingsCard(
-                    title = "Special Effects",
+                    title = stringResource(R.string.settings_special_effects),
                     icon = Icons.Default.AutoAwesome,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     iconSize = 25.dp,
                     expanded = isSpecialEffectsExpanded,
                     onExpandToggle = {
-                        if (supportsShaders) {
-                            isSpecialEffectsExpanded = !isSpecialEffectsExpanded
-                        }
+                        if (supportsShaders) isSpecialEffectsExpanded = !isSpecialEffectsExpanded
                     },
                     trailing = {
                         ResponsiveMetaballSwitch(
                             checked = specialEffectsEnabled && supportsShaders,
                             onCheckedChange = {
-                                if (supportsShaders) {
-                                    settingsViewModel.toggleSpecialEffects(it)
-                                }
+                                if (supportsShaders) settingsViewModel.toggleSpecialEffects(it)
                             },
                             enabled = supportsShaders
                         )
                     }
                 ) {
-                    if (!supportsShaders) {
-                        Text(
-                            text = "Enhanced visual effects require Android 13 or newer.",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    } else {
-                        Text(
-                            "You'll see enhanced visual effects in Pokemon details.",
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    }
+                    Text(
+                        text = if (!supportsShaders)
+                            stringResource(R.string.settings_special_effects_requires)
+                        else
+                            stringResource(R.string.settings_special_effects_desc),
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
 
+                // Theme
                 var themeExpanded by rememberSaveable { mutableStateOf(false) }
-
                 SettingsCard(
-                    title = "Theme",
+                    title = stringResource(R.string.settings_theme),
                     icon = Icons.Default.Palette,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     iconSize = 25.dp,
                     expanded = themeExpanded,
-                    onExpandToggle = {
-                        themeExpanded = !themeExpanded
-                    },
+                    onExpandToggle = { themeExpanded = !themeExpanded },
                     trailing = {
-                        IconButton(
-                            onClick = {
-                                navController.navigate(Route.ThemeSelector.route)
-                            }
-                        ) {
+                        IconButton(onClick = { navController.navigate(Route.ThemeSelector.route) }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                contentDescription = "Change theme"
+                                contentDescription = stringResource(R.string.settings_theme_change)
                             )
                         }
                     }
                 ) {
                     Text(
-                        "Choose your starter theme",
+                        stringResource(R.string.settings_theme_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
 
-                val context = LocalContext.current
-
+                // Share
                 var shareExpanded by rememberSaveable { mutableStateOf(false) }
-
+                val shareMessage = stringResource(R.string.settings_share_message, context.packageName)
+                val shareChooser = stringResource(R.string.settings_share_chooser)
                 SettingsCard(
-                    title = "Share Dexverse",
+                    title = stringResource(R.string.settings_share),
                     icon = Icons.Default.Share,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     expanded = shareExpanded,
                     onExpandToggle = {
                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
                             type = "text/plain"
-                            putExtra(
-                                Intent.EXTRA_TEXT,
-                                "Hey mate, Check out Dexverse — a clean Pokédex app for Pokémon fans:\n" +
-                                        "https://play.google.com/store/apps/details?id=${context.packageName}"
-                            )
+                            putExtra(Intent.EXTRA_TEXT, shareMessage)
                         }
-                        context.startActivity(
-                            Intent.createChooser(shareIntent, "Share Dexverse via")
-                        )
-
+                        context.startActivity(Intent.createChooser(shareIntent, shareChooser))
                         shareExpanded = !shareExpanded
                     }
                 ) {
                     Text(
-                        "Tell your friends about Dexverse!",
+                        stringResource(R.string.settings_share_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
 
+                // Rate
                 var rateExpanded by rememberSaveable { mutableStateOf(false) }
-
                 SettingsCard(
-                    title = "Rate us on Google Play",
+                    title = stringResource(R.string.settings_rate),
                     icon = Icons.Default.StarRate,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     expanded = rateExpanded,
                     onExpandToggle = {
                         val packageName = context.packageName
-
                         val uri = "market://details?id=$packageName".toUri()
                         val goToMarket = Intent(Intent.ACTION_VIEW, uri).apply {
                             addFlags(
@@ -345,7 +383,6 @@ fun SettingsScreen(
                                         Intent.FLAG_ACTIVITY_MULTIPLE_TASK
                             )
                         }
-
                         try {
                             context.startActivity(goToMarket)
                         } catch (e: ActivityNotFoundException) {
@@ -353,19 +390,19 @@ fun SettingsScreen(
                                 "https://play.google.com/store/apps/details?id=$packageName".toUri()
                             context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
                         }
-
                         rateExpanded = !rateExpanded
                     }
                 ) {
                     Text(
-                        "If you like Dexverse, please take a moment to rate it on Play Store. It really helps.",
+                        stringResource(R.string.settings_rate_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
 
+                // Privacy Policy
                 SettingsCard(
-                    title = "Privacy Policy",
+                    title = stringResource(R.string.settings_privacy),
                     icon = Icons.Default.PrivacyTip,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     expanded = isPrivacyPolicyExpanded,
@@ -379,14 +416,15 @@ fun SettingsScreen(
                     }
                 ) {
                     Text(
-                        "View our privacy policy",
+                        stringResource(R.string.settings_privacy_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
 
+                // Help & Support
                 SettingsCard(
-                    title = "Help & Support",
+                    title = stringResource(R.string.settings_help),
                     icon = Icons.AutoMirrored.Filled.Help,
                     iconTint = MaterialTheme.colorScheme.onSurface,
                     expanded = isHelpExpanded,
@@ -400,12 +438,13 @@ fun SettingsScreen(
                     }
                 ) {
                     Text(
-                        "Contact support or report an issue",
+                        stringResource(R.string.settings_help_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
 
+                // Socials header
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -424,7 +463,7 @@ fun SettingsScreen(
                         )
                     ) {
                         Text(
-                            text = "Socials",
+                            text = stringResource(R.string.settings_socials),
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -524,19 +563,17 @@ fun SettingsScreen(
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            text = "Content & Attribution",
+                            text = stringResource(R.string.settings_attribution_title),
                             style = MaterialTheme.typography.titleMedium,
                             color = MaterialTheme.colorScheme.onSurface
                         )
-
                         Text(
-                            text = "Dexverse is an independent application and is not affiliated with or endorsed by any franchise owner.",
+                            text = stringResource(R.string.settings_attribution_1),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
-
                         Text(
-                            text = "All trademarks and registered trademarks are property of their respective owners.",
+                            text = stringResource(R.string.settings_attribution_2),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                         )
@@ -546,7 +583,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(5.dp))
 
                 Text(
-                    text = "© Dexverse 2026",
+                    text = stringResource(R.string.settings_copyright),
                     color = MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.alpha(0.6f)

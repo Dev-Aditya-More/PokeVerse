@@ -16,8 +16,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.R
 
 @Composable
 fun CreateTeamDialog(
@@ -31,7 +33,7 @@ fun CreateTeamDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Create New Team",
+                text = stringResource(R.string.team_create_new_team),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -41,7 +43,7 @@ fun CreateTeamDialog(
                 OutlinedTextField(
                     value = teamName,
                     onValueChange = { teamName = it },
-                    label = { Text("Team Name") },
+                    label = { Text(stringResource(R.string.team_name_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     isError = errorMessage != null
@@ -62,12 +64,12 @@ fun CreateTeamDialog(
                 onClick = { if (teamName.isNotBlank()) onCreateTeam(teamName) },
                 enabled = teamName.isNotBlank()
             ) {
-                Text("Create")
+                Text(stringResource(R.string.action_create))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

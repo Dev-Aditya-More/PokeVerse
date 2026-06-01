@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -67,26 +68,7 @@ private data class IntroSlide(
     val subtitle: String
 )
 
-private val slides = listOf(
-    IntroSlide(
-        imageRes = R.drawable.dragonite1,
-        badge = "Pokédex",
-        headline = "Your ultimate\nPokémon companion",
-        subtitle = "Explore the complete Pokédex with rich stats, moves, and lore."
-    ),
-    IntroSlide(
-        imageRes = R.drawable.snorlax,
-        badge = "Mini Games",
-        headline = "Play. Compete.\nMaster.",
-        subtitle = "Test your knowledge with PokeGuess, PokeQuiz, PokeMatch & more."
-    ),
-    IntroSlide(
-        imageRes = R.drawable.ashninja,
-        badge = "Leaderboard",
-        headline = "Rise among the\nbest trainers",
-        subtitle = "Earn XP, level up, and compete with trainers worldwide."
-    )
-)
+// Slides are built lazily using string resources inside the Composable below
 
 private val Purple = Color(0xFF7C4DFF)
 private val Cyan = Color(0xFF00E5FF)
@@ -94,6 +76,27 @@ private val Cyan = Color(0xFF00E5FF)
 @Suppress("EffectKeys")
 @Composable
 fun IntroScreen(navController: NavController, modifier: Modifier = Modifier) {
+    val slides = listOf(
+        IntroSlide(
+            imageRes = R.drawable.dragonite1,
+            badge = stringResource(R.string.onboarding_slide_1_badge),
+            headline = stringResource(R.string.onboarding_slide_1_headline),
+            subtitle = stringResource(R.string.onboarding_slide_1_subtitle)
+        ),
+        IntroSlide(
+            imageRes = R.drawable.snorlax,
+            badge = stringResource(R.string.onboarding_slide_2_badge),
+            headline = stringResource(R.string.onboarding_slide_2_headline),
+            subtitle = stringResource(R.string.onboarding_slide_2_subtitle)
+        ),
+        IntroSlide(
+            imageRes = R.drawable.ashninja,
+            badge = stringResource(R.string.onboarding_slide_3_badge),
+            headline = stringResource(R.string.onboarding_slide_3_headline),
+            subtitle = stringResource(R.string.onboarding_slide_3_subtitle)
+        )
+    )
+
     var currentPage by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -162,7 +165,7 @@ fun IntroScreen(navController: NavController, modifier: Modifier = Modifier) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "DEXVERSE",
+                    text = stringResource(R.string.onboarding_brand),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.ExtraBold,
                     letterSpacing = 5.sp,
@@ -305,7 +308,7 @@ fun IntroScreen(navController: NavController, modifier: Modifier = Modifier) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Get Started",
+                        text = stringResource(R.string.onboarding_cta),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color.White

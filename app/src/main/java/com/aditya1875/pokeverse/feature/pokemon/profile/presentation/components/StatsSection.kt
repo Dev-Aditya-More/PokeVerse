@@ -5,6 +5,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -115,9 +116,11 @@ fun GameStatRow(
     bestScore: Int,
     accentColor: Color
 ) {
-    Surface(
+    Card(
         shape = RoundedCornerShape(14.dp),
-        tonalElevation = 2.dp
+        colors = CardDefaults.cardColors(containerColor = accentColor.copy(alpha = 0.08f)),
+        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.22f)),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -125,19 +128,18 @@ fun GameStatRow(
                 .padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(accentColor.copy(alpha = 0.15f)),
+                    .size(44.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(accentColor.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = accentColor,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
@@ -149,7 +151,6 @@ fun GameStatRow(
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
                 )
-
                 Text(
                     text = "Best Score",
                     style = MaterialTheme.typography.labelSmall,
@@ -157,12 +158,22 @@ fun GameStatRow(
                 )
             }
 
-            Text(
-                text = if (bestScore > 0) bestScore.toString() else "—",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Black,
-                color = accentColor
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = if (bestScore > 0) bestScore.toString() else "—",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black,
+                    color = accentColor
+                )
+                if (bestScore > 0) {
+                    Text(
+                        text = "pts",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = accentColor.copy(alpha = 0.7f),
+                        fontSize = 10.sp
+                    )
+                }
+            }
         }
     }
 }
@@ -179,9 +190,10 @@ fun AnimatedStatCard(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = iconTint.copy(alpha = 0.1f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        border = BorderStroke(1.dp, iconTint.copy(alpha = 0.18f)),
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
             modifier = Modifier
@@ -216,7 +228,7 @@ fun AnimatedStatCard(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.65f)
+                color = iconTint.copy(alpha = 0.75f)
             )
         }
     }

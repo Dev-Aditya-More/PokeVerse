@@ -10,6 +10,7 @@ import com.aditya1875.pokeverse.feature.game.core.data.local.entity.GameScoreEnt
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
+import com.aditya1875.pokeverse.feature.game.pokequiz.data.DynamicQuizRepository
 import com.aditya1875.pokeverse.feature.game.pokequiz.data.QuizQuestionBank
 import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.*
 import kotlinx.coroutines.Job
@@ -28,7 +29,8 @@ class QuizViewModel(
     private val gameScoreDao: GameScoreDao,
     billingManager: IBillingManager,
     private val xpManager: XPManager,
-    private val repository: UserProfileRepository
+    private val repository: UserProfileRepository,
+    private val dynamicQuizRepo: DynamicQuizRepository,
 ) : ViewModel() {
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
@@ -54,20 +56,25 @@ class QuizViewModel(
     fun startQuiz(difficulty: QuizDifficulty) {
         viewModelScope.launch {
             _uiState.value = QuizUiState.Loading
-            delay(300)
 
-            // First-game-of-day bonus (once per ViewModel lifetime)
             if (!firstGameOfDayAwarded) {
                 firstGameOfDayAwarded = true
                 val bonus = xpManager.awardGameXP(XPEvent.FirstGameOfDay)
                 if (bonus.xpGained > 0) _xpResult.emit(bonus)
             }
 
-            val questions = QuizQuestionBank.getUnusedQuestions(
-                difficulty = difficulty,
-                excludeIds = usedQuestionIds
-            )
-            usedQuestionIds.addAll(questions.map { it.id })
+            // Try dynamic questions from PokeAPI; fall back to local bank if the
+            // network fails or returns fewer questions than needed.
+            val questions = run {
+                val dynamic = dynamicQuizRepo.generateQuestions(difficulty)
+                if (dynamic.size >= difficulty.questionCount) {
+                    dynamic
+                } else {
+                    val local = QuizQuestionBank.getUnusedQuestions(difficulty, usedQuestionIds)
+                    usedQuestionIds.addAll(local.map { it.id })
+                    local
+                }
+            }
 
             val gameState = QuizGameState(
                 questions = questions,

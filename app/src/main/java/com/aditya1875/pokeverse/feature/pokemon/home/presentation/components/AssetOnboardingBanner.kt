@@ -39,9 +39,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 
 @Composable
 fun AssetsOnboardingBanner(
@@ -97,7 +99,7 @@ fun AssetsOnboardingBanner(
                                 )
                             }
                             Text(
-                                "Original Visuals",
+                                stringResource(R.string.banner_original_visuals),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -120,9 +122,7 @@ fun AssetsOnboardingBanner(
 
                     // ── Description ───────────────────────────────────────────
                     Text(
-                        text = "Enable original franchise sprites and audio for a richer experience. " +
-                                "These assets belong to their respective owners — this app is unofficial " +
-                                "and unaffiliated.",
+                        text = stringResource(R.string.banner_original_assets_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         lineHeight = 18.sp
@@ -137,7 +137,7 @@ fun AssetsOnboardingBanner(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Enable original assets",
+                            stringResource(R.string.banner_enable_original_assets),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -153,7 +153,7 @@ fun AssetsOnboardingBanner(
 
                     // ── Footer note ───────────────────────────────────────────
                     Text(
-                        text = "You can always change this from Settings.",
+                        text = stringResource(R.string.banner_settings_change_hint),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
@@ -166,13 +166,9 @@ fun AssetsOnboardingBanner(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Original Assets") },
+            title = { Text(stringResource(R.string.settings_original_assets)) },
             text = {
-                Text(
-                    "This feature enables original franchise visuals and audio. " +
-                            "These assets may be protected by intellectual property laws. " +
-                            "This app is unofficial and not affiliated with any franchise owner."
-                )
+                Text(stringResource(R.string.settings_original_assets_dialog_body))
             },
             confirmButton = {
                 TextButton(
@@ -182,12 +178,12 @@ fun AssetsOnboardingBanner(
                         onDismiss()   // auto-dismiss banner after enabling
                     }
                 ) {
-                    Text("I Understand, Enable")
+                    Text(stringResource(R.string.settings_understand_enable))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

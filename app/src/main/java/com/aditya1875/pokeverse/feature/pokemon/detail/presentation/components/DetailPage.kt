@@ -113,6 +113,7 @@ import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.aditya1875.pokeverse.utils.rememberDetailHeaderMaxWidth
 import org.koin.androidx.compose.koinViewModel
 
+@Suppress("EffectKeys")
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class
@@ -1030,6 +1031,73 @@ fun PokemonDetailPage(
                                             }
                                         }
                                     }
+
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(vertical = 8.dp),
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                                    )
+
+                                    val totalBst = pokemon.stats.sumOf { it.base_stat }
+                                    val totalAnimated by animateFloatAsState(
+                                        targetValue = (totalBst / 720f).coerceIn(0f, 1f),
+                                        animationSpec = tween(
+                                            durationMillis = 2500,
+                                            delayMillis = pokemon.stats.size * 120,
+                                            easing = FastOutSlowInEasing
+                                        ),
+                                        label = "totalBstAnimation"
+                                    )
+
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 6.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = "Total",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurface,
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                            Text(
+                                                text = totalBst.toString(),
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = bgColor,
+                                                modifier = Modifier.width(40.dp),
+                                                textAlign = TextAlign.End
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(10.dp)
+                                                .clip(RoundedCornerShape(50))
+                                                .background(
+                                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+                                                )
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth(totalAnimated)
+                                                    .fillMaxHeight()
+                                                    .clip(RoundedCornerShape(50))
+                                                    .background(
+                                                        Brush.horizontalGradient(
+                                                            listOf(bgColor.copy(alpha = 0.7f), bgColor)
+                                                        )
+                                                    )
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1113,14 +1181,32 @@ fun PokemonDetailPage(
 
                                         Spacer(Modifier.height(8.dp))
 
-                                        moves.take(6).forEach { move ->
-                                            MoveRow(move, method, bgColor)
+                                        moves.take(6).chunked(2).forEach { pair ->
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
+                                                pair.forEach { move ->
+                                                    MoveChip(move, method, bgColor, Modifier.weight(1f))
+                                                }
+                                                if (pair.size < 2) Spacer(Modifier.weight(1f))
+                                            }
+                                            Spacer(Modifier.height(6.dp))
                                         }
 
                                         AnimatedVisibility(visible = isExpanded) {
                                             Column {
-                                                moves.drop(6).forEach { move ->
-                                                    MoveRow(move, method, bgColor)
+                                                moves.drop(6).chunked(2).forEach { pair ->
+                                                    Row(
+                                                        modifier = Modifier.fillMaxWidth(),
+                                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                                    ) {
+                                                        pair.forEach { move ->
+                                                            MoveChip(move, method, bgColor, Modifier.weight(1f))
+                                                        }
+                                                        if (pair.size < 2) Spacer(Modifier.weight(1f))
+                                                    }
+                                                    Spacer(Modifier.height(6.dp))
                                                 }
                                             }
                                         }
@@ -1284,36 +1370,39 @@ fun PokemonDetailPage(
 }
 
 @Composable
-fun MoveRow(move: DisplayMove, method: String, bgColor: Color) {
-
+fun MoveChip(move: DisplayMove, method: String, bgColor: Color, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .clip(RoundedCornerShape(8.dp))
             .background(bgColor.copy(alpha = 0.12f))
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = 10.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = move.name.replace("-", " ")
-                .replaceFirstChar { it.uppercase() },
-            modifier = Modifier.weight(1f)
+            text = move.name.replace("-", " ").replaceFirstChar { it.uppercase() },
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
-
         if (method == "level-up" && move.level != null) {
+            Spacer(Modifier.width(4.dp))
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
+                    .clip(RoundedCornerShape(4.dp))
                     .background(bgColor.copy(alpha = 0.4f))
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
-                Text("Lv. ${move.level}")
+                Text(
+                    text = "${move.level}",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
-
-    Spacer(Modifier.height(6.dp))
 }
 
 @Composable

@@ -16,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
@@ -28,6 +30,7 @@ import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels.P
 import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameDifficultyLayout
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameResultLayout
+import com.aditya1875.pokeverse.feature.game.core.presentation.ResultHeroIcon
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatChips
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatRow
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
@@ -70,14 +73,15 @@ fun PokeGuessDifficultyScreen(
                     }
                 }
             },
-            onDismiss = { showAdDialog = false }
+            onDismiss = { showAdDialog = false },
+            onRetry = { adManager.loadAd(context) }
         )
     }
 
     GameDifficultyLayout(
-        gameTitle = "Who's That Pokémon?",
-        gameSubtitle = "Guess from silhouettes!",
-        difficultyHint = "Identify Pokémon from shadows.",
+        gameTitle = stringResource(R.string.guess_game_title),
+        gameSubtitle = stringResource(R.string.guess_game_subtitle),
+        difficultyHint = stringResource(R.string.guess_difficulty_hint),
         onBack = onBack,
         subscriptionState = subscriptionState
     ) {
@@ -113,7 +117,7 @@ fun PokeGuessDifficultyScreen(
             GuessDifficultyCard(
                 difficulty = GuessDifficulty.HARD,
                 locked = !isPremium,
-                adAvailable = !isPremium && adState is RewardedAdState.Ready,
+                adAvailable = !isPremium,
                 bestScore = topScores
                     .filter { it.difficulty == GuessDifficulty.HARD.name }
                     .maxByOrNull { it.score },
@@ -190,7 +194,7 @@ private fun GuessDifficultyCard(
                         Spacer(Modifier.width(8.dp))
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Locked",
+                            contentDescription = stringResource(R.string.label_locked),
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                             modifier = Modifier.size(16.dp)
                         )
@@ -208,7 +212,7 @@ private fun GuessDifficultyCard(
                         )
                         Spacer(Modifier.width(4.dp))
                         Text(
-                            text = "Watch ad to play this round",
+                            text = stringResource(R.string.guess_watch_ad),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFF2196F3)
                         )
@@ -224,7 +228,7 @@ private fun GuessDifficultyCard(
                 bestScore?.let {
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "Best: ${it.score}",
+                        text = stringResource(R.string.guess_best_score, it.score),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFFFFD700),
                         fontWeight = FontWeight.SemiBold
@@ -261,10 +265,10 @@ fun PokeGuessResultScreen(
         else       -> Color(0xFF9E9E9E)
     }
     val titleText = when {
-        pct == 100 -> "Perfect!"
-        pct >= 80  -> "Excellent!"
-        pct >= 60  -> "Great Job!"
-        else       -> "Keep Going!"
+        pct == 100 -> stringResource(R.string.result_title_perfect)
+        pct >= 80  -> stringResource(R.string.result_title_excellent)
+        pct >= 60  -> stringResource(R.string.result_title_great_job)
+        else       -> stringResource(R.string.result_title_keep_going)
     }
     val stars = when {
         pct >= 90 -> 3; pct >= 70 -> 2; pct >= 50 -> 1; else -> 0
@@ -272,41 +276,43 @@ fun PokeGuessResultScreen(
 
     GameResultLayout(
         title = titleText,
-        subtitle = "Who's That Pokémon?",
+        subtitle = stringResource(R.string.guess_subtitle),
         score = score.toString(),
-        scoreLabel = "POINTS",
+        scoreLabel = stringResource(R.string.result_score_label_points),
         heroColor = heroColor,
         stars = stars,
         onPlayAgain = onPlayAgain,
         onBack = onBackToMenu,
         heroContent = {
-            Text(
-                text = when {
-                    pct == 100 -> "👁️‍🗨️"; pct >= 80 -> "👁️"; pct >= 60 -> "🔍"; else -> "❓"
+            ResultHeroIcon(
+                icon = when {
+                    pct >= 80 -> Icons.Default.Visibility
+                    pct >= 60 -> Icons.Default.Search
+                    else      -> Icons.AutoMirrored.Filled.Help
                 },
-                fontSize = 64.sp
+                heroColor = heroColor
             )
         },
         statsContent = {
             ResultStatChips(
-                "Correct" to "$correctAnswers",
-                "Missed"  to "${totalQuestions - correctAnswers}",
-                "Rate"    to "$pct%"
+                stringResource(R.string.guess_stat_correct) to "$correctAnswers",
+                stringResource(R.string.guess_stat_missed) to "${totalQuestions - correctAnswers}",
+                stringResource(R.string.guess_stat_rate) to "$pct%"
             )
             Spacer(Modifier.height(16.dp))
             ResultStatRow(
-                label = "Total score",
+                label = stringResource(R.string.guess_stat_total_score),
                 value = score.toString(),
                 valueColor = heroColor,
                 icon = Icons.Default.Star
             )
             ResultStatRow(
-                label = "Questions",
+                label = stringResource(R.string.guess_stat_questions),
                 value = "$correctAnswers / $totalQuestions",
                 icon = Icons.AutoMirrored.Filled.Help
             )
             ResultStatRow(
-                label = "Difficulty",
+                label = stringResource(R.string.label_difficulty),
                 value = difficulty.name.lowercase().replaceFirstChar { it.uppercase() },
                 icon = Icons.Default.Speed,
                 isLast = true

@@ -57,9 +57,18 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import android.app.Activity
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.QuizDifficulty
 import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.QuizGameState
@@ -73,6 +82,7 @@ import org.koin.compose.koinInject
 
 private val OPTION_LABELS = listOf("A", "B", "C", "D")
 
+@Suppress("EffectKeys")
 @Composable
 fun QuizGameScreen(
     difficulty: QuizDifficulty,
@@ -83,6 +93,16 @@ fun QuizGameScreen(
     val soundManager: SoundManager = koinInject()
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
     var showExitDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
+    val adManager = koinInject<IRewardedAdManager>()
+    val adState by adManager.adState.collectAsStateWithLifecycle()
+    var showAdForReplay by remember { mutableStateOf(false) }
+    LaunchedEffect(adState) {
+        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    }
 
     LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }
     BackHandler { showExitDialog = true }
@@ -104,7 +124,7 @@ fun QuizGameScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("🧠", fontSize = 48.sp)
                             CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 3.dp)
-                            Text("Loading questions…",
+                            Text(stringResource(R.string.quiz_loading),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
@@ -138,7 +158,11 @@ fun QuizGameScreen(
                     totalQuestions = state.totalQuestions,
                     difficulty = state.difficulty,
                     stars = state.stars,
-                    onPlayAgain = { viewModel.startQuiz(difficulty) },
+                    onPlayAgain = {
+                        if (difficulty == QuizDifficulty.HARD && subscriptionState !is SubscriptionState.Premium)
+                            showAdForReplay = true
+                        else viewModel.startQuiz(difficulty)
+                    },
                     onBackToMenu = { viewModel.onBackToMenu(); onBack() }
                 )
             }
@@ -148,14 +172,30 @@ fun QuizGameScreen(
     if (showExitDialog) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
-            title = { Text("Exit quiz?") },
-            text = { Text("Your progress will be lost.") },
+            title = { Text(stringResource(R.string.quiz_exit_title)) },
+            text = { Text(stringResource(R.string.quiz_exit_body)) },
             confirmButton = {
                 TextButton(onClick = { showExitDialog = false; onBack() }) {
-                    Text("Exit", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.quiz_exit_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text("Cancel") } }
+            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text(stringResource(R.string.cancel)) } }
+        )
+    }
+
+    if (showAdForReplay) {
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        showAdForReplay = false
+                        viewModel.startQuiz(difficulty)
+                    }
+                }
+            },
+            onDismiss = { showAdForReplay = false },
+            onRetry = { adManager.loadAd(context) }
         )
     }
 }
@@ -383,7 +423,7 @@ private fun QuizAnswerFeedbackContent(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = if (isCorrect) "Correct!" else "Incorrect",
+                text = if (isCorrect) stringResource(R.string.quiz_correct) else stringResource(R.string.quiz_incorrect),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Black,
                 color = accentColor,
@@ -432,7 +472,7 @@ private fun QuizAnswerFeedbackContent(
                             tint = Color(0xFFFFD700),
                             modifier = Modifier.size(18.dp))
                         Text(
-                            "Did you know?",
+                            stringResource(R.string.quiz_did_you_know),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -458,7 +498,7 @@ private fun QuizAnswerFeedbackContent(
             ) {
                 val isLast = gameState.currentQuestionIndex >= gameState.questions.size - 1
                 Text(
-                    if (isLast) "See Results →" else "Next Question →",
+                    if (isLast) stringResource(R.string.action_see_results) else stringResource(R.string.action_next_question),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White

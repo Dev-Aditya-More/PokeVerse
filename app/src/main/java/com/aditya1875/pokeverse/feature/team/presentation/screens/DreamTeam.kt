@@ -58,7 +58,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.aditya1875.pokeverse.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -158,7 +160,7 @@ fun DreamTeam(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Create new team",
+                    contentDescription = stringResource(R.string.team_create_new),
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -219,7 +221,7 @@ fun DreamTeam(
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Text(
-                                                    text = currentTeam?.teamName ?: "My Team",
+                                                    text = currentTeam?.teamName ?: stringResource(R.string.team_default_name),
                                                     color = MaterialTheme.colorScheme.onPrimary,
                                                     fontSize = 24.sp,
                                                     fontWeight = FontWeight.Bold,
@@ -228,7 +230,7 @@ fun DreamTeam(
                                                 Spacer(Modifier.width(8.dp))
                                                 Icon(
                                                     imageVector = Icons.Default.KeyboardArrowDown,
-                                                    contentDescription = "Select team",
+                                                    contentDescription = stringResource(R.string.team_select),
                                                     tint = MaterialTheme.colorScheme.onPrimary
                                                 )
                                             }
@@ -253,7 +255,7 @@ fun DreamTeam(
                                                                 )
                                                                 if (team.isDefault) {
                                                                     Text(
-                                                                        text = "Default",
+                                                                        text = stringResource(R.string.team_is_default),
                                                                         style = MaterialTheme.typography.bodySmall,
                                                                         color = MaterialTheme.colorScheme.primary
                                                                     )
@@ -262,7 +264,7 @@ fun DreamTeam(
                                                             if (team.teamId == currentTeam?.teamId) {
                                                                 Icon(
                                                                     imageVector = Icons.Default.Check,
-                                                                    contentDescription = "Selected",
+                                                                    contentDescription = stringResource(R.string.filter_selected),
                                                                     tint = MaterialTheme.colorScheme.primary,
                                                                     modifier = Modifier.size(20.dp)
                                                                 )
@@ -298,7 +300,7 @@ fun DreamTeam(
                                         )
                                     } else {
                                         Text(
-                                            text = currentTeam?.teamName ?: "My Team",
+                                            text = currentTeam?.teamName ?: stringResource(R.string.team_default_name),
                                             color = MaterialTheme.colorScheme.onPrimary,
                                             fontSize = 24.sp,
                                             fontWeight = FontWeight.Bold,
@@ -327,7 +329,7 @@ fun DreamTeam(
                                             Icon(
                                                 imageVector = Icons.Default.Check,
                                                 tint = MaterialTheme.colorScheme.secondary,
-                                                contentDescription = "Confirm"
+                                                contentDescription = stringResource(R.string.team_confirm_icon)
                                             )
                                         }
                                     } else {
@@ -337,7 +339,7 @@ fun DreamTeam(
                                         }) {
                                             Icon(
                                                 imageVector = Icons.Default.Edit,
-                                                contentDescription = "Edit team name",
+                                                contentDescription = stringResource(R.string.team_edit_name),
                                                 tint = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                                             )
                                         }
@@ -347,7 +349,7 @@ fun DreamTeam(
                                         IconButton(onClick = { showDeleteConfirmation = true }) {
                                             Icon(
                                                 imageVector = Icons.Default.Delete,
-                                                contentDescription = "Delete team",
+                                                contentDescription = stringResource(R.string.team_delete),
                                                 tint = MaterialTheme.colorScheme.error
                                             )
                                         }
@@ -372,7 +374,7 @@ fun DreamTeam(
                                     .padding(4.dp)
                             ) {
                                 TabButton(
-                                    text = "Team (${currentTeamMembers.size})",
+                                    text = stringResource(R.string.team_tab_team, currentTeamMembers.size),
                                     icon = Icons.Default.Add,
                                     isSelected = selectedTab == 0,
                                     color = MaterialTheme.colorScheme.primary,
@@ -383,7 +385,7 @@ fun DreamTeam(
                                 Spacer(Modifier.width(8.dp))
 
                                 TabButton(
-                                    text = "Favorites (${favorites.size})",
+                                    text = stringResource(R.string.team_tab_favorites, favorites.size),
                                     icon = Icons.Default.Star,
                                     isSelected = selectedTab == 1,
                                     color = MaterialTheme.colorScheme.secondary,
@@ -415,7 +417,7 @@ fun DreamTeam(
                                         if (!isPremium && analysisUseCount >= analysisLimit) {
                                             showPremiumSheet = true
                                             Toast.makeText(
-                                                context, "You have reached the maximum number of analysis uses", Toast.LENGTH_SHORT
+                                                context, context.getString(R.string.team_analysis_max_reached), Toast.LENGTH_SHORT
                                             ).show()
                                         } else {
                                             settingsViewModel.incrementAnalysisCount()
@@ -490,7 +492,7 @@ fun DreamTeam(
         if (showShareDialog) {
             TeamShareDialog(
                 team = currentTeamMembers,
-                teamName = currentTeam?.teamName ?: "My Team",
+                teamName = currentTeam?.teamName ?: context.getString(R.string.team_default_name),
                 trainerName = userProfile.username,
                 trainerLevel = userProfile.level,
                 totalXp = userProfile.totalXp,
@@ -504,15 +506,14 @@ fun DreamTeam(
                 onDismissRequest = { showDeleteConfirmation = false },
                 title = {
                     Text(
-                        text = "Delete Team?",
+                        text = stringResource(R.string.dialog_delete_team_title),
                         fontWeight = FontWeight.Bold
                     )
                 },
                 text = {
-                    Text("Are you sure you want to delete \"${currentTeam?.teamName}\"? All Pokémon in this team will be removed.")
+                    Text(stringResource(R.string.dialog_delete_team_body, currentTeam?.teamName ?: ""))
                 },
                 confirmButton = {
-                    val context = LocalContext.current
                     Button(
                         onClick = {
                             currentTeam?.let { team ->
@@ -533,12 +534,12 @@ fun DreamTeam(
                             containerColor = MaterialTheme.colorScheme.error
                         )
                     ) {
-                        Text("Delete")
+                        Text(stringResource(R.string.action_delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirmation = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )

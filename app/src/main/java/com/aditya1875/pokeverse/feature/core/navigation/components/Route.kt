@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse.feature.core.navigation.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Leaderboard
 import androidx.compose.material.icons.filled.Person
@@ -19,6 +20,7 @@ sealed class Route(val route: String) {
         object Game : BottomBar("game", Icons.Default.SportsEsports)
         object Leaderboard : BottomBar("leaderboard", Icons.Default.Leaderboard)
         object Profile : BottomBar("profile", Icons.Default.Person)
+        object Clash : BottomBar("clash", Icons.Default.Groups)
     }
 
     object ItemsScreen : Route("items")

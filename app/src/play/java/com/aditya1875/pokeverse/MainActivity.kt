@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -68,6 +69,7 @@ import com.aditya1875.pokeverse.feature.pokemon.theme_selector.data.preferences.
 import com.aditya1875.pokeverse.feature.team.presentation.screens.DreamTeam
 import com.aditya1875.pokeverse.ui.theme.AppTheme
 import com.aditya1875.pokeverse.ui.theme.PokeverseTheme
+import com.aditya1875.pokeverse.utils.LocaleHelper
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.google.android.gms.ads.MobileAds
@@ -80,6 +82,10 @@ import org.koin.compose.koinInject
 class MainActivity : ComponentActivity() {
     private var sessionStartMs = -1L
     private val settingsViewModel: SettingsViewModel by inject()
+
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
@@ -138,6 +144,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
     }
 
     override fun onStart() {

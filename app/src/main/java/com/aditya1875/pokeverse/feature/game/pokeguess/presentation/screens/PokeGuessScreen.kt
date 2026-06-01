@@ -25,6 +25,11 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
+import android.app.Activity
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GuessGameState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -45,6 +50,17 @@ fun PokeGuessGameScreen(
     val gameState by viewModel.gameState.collectAsStateWithLifecycle()
     val soundManager: SoundManager = koinInject()
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
+
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
+    val adManager = koinInject<IRewardedAdManager>()
+    val adState by adManager.adState.collectAsStateWithLifecycle()
+    var showAdForReplay by remember { mutableStateOf(false) }
+
+    LaunchedEffect(adState) {
+        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    }
 
     LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }
     LaunchedEffect(gameState) {
@@ -117,11 +133,31 @@ fun PokeGuessGameScreen(
                     correctAnswers = state.correctAnswers,
                     totalQuestions = state.totalQuestions,
                     difficulty = state.difficulty,
-                    onPlayAgain = { viewModel.startGame(difficulty) },
+                    onPlayAgain = {
+                        if (difficulty == GuessDifficulty.HARD && subscriptionState !is SubscriptionState.Premium)
+                            showAdForReplay = true
+                        else viewModel.startGame(difficulty)
+                    },
                     onBackToMenu = onBack
                 )
             }
         }
+    }
+
+    if (showAdForReplay) {
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        showAdForReplay = false
+                        viewModel.startGame(difficulty)
+                    }
+                }
+            },
+            onDismiss = { showAdForReplay = false },
+            onRetry = { adManager.loadAd(context) }
+        )
     }
 }
 

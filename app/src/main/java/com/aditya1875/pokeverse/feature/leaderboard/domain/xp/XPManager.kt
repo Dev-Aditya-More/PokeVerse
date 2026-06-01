@@ -78,21 +78,56 @@ class XPManager(
                 total to lbl
             }
             is XPEvent.GuessComplete ->
-                XPValues.GUESS_COMPLETE to "Round Complete +${XPValues.GUESS_COMPLETE} XP"
-            is XPEvent.FirstGameOfDay ->
+                XPValues.GUESS_COMPLETE to "PokéGuess Complete +${XPValues.GUESS_COMPLETE} XP"
+            is XPEvent.DuelCorrect -> {
+                val streakBonus = when {
+                    event.streak >= 5 -> XPValues.GUESS_STREAK_5
+                    event.streak >= 2 -> XPValues.GUESS_STREAK_2
+                    else -> 0
+                }
+                val total = XPValues.DUEL_CORRECT + streakBonus
+                val lbl = if (streakBonus > 0) "Right Call! +$total XP 🔥 x${event.streak}" else "Right Call! +$total XP"
+                total to lbl
+            }
+            is XPEvent.DuelComplete ->
+                XPValues.DUEL_COMPLETE to "PokéDuel Complete +${XPValues.DUEL_COMPLETE} XP"
+            is XPEvent.RushCorrect ->
+                XPValues.RUSH_CORRECT to "Rush Hit! +${XPValues.RUSH_CORRECT} XP"
+            is XPEvent.RushComplete -> {
+                val perfect = event.score == event.total && event.total > 0
+                val bonus = if (perfect) XPValues.RUSH_PERFECT else 0
+                val total = XPValues.RUSH_COMPLETE + bonus
+                val lbl = if (perfect) "TypeRush Complete +$total XP ⭐ Perfect!" else "TypeRush Complete +$total XP"
+                total to lbl
+            }
+            is XPEvent.FirstGameOfDay -> {
+                // Deduplicate per calendar day in the profile — same pattern as FirstExplorationOfDay
+                if (profile.lastFirstGameXpDate == today) return noOpResult(profile)
                 XPValues.FIRST_GAME_OF_DAY to "First Game Today! +${XPValues.FIRST_GAME_OF_DAY} XP 🎮"
+            }
             is XPEvent.DailyLogin ->
-                XPValues.DAILY_LOGIN to "Daily Login +${XPValues.DAILY_LOGIN} XP"
+                XPValues.DAILY_LOGIN to "Daily Showup +${XPValues.DAILY_LOGIN} XP"
             is XPEvent.FirstExplorationOfDay -> {
                 if (profile.lastExplorationXpDate == today) return noOpResult(profile)
                 XPValues.FIRST_EXPLORATION_OF_DAY to "First Exploration Today! +${XPValues.FIRST_EXPLORATION_OF_DAY} XP 🔍"
             }
+            is XPEvent.CardClashWin ->
+                XPValues.CLASH_WIN to "Clash Victory! +${XPValues.CLASH_WIN} XP"
+            is XPEvent.CardClashRoundWin ->
+                XPValues.CLASH_ROUND_WIN to "Round Won +${XPValues.CLASH_ROUND_WIN} XP"
+            is XPEvent.CardClashPerfect ->
+                XPValues.CLASH_PERFECT to "Perfect Sweep! +${XPValues.CLASH_PERFECT} XP"
+            is XPEvent.CardClashDraw ->
+                XPValues.CLASH_DRAW to "Clash Draw +${XPValues.CLASH_DRAW} XP"
         }
 
         if (gained == 0) return noOpResult(profile)
 
         return applyXP(profile, gained, label) { updated ->
-            updated.copy(lastExplorationXpDate = today)
+            updated.copy(
+                lastExplorationXpDate = today,
+                lastFirstGameXpDate = today   // persists for FirstGameOfDay deduplication
+            )
         }
     }
 

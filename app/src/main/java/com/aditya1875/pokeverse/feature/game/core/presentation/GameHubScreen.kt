@@ -20,8 +20,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
@@ -48,7 +50,7 @@ fun GameHubScreen(
     val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
     val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
     val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null
+    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
 
     val context = LocalContext.current
     var showThankYouDialog by remember { mutableStateOf(false) }
@@ -85,8 +87,8 @@ fun GameHubScreen(
     val games = listOf(
         GameEntry(
             id = "pokeduel",
-            title = "Who wins?",
-            description = "Predict battle outcomes based on type advantage!",
+            title = stringResource(R.string.game_name_pokeduel_title),
+            description = stringResource(R.string.game_name_pokeduel_desc),
             icon = Icons.Default.FlashOn,
             accentColor = Color(0xFFFF9800),
             tag = "Battle",
@@ -94,8 +96,8 @@ fun GameHubScreen(
         ),
         GameEntry(
             id = "poketype",
-            title = "Type Combo",
-            description = "Guess the type combo of monster",
+            title = stringResource(R.string.game_name_typecombo_title),
+            description = stringResource(R.string.game_name_typecombo_desc),
             icon = Icons.Default.SportsScore,
             accentColor = Color(0xFF3F51B5),
             tag = "Guess",
@@ -103,8 +105,8 @@ fun GameHubScreen(
         ),
         GameEntry(
             id = "pokematch",
-            title = "Match 'Em All",
-            description = "Flip cards and match pairs before time runs out!",
+            title = stringResource(R.string.game_name_pokematch_title),
+            description = stringResource(R.string.game_name_pokematch_desc),
             icon = Icons.Default.GridView,
             accentColor = Color(0xFF4CAF50),
             tag = "Memory",
@@ -112,8 +114,8 @@ fun GameHubScreen(
         ),
         GameEntry(
             id = "pokequiz",
-            title = "Do you know it?",
-            description = "Test your knowledge across generations!",
+            title = stringResource(R.string.game_name_pokequiz_title),
+            description = stringResource(R.string.game_name_pokequiz_desc),
             icon = Icons.Default.Quiz,
             accentColor = Color(0xFF2196F3),
             tag = "Trivia",
@@ -121,8 +123,8 @@ fun GameHubScreen(
         ),
         GameEntry(
             id = "pokeguess",
-            title = "Who's That Monster?",
-            description = "Guess the monsters from its silhouette!",
+            title = stringResource(R.string.game_name_pokeguess_title),
+            description = stringResource(R.string.game_name_pokeguess_desc),
             icon = Icons.Default.Visibility,
             accentColor = Color(0xFF9C27B0),
             tag = "Guess",
@@ -137,13 +139,13 @@ fun GameHubScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Mini Games",
+                            text = stringResource(R.string.game_hub_title),
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
-                            text = "Take a break, have fun!",
+                            text = stringResource(R.string.game_hub_subtitle),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
@@ -167,7 +169,7 @@ fun GameHubScreen(
                                 )
                                 Spacer(Modifier.width(4.dp))
                                 Text(
-                                    text = "Premium",
+                                    text = stringResource(R.string.label_premium),
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFFFFD700)
                                 )
@@ -220,34 +222,26 @@ fun GameHubScreen(
     }
 
     if (showPremiumSheet) {
+        val purchaseError = stringResource(R.string.game_hub_purchase_error)
         PremiumBottomSheet(
             onDismiss = { showPremiumSheet = false },
             onSubscribeMonthly = {
                 showPremiumSheet = false
                 val activity = context as? Activity
-                if (activity != null) {
-                    billingViewModel.purchaseMonthly(activity)
-                } else {
-                    Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
-                }
+                if (activity != null) billingViewModel.purchaseMonthly(activity)
+                else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
             },
             onSubscribeYearly = {
                 showPremiumSheet = false
                 val activity = context as? Activity
-                if (activity != null) {
-                    billingViewModel.purchaseYearly(activity)
-                } else {
-                    Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
-                }
+                if (activity != null) billingViewModel.purchaseYearly(activity)
+                else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
             },
             onSubscribeLifetime = {
                 showPremiumSheet = false
                 val activity = context as? Activity
-                if (activity != null) {
-                    billingViewModel.purchaseLifetime(activity)
-                } else {
-                    Toast.makeText(context, "Unable to start purchase", Toast.LENGTH_SHORT).show()
-                }
+                if (activity != null) billingViewModel.purchaseLifetime(activity)
+                else Toast.makeText(context, purchaseError, Toast.LENGTH_SHORT).show()
             },
             monthlyPrice = monthly,
             yearlyPrice = yearly,
@@ -347,7 +341,7 @@ fun FeaturedGameCard(
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
-                            text = "FREE",
+                            text = stringResource(R.string.game_hub_tag_free),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.ExtraBold,
                             color = accentColor,

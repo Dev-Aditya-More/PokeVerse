@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.di
 
+import com.aditya1875.pokeverse.feature.game.cardclash.presentation.CardClashViewModel
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.viewmodels.DuelViewModel
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels.PokeGuessViewModel
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.viewmodels.MatchViewModel
@@ -37,4 +38,5 @@ val viewModelModule = module {
     viewModelOf(::TypeRushViewModel)
     viewModelOf(::MatchViewModel)
     viewModelOf(::DuelViewModel)
+    viewModelOf(::CardClashViewModel)
 }

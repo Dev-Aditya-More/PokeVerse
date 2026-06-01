@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -8,6 +9,10 @@ import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -26,6 +31,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -38,6 +44,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -45,7 +53,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
@@ -59,6 +67,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -80,12 +89,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -121,6 +132,7 @@ import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.utils.IReviewManager
 import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.aditya1875.pokeverse.utils.SoundManager
@@ -132,6 +144,7 @@ import kotlinx.coroutines.tasks.await
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
+@Suppress("EffectKeys")
 @OptIn(
     ExperimentalSharedTransitionApi::class,
     ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class
@@ -171,6 +184,7 @@ fun SharedTransitionScope.HomeScreen(
     var contentMode by rememberSaveable { mutableStateOf(HomeContentMode.POKEMON) }
 
     val soundManager: SoundManager = koinInject()
+    val reviewManager: IReviewManager = koinInject()
 
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isLoading && pokemonList.isNotEmpty(),
@@ -234,6 +248,15 @@ fun SharedTransitionScope.HomeScreen(
 
     val context = LocalContext.current
 
+    val clashPrefs = remember { context.getSharedPreferences("clash_prefs", Context.MODE_PRIVATE) }
+    var showClashNewBadge by remember { mutableStateOf(!clashPrefs.getBoolean("fab_new_seen", false)) }
+    val clashBadgePulse by rememberInfiniteTransition(label = "clash_badge")
+        .animateFloat(
+            initialValue = 0.65f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "clash_badge_alpha"
+        )
+
     val activity = context as? Activity
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
@@ -289,11 +312,7 @@ fun SharedTransitionScope.HomeScreen(
         currentVersionCode = BuildConfig.VERSION_CODE.toLong(),
         onEnableAssets = { settingsViewModel.toggleOriginalAssetsEnabled() },
         onRateNow = {
-            val packageName = context.packageName
-
-            val uri = "market://details?id=$packageName".toUri()
-            val intent = Intent(Intent.ACTION_VIEW, uri)
-            context.startActivity(intent)
+            activity?.let { reviewManager.requestReview(it) }
         },
         onGoPremium = {
             showPremiumSheet = true
@@ -374,7 +393,7 @@ fun SharedTransitionScope.HomeScreen(
                                 onDismissRequest = { showMenu = false }
                             ) {
                                 DropdownMenuItem(
-                                    text = { Text("Pokémon") },
+                                    text = { Text("Pokémons") },
                                     trailingIcon = {
                                         if (contentMode == HomeContentMode.POKEMON) {
                                             Icon(Icons.Default.Check, contentDescription = null)
@@ -436,18 +455,6 @@ fun SharedTransitionScope.HomeScreen(
             },
             floatingActionButton = {
 
-                val fabVisible by remember {
-                    derivedStateOf {
-                        when (contentMode) {
-                            HomeContentMode.POKEMON ->
-                                pokemonGridState.firstVisibleItemIndex > 5
-
-                            HomeContentMode.ITEMS ->
-                                itemGridState.firstVisibleItemIndex > 5
-                        }
-                    }
-                }
-
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -474,39 +481,51 @@ fun SharedTransitionScope.HomeScreen(
                                     triviaViewModel.loadTrivia()
                                 }
                             },
-                            modifier = Modifier.size(40.dp)
+                            modifier = Modifier.size(52.dp)
                         )
+                    } else {
+                        Spacer(Modifier.size(52.dp))
                     }
 
-                    AnimatedVisibility(
-                        visible = fabVisible,
-                        enter = fadeIn() + scaleIn(),
-                        exit = fadeOut() + scaleOut()
-                    ) {
-                        FloatingActionButton(
-                            onClick = {
-                                coroutineScope.launch {
-                                    when (contentMode) {
-                                        HomeContentMode.POKEMON -> {
-                                            pokemonGridState.animateScrollToItem(0)
-                                        }
-
-                                        HomeContentMode.ITEMS -> {
-                                            itemGridState.animateScrollToItem(0)
-                                        }
+                    Box {
+                            FloatingActionButton(
+                                onClick = {
+                                    if (showClashNewBadge) {
+                                        clashPrefs.edit().putBoolean("fab_new_seen", true).apply()
+                                        showClashNewBadge = false
                                     }
+                                    navController.navigate(Route.BottomBar.Clash.route)
+                                },
+                                shape = RoundedCornerShape(16.dp),
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                                modifier = Modifier.size(52.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Groups,
+                                    contentDescription = stringResource(R.string.clash_lobby_title),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                            if (showClashNewBadge) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .offset(x = 6.dp, y = (-6).dp)
+                                        .alpha(clashBadgePulse)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.fab_label_new),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onError,
+                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                    )
                                 }
-                            },
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            elevation = FloatingActionButtonDefaults.elevation(8.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.KeyboardArrowUp,
-                                contentDescription = "Scroll to top",
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                            }
                         }
-                    }
                 }
             },
             floatingActionButtonPosition = FabPosition.Center
@@ -583,9 +602,9 @@ fun SharedTransitionScope.HomeScreen(
                         },
                         label = {
                             if (contentMode == HomeContentMode.POKEMON) {
-                                Text("Search a Monster..")
+                                Text(stringResource(R.string.home_search_pokemon))
                             } else {
-                                Text("Search a held Item..")
+                                Text(stringResource(R.string.home_search_item))
                             }
                         },
                         singleLine = true,
@@ -598,7 +617,7 @@ fun SharedTransitionScope.HomeScreen(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.FilterList,
-                                            contentDescription = "Filters",
+                                            contentDescription = stringResource(R.string.home_filters),
                                             tint = if (showFilters)
                                                 MaterialTheme.colorScheme.primary
                                             else
@@ -629,12 +648,12 @@ fun SharedTransitionScope.HomeScreen(
                                             itemViewModel.onSearchChange("")
                                         }
                                     }) {
-                                        Icon(Icons.Default.Close, "Clear")
+                                        Icon(Icons.Default.Close, stringResource(R.string.home_clear_search))
                                     }
                                 }
 
                                 else -> {
-                                    Icon(Icons.Default.Search, "Search")
+                                    Icon(Icons.Default.Search, stringResource(R.string.home_search))
                                 }
                             }
                         },
@@ -684,7 +703,7 @@ fun SharedTransitionScope.HomeScreen(
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            "No Pokémon found",
+                                            stringResource(R.string.home_no_pokemon_found),
                                             color = MaterialTheme.colorScheme.onSurface.copy(
                                                 alpha = 0.6f
                                             )
@@ -748,16 +767,16 @@ fun SharedTransitionScope.HomeScreen(
                                     )
 
                                     val (title, subtitle) = when (uiState.error) {
-                                        is UiError.Network -> "No Internet Connection" to "Check your network and try again."
-                                        is UiError.Unexpected -> "Something went wrong" to "An unexpected error occurred."
-                                        else -> "Unknown Error" to "Please try again later."
+                                        is UiError.Network -> stringResource(R.string.error_no_internet_title) to stringResource(R.string.error_no_internet_subtitle)
+                                        is UiError.Unexpected -> stringResource(R.string.error_unexpected_title) to stringResource(R.string.error_unexpected_subtitle)
+                                        else -> stringResource(R.string.error_unknown_title) to stringResource(R.string.error_unknown_subtitle)
                                     }
 
                                     Text(title)
                                     Text(subtitle)
 
                                     Button(onClick = { viewModel.retry() }) {
-                                        Text("Retry")
+                                        Text(stringResource(R.string.action_retry))
                                     }
                                 }
                             }

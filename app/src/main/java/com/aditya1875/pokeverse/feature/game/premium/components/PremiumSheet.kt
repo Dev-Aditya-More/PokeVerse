@@ -46,10 +46,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.data.billing.PremiumPlan
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,7 +109,7 @@ fun PremiumBottomSheet(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Dexverse Premium",
+                text = stringResource(R.string.premium_sheet_title),
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -116,7 +118,7 @@ fun PremiumBottomSheet(
             Spacer(Modifier.height(4.dp))
 
             Text(
-                text = "Unlock the full Dexverse experience",
+                text = stringResource(R.string.premium_sheet_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -125,9 +127,9 @@ fun PremiumBottomSheet(
             Spacer(Modifier.height(24.dp))
 
             val features = listOf(
-                Triple(Icons.Default.EmojiEvents, "Hard Mode", "You get to play the ultimate challenge"),
-                Triple(Icons.Default.CatchingPokemon, "Item Exploration", "Explore the held items in the game"),
-                Triple(Icons.Default.Palette, "Exclusive themes", "Get all the themes and features"),
+                Triple(Icons.Default.EmojiEvents, stringResource(R.string.premium_feature_hard_mode_title), stringResource(R.string.premium_feature_hard_mode_subtitle)),
+                Triple(Icons.Default.CatchingPokemon, stringResource(R.string.premium_feature_items_title), stringResource(R.string.premium_feature_items_subtitle)),
+                Triple(Icons.Default.Palette, stringResource(R.string.premium_feature_themes_title), stringResource(R.string.premium_feature_themes_subtitle)),
             )
 
             features.forEach { (icon, title, subtitle) ->
@@ -153,7 +155,7 @@ fun PremiumBottomSheet(
                 FilterChip(
                     selected = selectedPlan == PremiumPlan.MONTHLY,
                     onClick = { selectedPlan = PremiumPlan.MONTHLY },
-                    label = { Text("Monthly 🚀") },
+                    label = { Text(stringResource(R.string.premium_plan_monthly)) },
                     border = BorderStroke(
                         1.dp,
                         if (selectedPlan == PremiumPlan.MONTHLY)
@@ -167,9 +169,9 @@ fun PremiumBottomSheet(
                     onClick = { selectedPlan = PremiumPlan.YEARLY },
                     label = {
                         Row {
-                            Text("Yearly • Save 33%")
+                            Text(stringResource(R.string.premium_plan_yearly))
                             Spacer(Modifier.width(6.dp))
-                            Text("BEST", color = Color(0xFFFF9800), fontSize = 10.sp)
+                            Text(stringResource(R.string.premium_plan_yearly_best), color = Color(0xFFFF9800), fontSize = 10.sp)
                         }
                     },
                     border = BorderStroke(
@@ -183,7 +185,7 @@ fun PremiumBottomSheet(
                 FilterChip(
                     selected = selectedPlan == PremiumPlan.LIFETIME,
                     onClick = { selectedPlan = PremiumPlan.LIFETIME },
-                    label = { Text("Lifetime • Save 40% 🔥") },
+                    label = { Text(stringResource(R.string.premium_plan_lifetime)) },
                     border = BorderStroke(
                         1.dp,
                         if (selectedPlan == PremiumPlan.LIFETIME)
@@ -207,7 +209,7 @@ fun PremiumBottomSheet(
                 }
 
                 Text(
-                    text = price.ifEmpty { "Loading..." },
+                    text = price.ifEmpty { stringResource(R.string.premium_price_loading) },
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.ExtraBold
                 )
@@ -215,9 +217,9 @@ fun PremiumBottomSheet(
                 Spacer(Modifier.width(4.dp))
 
                 val suffix = when (selectedPlan) {
-                    PremiumPlan.MONTHLY -> "/ month"
-                    PremiumPlan.YEARLY -> "/ year"
-                    PremiumPlan.LIFETIME -> "one-time"
+                    PremiumPlan.MONTHLY -> stringResource(R.string.premium_suffix_month)
+                    PremiumPlan.YEARLY -> stringResource(R.string.premium_suffix_year)
+                    PremiumPlan.LIFETIME -> stringResource(R.string.premium_suffix_onetime)
                 }
 
                 Text(text = suffix)
@@ -242,14 +244,14 @@ fun PremiumBottomSheet(
                 enabled = isSubscribeEnabled,
                 modifier = Modifier.fillMaxWidth().height(56.dp)
             ) {
-                Text("Unlock Premium 🚀")
+                Text(stringResource(R.string.action_unlock_premium))
             }
 
             Spacer(Modifier.height(12.dp))
 
             TextButton(onClick = onDismiss) {
                 Text(
-                    text = "Maybe later",
+                    text = stringResource(R.string.action_maybe_later),
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -257,7 +259,7 @@ fun PremiumBottomSheet(
             Spacer(Modifier.height(12.dp))
 
             Text(
-                text = "🔒 Payment processed securely by Google Play.\nYour details are never shared with us.",
+                text = stringResource(R.string.premium_payment_notice),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,

@@ -10,7 +10,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
@@ -56,14 +58,15 @@ fun QuizDifficultyScreen(
                     }
                 }
             },
-            onDismiss = { showAdDialog = false }
+            onDismiss = { showAdDialog = false },
+            onRetry = { adManager.loadAd(context) }
         )
     }
 
     GameDifficultyLayout(
-        gameTitle = "PokéQuiz",
-        gameSubtitle = "Test your Pokémon knowledge!",
-        difficultyHint = "Answer Pokémon questions correctly.",
+        gameTitle = stringResource(R.string.quiz_game_title),
+        gameSubtitle = stringResource(R.string.quiz_game_subtitle),
+        difficultyHint = stringResource(R.string.quiz_difficulty_hint),
         onBack = onBack,
         subscriptionState = subscriptionState
     ) {
@@ -75,7 +78,7 @@ fun QuizDifficultyScreen(
             DifficultyCard(
                 difficulty = difficulty,
                 canPlay = canPlay,
-                adAvailable = !canPlay && difficulty == Difficulty.HARD && adState is RewardedAdState.Ready,
+                adAvailable = !canPlay && difficulty == Difficulty.HARD,
                 bestScore = topScores
                     .filter { it.difficulty == difficulty.name }
                     .maxByOrNull { it.score },

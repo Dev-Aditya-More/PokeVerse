@@ -13,8 +13,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.BG
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.BLUE
 
@@ -24,10 +26,10 @@ fun LoadingView() {
         Column(horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
             CircularProgressIndicator(color = BLUE, strokeWidth = 3.dp, modifier = Modifier.size(44.dp))
-            Text("Analyzing your team…",
+            Text(stringResource(R.string.analysis_loading_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White, fontWeight = FontWeight.SemiBold)
-            Text("Calculating type coverage and synergies",
+            Text(stringResource(R.string.analysis_loading_subtitle),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.45f))
         }

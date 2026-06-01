@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.IOException
 
@@ -61,6 +63,7 @@ class PokemonListViewModel(
 
     private var currentOffset = 0
     private val limit = 20
+    private var loadJob: Job? = null
 
     // -------------------------
     // Caching
@@ -110,7 +113,7 @@ class PokemonListViewModel(
     // -------------------------
 
     fun loadPokemonList(isNewRegion: Boolean = false) {
-        if (_isLoading.value || (endReached && !isNewRegion)) return
+        if (!isNewRegion && (_isLoading.value || endReached)) return
 
         val selectedRegion = _filters.value.selectedRegion
         val regionRange = selectedRegion?.range
@@ -123,11 +126,15 @@ class PokemonListViewModel(
             endReached = false
         }
 
+        // Capture offset before launching so a concurrent setRegionFilter can't mutate it
+        val fetchOffset = currentOffset
+
         _isLoading.value = true
 
-        viewModelScope.launch {
+        loadJob = viewModelScope.launch {
+            var wasCancelled = false
             try {
-                val result = getPokemonListUseCase(limit, currentOffset)
+                val result = getPokemonListUseCase(limit, fetchOffset)
 
                 val newList = result.results
                     .map { it to extractIdFromUrl(it.url) }
@@ -135,36 +142,34 @@ class PokemonListViewModel(
                     .map { it.first }
 
                 allPokemonInRegion = allPokemonInRegion + newList
-                currentOffset += limit
+                currentOffset = fetchOffset + limit
 
                 if (newList.isEmpty() || newList.size < limit || currentOffset >= regionEnd) {
                     endReached = true
                 }
 
                 applyCurrentFilters()
-
-                // FIX: Clear error state together so there's no frame where
-                // _hasError=false but _uiState.error is still set (or vice versa)
                 _hasError.value = false
                 _uiState.update { it.copy(error = null) }
                 listError = null
 
+            } catch (e: CancellationException) {
+                wasCancelled = true
+                throw e
             } catch (e: IOException) {
-                // FIX: Set _hasError flow (not a plain var) so screenState reacts
                 _hasError.value = true
                 _uiState.update { it.copy(error = UiError.Network(e.message)) }
             } catch (e: Exception) {
                 _hasError.value = true
                 _uiState.update { it.copy(error = UiError.Unexpected(e.message)) }
             } finally {
-                _isLoading.value = false
+                // Don't reset isLoading if cancelled — setRegionFilter already did it
+                if (!wasCancelled) _isLoading.value = false
             }
         }
     }
 
     fun retry() {
-        // FIX: Reset error state atomically before triggering load,
-        // so screenState goes LOADING immediately rather than staying on ERROR
         _hasError.value = false
         listError = null
         _uiState.update { it.copy(error = null) }
@@ -176,7 +181,10 @@ class PokemonListViewModel(
     // -------------------------
 
     fun setRegionFilter(region: Region?) {
-        // FIX: Reset error state when changing region
+        // Cancel any in-flight load so its stale result can't set endReached = true for the new region
+        loadJob?.cancel()
+        _isLoading.value = false
+
         _hasError.value = false
         _filters.update { it.copy(selectedRegion = region, selectedType = null) }
 

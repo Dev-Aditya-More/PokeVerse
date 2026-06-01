@@ -17,7 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.R
 
 @Composable
 fun ProfileActions(
@@ -44,7 +46,7 @@ fun ProfileActions(
             Spacer(Modifier.width(12.dp))
 
             Text(
-                "Settings",
+                stringResource(R.string.profile_settings),
                 style = MaterialTheme.typography.titleMedium
             )
         }

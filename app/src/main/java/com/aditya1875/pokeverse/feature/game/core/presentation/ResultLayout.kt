@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
@@ -57,10 +58,12 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import kotlinx.coroutines.delay
 import kotlin.math.PI
 import kotlin.math.cos
@@ -162,10 +165,15 @@ fun GameResultLayout(
     val starScales = remember { List(3) { Animatable(0f) } }
     LaunchedEffect(stars) {
         if (stars >= 0) {
-            delay(600)
-            starScales.forEachIndexed { i, anim ->
-                delay(150L * i)
-                anim.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium))
+            // Empty (unfilled) stars snap in immediately — no celebratory bounce
+            starScales.drop(stars.coerceAtLeast(0)).forEach { it.snapTo(1f) }
+            if (stars > 0) {
+                delay(600)
+                // Only the filled stars get the bouncy pop, one by one
+                starScales.take(stars).forEachIndexed { i, anim ->
+                    delay(150L * i)
+                    anim.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium))
+                }
             }
         }
     }
@@ -221,9 +229,14 @@ fun GameResultLayout(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text("🏆", fontSize = 16.sp)
+                        Icon(
+                            Icons.Default.EmojiEvents,
+                            contentDescription = null,
+                            tint = Color(0xFFFFD700),
+                            modifier = Modifier.size(16.dp)
+                        )
                         Text(
-                            "NEW BEST",
+                            stringResource(R.string.result_new_best),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Black,
                             color = Color(0xFFFFD700),
@@ -368,7 +381,7 @@ fun GameResultLayout(
                 Icon(Icons.Default.Replay, null, modifier = Modifier.size(20.dp))
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    "Play Again",
+                    stringResource(R.string.result_play_again),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -386,7 +399,7 @@ fun GameResultLayout(
                 border = BorderStroke(1.5.dp, heroColor.copy(alpha = 0.4f))
             ) {
                 Text(
-                    "Back to Menu",
+                    stringResource(R.string.result_back_to_menu),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = heroColor
@@ -482,6 +495,28 @@ fun ResultStatChips(vararg chips: Pair<String, String>) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun ResultHeroIcon(
+    icon: ImageVector,
+    heroColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(80.dp)
+            .clip(CircleShape)
+            .background(heroColor.copy(alpha = 0.2f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = heroColor,
+            modifier = Modifier.size(48.dp)
+        )
     }
 }
 

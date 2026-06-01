@@ -21,11 +21,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.TeamAnalysisScreen
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.core.navigation.components.WithBottomBar
 import com.aditya1875.pokeverse.feature.core.ui.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
+import com.aditya1875.pokeverse.feature.game.cardclash.presentation.screen.CardClashScreen
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.screens.DuelGameScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessDifficultyScreen
@@ -81,6 +83,7 @@ fun AppNavGraph(
             Route.BottomBar.Team.route -> Route.BottomBar.Team
             Route.BottomBar.Game.route -> Route.BottomBar.Game
             Route.BottomBar.Profile.route -> Route.BottomBar.Profile
+            Route.BottomBar.Clash.route -> Route.BottomBar.Clash
             else -> selectedRoute
         }
     }
@@ -217,6 +220,17 @@ fun AppNavGraph(
                         }
                     )
                 }
+            }
+
+            composable(
+                route = "${Route.BottomBar.Clash.route}?code={code}",
+                arguments = listOf(navArgument("code") { type = NavType.StringType; defaultValue = "" }),
+                deepLinks = listOf(navDeepLink { uriPattern = "dexverse://clash?code={code}" })
+            ) { backStackEntry ->
+                CardClashScreen(
+                    onBack = { navController.popBackStack() },
+                    initialCode = backStackEntry.arguments?.getString("code") ?: ""
+                )
             }
 
             dialog(Route.EditProfile.route) {
@@ -427,7 +441,8 @@ fun AppNavGraph(
             Route.BottomBar.Team.route,
             Route.BottomBar.Game.route,
             Route.BottomBar.Leaderboard.route,
-            Route.BottomBar.Profile.route
+            Route.BottomBar.Profile.route,
+            Route.BottomBar.Clash.route
         )
 
         LaunchedEffect(navController) {

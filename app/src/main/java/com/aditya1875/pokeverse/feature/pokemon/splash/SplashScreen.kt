@@ -1,7 +1,5 @@
 package com.aditya1875.pokeverse.feature.pokemon.splash
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -24,7 +22,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -36,25 +33,6 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
-import kotlin.random.Random
-
-private data class Star(
-    val x: Float,         // 0..1 normalized
-    val y: Float,
-    val radius: Float,
-    val speed: Float,     // twinkle speed multiplier
-    val phase: Float      // initial phase offset
-)
-
-private val stars: List<Star> = List(120) {
-    Star(
-        x = Random.nextFloat(),
-        y = Random.nextFloat(),
-        radius = Random.nextFloat() * 1.8f + 0.4f,
-        speed = Random.nextFloat() * 0.6f + 0.4f,
-        phase = Random.nextFloat() * 2f * PI.toFloat()
-    )
-}
 
 private val BgTop = Color(0xFF060D1F)
 private val BgBottom = Color(0xFF0A1628)
@@ -63,21 +41,10 @@ private val RedGlow = Color(0xFFE05A29)
 private val White = Color(0xFFEEF4FF)
 
 @Preview(showBackground = true, showSystemUi = false)
-@RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
 fun SplashScreen() {
 
-    val infiniteTransition = rememberInfiniteTransition(label = "twinkle")
-    val twinkleClock by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2f * PI.toFloat(),
-        animationSpec = infiniteRepeatable(
-            animation = tween(3000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "clock"
-    )
-
+    val infiniteTransition = rememberInfiniteTransition(label = "ring")
     val ringRotation by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -99,20 +66,12 @@ fun SplashScreen() {
         contentAlignment = Alignment.Center
     ) {
 
-        // ── star field ────────────────────────────────────────────────────────
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            drawStars(stars, twinkleClock)
-        }
-
-        Canvas(
-            modifier = Modifier
-                .size(340.dp)
-        ) {
+        // dual-color ambient glow
+        Canvas(modifier = Modifier.size(340.dp)) {
             val cx = size.width / 2f
             val cy = size.height / 2f
             val base = size.minDimension / 2f
 
-            // cyan left arc glow
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(CyanGlow.copy(alpha = 0.35f), Color.Transparent),
@@ -123,7 +82,6 @@ fun SplashScreen() {
                 center = Offset(cx - base * 0.35f, cy),
                 blendMode = BlendMode.Screen
             )
-            // red right arc glow
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(RedGlow.copy(alpha = 0.35f), Color.Transparent),
@@ -136,22 +94,18 @@ fun SplashScreen() {
             )
         }
 
-        // ── rotating accent ring ──────────────────────────────────────────────
-        Canvas(
-            modifier = Modifier
-                .size(220.dp)
-        ) {
+        // rotating accent ring
+        Canvas(modifier = Modifier.size(220.dp)) {
             val cx = size.width / 2f
             val cy = size.height / 2f
             val r = size.minDimension / 2f - 6f
             rotate(ringRotation, Offset(cx, cy)) {
-                // dashed-look: draw small arcs as dots around ring
-                for (i in 0 until 36) {
-                    val angle = (i / 36f) * 2f * PI.toFloat()
+                for (i in 0 until 24) {
+                    val angle = (i / 24f) * 2f * PI.toFloat()
                     val dotAlpha = if (i % 3 == 0) 0.9f else 0.25f
                     drawCircle(
-                        color = if (i < 18) CyanGlow else RedGlow,
-                        radius = 2.5f,
+                        color = if (i < 12) CyanGlow else RedGlow,
+                        radius = 3f,
                         center = Offset(cx + cos(angle) * r, cy + sin(angle) * r),
                         alpha = dotAlpha
                     )
@@ -177,20 +131,5 @@ fun SplashScreen() {
                 )
             )
         }
-    }
-}
-
-// ─── Draw helpers ─────────────────────────────────────────────────────────────
-private fun DrawScope.drawStars(stars: List<Star>, clock: Float) {
-    val w = size.width
-    val h = size.height
-    stars.forEach { star ->
-        val twinkle = (sin(clock * star.speed + star.phase) * 0.5f + 0.5f)
-        val alpha = twinkle * 0.75f + 0.15f
-        drawCircle(
-            color = Color.White.copy(alpha = alpha),
-            radius = star.radius * (0.7f + twinkle * 0.6f),
-            center = Offset(star.x * w, star.y * h)
-        )
     }
 }

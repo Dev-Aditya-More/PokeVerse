@@ -66,14 +66,14 @@ class DuelViewModel(
         viewModelScope.launch {
             // Award XP
             if (isCorrect) {
-                val xp = xpManager.awardGameXP(XPEvent.GuessCorrect(streak = newStreak))
+                val xp = xpManager.awardGameXP(XPEvent.DuelCorrect(streak = newStreak))
                 if (xp.xpGained > 0) _xpResult.emit(xp)
             }
 
             delay(2000L) // Show result for 2 seconds
 
             if (newLives <= 0) {
-                val xp = xpManager.awardGameXP(XPEvent.GuessComplete)
+                val xp = xpManager.awardGameXP(XPEvent.DuelComplete)
                 if (xp.xpGained > 0) _xpResult.emit(xp)
                 val currentBest = userRepository.profileFlow.first().bestDuelScore
                 userRepository.updateBestScore("duel", newScore)
