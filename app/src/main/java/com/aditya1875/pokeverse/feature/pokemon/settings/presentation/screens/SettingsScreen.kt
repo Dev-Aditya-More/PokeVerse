@@ -172,6 +172,8 @@ fun SettingsScreen(
                 // Language selector
                 val currentLangName = when (selectedLanguage) {
                     LocaleHelper.LANG_PORTUGUESE_BR -> stringResource(R.string.language_portuguese_br)
+                    LocaleHelper.LANG_HINDI -> stringResource(R.string.language_hindi)
+                    LocaleHelper.LANG_FRENCH -> stringResource(R.string.language_french)
                     else -> stringResource(R.string.language_english)
                 }
                 SettingsCard(
@@ -194,7 +196,9 @@ fun SettingsScreen(
                 if (showLanguageDialog) {
                     val languages = listOf(
                         LocaleHelper.LANG_ENGLISH to stringResource(R.string.language_english),
-                        LocaleHelper.LANG_PORTUGUESE_BR to stringResource(R.string.language_portuguese_br)
+                        LocaleHelper.LANG_PORTUGUESE_BR to stringResource(R.string.language_portuguese_br),
+                        LocaleHelper.LANG_HINDI to stringResource(R.string.language_hindi),
+                        LocaleHelper.LANG_FRENCH to stringResource(R.string.language_french)
                     )
                     AlertDialog(
                         onDismissRequest = { showLanguageDialog = false },

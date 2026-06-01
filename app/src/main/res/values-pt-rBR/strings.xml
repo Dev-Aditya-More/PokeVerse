@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dexverse</string>
+
+    <!-- Common actions -->
+    <string name="back">Voltar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="action_retry">Tentar novamente</string>
+    <string name="action_close">Fechar</string>
+    <string name="action_later">Mais tarde</string>
+    <string name="action_confirm">Confirmar</string>
+    <string name="action_delete">Excluir</string>
+    <string name="action_not_now">Agora não</string>
+    <string name="action_continue">Continuar</string>
+    <string name="action_play_again">Jogar novamente</string>
+    <string name="action_back_to_menu">Voltar ao menu</string>
+    <string name="action_start">Começar duelo</string>
+    <string name="action_next_question">Próxima pergunta →</string>
+    <string name="action_see_results">Ver resultados →</string>
+    <string name="action_build_team">Montar time</string>
+    <string name="action_maybe_later">Talvez depois</string>
+    <string name="action_unlock_premium">Desbloquear Premium 🚀</string>
+    <string name="action_go_premium">Ir para o Premium 👑</string>
+    <string name="action_update_now">Atualizar agora</string>
+    <string name="action_watch_ad">Assistir anúncio</string>
+    <string name="action_reload_ad">Recarregar anúncio</string>
+    <string name="action_sign_in_google">Entrar com Google</string>
+    <string name="action_sign_out">Sair</string>
+    <string name="action_try_again">Tentar novamente</string>
+    <string name="settings_understand_enable">Entendi, Ativar</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Configurações</string>
+    <string name="settings_about">Sobre</string>
+    <string name="settings_about_crafted">Feito com ❤ usando Jetpack Compose</string>
+    <string name="settings_about_version">Versão %1$s</string>
+    <string name="settings_original_assets">Recursos Originais</string>
+    <string name="settings_original_assets_desc">Ativar visuais e mídia originais da franquia.</string>
+    <string name="settings_original_assets_dialog_body">Este recurso ativa visuais e áudio originais da franquia. Esses recursos podem ser protegidos por leis de propriedade intelectual. Este aplicativo é não oficial e não é afiliado a nenhum dono de franquia.</string>
+    <string name="settings_special_effects">Efeitos Especiais</string>
+    <string name="settings_special_effects_requires">Efeitos visuais aprimorados requerem Android 13 ou mais recente.</string>
+    <string name="settings_special_effects_desc">Você verá efeitos visuais aprimorados nos detalhes do Pokémon.</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_desc">Escolha seu tema inicial</string>
+    <string name="settings_theme_change">Mudar tema</string>
+    <string name="settings_share">Compartilhar Dexverse</string>
+    <string name="settings_share_desc">Conte aos seus amigos sobre o Dexverse!</string>
+    <string name="settings_share_message">Olá! Confira o Dexverse — um app de Pokédex para fãs de Pokémon:\nhttps://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="settings_share_chooser">Compartilhar Dexverse via</string>
+    <string name="settings_rate">Avaliar no Google Play</string>
+    <string name="settings_rate_desc">Se você gosta do Dexverse, avalie-o na Play Store. Isso realmente ajuda.</string>
+    <string name="settings_privacy">Política de Privacidade</string>
+    <string name="settings_privacy_desc">Ver nossa política de privacidade</string>
+    <string name="settings_help">Ajuda e Suporte</string>
+    <string name="settings_help_desc">Entre em contato com o suporte ou relate um problema</string>
+    <string name="settings_socials">Redes Sociais</string>
+    <string name="settings_attribution_title">Conteúdo e Atribuição</string>
+    <string name="settings_attribution_1">O Dexverse é um aplicativo independente e não é afiliado nem endossado por nenhum dono de franquia.</string>
+    <string name="settings_attribution_2">Todas as marcas e marcas registradas são propriedade de seus respectivos donos.</string>
+    <string name="settings_copyright">© Dexverse 2026</string>
+    <string name="settings_language">Idioma</string>
+    <string name="settings_language_dialog_title">Escolher Idioma</string>
+    <string name="language_english">English</string>
+    <string name="language_portuguese_br">Português (Brasil)</string>
+    <string name="language_hindi">हिन्दी</string>
+    <string name="language_french">Français</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_brand">DEXVERSE</string>
+    <string name="onboarding_cta">Começar</string>
+    <string name="onboarding_slide_1_badge">Pokédex</string>
+    <string name="onboarding_slide_1_headline">Seu companheiro\nPokémon definitivo</string>
+    <string name="onboarding_slide_1_subtitle">Explore a Pokédex completa com estatísticas, movimentos e histórias.</string>
+    <string name="onboarding_slide_2_badge">Mini Jogos</string>
+    <string name="onboarding_slide_2_headline">Jogue. Compita.\nDomine.</string>
+    <string name="onboarding_slide_2_subtitle">Teste seu conhecimento com PokeGuess, PokeQuiz, PokeMatch e muito mais.</string>
+    <string name="onboarding_slide_3_badge">Classificação</string>
+    <string name="onboarding_slide_3_headline">Suba entre os\nmelhores treinadores</string>
+    <string name="onboarding_slide_3_subtitle">Ganhe XP, suba de nível e compita com treinadores do mundo todo.</string>
+
+    <!-- Filter Bar -->
+    <string name="filter_all_regions">Todas as Regiões</string>
+    <string name="filter_all_types">Todos os Tipos</string>
+    <string name="filter_selected">Selecionado</string>
+
+    <!-- Home Screen -->
+    <string name="home_search_pokemon">Pesquisar um Monstro..</string>
+    <string name="home_search_item">Pesquisar um item segurado..</string>
+    <string name="home_no_pokemon_found">Nenhum Pokémon encontrado</string>
+    <string name="home_scroll_to_top">Rolar para o topo</string>
+    <string name="home_filters">Filtros</string>
+    <string name="home_clear_search">Limpar</string>
+    <string name="home_search">Pesquisar</string>
+    <string name="home_tab_pokemon">Pokémon</string>
+    <string name="home_tab_items">Itens</string>
+
+    <!-- Home Popups -->
+    <string name="popup_update_title">Atualização Disponível</string>
+    <string name="popup_update_body">Uma nova versão do Dexverse está pronta com correções e novidades.</string>
+    <string name="popup_update_tip">Atualize agora para a melhor experiência.</string>
+    <string name="popup_assets_title">Visuais Originais Disponíveis</string>
+    <string name="popup_assets_body">O Dexverse pode mostrar sprites originais da franquia e reproduzir áudio autêntico para uma experiência mais rica.</string>
+    <string name="popup_assets_disclaimer">⚠️  Esses recursos pertencem aos seus respectivos donos. Este app é não oficial e não é afiliado.</string>
+    <string name="popup_assets_change_hint">Você pode mudar isso em Configurações → Recursos Originais.</string>
+    <string name="popup_premium_title">Pokeverse Premium</string>
+    <string name="popup_premium_subtitle">Desbloqueie a experiência completa</string>
+    <string name="popup_premium_feature_hard_mode">Modo difícil em todos os 4 jogos</string>
+    <string name="popup_premium_feature_experience">Experiência Dexverse completa</string>
+    <string name="popup_premium_feature_themes">Temas e emblemas exclusivos</string>
+    <string name="popup_premium_feature_support">Apoie o crescimento do Dexverse</string>
+
+    <!-- Pokemon Card -->
+    <string name="card_in_team">No time</string>
+    <string name="card_add_to_team">Adicionar ao time</string>
+    <string name="card_remove_from_favorites">Remover dos favoritos</string>
+    <string name="card_add_to_favorites">Adicionar aos favoritos</string>
+    <string name="card_please_create_team">Por favor, crie um time primeiro</string>
+    <string name="card_team_full_create_new">Time cheio! Crie um novo time.</string>
+    <string name="card_already_in_team">Já está no time</string>
+    <string name="card_team_full">Time cheio!</string>
+    <string name="card_added_to">Adicionado a %1$s!</string>
+    <string name="card_removed_from">Removido de %1$s</string>
+    <string name="card_team_created">Time \"%1$s\" criado!</string>
+
+    <!-- Game Hub -->
+    <string name="game_hub_title">Mini Jogos</string>
+    <string name="game_hub_subtitle">Faça uma pausa, divirta-se!</string>
+    <string name="game_hub_tag_free">GRÁTIS</string>
+    <string name="game_hub_purchase_error">Não foi possível iniciar a compra</string>
+    <string name="game_name_pokeduel_title">Quem vence?</string>
+    <string name="game_name_pokeduel_desc">Preveja resultados de batalhas com base em vantagens de tipo!</string>
+    <string name="game_name_typecombo_title">Combo de Tipo</string>
+    <string name="game_name_typecombo_desc">Adivinhe o combo de tipos do monstro</string>
+    <string name="game_name_pokematch_title">Combine Todos</string>
+    <string name="game_name_pokematch_desc">Vire as cartas e combine os pares antes do tempo acabar!</string>
+    <string name="game_name_pokequiz_title">Você sabe?</string>
+    <string name="game_name_pokequiz_desc">Teste seu conhecimento em todas as gerações!</string>
+    <string name="game_name_pokeguess_title">Quem é esse Monstro?</string>
+    <string name="game_name_pokeguess_desc">Adivinhe os monstros pela silhueta!</string>
+    <string name="label_premium">Premium</string>
+
+    <!-- Ad Unlock Dialog -->
+    <string name="ad_dialog_title">Desbloquear Modo Difícil</string>
+    <string name="ad_dialog_ready">Assista um anúncio curto para desbloquear o modo Difícil nesta rodada. Assinantes Premium pulam anúncios permanentemente.</string>
+    <string name="ad_dialog_loading">Carregando anúncio — aguarde um momento.</string>
+    <string name="ad_dialog_error">O anúncio não pôde carregar agora. Toque em Recarregar para tentar novamente ou jogue em uma dificuldade mais fácil.</string>
+    <string name="ad_dialog_loading_btn">Carregando…</string>
+
+    <!-- Result / Game Over -->
+    <string name="result_play_again">Jogar novamente</string>
+    <string name="result_back_to_menu">Voltar ao menu</string>
+    <string name="result_new_best">NOVO RECORDE</string>
+    <string name="result_title_perfect">Perfeito!</string>
+    <string name="result_title_great_job">Ótimo trabalho!</string>
+    <string name="result_title_good_try">Boa tentativa!</string>
+    <string name="result_title_keep_practicing">Continue praticando</string>
+    <string name="result_title_excellent">Excelente!</string>
+    <string name="result_title_keep_going">Continue assim!</string>
+    <string name="result_title_you_win">Você venceu!</string>
+    <string name="result_title_new_best">Novo recorde!</string>
+    <string name="result_title_times_up">Tempo esgotado!</string>
+    <string name="result_title_game_over">Fim de jogo</string>
+    <string name="result_title_type_master">Mestre dos Tipos!</string>
+    <string name="result_title_well_typed">Bem tipado!</string>
+    <string name="result_title_keep_rushing">Continue correndo!</string>
+    <string name="result_title_type_learner">Aprendiz de Tipos</string>
+    <string name="result_score_label_points">PONTOS</string>
+    <string name="result_score_label_score">PONTUAÇÃO</string>
+    <string name="result_pairs_found">%1$d/%2$d pares encontrados</string>
+
+    <!-- Quiz -->
+    <string name="quiz_game_title">PokéQuiz</string>
+    <string name="quiz_game_subtitle">Teste seu conhecimento Pokémon!</string>
+    <string name="quiz_difficulty_hint">Responda corretamente as perguntas sobre Pokémon.</string>
+    <string name="quiz_loading">Carregando perguntas…</string>
+    <string name="quiz_exit_title">Sair do quiz?</string>
+    <string name="quiz_exit_body">Seu progresso será perdido.</string>
+    <string name="quiz_exit_confirm">Sair</string>
+    <string name="quiz_correct">Correto!</string>
+    <string name="quiz_incorrect">Incorreto</string>
+    <string name="quiz_did_you_know">Você sabia?</string>
+    <string name="quiz_stat_correct">Correto</string>
+    <string name="quiz_stat_wrong">Errado</string>
+    <string name="quiz_stat_accuracy">Precisão</string>
+    <string name="quiz_stat_questions_answered">Perguntas respondidas</string>
+    <string name="quiz_stat_score_per_question">Pontos por pergunta</string>
+    <string name="label_difficulty">Dificuldade</string>
+
+    <!-- PokéMatch -->
+    <string name="match_game_title">PokéMatch</string>
+    <string name="match_game_subtitle">Combine todos os pares para vencer!</string>
+    <string name="match_difficulty_hint">Vire as cartas e combine todos os pares.</string>
+    <string name="match_stat_score">Pontuação</string>
+    <string name="match_stat_moves">Movimentos</string>
+    <string name="match_stat_time">Tempo</string>
+    <string name="match_stat_moves_used">Movimentos usados</string>
+    <string name="match_stat_time_taken">Tempo gasto</string>
+    <string name="match_cleared">%1$s concluído</string>
+
+    <!-- PokeGuess -->
+    <string name="guess_game_title">Quem é esse Pokémon?</string>
+    <string name="guess_game_subtitle">Adivinhe pelas silhuetas!</string>
+    <string name="guess_difficulty_hint">Identifique Pokémon pelas sombras.</string>
+    <string name="guess_subtitle">Quem é esse Pokémon?</string>
+    <string name="guess_stat_correct">Correto</string>
+    <string name="guess_stat_missed">Errado</string>
+    <string name="guess_stat_rate">Taxa</string>
+    <string name="guess_stat_total_score">Pontuação total</string>
+    <string name="guess_stat_questions">Perguntas</string>
+    <string name="guess_watch_ad">Assista anúncio para jogar esta rodada</string>
+    <string name="guess_best_score">Melhor: %1$d</string>
+    <string name="label_locked">Bloqueado</string>
+
+    <!-- Type Rush -->
+    <string name="typerush_game_title">Corrida de Tipos</string>
+    <string name="typerush_game_subtitle">Adivinhe os tipos de Pokémon o mais rápido possível!</string>
+    <string name="typerush_difficulty_hint">A velocidade importa. Pense rápido!</string>
+    <string name="typerush_subtitle">Corrida de Tipos Pokémon</string>
+    <string name="typerush_stat_correct">Correto</string>
+    <string name="typerush_stat_accuracy">Precisão</string>
+    <string name="typerush_stat_mode">Modo</string>
+    <string name="typerush_stat_rounds">Rodadas completadas</string>
+
+    <!-- PokéDuel -->
+    <string name="duel_game_title">PokéDuelo</string>
+    <string name="duel_intro_body">Dois Pokémon se enfrentam!\nEscolha o vencedor com base na vantagem de tipo.</string>
+    <string name="duel_loading">Encontrando oponentes...</string>
+    <string name="duel_who_wins">Quem vence a batalha?</string>
+    <string name="duel_draw">🤝 Empate</string>
+    <string name="duel_new_best">🏆 Novo recorde!</string>
+    <string name="duel_round_score">Rodada %1$d • %2$d pts</string>
+    <string name="duel_round">Rodada %1$d</string>
+    <string name="duel_score_pts">%1$d pts</string>
+
+    <!-- Leaderboard -->
+    <string name="screen_title_leaderboard">Classificação</string>
+    <string name="leaderboard_tab_global">Global</string>
+    <string name="leaderboard_tab_weekly">Semanal</string>
+    <string name="leaderboard_weekly_reset">Reinicia toda segunda-feira às 00:00 IST</string>
+    <string name="leaderboard_all_time">Melhores treinadores de todos os tempos</string>
+    <string name="leaderboard_weekly_empty_title">Nova semana, novo começo!</string>
+    <string name="leaderboard_weekly_empty_subtitle">Seja o primeiro a ganhar XP esta semana</string>
+    <string name="leaderboard_you_label">Você</string>
+    <string name="leaderboard_your_rank">Sua Classificação</string>
+    <string name="leaderboard_error">Não foi possível carregar a classificação</string>
+
+    <!-- XP Overlay -->
+    <string name="xp_level_up">SUBIU DE NÍVEL!</string>
+    <string name="xp_reached_level">Você chegou ao Nível %1$d</string>
+    <string name="xp_gained">+%1$d XP</string>
+
+    <!-- Dream Team / My Team -->
+    <string name="team_default_name">Meu time</string>
+    <string name="team_create_new">Criar novo time</string>
+    <string name="team_select">Selecionar time</string>
+    <string name="team_tab_team">Time (%1$d)</string>
+    <string name="team_tab_favorites">Favoritos (%1$d)</string>
+    <string name="team_is_default">Padrão</string>
+    <string name="team_confirm_icon">Confirmar</string>
+    <string name="team_edit_name">Editar nome do time</string>
+    <string name="team_delete">Excluir time</string>
+    <string name="dialog_delete_team_title">Excluir time?</string>
+    <string name="dialog_delete_team_body">Tem certeza que deseja excluir \"%1$s\"? Todos os Pokémon neste time serão removidos.</string>
+    <string name="team_analysis_max_reached">Você atingiu o número máximo de usos de análise</string>
+
+    <!-- Team Analysis -->
+    <string name="screen_title_team_analysis">Análise do time</string>
+    <string name="analysis_empty_title">Sem time ainda</string>
+    <string name="analysis_empty_subtitle">Monte um time para desbloquear a análise</string>
+
+    <!-- Item Detail -->
+    <string name="item_detail_basic_info">Informações básicas</string>
+    <string name="item_detail_effect">Efeito</string>
+    <string name="item_detail_description">Descrição</string>
+    <string name="item_detail_attributes">Atributos</string>
+    <string name="item_detail_best_use">Melhor uso</string>
+    <string name="item_detail_held_by">Segurado por Pokémon</string>
+    <string name="item_detail_error">Falha ao carregar item</string>
+    <string name="item_detail_label_cost">Custo</string>
+    <string name="item_detail_label_category">Categoria</string>
+    <string name="item_detail_label_fling_power">Poder de arremesso</string>
+
+    <!-- Profile -->
+    <string name="profile_create_account_title">Criar uma conta de Treinador</string>
+    <string name="profile_create_account_subtitle">Entre para aparecer nas classificações e sincronizar seu progresso em vários dispositivos.</string>
+    <string name="profile_account_connected">Conta conectada</string>
+    <string name="profile_synced">Seu progresso está sincronizado entre os dispositivos</string>
+    <string name="profile_sign_out_dialog_title">Sair?</string>
+    <string name="profile_sign_out_dialog_body">Tem certeza que deseja sair? Você precisará entrar novamente para sincronizar seu progresso.</string>
+    <string name="profile_settings">Configurações</string>
+    <string name="profile_error_no_credentials">Nenhuma conta Google encontrada neste dispositivo. Adicione uma em Configurações → Contas.</string>
+    <string name="profile_error_no_internet">Sem conexão com a internet. Verifique sua rede.</string>
+    <string name="profile_error_sign_in_failed">Falha no login. Tente novamente.</string>
+    <string name="profile_error_generic">Algo deu errado. Tente novamente em um momento.</string>
+
+    <!-- Premium -->
+    <string name="premium_sheet_title">Dexverse Premium</string>
+    <string name="premium_sheet_subtitle">Desbloqueie a experiência completa do Dexverse</string>
+    <string name="premium_feature_hard_mode_title">Modo Difícil</string>
+    <string name="premium_feature_hard_mode_subtitle">Jogue o desafio definitivo</string>
+    <string name="premium_feature_items_title">Exploração de Itens</string>
+    <string name="premium_feature_items_subtitle">Explore os itens segurados no jogo</string>
+    <string name="premium_feature_themes_title">Temas exclusivos</string>
+    <string name="premium_feature_themes_subtitle">Tenha acesso a todos os temas e recursos</string>
+    <string name="premium_plan_monthly">Mensal 🚀</string>
+    <string name="premium_plan_yearly">Anual • Economize 33%</string>
+    <string name="premium_plan_yearly_best">MELHOR</string>
+    <string name="premium_plan_lifetime">Vitalício • Economize 40% 🔥</string>
+    <string name="premium_price_loading">Carregando...</string>
+    <string name="premium_suffix_month">/ mês</string>
+    <string name="premium_suffix_year">/ ano</string>
+    <string name="premium_suffix_onetime">pagamento único</string>
+    <string name="premium_payment_notice">🔒 Pagamento processado com segurança pelo Google Play.\nSeus dados nunca são compartilhados conosco.</string>
+
+    <!-- Daily Trivia -->
+    <string name="trivia_loading">Carregando o Pokémon do dia…</string>
+    <string name="trivia_error">Não foi possível carregar a trivia. Tente mais tarde.</string>
+    <string name="trivia_title">Pokémon do Dia</string>
+    <string name="trivia_subtitle">Quem é esse Pokémon?</string>
+    <string name="trivia_generation">Gen %1$d</string>
+    <string name="trivia_nailed_it">Acertou!</string>
+    <string name="trivia_so_close">Quase lá!</string>
+    <string name="trivia_come_back_tomorrow">Volte amanhã para um novo.</string>
+    <string name="trivia_it_was">Era %1$s.</string>
+    <string name="trivia_hints_title">Dicas</string>
+    <string name="trivia_guessed_correct">Você adivinhou! Volte amanhã.</string>
+    <string name="trivia_better_luck">Boa sorte na próxima!</string>
+
+    <!-- Error states -->
+    <string name="error_no_internet_title">Sem conexão com a internet</string>
+    <string name="error_no_internet_subtitle">Verifique sua rede e tente novamente.</string>
+    <string name="error_unexpected_title">Algo deu errado</string>
+    <string name="error_unexpected_subtitle">Ocorreu um erro inesperado.</string>
+    <string name="error_unknown_title">Erro desconhecido</string>
+    <string name="error_unknown_subtitle">Tente novamente mais tarde.</string>
+
+    <!-- Analysis components -->
+    <string name="analysis_defensive_analysis">Análise Defensiva</string>
+    <string name="analysis_weaknesses">FRAQUEZAS</string>
+    <string name="analysis_resistances">RESISTÊNCIAS</string>
+    <string name="analysis_defensive_profile">Perfil Defensivo</string>
+    <string name="analysis_vulnerable_to">VULNERÁVEL A</string>
+    <string name="analysis_resists">RESISTE</string>
+    <string name="analysis_failed_title">Análise Falhou</string>
+    <string name="action_go_back">Voltar</string>
+    <string name="analysis_loading_title">Analisando seu time…</string>
+    <string name="analysis_loading_subtitle">Calculando cobertura de tipos e sinergias</string>
+
+    <!-- Game dialogs -->
+    <string name="match_preparing">Preparando Pokémon...</string>
+    <string name="match_paused">Pausado</string>
+    <string name="match_resume">Retomar</string>
+    <string name="match_restart">Reiniciar</string>
+    <string name="match_exit_game">Sair do Jogo</string>
+    <string name="dialog_exit_game_title">Sair do jogo?</string>
+    <string name="dialog_exit_game_message">Tem certeza que deseja sair?</string>
+    <string name="rush_progress_lost">Seu progresso será perdido.</string>
+    <string name="rush_loading_types">Carregando tipos…</string>
+
+    <!-- Item list -->
+    <string name="item_failed_to_load">Falha ao carregar itens</string>
+
+    <!-- Pokémon Detail -->
+    <string name="detail_hidden">Oculta</string>
+    <string name="detail_go_back">Voltar</string>
+    <string name="detail_try_pikachu">Tentar Pikachu</string>
+    <string name="detail_failed_to_load">Falha ao carregar Pokémon</string>
+    <string name="detail_types">Tipos</string>
+    <string name="detail_abilities">Habilidades</string>
+    <string name="detail_base_stats">Estatísticas Base</string>
+    <string name="detail_moves">Movimentos</string>
+    <string name="detail_other_forms">Outras Formas</string>
+    <string name="detail_overview">Visão Geral</string>
+    <string name="detail_move_col">Movimento</string>
+    <string name="detail_level_col">Nível</string>
+    <string name="detail_method_level_up">Subir de Nível</string>
+    <string name="detail_method_tm">MT / MO</string>
+    <string name="detail_method_tutor">Tutor</string>
+    <string name="detail_method_egg">Ovo</string>
+    <string name="detail_audio_pokedex_entry">Entrada Pokédex</string>
+    <string name="detail_audio_stop_pokedex_entry">Parar Entrada Pokédex</string>
+    <string name="detail_audio_cry">Grito do Pokémon</string>
+    <string name="detail_audio_stop_cry">Parar Grito</string>
+
+    <!-- Asset Onboarding Banner -->
+    <string name="banner_original_visuals">Visuais Originais</string>
+    <string name="banner_original_assets_desc">Ative sprites e áudio originais da franquia para uma experiência mais rica. Esses recursos pertencem aos seus respectivos donos — este app é não oficial e não é afiliado.</string>
+    <string name="banner_enable_original_assets">Ativar recursos originais</string>
+    <string name="banner_settings_change_hint">Você pode alterar isso nas Configurações.</string>
+
+    <!-- FAB badges -->
+    <string name="fab_label_new">NOVO</string>
+
+    <!-- Card Clash Game -->
+    <string name="clash_you">Você</string>
+    <string name="clash_round_format">Rodada %1$d / 6</string>
+    <string name="clash_next_round">Próxima Rodada</string>
+    <string name="clash_exit">Sair</string>
+    <string name="clash_claim_win">Reivindicar Vitória</string>
+    <string name="clash_wait_opponent">Aguardar Oponente</string>
+    <string name="clash_pick_card_hint">Escolha uma carta — você não pode ver o que está dentro!</string>
+    <string name="clash_locked_waiting">Confirmado — Aguardando oponente...</string>
+    <string name="clash_lock_in">Confirmar</string>
+
+    <!-- Card Clash Lobby -->
+    <string name="clash_lobby_title">PokeCard Clash</string>
+    <string name="clash_lobby_desc">6 cartas misteriosas. 6 rodadas.\nSorte pura — nenhum jogador vê suas cartas!</string>
+    <string name="clash_lobby_play_random">Jogar Aleatório</string>
+    <string name="clash_lobby_or">— ou —</string>
+    <string name="clash_lobby_play_friend">Jogar com Amigo</string>
+    <string name="clash_lobby_create_room">Criar Sala e Compartilhar Código</string>
+    <string name="clash_lobby_enter_code">ou insira um código de sala</string>
+    <string name="clash_lobby_code_placeholder">ABCD12</string>
+    <string name="clash_lobby_join">Entrar</string>
+    <string name="clash_opponent_locked">Confirmado!</string>
+    <string name="clash_opponent_choosing">Escolhendo...</string>
+    <string name="clash_round_timer">Tempo da Rodada</string>
+    <string name="clash_connection_lost">Conexão Perdida</string>
+    <string name="clash_disconnected_message">%1$s pode ter se desconectado.\nVocê pode aguardar ou reivindicar a vitória.</string>
+    <string name="clash_disconnect_timer">%1$s tem %2$ds para reconectar antes de você poder reivindicar a vitória.</string>
+    <string name="clash_quick_match">Partida Rápida</string>
+    <string name="clash_quick_match_desc">Entre em uma partida com um jogador aleatório</string>
+    <string name="clash_searching">Procurando jogadores…</string>
+    <string name="clash_queue_hint">Você está na fila — convide amigos para aumentar o pool de jogadores!</string>
+    <string name="clash_invite_friends">Convidar Amigos</string>
+    <string name="clash_waiting_friend">Aguardando seu amigo…</string>
+    <string name="clash_room_code">Código da Sala</string>
+    <string name="clash_action_copy">Copiar</string>
+    <string name="clash_round_reveal">Revelação da Rodada %1$d</string>
+    <string name="clash_power">Poder: %1$d</string>
+    <string name="clash_vs">vs %1$s</string>
+    <string name="clash_round_history">Histórico de Rodadas</string>
+    <string name="clash_you_win_round">Você venceu esta rodada!</string>
+    <string name="clash_opponent_wins_round">Oponente venceu esta rodada</string>
+    <string name="clash_draw">Empate!</string>
+    <string name="clash_victory">Vitória!</string>
+    <string name="clash_defeated">Derrotado</string>
+    <string name="clash_timer_seconds">%1$ds</string>
+    <string name="clash_card_number">Carta %1$d</string>
+    <!-- Guide dialog -->
+    <string name="clash_guide_title">Como funciona</string>
+    <string name="clash_guide_step_count">%1$d de %2$d</string>
+    <string name="clash_guide_confirm">Vamos jogar!</string>
+    <string name="clash_guide_step1_title">Você recebe 6 cartas misteriosas</string>
+    <string name="clash_guide_step1_body">Cada jogador começa com 6 Pokémon virados para baixo. Você não pode ver suas cartas até escolher uma — é tudo instinto.</string>
+    <string name="clash_guide_step2_title">Escolha uma por rodada</string>
+    <string name="clash_guide_step2_body">A cada rodada, ambos os jogadores escolhem uma carta em segredo. Quando os dois confirmam, as cartas são reveladas ao mesmo tempo.</string>
+    <string name="clash_guide_step3_title">A vantagem de tipo decide o vencedor</string>
+    <string name="clash_guide_step3_body">O total de estatísticas base de cada Pokémon é multiplicado pela vantagem de tipo sobre o oponente. Maior poder efetivo vence a rodada.</string>
+    <string name="clash_guide_step4_title">Primeiro a 4 rodadas vence</string>
+    <string name="clash_guide_step4_body">São 6 rodadas. Vença 4 para ganhar a partida. Um empate é possível se ambos terminarem com 3.</string>
+    <string name="clash_guide_step5_title">Cartas usadas são descartadas</string>
+    <string name="clash_guide_step5_body">Uma vez que você joga um Pokémon, ele é removido da sua mão — escolha com cuidado, especialmente nas rodadas finais.</string>
+
+    <!-- Analysis ad gate -->
+    <string name="analysis_ad_title">Analisar Seu Time</string>
+    <string name="analysis_ad_body">Assista um anúncio curto para desbloquear uma análise completa das forças, fraquezas e cobertura de tipos do seu time.\n\nTorne-se Premium para sempre pular anúncios.</string>
+    <string name="analysis_ad_loading">Carregando anúncio…</string>
+    <string name="analysis_ad_unavailable">Anúncio indisponível agora. Tente novamente mais tarde.</string>
+
+    <!-- Profile Edit -->
+    <string name="profile_edit_trainer_name">Editar Nome do Treinador</string>
+    <string name="profile_trainer_name_label">Nome do Treinador</string>
+    <string name="profile_edit_display_name">Editar Nome de Exibição</string>
+    <string name="profile_name_label">Nome</string>
+    <string name="action_save">Salvar</string>
+
+    <!-- Team -->
+    <string name="team_create_new_team">Criar Novo Time</string>
+    <string name="team_name_label">Nome do Time</string>
+    <string name="action_create">Criar</string>
+    <string name="action_share">Compartilhar</string>
+</resources>

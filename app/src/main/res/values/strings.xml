@@ -62,6 +62,8 @@
     <string name="settings_language_dialog_title">Choose Language</string>
     <string name="language_english">English</string>
     <string name="language_portuguese_br">Português (Brasil)</string>
+    <string name="language_hindi">हिन्दी</string>
+    <string name="language_french">Français</string>
 
     <!-- Onboarding -->
     <string name="onboarding_brand">DEXVERSE</string>

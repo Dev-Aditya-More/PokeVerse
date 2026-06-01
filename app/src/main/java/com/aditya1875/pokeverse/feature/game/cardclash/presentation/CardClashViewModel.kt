@@ -451,17 +451,26 @@ class CardClashViewModel(
 
     private fun awardXp(outcome: MatchOutcome, roundsWon: Int) {
         viewModelScope.launch {
+            // XP for each round won — emitted individually so the toast fires per round
             repeat(roundsWon) {
                 val r = xpManager.awardGameXP(XPEvent.CardClashRoundWin)
                 if (r.xpGained > 0) _xpResult.emit(r)
             }
-            if (outcome == MatchOutcome.WIN) {
-                val winResult = xpManager.awardGameXP(XPEvent.CardClashWin)
-                if (winResult.xpGained > 0) _xpResult.emit(winResult)
-                if (roundsWon == 6) {
-                    val perfectResult = xpManager.awardGameXP(XPEvent.CardClashPerfect)
-                    if (perfectResult.xpGained > 0) _xpResult.emit(perfectResult)
+            // Match-level XP based on outcome
+            when (outcome) {
+                MatchOutcome.WIN -> {
+                    val winResult = xpManager.awardGameXP(XPEvent.CardClashWin)
+                    if (winResult.xpGained > 0) _xpResult.emit(winResult)
+                    if (roundsWon == 6) {
+                        val perfectResult = xpManager.awardGameXP(XPEvent.CardClashPerfect)
+                        if (perfectResult.xpGained > 0) _xpResult.emit(perfectResult)
+                    }
                 }
+                MatchOutcome.DRAW -> {
+                    val drawResult = xpManager.awardGameXP(XPEvent.CardClashDraw)
+                    if (drawResult.xpGained > 0) _xpResult.emit(drawResult)
+                }
+                MatchOutcome.LOSE -> Unit // losing still earns per-round XP above
             }
         }
     }

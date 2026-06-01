@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Dexverse</string>
+
+    <!-- Common actions -->
+    <string name="back">वापस</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="action_retry">फिर कोशिश करें</string>
+    <string name="action_close">बंद करें</string>
+    <string name="action_later">बाद में</string>
+    <string name="action_confirm">हाँ, ठीक है</string>
+    <string name="action_delete">हटाएं</string>
+    <string name="action_not_now">अभी नहीं</string>
+    <string name="action_continue">आगे बढ़ें</string>
+    <string name="action_play_again">फिर खेलें</string>
+    <string name="action_back_to_menu">मेनू पर जाएं</string>
+    <string name="action_start">द्वंद्व शुरू करें</string>
+    <string name="action_next_question">अगला सवाल →</string>
+    <string name="action_see_results">नतीजे देखें →</string>
+    <string name="action_build_team">टीम बनाएं</string>
+    <string name="action_maybe_later">शायद बाद में</string>
+    <string name="action_unlock_premium">Premium लो 🚀</string>
+    <string name="action_go_premium">Premium लो 👑</string>
+    <string name="action_update_now">अभी अपडेट करें</string>
+    <string name="action_watch_ad">Ad देखें</string>
+    <string name="action_reload_ad">Ad फिर लोड करें</string>
+    <string name="action_sign_in_google">Google से लॉग इन करें</string>
+    <string name="action_sign_out">लॉग आउट</string>
+    <string name="action_try_again">फिर कोशिश करें</string>
+    <string name="settings_understand_enable">समझ गया, चालू करो</string>
+
+    <!-- Settings screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_crafted">Jetpack Compose से ❤ के साथ बनाया</string>
+    <string name="settings_about_version">Version %1$s</string>
+    <string name="settings_original_assets">Original Visuals</string>
+    <string name="settings_original_assets_desc">Franchise के असली visuals और media चालू करें।</string>
+    <string name="settings_original_assets_dialog_body">यह feature franchise के original visuals और audio चालू करता है। ये assets intellectual property laws के तहत protected हो सकती हैं। यह app unofficial है और किसी भी franchise owner से affiliated नहीं है।</string>
+    <string name="settings_special_effects">Special Effects</string>
+    <string name="settings_special_effects_requires">बेहतर visual effects के लिए Android 13 या उससे नया चाहिए।</string>
+    <string name="settings_special_effects_desc">Pokémon की details में cool visual effects दिखेंगे।</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_desc">अपनी पसंदीदा starter theme चुनें</string>
+    <string name="settings_theme_change">Theme बदलें</string>
+    <string name="settings_share">Dexverse शेयर करें</string>
+    <string name="settings_share_desc">अपने दोस्तों को Dexverse के बारे में बताएं!</string>
+    <string name="settings_share_message">यार! Dexverse try करो — Pokémon fans के लिए एक बढ़िया Pokédex app:\nhttps://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="settings_share_chooser">Dexverse शेयर करें</string>
+    <string name="settings_rate">Google Play पर Rate करें</string>
+    <string name="settings_rate_desc">अगर Dexverse पसंद आया, तो Play Store पर rate ज़रूर करें — सच में फर्क पड़ता है।</string>
+    <string name="settings_privacy">Privacy Policy</string>
+    <string name="settings_privacy_desc">हमारी privacy policy पढ़ें</string>
+    <string name="settings_help">Help और Support</string>
+    <string name="settings_help_desc">Support से बात करें या कोई दिक्कत report करें</string>
+    <string name="settings_socials">Social Media</string>
+    <string name="settings_attribution_title">Content और Credits</string>
+    <string name="settings_attribution_1">Dexverse एक independent app है — किसी भी franchise owner से affiliated या endorsed नहीं है।</string>
+    <string name="settings_attribution_2">सभी trademarks उनके respective owners की property हैं।</string>
+    <string name="settings_copyright">© Dexverse 2026</string>
+    <string name="settings_language">भाषा</string>
+    <string name="settings_language_dialog_title">भाषा चुनें</string>
+    <string name="language_english">English</string>
+    <string name="language_portuguese_br">Português (Brasil)</string>
+    <string name="language_hindi">हिन्दी</string>
+    <string name="language_french">Français</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_brand">DEXVERSE</string>
+    <string name="onboarding_cta">चलो शुरू करें</string>
+    <string name="onboarding_slide_1_badge">Pokédex</string>
+    <string name="onboarding_slide_1_headline">आपका अल्टीमेट\nPokémon साथी</string>
+    <string name="onboarding_slide_1_subtitle">पूरी Pokédex explore करें — stats, moves और history के साथ।</string>
+    <string name="onboarding_slide_2_badge">Mini Games</string>
+    <string name="onboarding_slide_2_headline">खेलो। जीतो।\nMaster बनो।</string>
+    <string name="onboarding_slide_2_subtitle">PokeGuess, PokeQuiz, PokeMatch और भी बहुत कुछ से अपना knowledge test करो।</string>
+    <string name="onboarding_slide_3_badge">Leaderboard</string>
+    <string name="onboarding_slide_3_headline">Best Trainers में\nजगह बनाओ</string>
+    <string name="onboarding_slide_3_subtitle">XP कमाओ, level up करो और दुनियाभर के trainers से compete करो।</string>
+
+    <!-- Filter Bar -->
+    <string name="filter_all_regions">सभी Regions</string>
+    <string name="filter_all_types">सभी Types</string>
+    <string name="filter_selected">चुना गया</string>
+
+    <!-- Home Screen -->
+    <string name="home_search_pokemon">कोई monster खोजें..</string>
+    <string name="home_search_item">कोई held item खोजें..</string>
+    <string name="home_no_pokemon_found">कोई Pokémon नहीं मिला</string>
+    <string name="home_scroll_to_top">ऊपर जाएं</string>
+    <string name="home_filters">Filters</string>
+    <string name="home_clear_search">हटाएं</string>
+    <string name="home_search">खोजें</string>
+    <string name="home_tab_pokemon">Pokémon</string>
+    <string name="home_tab_items">Items</string>
+
+    <!-- Home Popups -->
+    <string name="popup_update_title">नया Update आया है</string>
+    <string name="popup_update_body">Dexverse का नया version आ गया है — bug fixes और नए features के साथ।</string>
+    <string name="popup_update_tip">Best experience के लिए अभी update कर लो।</string>
+    <string name="popup_assets_title">Original Visuals मिल सकते हैं</string>
+    <string name="popup_assets_body">Dexverse franchise के original sprites दिखा सकता है और authentic audio चला सकता है।</string>
+    <string name="popup_assets_disclaimer">⚠️  ये assets उनके respective owners की हैं। यह app unofficial और unaffiliated है।</string>
+    <string name="popup_assets_change_hint">इसे Settings → Original Assets में कभी भी बदल सकते हो।</string>
+    <string name="popup_premium_title">Pokeverse Premium</string>
+    <string name="popup_premium_subtitle">पूरा experience unlock करो</string>
+    <string name="popup_premium_feature_hard_mode">चारों games में Hard Mode</string>
+    <string name="popup_premium_feature_experience">पूरा Dexverse experience</string>
+    <string name="popup_premium_feature_themes">Exclusive themes और badges</string>
+    <string name="popup_premium_feature_support">Dexverse को support करो</string>
+
+    <!-- Pokemon Card -->
+    <string name="card_in_team">टीम में है</string>
+    <string name="card_add_to_team">टीम में जोड़ें</string>
+    <string name="card_remove_from_favorites">Favorites से हटाएं</string>
+    <string name="card_add_to_favorites">Favorites में जोड़ें</string>
+    <string name="card_please_create_team">पहले एक टीम तो बनाओ</string>
+    <string name="card_team_full_create_new">टीम भरी है! नई टीम बनाओ।</string>
+    <string name="card_already_in_team">पहले से टीम में है</string>
+    <string name="card_team_full">टीम भरी है!</string>
+    <string name="card_added_to">%1$s में जोड़ा गया!</string>
+    <string name="card_removed_from">%1$s से हटाया गया</string>
+    <string name="card_team_created">टीम \"%1$s\" बन गई!</string>
+
+    <!-- Game Hub -->
+    <string name="game_hub_title">Mini Games</string>
+    <string name="game_hub_subtitle">थोड़ा break लो, मज़ा करो!</string>
+    <string name="game_hub_tag_free">FREE</string>
+    <string name="game_hub_purchase_error">Purchase शुरू नहीं हो सका</string>
+    <string name="game_name_pokeduel_title">कौन जीतेगा?</string>
+    <string name="game_name_pokeduel_desc">Type advantage देखकर battle का result guess करो!</string>
+    <string name="game_name_typecombo_title">Type Combo</string>
+    <string name="game_name_typecombo_desc">Monster का type combination guess करो</string>
+    <string name="game_name_pokematch_title">सब मिलाओ</string>
+    <string name="game_name_pokematch_desc">Time खत्म होने से पहले cards flip करो और pairs ढूंढो!</string>
+    <string name="game_name_pokequiz_title">क्या पता है तुम्हें?</string>
+    <string name="game_name_pokequiz_desc">सभी generations पर अपना knowledge test करो!</string>
+    <string name="game_name_pokeguess_title">यह monster कौन है?</string>
+    <string name="game_name_pokeguess_desc">Silhouette देखकर monster पहचानो!</string>
+    <string name="label_premium">Premium</string>
+
+    <!-- Ad Unlock Dialog -->
+    <string name="ad_dialog_title">Hard Mode Unlock करो</string>
+    <string name="ad_dialog_ready">इस round के लिए Hard Mode unlock करने को एक छोटी सी ad देखो। Premium members को कभी ad नहीं देखनी पड़ती।</string>
+    <string name="ad_dialog_loading">Ad load हो रही है — थोड़ा रुको।</string>
+    <string name="ad_dialog_error">Ad अभी load नहीं हो पाई। Reload दबाओ या आसान difficulty पर खेलो।</string>
+    <string name="ad_dialog_loading_btn">Load हो रहा है…</string>
+
+    <!-- Result / Game Over -->
+    <string name="result_play_again">फिर खेलें</string>
+    <string name="result_back_to_menu">मेनू पर जाएं</string>
+    <string name="result_new_best">नया रिकॉर्ड</string>
+    <string name="result_title_perfect">परफेक्ट!</string>
+    <string name="result_title_great_job">शानदार!</string>
+    <string name="result_title_good_try">अच्छी कोशिश!</string>
+    <string name="result_title_keep_practicing">Practice करते रहो</string>
+    <string name="result_title_excellent">कमाल कर दिया!</string>
+    <string name="result_title_keep_going">बढ़ते रहो!</string>
+    <string name="result_title_you_win">तुम जीत गए!</string>
+    <string name="result_title_new_best">नया रिकॉर्ड!</string>
+    <string name="result_title_times_up">Time खत्म!</string>
+    <string name="result_title_game_over">Game Over</string>
+    <string name="result_title_type_master">Type Master!</string>
+    <string name="result_title_well_typed">Well Typed!</string>
+    <string name="result_title_keep_rushing">भागते रहो!</string>
+    <string name="result_title_type_learner">Type Learner</string>
+    <string name="result_score_label_points">POINTS</string>
+    <string name="result_score_label_score">SCORE</string>
+    <string name="result_pairs_found">%1$d/%2$d pairs मिले</string>
+
+    <!-- Quiz -->
+    <string name="quiz_game_title">PokéQuiz</string>
+    <string name="quiz_game_subtitle">अपना Pokémon knowledge test करो!</string>
+    <string name="quiz_difficulty_hint">Pokémon के सवालों का सही जवाब दो।</string>
+    <string name="quiz_loading">सवाल load हो रहे हैं…</string>
+    <string name="quiz_exit_title">Quiz छोड़ें?</string>
+    <string name="quiz_exit_body">सारी progress चली जाएगी।</string>
+    <string name="quiz_exit_confirm">छोड़ें</string>
+    <string name="quiz_correct">सही!</string>
+    <string name="quiz_incorrect">गलत</string>
+    <string name="quiz_did_you_know">क्या तुम जानते थे?</string>
+    <string name="quiz_stat_correct">सही</string>
+    <string name="quiz_stat_wrong">गलत</string>
+    <string name="quiz_stat_accuracy">Accuracy</string>
+    <string name="quiz_stat_questions_answered">जवाब दिए गए सवाल</string>
+    <string name="quiz_stat_score_per_question">Score per question</string>
+    <string name="label_difficulty">Difficulty</string>
+
+    <!-- PokéMatch -->
+    <string name="match_game_title">PokéMatch</string>
+    <string name="match_game_subtitle">जीतने के लिए सारे Pokémon pairs ढूंढो!</string>
+    <string name="match_difficulty_hint">Cards flip करो और सारे pairs ढूंढो।</string>
+    <string name="match_stat_score">Score</string>
+    <string name="match_stat_moves">Moves</string>
+    <string name="match_stat_time">Time</string>
+    <string name="match_stat_moves_used">Moves लगे</string>
+    <string name="match_stat_time_taken">Time लगा</string>
+    <string name="match_cleared">%1$s clear!</string>
+
+    <!-- PokeGuess -->
+    <string name="guess_game_title">यह Pokémon कौन है?</string>
+    <string name="guess_game_subtitle">Silhouette देखकर guess करो!</string>
+    <string name="guess_difficulty_hint">Shadow देखकर Pokémon पहचानो।</string>
+    <string name="guess_subtitle">यह Pokémon कौन है?</string>
+    <string name="guess_stat_correct">सही</string>
+    <string name="guess_stat_missed">Miss</string>
+    <string name="guess_stat_rate">Rate</string>
+    <string name="guess_stat_total_score">Total Score</string>
+    <string name="guess_stat_questions">सवाल</string>
+    <string name="guess_watch_ad">यह round खेलने के लिए ad देखो</string>
+    <string name="guess_best_score">Best: %1$d</string>
+    <string name="label_locked">Locked</string>
+
+    <!-- Type Rush -->
+    <string name="typerush_game_title">Type Rush</string>
+    <string name="typerush_game_subtitle">जितनी जल्दी हो Pokémon types guess करो!</string>
+    <string name="typerush_difficulty_hint">Speed मायने रखती है। जल्दी सोचो!</string>
+    <string name="typerush_subtitle">Pokémon Type Rush</string>
+    <string name="typerush_stat_correct">सही</string>
+    <string name="typerush_stat_accuracy">Accuracy</string>
+    <string name="typerush_stat_mode">Mode</string>
+    <string name="typerush_stat_rounds">Rounds complete</string>
+
+    <!-- PokéDuel -->
+    <string name="duel_game_title">PokéDuel</string>
+    <string name="duel_intro_body">दो Pokémon आमने-सामने!\nType advantage देखकर winner चुनो।</string>
+    <string name="duel_loading">Opponent ढूंढ रहे हैं…</string>
+    <string name="duel_who_wins">Battle में कौन जीतेगा?</string>
+    <string name="duel_draw">🤝 Draw</string>
+    <string name="duel_new_best">🏆 नया रिकॉर्ड!</string>
+    <string name="duel_round_score">Round %1$d • %2$d pts</string>
+    <string name="duel_round">Round %1$d</string>
+    <string name="duel_score_pts">%1$d pts</string>
+
+    <!-- Leaderboard -->
+    <string name="screen_title_leaderboard">Leaderboard</string>
+    <string name="leaderboard_tab_global">Global</string>
+    <string name="leaderboard_tab_weekly">Weekly</string>
+    <string name="leaderboard_weekly_reset">हर सोमवार 12:00 AM IST को reset होता है</string>
+    <string name="leaderboard_all_time">All-time Best Trainers</string>
+    <string name="leaderboard_weekly_empty_title">नया हफ्ता, नई शुरुआत!</string>
+    <string name="leaderboard_weekly_empty_subtitle">इस हफ्ते XP कमाने वाले पहले बनो</string>
+    <string name="leaderboard_you_label">तुम</string>
+    <string name="leaderboard_your_rank">तुम्हारी Rank</string>
+    <string name="leaderboard_error">Leaderboard load नहीं हो पाया</string>
+
+    <!-- XP Overlay -->
+    <string name="xp_level_up">Level Up!</string>
+    <string name="xp_reached_level">तुमने Level %1$d पाया</string>
+    <string name="xp_gained">+%1$d XP</string>
+
+    <!-- Dream Team / My Team -->
+    <string name="team_default_name">मेरी टीम</string>
+    <string name="team_create_new">नई टीम बनाओ</string>
+    <string name="team_select">टीम चुनो</string>
+    <string name="team_tab_team">टीम (%1$d)</string>
+    <string name="team_tab_favorites">Favorites (%1$d)</string>
+    <string name="team_is_default">Default</string>
+    <string name="team_confirm_icon">Done</string>
+    <string name="team_edit_name">टीम का नाम बदलो</string>
+    <string name="team_delete">टीम हटाओ</string>
+    <string name="dialog_delete_team_title">टीम हटाएं?</string>
+    <string name="dialog_delete_team_body">क्या सच में \"%1$s\" हटाना है? इस टीम के सारे Pokémon चले जाएंगे।</string>
+    <string name="team_analysis_max_reached">Analysis की maximum limit हो गई</string>
+
+    <!-- Team Analysis -->
+    <string name="screen_title_team_analysis">Team Analysis</string>
+    <string name="analysis_empty_title">अभी कोई टीम नहीं है</string>
+    <string name="analysis_empty_subtitle">Analysis unlock करने के लिए टीम बनाओ</string>
+
+    <!-- Item Detail -->
+    <string name="item_detail_basic_info">Basic Info</string>
+    <string name="item_detail_effect">Effect</string>
+    <string name="item_detail_description">Description</string>
+    <string name="item_detail_attributes">Attributes</string>
+    <string name="item_detail_best_use">Best Use</string>
+    <string name="item_detail_held_by">इसे hold करने वाले Pokémon</string>
+    <string name="item_detail_error">Item load नहीं हो पाया</string>
+    <string name="item_detail_label_cost">कीमत</string>
+    <string name="item_detail_label_category">Category</string>
+    <string name="item_detail_label_fling_power">Fling Power</string>
+
+    <!-- Profile -->
+    <string name="profile_create_account_title">Trainer account बनाओ</string>
+    <string name="profile_create_account_subtitle">Leaderboard पर दिखने और सभी devices पर progress sync करने के लिए sign in करो।</string>
+    <string name="profile_account_connected">Account connected है</string>
+    <string name="profile_synced">तुम्हारी progress सभी devices पर sync है</string>
+    <string name="profile_sign_out_dialog_title">Log out करें?</string>
+    <string name="profile_sign_out_dialog_body">क्या सच में log out करना है? Progress sync करने के लिए फिर से sign in करना होगा।</string>
+    <string name="profile_settings">Settings</string>
+    <string name="profile_error_no_credentials">इस device पर कोई Google account नहीं मिला। Settings → Accounts में जोड़ो।</string>
+    <string name="profile_error_no_internet">Internet नहीं है। Network check करो।</string>
+    <string name="profile_error_sign_in_failed">Sign in नहीं हो पाया। फिर कोशिश करो।</string>
+    <string name="profile_error_generic">कुछ गड़बड़ हो गई। थोड़ी देर बाद try करो।</string>
+
+    <!-- Premium -->
+    <string name="premium_sheet_title">Dexverse Premium</string>
+    <string name="premium_sheet_subtitle">पूरा Dexverse experience unlock करो</string>
+    <string name="premium_feature_hard_mode_title">Hard Mode</string>
+    <string name="premium_feature_hard_mode_subtitle">Ultimate challenge लो</string>
+    <string name="premium_feature_items_title">Item Exploration</string>
+    <string name="premium_feature_items_subtitle">Game के held items explore करो</string>
+    <string name="premium_feature_themes_title">Exclusive Themes</string>
+    <string name="premium_feature_themes_subtitle">सभी themes और features पाओ</string>
+    <string name="premium_plan_monthly">Monthly 🚀</string>
+    <string name="premium_plan_yearly">Yearly • 33% बचाओ</string>
+    <string name="premium_plan_yearly_best">BEST</string>
+    <string name="premium_plan_lifetime">Lifetime • 40% बचाओ 🔥</string>
+    <string name="premium_price_loading">Load हो रहा है…</string>
+    <string name="premium_suffix_month">/ महीना</string>
+    <string name="premium_suffix_year">/ साल</string>
+    <string name="premium_suffix_onetime">एक बार</string>
+    <string name="premium_payment_notice">🔒 Payment Google Play द्वारा securely process होती है।\nतुम्हारी details कभी हमारे साथ share नहीं होती।</string>
+
+    <!-- Daily Trivia -->
+    <string name="trivia_loading">आज का Pokémon load हो रहा है…</string>
+    <string name="trivia_error">Trivia load नहीं हो पाया। बाद में try करो।</string>
+    <string name="trivia_title">Daily Pokémon</string>
+    <string name="trivia_subtitle">यह Pokémon कौन है?</string>
+    <string name="trivia_generation">Gen %1$d</string>
+    <string name="trivia_nailed_it">बिल्कुल सही!</string>
+    <string name="trivia_so_close">बस थोड़ा सा चूके!</string>
+    <string name="trivia_come_back_tomorrow">नए के लिए कल आना।</string>
+    <string name="trivia_it_was">यह %1$s था।</string>
+    <string name="trivia_hints_title">Hints</string>
+    <string name="trivia_guessed_correct">सही guess किया! कल वापस आना।</string>
+    <string name="trivia_better_luck">अगली बार किस्मत साथ देगी!</string>
+
+    <!-- Error states -->
+    <string name="error_no_internet_title">Internet नहीं है</string>
+    <string name="error_no_internet_subtitle">Network check करो और फिर try करो।</string>
+    <string name="error_unexpected_title">कुछ गड़बड़ हो गई</string>
+    <string name="error_unexpected_subtitle">एक unexpected error आई।</string>
+    <string name="error_unknown_title">Unknown Error</string>
+    <string name="error_unknown_subtitle">थोड़ी देर बाद try करो।</string>
+
+    <!-- Analysis components -->
+    <string name="analysis_defensive_analysis">Defensive Analysis</string>
+    <string name="analysis_weaknesses">WEAKNESSES</string>
+    <string name="analysis_resistances">RESISTANCES</string>
+    <string name="analysis_defensive_profile">Defensive Profile</string>
+    <string name="analysis_vulnerable_to">VULNERABLE TO</string>
+    <string name="analysis_resists">RESISTS</string>
+    <string name="analysis_failed_title">Analysis fail हो गई</string>
+    <string name="action_go_back">वापस जाएं</string>
+    <string name="analysis_loading_title">तुम्हारी team analyze हो रही है…</string>
+    <string name="analysis_loading_subtitle">Type coverage और synergies calculate हो रही हैं</string>
+
+    <!-- Game dialogs -->
+    <string name="match_preparing">Pokémon तैयार हो रहे हैं…</string>
+    <string name="match_paused">Paused</string>
+    <string name="match_resume">Resume करें</string>
+    <string name="match_restart">Restart करें</string>
+    <string name="match_exit_game">Game से निकलें</string>
+    <string name="dialog_exit_game_title">Game छोड़ें?</string>
+    <string name="dialog_exit_game_message">क्या सच में निकलना है?</string>
+    <string name="rush_progress_lost">सारी progress चली जाएगी।</string>
+    <string name="rush_loading_types">Types load हो रहे हैं…</string>
+
+    <!-- Item list -->
+    <string name="item_failed_to_load">Items load नहीं हो पाए</string>
+
+    <!-- Pokémon Detail -->
+    <string name="detail_hidden">Hidden</string>
+    <string name="detail_go_back">वापस जाएं</string>
+    <string name="detail_try_pikachu">Pikachu try करो</string>
+    <string name="detail_failed_to_load">Pokémon load नहीं हो पाया</string>
+    <string name="detail_types">Types</string>
+    <string name="detail_abilities">Abilities</string>
+    <string name="detail_base_stats">Base Stats</string>
+    <string name="detail_moves">Moves</string>
+    <string name="detail_other_forms">दूसरे Forms</string>
+    <string name="detail_overview">Overview</string>
+    <string name="detail_move_col">Move</string>
+    <string name="detail_level_col">Level</string>
+    <string name="detail_method_level_up">Level Up</string>
+    <string name="detail_method_tm">TM / HM</string>
+    <string name="detail_method_tutor">Tutor</string>
+    <string name="detail_method_egg">Egg</string>
+    <string name="detail_audio_pokedex_entry">Pokédex Entry</string>
+    <string name="detail_audio_stop_pokedex_entry">Pokédex Entry रोकें</string>
+    <string name="detail_audio_cry">Pokémon की आवाज़</string>
+    <string name="detail_audio_stop_cry">आवाज़ रोकें</string>
+
+    <!-- Asset Onboarding Banner -->
+    <string name="banner_original_visuals">Original Visuals</string>
+    <string name="banner_original_assets_desc">बेहतर experience के लिए franchise के original sprites और audio चालू करो। ये assets उनके respective owners की हैं — यह app unofficial और unaffiliated है।</string>
+    <string name="banner_enable_original_assets">Original Assets चालू करें</string>
+    <string name="banner_settings_change_hint">इसे Settings से कभी भी बदल सकते हो।</string>
+
+    <!-- FAB badges -->
+    <string name="fab_label_new">NEW</string>
+
+    <!-- Card Clash Game -->
+    <string name="clash_you">तुम</string>
+    <string name="clash_round_format">Round %1$d / 6</string>
+    <string name="clash_next_round">अगला Round</string>
+    <string name="clash_exit">निकलें</string>
+    <string name="clash_claim_win">जीत claim करें</string>
+    <string name="clash_wait_opponent">Opponent का इंतज़ार करें</string>
+    <string name="clash_pick_card_hint">एक card चुनो — अंदर क्या है देख नहीं सकते!</string>
+    <string name="clash_locked_waiting">Lock हो गया — opponent का इंतज़ार है…</string>
+    <string name="clash_lock_in">Lock करो</string>
+
+    <!-- Card Clash Lobby -->
+    <string name="clash_lobby_title">PokeCard Clash</string>
+    <string name="clash_lobby_desc">6 mystery cards। 6 rounds।\nPure luck — कोई भी अपने cards नहीं देख सकता!</string>
+    <string name="clash_lobby_play_random">Random खेलो</string>
+    <string name="clash_lobby_or">— या —</string>
+    <string name="clash_lobby_play_friend">दोस्त के साथ खेलो</string>
+    <string name="clash_lobby_create_room">Room बनाओ और code share करो</string>
+    <string name="clash_lobby_enter_code">या room code डालो</string>
+    <string name="clash_lobby_code_placeholder">ABCD12</string>
+    <string name="clash_lobby_join">Join करो</string>
+    <string name="clash_opponent_locked">Lock हो गया!</string>
+    <string name="clash_opponent_choosing">चुन रहा है...</string>
+    <string name="clash_round_timer">Round Timer</string>
+    <string name="clash_connection_lost">Connection टूट गया</string>
+    <string name="clash_disconnected_message">%1$s शायद disconnect हो गया।\nइंतज़ार करो या जीत claim करो।</string>
+    <string name="clash_disconnect_timer">%1$s के पास reconnect करने के लिए %2$ds का समय है, वरना तुम जीत claim कर सकते हो।</string>
+    <string name="clash_quick_match">Quick Match</string>
+    <string name="clash_quick_match_desc">किसी random online player से match करो</string>
+    <string name="clash_searching">Player ढूंढ रहे हैं…</string>
+    <string name="clash_queue_hint">तुम queue में हो — player pool बढ़ाने के लिए दोस्तों को invite करो!</string>
+    <string name="clash_invite_friends">दोस्तों को invite करो</string>
+    <string name="clash_waiting_friend">दोस्त का इंतज़ार है…</string>
+    <string name="clash_room_code">Room Code</string>
+    <string name="clash_action_copy">Copy करो</string>
+    <string name="clash_round_reveal">Round %1$d का Reveal</string>
+    <string name="clash_power">Power: %1$d</string>
+    <string name="clash_vs">vs %1$s</string>
+    <string name="clash_round_history">Round History</string>
+    <string name="clash_you_win_round">तुमने यह round जीता!</string>
+    <string name="clash_opponent_wins_round">Opponent ने यह round जीता</string>
+    <string name="clash_draw">Draw!</string>
+    <string name="clash_victory">जीत!</string>
+    <string name="clash_defeated">हार</string>
+    <string name="clash_timer_seconds">%1$ds</string>
+    <string name="clash_card_number">Card %1$d</string>
+    <!-- Guide dialog -->
+    <string name="clash_guide_title">यह कैसे काम करता है</string>
+    <string name="clash_guide_step_count">%1$d / %2$d</string>
+    <string name="clash_guide_confirm">चलो खेलते हैं!</string>
+    <string name="clash_guide_step1_title">तुम्हें 6 mystery cards मिलते हैं</string>
+    <string name="clash_guide_step1_body">हर player 6 उल्टे Pokémon cards से शुरू करता है। जब तक कोई card चुनो नहीं, देख नहीं सकते — सब instinct पर है।</string>
+    <string name="clash_guide_step2_title">हर round में एक चुनो</string>
+    <string name="clash_guide_step2_body">हर round में दोनों players चुपके से एक card चुनते हैं। दोनों के lock होने पर cards एक साथ flip होते हैं।</string>
+    <string name="clash_guide_step3_title">Type matchup winner तय करता है</string>
+    <string name="clash_guide_step3_body">हर Pokémon का base stat total opponent के type पर उसके type advantage से multiply होता है। जिसकी effective power ज़्यादा, वो round जीता।</string>
+    <string name="clash_guide_step4_title">पहले 4 rounds जीतने वाला winner</string>
+    <string name="clash_guide_step4_body">कुल 6 rounds होते हैं। जीतने के लिए 4 जीतने होंगे। अगर दोनों 3–3 पर खत्म करें तो draw भी हो सकता है।</string>
+    <string name="clash_guide_step5_title">इस्तेमाल किए cards हट जाते हैं</string>
+    <string name="clash_guide_step5_body">एक बार Pokémon खेलने के बाद वो hand से चला जाता है — बाद के rounds में सोच-समझकर चुनो।</string>
+
+    <!-- Analysis ad gate -->
+    <string name="analysis_ad_title">अपनी Team analyze करो</string>
+    <string name="analysis_ad_body">अपनी team की strengths, weaknesses और type coverage का पूरा analysis unlock करने के लिए एक छोटी सी ad देखो।\n\nAds हमेशा के लिए हटाने के लिए Premium लो।</string>
+    <string name="analysis_ad_loading">Ad load हो रही है…</string>
+    <string name="analysis_ad_unavailable">Ad अभी available नहीं है। बाद में try करो।</string>
+
+    <!-- Profile Edit -->
+    <string name="profile_edit_trainer_name">Trainer का नाम बदलो</string>
+    <string name="profile_trainer_name_label">Trainer का नाम</string>
+    <string name="profile_edit_display_name">Display नाम बदलो</string>
+    <string name="profile_name_label">नाम</string>
+    <string name="action_save">Save करो</string>
+
+    <!-- Team -->
+    <string name="team_create_new_team">नई टीम बनाओ</string>
+    <string name="team_name_label">टीम का नाम</string>
+    <string name="action_create">बनाओ</string>
+    <string name="action_share">Share करो</string>
+</resources>

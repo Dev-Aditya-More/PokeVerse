@@ -199,10 +199,9 @@ class TypeRushViewModel(
         currentScore += totalPoints
         if (result.isFullyCorrect) correctRounds++
 
-        // XP
-        if (result.isFullyCorrect || result.isPartiallyCorrect) {
-            val xpEvent = XPEvent.QuizAnswer(correct = result.isFullyCorrect)
-            val xp = xpManager.awardGameXP(xpEvent)
+        // XP — only fully correct answers earn XP (partial correct = 0 XP, same as before)
+        if (result.isFullyCorrect) {
+            val xp = xpManager.awardGameXP(XPEvent.RushCorrect)
             if (xp.xpGained > 0) _xpResult.emit(xp)
         }
 
@@ -220,7 +219,7 @@ class TypeRushViewModel(
         viewModelScope.launch {
             // Completion XP
             val result = xpManager.awardGameXP(
-                XPEvent.QuizComplete(score = correctRounds, total = questions.size)
+                XPEvent.RushComplete(score = correctRounds, total = questions.size)
             )
             if (result.xpGained > 0) _xpResult.emit(result)
 

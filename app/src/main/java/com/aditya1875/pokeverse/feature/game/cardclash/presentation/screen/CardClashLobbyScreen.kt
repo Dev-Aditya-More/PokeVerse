@@ -455,7 +455,7 @@ private fun WaitingView(roomCode: String?, isRandom: Boolean, onCancel: () -> Un
 
                                 clipboard?.setPrimaryClip(
                                     ClipData.newPlainText(
-                                        stringResource(R.string.clash_room_code),
+                                        context.getString(R.string.clash_room_code),
                                         roomCode
                                     )
                                 )
@@ -580,8 +580,8 @@ private fun ClashGuideDialog(onDismiss: () -> Unit) {
                 )
             }
         },
-        dismissButton = if (step > 0) {
-            {
+        dismissButton = {
+            if (step > 0) {
                 OutlinedButton(
                     onClick = { step-- },
                     shape = RoundedCornerShape(10.dp)
@@ -589,7 +589,7 @@ private fun ClashGuideDialog(onDismiss: () -> Unit) {
                     Text(stringResource(R.string.back))
                 }
             }
-        } else null,
+        },
         shape = RoundedCornerShape(20.dp),
         containerColor = MaterialTheme.colorScheme.surface,
         titleContentColor = MaterialTheme.colorScheme.onSurface,
