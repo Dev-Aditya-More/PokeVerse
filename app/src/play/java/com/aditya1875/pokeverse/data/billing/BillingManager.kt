@@ -21,8 +21,8 @@ class BillingManager(
 ) : IBillingManager, PurchasesUpdatedListener {
 
     companion object {
-        const val PRODUCT_MONTHLY = "pokeverse_premium_monthly"
-        const val PRODUCT_YEARLY = "pokeverse_premium_yearly"
+        const val PRODUCT_MONTHLY = "dexverse_premium_monthly"
+        const val PRODUCT_YEARLY = "dexverse_premium_yearly"
         const val PRODUCT_LIFETIME = "dexverse_premium_lifetime"
     }
 
@@ -154,21 +154,25 @@ class BillingManager(
                             )
         }
 
-        _subscriptionState.value =
-            if (activePurchase != null) {
-                when {
-                    activePurchase.products.contains(PRODUCT_LIFETIME) ->
-                        SubscriptionState.Premium(PremiumPlan.LIFETIME)
-
-                    activePurchase.products.contains(PRODUCT_YEARLY) ->
-                        SubscriptionState.Premium(PremiumPlan.YEARLY)
-
-                    else ->
-                        SubscriptionState.Premium(PremiumPlan.MONTHLY)
-                }
-            } else {
-                SubscriptionState.Free
+        if (activePurchase != null) {
+            // Acknowledge purchases that survived a crash/kill before acknowledgment.
+            // Google Play refunds unacknowledged purchases within 3 days.
+            if (!activePurchase.isAcknowledged) {
+                acknowledgePurchase(activePurchase)
             }
+            _subscriptionState.value = when {
+                activePurchase.products.contains(PRODUCT_LIFETIME) ->
+                    SubscriptionState.Premium(PremiumPlan.LIFETIME)
+
+                activePurchase.products.contains(PRODUCT_YEARLY) ->
+                    SubscriptionState.Premium(PremiumPlan.YEARLY)
+
+                else ->
+                    SubscriptionState.Premium(PremiumPlan.MONTHLY)
+            }
+        } else {
+            _subscriptionState.value = SubscriptionState.Free
+        }
     }
 
     override fun launchPurchaseFlow(
