@@ -302,15 +302,19 @@
     <string name="premium_feature_items_subtitle">Explorez les objets tenus dans le jeu</string>
     <string name="premium_feature_themes_title">Thèmes exclusifs</string>
     <string name="premium_feature_themes_subtitle">Accédez à tous les thèmes et fonctionnalités</string>
-    <string name="premium_plan_monthly">Mensuel 🚀</string>
-    <string name="premium_plan_yearly">Annuel • Économisez 33 %</string>
+    <string name="premium_plan_monthly">Mensuel</string>
+    <string name="premium_plan_yearly">Annuel · Économisez 33 %</string>
     <string name="premium_plan_yearly_best">MEILLEUR</string>
-    <string name="premium_plan_lifetime">À vie • Économisez 40 % 🔥</string>
+    <string name="premium_plan_lifetime">À vie</string>
     <string name="premium_price_loading">Chargement...</string>
     <string name="premium_suffix_month">/ mois</string>
     <string name="premium_suffix_year">/ an</string>
     <string name="premium_suffix_onetime">paiement unique</string>
-    <string name="premium_payment_notice">🔒 Paiement traité en toute sécurité par Google Play.\nVos informations ne sont jamais partagées avec nous.</string>
+    <string name="premium_renewal_monthly">Abonnement · Se renouvelle mensuellement au même prix. Résiliez à tout moment sur Google Play.</string>
+    <string name="premium_renewal_yearly">Abonnement · Se renouvelle annuellement au même prix. Résiliez à tout moment sur Google Play.</string>
+    <string name="premium_renewal_lifetime">Achat unique · Aucun frais récurrent. À vie.</string>
+    <string name="premium_not_required">Premium est facultatif. L\'application est gratuite ; Premium débloque le mode Difficile et des fonctionnalités exclusives.</string>
+    <string name="premium_payment_notice">🔒 Les abonnements se renouvellent automatiquement jusqu\'à résiliation. Gérez ou annulez sur Google Play → Abonnements. Paiement sécurisé par Google Play.</string>
 
     <!-- Daily Trivia -->
     <string name="trivia_loading">Chargement du Pokémon du jour…</string>

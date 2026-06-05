@@ -302,15 +302,19 @@
     <string name="premium_feature_items_subtitle">Game के held items explore करो</string>
     <string name="premium_feature_themes_title">Exclusive Themes</string>
     <string name="premium_feature_themes_subtitle">सभी themes और features पाओ</string>
-    <string name="premium_plan_monthly">Monthly 🚀</string>
-    <string name="premium_plan_yearly">Yearly • 33% बचाओ</string>
+    <string name="premium_plan_monthly">Monthly</string>
+    <string name="premium_plan_yearly">Yearly · 33% बचाओ</string>
     <string name="premium_plan_yearly_best">BEST</string>
-    <string name="premium_plan_lifetime">Lifetime • 40% बचाओ 🔥</string>
+    <string name="premium_plan_lifetime">Lifetime</string>
     <string name="premium_price_loading">Load हो रहा है…</string>
     <string name="premium_suffix_month">/ महीना</string>
     <string name="premium_suffix_year">/ साल</string>
     <string name="premium_suffix_onetime">एक बार</string>
-    <string name="premium_payment_notice">🔒 Payment Google Play द्वारा securely process होती है।\nतुम्हारी details कभी हमारे साथ share नहीं होती।</string>
+    <string name="premium_renewal_monthly">Subscription · हर महीने auto-renew होती है। Google Play पर कभी भी cancel करें।</string>
+    <string name="premium_renewal_yearly">Subscription · हर साल auto-renew होती है। Google Play पर कभी भी cancel करें।</string>
+    <string name="premium_renewal_lifetime">एक बार की खरीदारी · कोई recurring charges नहीं। हमेशा के लिए।</string>
+    <string name="premium_not_required">Premium optional है। App free है; Premium Hard Mode और exclusive features unlock करता है।</string>
+    <string name="premium_payment_notice">🔒 Subscription cancel होने तक auto-renew होती है। Google Play → Subscriptions में manage करें। Payment Google Play द्वारा securely process होती है।</string>
 
     <!-- Daily Trivia -->
     <string name="trivia_loading">आज का Pokémon load हो रहा है…</string>

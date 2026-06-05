@@ -4,6 +4,7 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -67,6 +68,11 @@ class BillingViewModel(
     fun purchaseLifetime(activity: Activity) {
         val product = lifetimeProduct.value ?: return
         billingManager.launchPurchaseFlow(activity, product)
+    }
+
+    suspend fun restorePurchases(): Boolean {
+        billingManager.queryExistingPurchases()
+        return billingManager.subscriptionState.value is SubscriptionState.Premium
     }
 
     override fun onCleared() {

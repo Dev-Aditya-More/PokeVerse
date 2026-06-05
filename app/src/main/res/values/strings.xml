@@ -20,6 +20,10 @@
     <string name="action_build_team">Build Team</string>
     <string name="action_maybe_later">Maybe later</string>
     <string name="action_unlock_premium">Unlock Premium 🚀</string>
+    <string name="premium_sign_in_to_continue">Sign in to Continue</string>
+    <string name="premium_sign_in_required">A Google account is required to purchase Premium.</string>
+    <string name="premium_restore_purchases">Restore Purchases</string>
+    <string name="premium_restore_not_found">No previous purchase found on this account.</string>
     <string name="action_go_premium">Go Premium 👑</string>
     <string name="action_update_now">Update Now</string>
     <string name="action_watch_ad">Watch Ad</string>
@@ -302,15 +306,19 @@
     <string name="premium_feature_items_subtitle">Explore the held items in the game</string>
     <string name="premium_feature_themes_title">Exclusive themes</string>
     <string name="premium_feature_themes_subtitle">Get all the themes and features</string>
-    <string name="premium_plan_monthly">Monthly 🚀</string>
-    <string name="premium_plan_yearly">Yearly • Save 33%</string>
+    <string name="premium_plan_monthly">Monthly</string>
+    <string name="premium_plan_yearly">Yearly · Save 33%</string>
     <string name="premium_plan_yearly_best">BEST</string>
-    <string name="premium_plan_lifetime">Lifetime • Save 40% 🔥</string>
+    <string name="premium_plan_lifetime">Lifetime</string>
     <string name="premium_price_loading">Loading...</string>
     <string name="premium_suffix_month">/ month</string>
     <string name="premium_suffix_year">/ year</string>
     <string name="premium_suffix_onetime">one-time</string>
-    <string name="premium_payment_notice">🔒 Payment processed securely by Google Play.\nYour details are never shared with us.</string>
+    <string name="premium_renewal_monthly">Subscription · Auto-renews monthly at the same price. Cancel anytime in Google Play.</string>
+    <string name="premium_renewal_yearly">Subscription · Auto-renews yearly at the same price. Cancel anytime in Google Play.</string>
+    <string name="premium_renewal_lifetime">One-time purchase · No recurring charges. Yours forever.</string>
+    <string name="premium_not_required">Premium is optional. The app is free to use; Premium unlocks Hard Mode and exclusive features.</string>
+    <string name="premium_payment_notice">🔒 Subscriptions renew automatically until cancelled. Manage or cancel anytime in Google Play → Subscriptions. Payment processed securely by Google Play.</string>
 
     <!-- Daily Trivia -->
     <string name="trivia_loading">Loading today\'s Pokémon…</string>
