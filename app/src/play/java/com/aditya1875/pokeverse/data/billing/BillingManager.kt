@@ -24,6 +24,9 @@ class BillingManager(
         const val PRODUCT_MONTHLY = "dexverse_premium_monthly"
         const val PRODUCT_YEARLY = "dexverse_premium_yearly"
         const val PRODUCT_LIFETIME = "dexverse_premium_lifetime"
+        // Legacy IDs from before the rebrand; existing subscribers may still hold these
+        private const val PRODUCT_MONTHLY_LEGACY = "pokeverse_premium_monthly"
+        private const val PRODUCT_YEARLY_LEGACY = "pokeverse_premium_yearly"
     }
 
     private val billingClient: BillingClient =
@@ -149,7 +152,9 @@ class BillingManager(
             purchase.purchaseState == PurchaseState.PURCHASED &&
                     (
                             purchase.products.contains(PRODUCT_MONTHLY) ||
+                                    purchase.products.contains(PRODUCT_MONTHLY_LEGACY) ||
                                     purchase.products.contains(PRODUCT_YEARLY) ||
+                                    purchase.products.contains(PRODUCT_YEARLY_LEGACY) ||
                                     purchase.products.contains(PRODUCT_LIFETIME)
                             )
         }
@@ -164,7 +169,8 @@ class BillingManager(
                 activePurchase.products.contains(PRODUCT_LIFETIME) ->
                     SubscriptionState.Premium(PremiumPlan.LIFETIME)
 
-                activePurchase.products.contains(PRODUCT_YEARLY) ->
+                activePurchase.products.contains(PRODUCT_YEARLY) ||
+                        activePurchase.products.contains(PRODUCT_YEARLY_LEGACY) ->
                     SubscriptionState.Premium(PremiumPlan.YEARLY)
 
                 else ->
@@ -221,7 +227,8 @@ class BillingManager(
 
                                 val plan = when {
                                     purchase.products.contains(PRODUCT_LIFETIME) -> PremiumPlan.LIFETIME
-                                    purchase.products.contains(PRODUCT_YEARLY) -> PremiumPlan.YEARLY
+                                    purchase.products.contains(PRODUCT_YEARLY) ||
+                                            purchase.products.contains(PRODUCT_YEARLY_LEGACY) -> PremiumPlan.YEARLY
                                     else -> PremiumPlan.MONTHLY
                                 }
 

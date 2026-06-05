@@ -138,6 +138,7 @@ import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.utils.UiError
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -290,16 +291,27 @@ fun SharedTransitionScope.HomeScreen(
 
     LaunchedEffect(Unit) {
         try {
+            // Force a server read so we never act on a stale cached version code.
             val snapshot = firestore
                 .collection("leaderboard")
                 .document("config")
-                .get()
+                .get(Source.SERVER)
                 .await()
 
             latestVersionCode = snapshot.getLong("latestVersionCode") ?: 0L
-
-        } catch (e: Exception) {
-            latestVersionCode = 0L
+        } catch (_: Exception) {
+            // Server unreachable — fall back to cache so offline users still
+            // see the banner if they've seen it before.
+            try {
+                val cached = firestore
+                    .collection("leaderboard")
+                    .document("config")
+                    .get(Source.CACHE)
+                    .await()
+                latestVersionCode = cached.getLong("latestVersionCode") ?: 0L
+            } catch (_: Exception) {
+                latestVersionCode = 0L
+            }
         }
     }
 

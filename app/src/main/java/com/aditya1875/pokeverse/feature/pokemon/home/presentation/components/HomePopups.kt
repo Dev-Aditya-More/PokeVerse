@@ -66,11 +66,13 @@ fun HomePopupOrchestrator(
         slowPopupsUnlocked = true
     }
 
-    if (!isReady) return
-
+    // activePopup is always in the composition slot table (not conditional) so that
+    // the LaunchedEffect below can correctly restart whenever latestVersionCode changes,
+    // even if that change arrives before isReady becomes true.
     var activePopup by remember { mutableStateOf<HomePopup>(HomePopup.None) }
 
     LaunchedEffect(
+        isReady,
         assetsShown,
         originalAssetsEnabled,
         ratingShown,
@@ -84,6 +86,8 @@ fun HomePopupOrchestrator(
         slowPopupsUnlocked,
         lastPopupAtMinutes
     ) {
+        if (!isReady) return@LaunchedEffect
+
         val minutesSinceLastPopup = totalSessionMinutes - lastPopupAtMinutes
         val cooldownPassed = minutesSinceLastPopup >= MIN_GAP_BETWEEN_POPUPS_MINUTES
 
@@ -107,6 +111,8 @@ fun HomePopupOrchestrator(
             else -> HomePopup.None
         }
     }
+
+    if (!isReady) return
 
     val dismissPopup: (suspend () -> Unit) -> Unit = { action ->
         coroutineScope.launch {

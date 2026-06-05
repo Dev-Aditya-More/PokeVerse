@@ -58,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
@@ -91,7 +92,7 @@ fun PremiumBottomSheet(
     billingViewModel: BillingViewModel = koinViewModel()
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val authState by profileViewModel.authState.collectAsState()
+    val authState by profileViewModel.authState.collectAsStateWithLifecycle()
     val isLoggedIn = authState is AuthState.Authenticated
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
