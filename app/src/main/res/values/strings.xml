@@ -243,7 +243,7 @@
     <string name="leaderboard_tab_last_week">Last Week</string>
     <string name="leaderboard_last_week_title">Last Week\'s Rockers</string>
     <string name="leaderboard_last_week_week_of">Week of %1$s</string>
-    <string name="leaderboard_last_week_empty">No data yet · play this week to compete!</string>
+    <string name="leaderboard_last_week_empty">No data yet · play this week to get featured!</string>
     <string name="leaderboard_weekly_reset">Resets every Monday 12:00 AM IST</string>
     <string name="leaderboard_all_time">Top trainers of all time</string>
     <string name="leaderboard_weekly_empty_title">New week, fresh start!</string>
