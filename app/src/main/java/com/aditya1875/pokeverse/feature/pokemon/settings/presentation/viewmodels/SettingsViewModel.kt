@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,11 +36,16 @@ class SettingsViewModel(
     val UPDATE_DIALOG_SHOWN_VERSION = longPreferencesKey("update_dialog_shown_version")
     private val ANALYSIS_USE_COUNT = intPreferencesKey("analysis_use_count")
 
-    private val _specialEffectsEnabled = MutableStateFlow(true)
+    private val _specialEffectsEnabled = MutableStateFlow(supportsShaders)
     val specialEffectsEnabled: StateFlow<Boolean> = _specialEffectsEnabled.asStateFlow()
 
     init {
         viewModelScope.launch {
+            // On first launch, write device-appropriate default before collecting
+            val prefs = context.dataStore.data.first()
+            if (prefs[ScreenStateManager.SPECIAL_EFFECTS_ENABLED] == null) {
+                ScreenStateManager.setSpecialEffectsEnabled(context, supportsShaders)
+            }
             ScreenStateManager.specialEffectsEnabledFlow(context).collect { persisted ->
                 _specialEffectsEnabled.value = persisted && supportsShaders
             }

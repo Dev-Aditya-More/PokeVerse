@@ -3,6 +3,12 @@ package com.aditya1875.pokeverse.data.billing
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
@@ -13,10 +19,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
+private val Context.billingDataStore: DataStore<Preferences> by preferencesDataStore(name = "billing_prefs")
+
 class BillingManager(
-    context: Context,
+    private val context: Context,
     private val coroutineScope: CoroutineScope
 ) : IBillingManager, PurchasesUpdatedListener {
 
@@ -27,6 +36,9 @@ class BillingManager(
         // Legacy IDs from before the rebrand; existing subscribers may still hold these
         private const val PRODUCT_MONTHLY_LEGACY = "pokeverse_premium_monthly"
         private const val PRODUCT_YEARLY_LEGACY = "pokeverse_premium_yearly"
+
+        private val KEY_IS_PREMIUM = booleanPreferencesKey("is_premium")
+        private val KEY_PREMIUM_PLAN = stringPreferencesKey("premium_plan")
     }
 
     private val billingClient: BillingClient =
@@ -56,6 +68,9 @@ class BillingManager(
     override val billingError: StateFlow<String?> = _billingError
 
     override fun startConnection() {
+        // Restore cached premium state immediately so the UI never flashes Free on cold start
+        coroutineScope.launch { loadCachedPremiumState() }
+
         if (billingClient.isReady) return
 
         billingClient.startConnection(object : BillingClientStateListener {
@@ -68,7 +83,10 @@ class BillingManager(
                     }
                 } else {
                     Log.e("Billing", "Setup failed: ${result.debugMessage}")
-                    _subscriptionState.value = SubscriptionState.Free
+                    // Don't downgrade a known-premium user on a transient billing setup failure
+                    if (_subscriptionState.value !is SubscriptionState.Premium) {
+                        _subscriptionState.value = SubscriptionState.Free
+                    }
                 }
             }
 
@@ -131,7 +149,6 @@ class BillingManager(
     }
 
     override suspend fun queryExistingPurchases() {
-
         if (!billingClient.isReady) return
 
         val subs = billingClient.queryPurchasesAsync(
@@ -145,6 +162,9 @@ class BillingManager(
                 .setProductType(BillingClient.ProductType.INAPP)
                 .build()
         )
+
+        val subsOk = subs.billingResult.responseCode == BillingResponseCode.OK
+        val inAppsOk = inApps.billingResult.responseCode == BillingResponseCode.OK
 
         val allPurchases = subs.purchasesList + inApps.purchasesList
 
@@ -165,20 +185,25 @@ class BillingManager(
             if (!activePurchase.isAcknowledged) {
                 acknowledgePurchase(activePurchase)
             }
-            _subscriptionState.value = when {
+            val plan = when {
                 activePurchase.products.contains(PRODUCT_LIFETIME) ->
-                    SubscriptionState.Premium(PremiumPlan.LIFETIME)
+                    PremiumPlan.LIFETIME
 
                 activePurchase.products.contains(PRODUCT_YEARLY) ||
                         activePurchase.products.contains(PRODUCT_YEARLY_LEGACY) ->
-                    SubscriptionState.Premium(PremiumPlan.YEARLY)
+                    PremiumPlan.YEARLY
 
                 else ->
-                    SubscriptionState.Premium(PremiumPlan.MONTHLY)
+                    PremiumPlan.MONTHLY
             }
-        } else {
+            _subscriptionState.value = SubscriptionState.Premium(plan)
+            cachePremium(plan)
+        } else if (subsOk && inAppsOk) {
+            // Both queries returned OK with zero purchases — this is a definitive non-premium result
             _subscriptionState.value = SubscriptionState.Free
+            clearPremiumCache()
         }
+        // If either query failed (e.g. Play Services unavailable), preserve current state
     }
 
     override fun launchPurchaseFlow(
@@ -232,8 +257,8 @@ class BillingManager(
                                     else -> PremiumPlan.MONTHLY
                                 }
 
-                                _subscriptionState.value =
-                                    SubscriptionState.Premium(plan)
+                                _subscriptionState.value = SubscriptionState.Premium(plan)
+                                cachePremium(plan)
                             }
                         }
 
@@ -254,6 +279,28 @@ class BillingManager(
                 _billingError.value =
                     "Purchase failed: ${result.debugMessage}"
             }
+        }
+    }
+
+    private suspend fun loadCachedPremiumState() {
+        val prefs = context.billingDataStore.data.first()
+        if (prefs[KEY_IS_PREMIUM] == true) {
+            val planName = prefs[KEY_PREMIUM_PLAN] ?: PremiumPlan.MONTHLY.name
+            val plan = runCatching { PremiumPlan.valueOf(planName) }.getOrDefault(PremiumPlan.MONTHLY)
+            _subscriptionState.value = SubscriptionState.Premium(plan)
+        }
+    }
+
+    private suspend fun cachePremium(plan: PremiumPlan) {
+        context.billingDataStore.edit { prefs ->
+            prefs[KEY_IS_PREMIUM] = true
+            prefs[KEY_PREMIUM_PLAN] = plan.name
+        }
+    }
+
+    private suspend fun clearPremiumCache() {
+        context.billingDataStore.edit { prefs ->
+            prefs[KEY_IS_PREMIUM] = false
         }
     }
 

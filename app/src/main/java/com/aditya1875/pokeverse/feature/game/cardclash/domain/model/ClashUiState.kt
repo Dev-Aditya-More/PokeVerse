@@ -48,7 +48,13 @@ data class ClashUiState(
     val enteredCode: String = "",
 
     // True when Play Random found no open match and created a waiting room as fallback
-    val isRandomWait: Boolean = false
+    val isRandomWait: Boolean = false,
+
+    // True when the match is against the AI bot (fully local, no Firestore)
+    val isBotMatch: Boolean = false,
+
+    // Countdown seconds remaining before bot match kicks in (only relevant during random wait)
+    val matchmakingSecondsLeft: Int = 30
 )
 
 enum class ClashPhase {

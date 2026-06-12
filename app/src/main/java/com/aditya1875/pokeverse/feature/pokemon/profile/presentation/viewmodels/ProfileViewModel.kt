@@ -13,6 +13,8 @@ import com.aditya1875.pokeverse.presentation.auth.AuthManager
 import com.aditya1875.pokeverse.presentation.auth.AuthResult
 import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -155,6 +157,15 @@ class ProfileViewModel(
                 }
                 repository.saveProfile(merged)
                 repository.syncToFirestore(merged)
+
+                FirebaseMessaging.getInstance().token
+                    .addOnSuccessListener { token ->
+                        FirebaseFirestore.getInstance()
+                            .collection("users")
+                            .document(uid)
+                            .update("fcmToken", token)
+                    }
+
                 hasSyncedThisSession = true
             }
         }

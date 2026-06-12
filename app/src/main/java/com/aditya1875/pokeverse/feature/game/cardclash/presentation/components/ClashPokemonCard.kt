@@ -74,6 +74,7 @@ fun ClashPokemonCard(
             Text(
                 text = pokemon.name,
                 style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

@@ -11,6 +11,8 @@ import androidx.core.app.NotificationManagerCompat
 import com.aditya1875.pokeverse.MainActivity
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.utils.NotificationUtils
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kotlin.random.Random
@@ -18,12 +20,27 @@ import kotlin.random.Random
 class PokeVerseFirebaseMessagingService : FirebaseMessagingService() {
 
     override fun onNewToken(token: String) {
+        super.onNewToken(token)
+
         Log.d("FCM", "New FCM token: $token")
+
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+
+        FirebaseFirestore.getInstance()
+            .collection("users")
+            .document(uid)
+            .update("fcmToken", token)
+            .addOnSuccessListener {
+                Log.d("FCM", "Token saved successfully")
+            }
+            .addOnFailureListener {
+                Log.e("FCM", "Failed to save token", it)
+            }
     }
 
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        val title = remoteMessage.data["title"] ?: "PokéVerse"
+        val title = remoteMessage.data["title"] ?: "Dexverse"
         val body = remoteMessage.data["body"] ?: "Something new awaits you"
         val type = remoteMessage.data["type"]
 

@@ -2,10 +2,12 @@ package com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.feature.leaderboard.data.remote.model.LeaderboardEntry
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardRepository
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LeaderboardViewModel(
@@ -20,6 +22,15 @@ class LeaderboardViewModel(
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
+    private val _lastWeekEntries = MutableStateFlow<List<LeaderboardEntry>>(emptyList())
+    val lastWeekEntries: StateFlow<List<LeaderboardEntry>> = _lastWeekEntries.asStateFlow()
+
+    private val _lastWeekOf = MutableStateFlow(0L)
+    val lastWeekOf: StateFlow<Long> = _lastWeekOf.asStateFlow()
+
+    private val _lastWeekLoading = MutableStateFlow(false)
+    val lastWeekLoading: StateFlow<Boolean> = _lastWeekLoading.asStateFlow()
 
     init {
         load()
@@ -51,7 +62,27 @@ class LeaderboardViewModel(
     fun switchType(type: LeaderboardType) {
         if (_type.value == type) return
         _type.value = type
-        load()
+        if (type == LeaderboardType.LAST_WEEK) {
+            loadLastWeek()
+        } else {
+            load()
+        }
+    }
+
+    private fun loadLastWeek() {
+        viewModelScope.launch {
+            _lastWeekLoading.value = true
+            val (weekOf, entries) = repository.getLastWeekSnapshot()
+            _lastWeekEntries.value = entries
+            _lastWeekOf.value = weekOf
+            _lastWeekLoading.value = false
+        }
+    }
+
+    fun saveLastWeekSnapshot(weekOf: Long, entries: List<LeaderboardEntry>) {
+        viewModelScope.launch {
+            repository.saveLastWeekSnapshot(weekOf, entries)
+        }
     }
 
     private var isPaginating = false
@@ -74,5 +105,6 @@ class LeaderboardViewModel(
 
 enum class LeaderboardType {
     GLOBAL,
-    WEEKLY
+    WEEKLY,
+    LAST_WEEK
 }

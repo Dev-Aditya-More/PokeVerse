@@ -4,6 +4,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +53,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,6 +72,7 @@ import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPhase
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashUiState
+import kotlinx.coroutines.delay
 
 private const val PREFS_CLASH = "clash_prefs"
 private const val KEY_GUIDE_SEEN = "guide_seen"
@@ -122,13 +129,28 @@ fun CardClashLobbyScreen(
             contentAlignment = Alignment.Center
         ) {
             when {
-                state.isLoading || state.phase == ClashPhase.DEALING ->
-                    LoadingView("Preparing your team...")
+                state.isLoading || state.phase == ClashPhase.DEALING -> {
+                    val messages = if (state.isBotMatch) {
+                        listOf(
+                            stringResource(R.string.clash_loading_bot),
+                            stringResource(R.string.clash_loading_dealing),
+                            stringResource(R.string.clash_loading_gathering)
+                        )
+                    } else {
+                        listOf(
+                            stringResource(R.string.clash_loading_team),
+                            stringResource(R.string.clash_loading_dealing),
+                            stringResource(R.string.clash_loading_gathering)
+                        )
+                    }
+                    LoadingView(messages)
+                }
 
                 state.phase == ClashPhase.WAITING_FOR_OPPONENT ->
                     WaitingView(
                         roomCode = if (state.isRandomWait) null else state.roomCode,
                         isRandom = state.isRandomWait,
+                        matchmakingSecondsLeft = state.matchmakingSecondsLeft,
                         onCancel = onCancelWait
                     )
 
@@ -357,8 +379,30 @@ private fun FriendRoomCard(
 }
 
 @Composable
-private fun WaitingView(roomCode: String?, isRandom: Boolean, onCancel: () -> Unit) {
+private fun WaitingView(
+    roomCode: String?,
+    isRandom: Boolean,
+    matchmakingSecondsLeft: Int,
+    onCancel: () -> Unit
+) {
     val context = LocalContext.current
+
+    // Rotate through fun search messages while there's plenty of time left
+    val searchMessages = listOf(
+        stringResource(R.string.clash_searching_msg1),
+        stringResource(R.string.clash_searching_msg2),
+        stringResource(R.string.clash_searching_msg3),
+        stringResource(R.string.clash_searching_msg4)
+    )
+    var searchMsgIdx by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(3000L)
+            searchMsgIdx = (searchMsgIdx + 1) % searchMessages.size
+        }
+    }
+
+    val showBotWarning = isRandom && matchmakingSecondsLeft in 1..10
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -379,19 +423,33 @@ private fun WaitingView(roomCode: String?, isRandom: Boolean, onCancel: () -> Un
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             if (isRandom) {
-                Text(
-                    text = stringResource(R.string.clash_searching),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-                Text(
-                    text = stringResource(R.string.clash_queue_hint),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
+                AnimatedContent(
+                    targetState = if (showBotWarning) "bot_warn" else searchMessages[searchMsgIdx],
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "search_msg"
+                ) { msg ->
+                    Text(
+                        text = if (showBotWarning)
+                            stringResource(R.string.clash_matchmaking_soon, matchmakingSecondsLeft)
+                        else
+                            msg,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        color = if (showBotWarning)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onBackground
+                    )
+                }
+                if (!showBotWarning) {
+                    Text(
+                        text = stringResource(R.string.clash_queue_hint),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
                 Spacer(Modifier.height(4.dp))
                 FilledTonalButton(
                     onClick = {
@@ -452,7 +510,6 @@ private fun WaitingView(roomCode: String?, isRandom: Boolean, onCancel: () -> Un
                         FilledTonalButton(
                             onClick = {
                                 val clipboard = context.getSystemService(ClipboardManager::class.java)
-
                                 clipboard?.setPrimaryClip(
                                     ClipData.newPlainText(
                                         context.getString(R.string.clash_room_code),
@@ -503,7 +560,16 @@ private fun WaitingView(roomCode: String?, isRandom: Boolean, onCancel: () -> Un
 }
 
 @Composable
-private fun LoadingView(message: String) {
+private fun LoadingView(messages: List<String>) {
+    var msgIdx by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(2500L)
+            msgIdx = (msgIdx + 1) % messages.size
+        }
+    }
+
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -514,11 +580,20 @@ private fun LoadingView(message: String) {
             strokeWidth = 4.dp,
             color = MaterialTheme.colorScheme.primary
         )
-        Text(text = message, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onBackground)
+        AnimatedContent(
+            targetState = messages[msgIdx],
+            transitionSpec = { fadeIn() togetherWith fadeOut() },
+            label = "loading_msg"
+        ) { msg ->
+            Text(
+                text = msg,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
-
-// ─── First-time guide ─────────────────────────────────────────────────────────
 
 private val guideStepCount = 5
 

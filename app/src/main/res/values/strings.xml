@@ -240,6 +240,10 @@
     <string name="screen_title_leaderboard">Leaderboard</string>
     <string name="leaderboard_tab_global">Global</string>
     <string name="leaderboard_tab_weekly">Weekly</string>
+    <string name="leaderboard_tab_last_week">Last Week</string>
+    <string name="leaderboard_last_week_title">Last Week\'s Rockers</string>
+    <string name="leaderboard_last_week_week_of">Week of %1$s</string>
+    <string name="leaderboard_last_week_empty">No data yet · play this week to compete!</string>
     <string name="leaderboard_weekly_reset">Resets every Monday 12:00 AM IST</string>
     <string name="leaderboard_all_time">Top trainers of all time</string>
     <string name="leaderboard_weekly_empty_title">New week, fresh start!</string>
@@ -459,6 +463,18 @@
     <string name="clash_guide_step4_body">There are 6 rounds. Win 4 to claim victory. A draw is possible if both players end on 3.</string>
     <string name="clash_guide_step5_title">Used cards are gone</string>
     <string name="clash_guide_step5_body">Once you play a Pokémon it\'s removed from your hand — choose wisely, especially in the later rounds.</string>
+
+    <!-- Card Clash matchmaking & bot -->
+    <string name="clash_matchmaking_soon">No trainers nearby · AI match in %1$ds</string>
+    <string name="clash_searching_msg1">Scouting the region…</string>
+    <string name="clash_searching_msg2">Checking nearby gyms…</string>
+    <string name="clash_searching_msg3">Looking for a rival…</string>
+    <string name="clash_searching_msg4">Pinging trainer radars…</string>
+    <string name="clash_loading_team">Preparing your team…</string>
+    <string name="clash_loading_dealing">Shuffling the cards…</string>
+    <string name="clash_loading_gathering">Gathering Pokémon…</string>
+    <string name="clash_loading_bot">Setting up AI opponent…</string>
+    <string name="clash_bot_opponent">CPU</string>
 
     <!-- Analysis ad gate -->
     <string name="analysis_ad_title">Analyse Your Team</string>

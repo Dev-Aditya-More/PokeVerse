@@ -49,6 +49,7 @@ class LeaderboardRepository {
 
         return try {
             val snapshot = when (type) {
+                LeaderboardType.LAST_WEEK -> return LeaderboardState.Error("Use getLastWeekSnapshot()")
                 LeaderboardType.GLOBAL -> {
                     firestore.collection("leaderboard")
                         .orderBy("totalXp", Query.Direction.DESCENDING)
@@ -123,6 +124,7 @@ class LeaderboardRepository {
         return try {
             // Query must exactly mirror the initial load query for startAfter cursor to work
             val snapshot = when (type) {
+                LeaderboardType.LAST_WEEK -> return LeaderboardState.Error("No pagination for last week")
                 LeaderboardType.GLOBAL -> firestore.collection("leaderboard")
                     .orderBy("totalXp", Query.Direction.DESCENDING)
                     .orderBy("updatedAt", Query.Direction.ASCENDING)
@@ -209,5 +211,83 @@ class LeaderboardRepository {
         cache[type] = emptyList()
         lastDocs[type] = null
         cacheTimestamps[type] = 0L
+    }
+
+    suspend fun saveLastWeekSnapshot(weekOf: Long, entries: List<LeaderboardEntry>) {
+        try {
+            val docRef = firestore.collection("leaderboard_meta").document("last_week_snapshot")
+            val existing = docRef.get().await()
+
+            if (existing.exists()) {
+                val existingWeekOf = when (val v = existing.get("weekOf")) {
+                    is Long -> v
+                    is Timestamp -> v.toDate().time
+                    else -> 0L
+                }
+                if (existingWeekOf == weekOf) return
+            }
+
+            val top10 = entries.take(10).mapIndexed { idx, e ->
+                mapOf(
+                    "uid" to e.uid,
+                    "displayName" to e.displayName,
+                    "photoUrl" to e.photoUrl,
+                    "weeklyXp" to e.weeklyXp,
+                    "level" to e.level,
+                    "rank" to (idx + 1)
+                )
+            }
+
+            docRef.set(mapOf("weekOf" to weekOf, "entries" to top10)).await()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun getLastWeekSnapshot(): Pair<Long, List<LeaderboardEntry>> {
+        return try {
+            val doc = firestore.collection("leaderboard_meta")
+                .document("last_week_snapshot")
+                .get().await()
+
+            if (!doc.exists()) return 0L to emptyList()
+
+            val weekOf = when (val v = doc.get("weekOf")) {
+                is Long -> v
+                is Timestamp -> v.toDate().time
+                else -> 0L
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            val rawEntries = doc.get("entries") as? List<Map<String, Any>> ?: emptyList()
+
+            val entries = rawEntries.mapIndexed { idx, m ->
+                LeaderboardEntry(
+                    uid = m["uid"] as? String ?: "",
+                    displayName = m["displayName"] as? String ?: "Trainer",
+                    photoUrl = m["photoUrl"] as? String ?: "",
+                    weeklyXp = when (val v = m["weeklyXp"]) {
+                        is Long -> v.toInt()
+                        is Int -> v
+                        else -> 0
+                    },
+                    level = when (val v = m["level"]) {
+                        is Long -> v.toInt()
+                        is Int -> v
+                        else -> 1
+                    },
+                    rank = when (val v = m["rank"]) {
+                        is Long -> v.toInt()
+                        is Int -> v
+                        else -> idx + 1
+                    }
+                )
+            }
+
+            weekOf to entries
+        } catch (e: Exception) {
+            e.printStackTrace()
+            0L to emptyList()
+        }
     }
 }

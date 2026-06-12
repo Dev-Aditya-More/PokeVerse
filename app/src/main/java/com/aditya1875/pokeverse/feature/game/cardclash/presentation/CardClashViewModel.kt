@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class CardClashViewModel(
     private val repository: CardClashRepository,
@@ -56,11 +57,18 @@ class CardClashViewModel(
     private var observeJob: Job? = null
     private var timerJob: Job? = null
     private var heartbeatJob: Job? = null
+    private var matchmakingTimerJob: Job? = null
+
+    // Bot match state — only used when isBotMatch = true
+    private var isBotMatchActive = false
+    private var botHand: List<ClashPokemon> = emptyList()
+    private var botUsedIds: Set<Int> = emptySet()
 
     companion object {
         private const val ROUND_TIMER_SECONDS = 60
         private const val HEARTBEAT_INTERVAL_MS = 20_000L
         private const val DISCONNECT_THRESHOLD_MS = 60_000L
+        private const val BOT_MATCHMAKING_TIMEOUT = 30
     }
 
     // ─── Lobby ───────────────────────────────────────────────────────────────
@@ -91,7 +99,7 @@ class CardClashViewModel(
                         isPlayer1 = false
                         onJoinedAsPlayer2(matchId)
                     } else {
-                        // No open match — create one and wait for anyone to join
+                        // No open match — create one and wait; start countdown to bot fallback
                         isPlayer1 = true
                         runCatching { repository.createMatch(myId, myName) }
                             .onSuccess { newMatchId ->
@@ -100,10 +108,12 @@ class CardClashViewModel(
                                         phase = ClashPhase.WAITING_FOR_OPPONENT,
                                         matchId = newMatchId,
                                         isLoading = false,
-                                        isRandomWait = true
+                                        isRandomWait = true,
+                                        matchmakingSecondsLeft = BOT_MATCHMAKING_TIMEOUT
                                     )
                                 }
                                 startObserving(newMatchId)
+                                startMatchmakingCountdown(newMatchId)
                             }
                             .onFailure { e ->
                                 _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -130,6 +140,65 @@ class CardClashViewModel(
 
     fun updateEnteredCode(code: String) {
         _uiState.update { it.copy(enteredCode = code.uppercase().take(6)) }
+    }
+
+    // ─── Matchmaking countdown & bot fallback ────────────────────────────────
+
+    private fun startMatchmakingCountdown(waitingMatchId: String) {
+        matchmakingTimerJob?.cancel()
+        matchmakingTimerJob = viewModelScope.launch {
+            for (remaining in BOT_MATCHMAKING_TIMEOUT - 1 downTo 0) {
+                delay(1000L)
+                _uiState.update { it.copy(matchmakingSecondsLeft = remaining) }
+                if (remaining == 0) {
+                    startBotMatch(waitingMatchId)
+                }
+            }
+        }
+    }
+
+    private suspend fun startBotMatch(waitingMatchId: String) {
+        // Stop watching Firestore — the bot match runs entirely client-side.
+        // Do NOT cancel matchmakingTimerJob here: this function runs inside that job,
+        // so cancelling it would abort this function before the hands can be fetched.
+        observeJob?.cancel()
+        observeJob = null
+
+        // Mark the orphaned waiting doc as finished so other players don't join it
+        runCatching { repository.finishMatch(waitingMatchId, "draw", 0.0, 0.0) }
+
+        isBotMatchActive = true
+        _uiState.update {
+            it.copy(
+                phase = ClashPhase.DEALING,
+                isBotMatch = true,
+                opponentName = "CPU",
+                isLoading = true,
+                matchId = null
+            )
+        }
+
+        val myHand = runCatching { repository.fetchRandomHand() }.getOrDefault(emptyList())
+        val fetchedBotHand = runCatching { repository.fetchRandomHand() }.getOrDefault(emptyList())
+
+        if (myHand.isEmpty() || fetchedBotHand.isEmpty()) {
+            // Reset back to LOBBY so the user isn't trapped on the loading screen
+            _uiState.update { it.copy(isLoading = false, phase = ClashPhase.LOBBY, isBotMatch = false, error = "Couldn't fetch Pokémon. Check your connection and try again.") }
+            return
+        }
+
+        myHand.forEach { pokemonCache[it.id] = it }
+        fetchedBotHand.forEach { pokemonCache[it.id] = it }
+        botHand = fetchedBotHand
+
+        _uiState.update {
+            it.copy(
+                myHand = myHand,
+                isLoading = false,
+                phase = ClashPhase.SELECTING
+            )
+        }
+        startRoundTimer()
     }
 
     // ─── Match entry ─────────────────────────────────────────────────────────
@@ -177,6 +246,10 @@ class CardClashViewModel(
         when (state.status) {
 
             "dealing" -> {
+                // A real player joined — cancel the bot countdown
+                matchmakingTimerJob?.cancel()
+                matchmakingTimerJob = null
+
                 // Player1 was waiting; joiner arrived — now player1 must also deal
                 if (isPlayer1 && current.myHand.isEmpty() && !state.player1Ready) {
                     viewModelScope.launch { dealHand(matchId) }
@@ -370,6 +443,78 @@ class CardClashViewModel(
         }
     }
 
+    // ─── Bot round reveal (fully local, no Firestore) ─────────────────────────
+
+    private fun triggerBotTurn(myCardId: Int) {
+        viewModelScope.launch {
+            // Simulate the bot "thinking" for a short natural-feeling delay
+            delay(800L + Random.nextLong(0L, 700L))
+
+            val botCardId = botHand.firstOrNull { it.id !in botUsedIds }?.id ?: return@launch
+            botUsedIds = botUsedIds + botCardId
+
+            _uiState.update { it.copy(opponentLocked = true) }
+            processBotReveal(myCardId, botCardId)
+        }
+    }
+
+    private suspend fun processBotReveal(myCardId: Int, botCardId: Int) {
+        val myCard = pokemonCache[myCardId]
+            ?: pendingCard?.takeIf { it.id == myCardId }
+            ?: repository.fetchPokemonById(myCardId)
+            ?: run {
+                _uiState.update { it.copy(error = "Card data missing.") }
+                return
+            }
+        pokemonCache[myCardId] = myCard
+
+        val botCard = pokemonCache.getOrPut(botCardId) {
+            repository.fetchPokemonById(botCardId) ?: run {
+                _uiState.update { it.copy(error = "Bot card data missing.") }
+                return
+            }
+        }
+
+        val myEff = myCard.bst * duelEngine.computeAdvantage(myCard.toDuel(), botCard.toDuel())
+        val botEff = botCard.bst * duelEngine.computeAdvantage(botCard.toDuel(), myCard.toDuel())
+
+        val winner = when {
+            myEff > botEff -> RoundWinner.ME
+            botEff > myEff -> RoundWinner.OPPONENT
+            else -> RoundWinner.DRAW
+        }
+
+        val (myDelta, botDelta) = when (winner) {
+            RoundWinner.ME -> 1f to 0f
+            RoundWinner.OPPONENT -> 0f to 1f
+            RoundWinner.DRAW -> 0.5f to 0.5f
+        }
+
+        val clashRound = ClashRound(
+            roundNumber = _uiState.value.currentRound,
+            myCard = myCard,
+            opponentCard = botCard,
+            myScore = myEff,
+            opponentScore = botEff,
+            winner = winner
+        )
+
+        _uiState.update { s ->
+            s.copy(
+                phase = ClashPhase.REVEALING,
+                revealMyCard = myCard,
+                revealOpponentCard = botCard,
+                revealRound = clashRound,
+                myScore = s.myScore + myDelta,
+                opponentScore = s.opponentScore + botDelta,
+                myUsedIds = s.myUsedIds + myCardId,
+                opponentRevealedCards = s.opponentRevealedCards + botCard,
+                roundHistory = s.roundHistory + clashRound
+            )
+        }
+        // No Firestore writes needed — the bot match is entirely local
+    }
+
     // ─── In-round actions ─────────────────────────────────────────────────────
 
     fun selectCard(pokemonId: Int) {
@@ -379,7 +524,7 @@ class CardClashViewModel(
 
     fun lockCard() {
         val state = _uiState.value
-        val matchId = state.matchId ?: return
+        val matchId = state.matchId
         val cardId = state.selectedCardId ?: return
         if (state.myLocked) return
 
@@ -388,9 +533,14 @@ class CardClashViewModel(
         pendingCard = pokemonCache[cardId]
         _uiState.update { it.copy(myLocked = true) }
 
-        viewModelScope.launch {
-            runCatching { repository.lockCard(matchId, isPlayer1) }
-                .onFailure { _uiState.update { s -> s.copy(myLocked = false) } }
+        if (state.isBotMatch) {
+            triggerBotTurn(cardId)
+        } else {
+            if (matchId == null) return
+            viewModelScope.launch {
+                runCatching { repository.lockCard(matchId, isPlayer1) }
+                    .onFailure { _uiState.update { s -> s.copy(myLocked = false) } }
+            }
         }
     }
 
@@ -398,20 +548,37 @@ class CardClashViewModel(
     fun acknowledgeReveal() {
         val state = _uiState.value
 
-        // Guard: if all 6 rounds have been played (or hand is exhausted), don't go back
-        // to SELECTING — Firestore will deliver the "finished" status imminently.
-        // Returning here keeps the user on the reveal screen until that update arrives,
-        // preventing the ghost "selecting with no cards" screen.
+        // Guard: if all 6 rounds have been played (or hand is exhausted), end the match.
         val roundsPlayed = state.roundHistory.size
         val handEmpty = state.myUsedIds.size >= state.myHand.size && state.myHand.isNotEmpty()
         if (roundsPlayed >= 6 || handEmpty) {
-            // Just clear the reveal data; phase will flip to MATCH_FINISHED via Firestore
-            _uiState.update {
-                it.copy(
-                    revealMyCard = null,
-                    revealOpponentCard = null,
-                    revealRound = null
-                )
+            if (state.isBotMatch) {
+                // Finish the bot match locally — no Firestore to deliver "finished" status
+                val outcome = when {
+                    state.myScore > state.opponentScore -> MatchOutcome.WIN
+                    state.opponentScore > state.myScore -> MatchOutcome.LOSE
+                    else -> MatchOutcome.DRAW
+                }
+                _uiState.update {
+                    it.copy(
+                        phase = ClashPhase.MATCH_FINISHED,
+                        revealMyCard = null,
+                        revealOpponentCard = null,
+                        revealRound = null,
+                        matchOutcome = outcome
+                    )
+                }
+                awardXp(outcome, state.roundHistory.count { it.winner == RoundWinner.ME })
+            } else {
+                // For real matches, Firestore will deliver the "finished" status imminently.
+                // Keep the user on the reveal screen until that update arrives.
+                _uiState.update {
+                    it.copy(
+                        revealMyCard = null,
+                        revealOpponentCard = null,
+                        revealRound = null
+                    )
+                }
             }
             return
         }
@@ -420,6 +587,8 @@ class CardClashViewModel(
         _uiState.update {
             it.copy(
                 phase = ClashPhase.SELECTING,
+                // For bot matches, advance the round counter locally (Firestore does it for real matches)
+                currentRound = if (state.isBotMatch) state.currentRound + 1 else state.currentRound,
                 selectedCardId = null,
                 myLocked = false,
                 opponentLocked = false,
@@ -433,9 +602,10 @@ class CardClashViewModel(
         startRoundTimer()
     }
 
-    /** Claims the win when opponent has been disconnected for over a minute. */
+    /** Claims the win when opponent has been disconnected for over a minute. Not applicable to bot matches. */
     fun forfeitOpponent() {
         val state = _uiState.value
+        if (state.isBotMatch) return
         val matchId = state.matchId ?: return
         viewModelScope.launch {
             val myScore = state.myScore.toDouble()
@@ -481,12 +651,17 @@ class CardClashViewModel(
         observeJob?.cancel()
         timerJob?.cancel()
         heartbeatJob?.cancel()
+        matchmakingTimerJob?.cancel()
         observeJob = null
         timerJob = null
         heartbeatJob = null
+        matchmakingTimerJob = null
         pendingCard = null
         pokemonCache.clear()
         lastProcessedRound = 0
+        isBotMatchActive = false
+        botHand = emptyList()
+        botUsedIds = emptySet()
         _uiState.value = ClashUiState()
     }
 
@@ -495,6 +670,7 @@ class CardClashViewModel(
         observeJob?.cancel()
         timerJob?.cancel()
         heartbeatJob?.cancel()
+        matchmakingTimerJob?.cancel()
     }
 
     // ─── Timer & heartbeat helpers ────────────────────────────────────────────
@@ -513,7 +689,9 @@ class CardClashViewModel(
 
     private fun autoLock() {
         val state = _uiState.value
-        if (state.myLocked || state.matchId == null) return
+        if (state.myLocked) return
+        // For bot matches there's no matchId, so skip the null-matchId guard
+        if (!state.isBotMatch && state.matchId == null) return
         val cardId = state.selectedCardId
             ?: state.myHand.firstOrNull { it.id !in state.myUsedIds }?.id
             ?: return
