@@ -33,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +57,8 @@ import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.components.Po
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.viewmodels.DuelViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
+import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
+import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -68,6 +71,8 @@ fun DuelGameScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
     val soundManager: SoundManager = koinInject()
+    val connectivityObserver: ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
 
     LaunchedEffect(Unit) {
         viewModel.xpResult.collect { pendingXp = it }
@@ -101,7 +106,9 @@ fun DuelGameScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .navigationBarsPadding()
         ) { innerPadding ->
-            when (val s = state) {
+            if (!isOnline && (state is DuelGameState.Idle || state is DuelGameState.Loading)) {
+                NoInternetScreen()
+            } else when (val s = state) {
                 is DuelGameState.Idle -> DuelIdleScreen(
                     onStart = {
                         soundManager.play(SoundManager.Sound.BUTTON_CLICK)

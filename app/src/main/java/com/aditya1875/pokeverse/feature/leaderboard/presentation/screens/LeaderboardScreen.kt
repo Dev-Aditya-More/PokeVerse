@@ -184,18 +184,11 @@ fun LeaderboardScreen(
                         val isNewWeek = lastReset > lastSeenReset
 
                         if (isNewWeek) {
-                            viewModel.saveLastWeekSnapshot(lastReset, s.entries)
                             ScreenStateManager.setLastSeenReset(context, lastReset)
 
                             if (user.previousRank in 1..3) {
                                 rank = user.previousRank
                                 showDialog = true
-                            }
-                            if (user.previousRank in 1..10) {
-                                inboxViewModel.sendTopRankMessage(
-                                    rank = user.previousRank,
-                                    displayName = user.displayName.split(" ").firstOrNull() ?: "Trainer"
-                                )
                             }
                         }
                     }

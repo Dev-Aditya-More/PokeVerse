@@ -98,10 +98,11 @@
     <string name="home_tab_pokemon">Pokémon</string>
     <string name="home_tab_items">Items</string>
 
+    <!-- Force update screen (non-dismissible, shown when version is below minVersionCode) -->
+    <string name="force_update_title">Update Required</string>
+    <string name="force_update_body">This version of Dexverse is no longer supported. Please update to keep playing.</string>
+
     <!-- Home Popups -->
-    <string name="popup_update_title">Update Available</string>
-    <string name="popup_update_body">A new version of Dexverse is ready with bug fixes and new features.</string>
-    <string name="popup_update_tip">Update now for the best experience.</string>
     <string name="popup_assets_title">Original Visuals Available</string>
     <string name="popup_assets_body">Dexverse can show original franchise sprites and play authentic audio for a richer experience.</string>
     <string name="popup_assets_disclaimer">⚠️  These assets belong to their respective owners. This app is unofficial and unaffiliated.</string>

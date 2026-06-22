@@ -49,26 +49,6 @@ class InboxRepository {
         }
     }
 
-    suspend fun sendMessage(message: UserMessage) {
-        val uid = auth.currentUser?.uid ?: return
-        try {
-            val ref = inboxRef(uid).document()
-            ref.set(
-                mapOf(
-                    "id" to ref.id,
-                    "title" to message.title,
-                    "body" to message.body,
-                    "emoji" to message.emoji,
-                    "type" to message.type,
-                    "timestamp" to message.timestamp,
-                    "isRead" to false
-                )
-            ).await()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     private fun DocumentSnapshot.toUserMessage() = UserMessage(
         id = id,
         title = getString("title") ?: "",

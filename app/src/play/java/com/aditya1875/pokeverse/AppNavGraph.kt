@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse
 
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -8,12 +9,22 @@ import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.glance.LocalContext
-import androidx.navigation.NavController
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.core.net.toUri
+import com.aditya1875.pokeverse.BuildConfig
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.ForceUpdateScreen
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
+import kotlinx.coroutines.tasks.await
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -25,7 +36,9 @@ import androidx.navigation.navDeepLink
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.TeamAnalysisScreen
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.core.navigation.components.WithBottomBar
+import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetBanner
 import com.aditya1875.pokeverse.feature.core.ui.components.PokemonNotFoundScreen
+import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.screen.CardClashScreen
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.screens.DuelGameScreen
@@ -70,6 +83,34 @@ fun AppNavGraph(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val scope = rememberCoroutineScope()
+
+    var latestVersionCode by remember { mutableLongStateOf(0L) }
+
+    LaunchedEffect(Unit) {
+        val firestore = FirebaseFirestore.getInstance()
+        try {
+            val snapshot = firestore
+                .collection("leaderboard")
+                .document("config")
+                .get(Source.SERVER)
+                .await()
+            latestVersionCode = snapshot.getLong("latestVersionCode") ?: 0L
+        } catch (_: Exception) {
+            try {
+                val cached = firestore
+                    .collection("leaderboard")
+                    .document("config")
+                    .get(Source.CACHE)
+                    .await()
+                latestVersionCode = cached.getLong("latestVersionCode") ?: 0L
+            } catch (_: Exception) {
+                latestVersionCode = 0L
+            }
+        }
+    }
+
+    val connectivityObserver: ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
 
     var selectedRoute by remember {
         mutableStateOf<Route.BottomBar>(Route.BottomBar.Home)
@@ -125,6 +166,7 @@ fun AppNavGraph(
     }
 
     @OptIn(ExperimentalSharedTransitionApi::class)
+    Box(modifier = Modifier.fillMaxSize()) {
     SharedTransitionLayout {
 
         NavHost(
@@ -455,4 +497,28 @@ fun AppNavGraph(
             }
         }
     }
+
+    NoInternetBanner(
+        isVisible = !isOnline,
+        modifier = Modifier.align(Alignment.TopCenter)
+    )
+
+    if (latestVersionCode > 0L && BuildConfig.VERSION_CODE.toLong() < latestVersionCode) {
+        ForceUpdateScreen(
+            onUpdate = {
+                val uri = "market://details?id=${context.packageName}".toUri()
+                val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                try {
+                    context.startActivity(intent)
+                } catch (_: Exception) {
+                    val webUri =
+                        "https://play.google.com/store/apps/details?id=${context.packageName}".toUri()
+                    context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
+                }
+            }
+        )
+    }
+    } // Box
 }

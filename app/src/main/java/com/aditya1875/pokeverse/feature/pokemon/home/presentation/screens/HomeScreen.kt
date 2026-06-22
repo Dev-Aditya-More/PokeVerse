@@ -2,7 +2,7 @@ package com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens
 
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
+
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalSharedTransitionApi
@@ -80,7 +80,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -99,10 +98,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
+
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import com.aditya1875.pokeverse.BuildConfig
+
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
@@ -137,11 +136,8 @@ import com.aditya1875.pokeverse.utils.SearchResult
 import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.utils.UiError
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Source
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -285,43 +281,11 @@ fun SharedTransitionScope.HomeScreen(
         triviaViewModel.xpResult.collect { pendingXp = it }
     }
 
-    val firestore = FirebaseFirestore.getInstance()
-
-    var latestVersionCode by remember { mutableLongStateOf(0L) }
-
-    LaunchedEffect(Unit) {
-        try {
-            // Force a server read so we never act on a stale cached version code.
-            val snapshot = firestore
-                .collection("leaderboard")
-                .document("config")
-                .get(Source.SERVER)
-                .await()
-
-            latestVersionCode = snapshot.getLong("latestVersionCode") ?: 0L
-        } catch (_: Exception) {
-            // Server unreachable — fall back to cache so offline users still
-            // see the banner if they've seen it before.
-            try {
-                val cached = firestore
-                    .collection("leaderboard")
-                    .document("config")
-                    .get(Source.CACHE)
-                    .await()
-                latestVersionCode = cached.getLong("latestVersionCode") ?: 0L
-            } catch (_: Exception) {
-                latestVersionCode = 0L
-            }
-        }
-    }
-
     HomePopupOrchestrator(
         originalAssetsEnabled = originalAssetsEnabled,
         totalSessionMinutes = totalSessionMinutes,
         isGuest = profile.isGuest,
         isPremium = isPremium,
-        latestVersionCode = latestVersionCode,
-        currentVersionCode = BuildConfig.VERSION_CODE.toLong(),
         onEnableAssets = { settingsViewModel.toggleOriginalAssetsEnabled() },
         onRateNow = {
             activity?.let { reviewManager.requestReview(it) }
@@ -329,19 +293,6 @@ fun SharedTransitionScope.HomeScreen(
         onGoPremium = {
             showPremiumSheet = true
         },
-        onGoUpdate = {
-            val uri = "market://details?id=${context.packageName}".toUri()
-            val intent = Intent(Intent.ACTION_VIEW, uri).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            try {
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                val webUri =
-                    "https://play.google.com/store/apps/details?id=${context.packageName}".toUri()
-                context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
-            }
-        }
     )
 
     if (showPremiumSheet) {

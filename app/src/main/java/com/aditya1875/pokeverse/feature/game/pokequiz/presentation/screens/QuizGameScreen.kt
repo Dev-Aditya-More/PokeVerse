@@ -44,6 +44,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,6 +77,7 @@ import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.QuizUiState
 import com.aditya1875.pokeverse.feature.game.pokequiz.presentation.components.QuizResultScreen
 import com.aditya1875.pokeverse.feature.game.pokequiz.presentation.viewmodels.QuizViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
+import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -100,8 +102,10 @@ fun QuizGameScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     var showAdForReplay by remember { mutableStateOf(false) }
-    LaunchedEffect(adState) {
-        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    val connectivityObserver: ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
+    LaunchedEffect(adState, isOnline) {
+        if (isOnline && adState is RewardedAdState.Idle) adManager.loadAd(context)
     }
 
     LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }

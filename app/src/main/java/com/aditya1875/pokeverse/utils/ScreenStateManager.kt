@@ -19,7 +19,6 @@ object ScreenStateManager {
     val ASSETS_SHOWN = booleanPreferencesKey("assets_shown")
     val RATING_SHOWN = booleanPreferencesKey("rating_shown")
     val PREMIUM_SHOWN = booleanPreferencesKey("premium_shown")
-    val UPDATE_SHOWN_VERSION = longPreferencesKey("update_shown_version")
     val LAST_POPUP_SHOWN_AT_MINUTES = longPreferencesKey("last_popup_shown_at_minutes")
 
     val LAST_LEADERBOARD_RANK = intPreferencesKey("last_leaderboard_rank")
@@ -91,10 +90,6 @@ object ScreenStateManager {
         context.dataStore.edit { it[PREMIUM_SHOWN] = true }
     }
 
-    suspend fun markUpdateShown(context: Context, version: Long) {
-        context.dataStore.edit { it[UPDATE_SHOWN_VERSION] = version }
-    }
-
     suspend fun isAssetsShown(context: Context): Boolean {
         return context.dataStore.data.first()[ASSETS_SHOWN] ?: false
     }
@@ -105,10 +100,6 @@ object ScreenStateManager {
 
     suspend fun isPremiumShown(context: Context): Boolean {
         return context.dataStore.data.first()[PREMIUM_SHOWN] ?: false
-    }
-
-    suspend fun getUpdateShownVersion(context: Context): Long {
-        return context.dataStore.data.first()[UPDATE_SHOWN_VERSION] ?: 0L
     }
 
     suspend fun getLastPopupShownAtMinutes(context: Context): Long {

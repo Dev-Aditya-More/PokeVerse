@@ -7,10 +7,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPhase
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.CardClashViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
+import com.aditya1875.pokeverse.utils.ConnectivityObserver
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -21,6 +24,9 @@ fun CardClashScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
+
+    val connectivityObserver: ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
 
     LaunchedEffect(initialCode) {
         if (initialCode.isNotEmpty()) viewModel.updateEnteredCode(initialCode)
@@ -37,7 +43,9 @@ fun CardClashScreen(
     )
 
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
-        if (isInGame) {
+        if (!isOnline && !isInGame) {
+            NoInternetScreen()
+        } else if (isInGame) {
             CardClashGameScreen(
                 state = state,
                 onSelectCard = viewModel::selectCard,

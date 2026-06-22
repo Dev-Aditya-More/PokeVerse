@@ -33,7 +33,6 @@ class SettingsViewModel(
     val RATING_PROMPT_SEEN = booleanPreferencesKey("rating_prompt_seen")
     val PREMIUM_PROMPT_SHOWN = booleanPreferencesKey("premium_prompt_shown")
     val TOTAL_SESSION_MINUTES = longPreferencesKey("total_session_minutes")
-    val UPDATE_DIALOG_SHOWN_VERSION = longPreferencesKey("update_dialog_shown_version")
     private val ANALYSIS_USE_COUNT = intPreferencesKey("analysis_use_count")
 
     private val _specialEffectsEnabled = MutableStateFlow(supportsShaders)
@@ -85,10 +84,6 @@ class SettingsViewModel(
         .map { it[TOTAL_SESSION_MINUTES] ?: 0L }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
 
-    val updateDialogShownVersion: StateFlow<Long> = context.dataStore.data
-        .map { it[UPDATE_DIALOG_SHOWN_VERSION] ?: 0L }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
-
     val analysisUseCount: StateFlow<Int> = context.dataStore.data
         .map { it[ANALYSIS_USE_COUNT] ?: 0 }
         .stateIn(viewModelScope, SharingStarted.Eagerly, 0)
@@ -110,14 +105,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             val current = analysisUseCount.value
             context.dataStore.edit { it[ANALYSIS_USE_COUNT] = current + 1 }
-        }
-    }
-
-    fun markUpdateDialogShown(versionCode: Long) {
-        viewModelScope.launch {
-            context.dataStore.edit {
-                it[UPDATE_DIALOG_SHOWN_VERSION] = versionCode
-            }
         }
     }
 

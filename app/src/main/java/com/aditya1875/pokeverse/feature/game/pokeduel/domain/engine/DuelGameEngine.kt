@@ -6,7 +6,6 @@ import com.aditya1875.pokeverse.feature.game.pokeduel.domain.model.DuelResult
 
 class DuelGameEngine {
 
-    // Full gen 1-9 type chart: attacker -> defender -> multiplier
     private val typeChart: Map<String, Map<String, Float>> = mapOf(
         "normal" to mapOf("rock" to 0.5f, "ghost" to 0f, "steel" to 0.5f),
         "fire" to mapOf(

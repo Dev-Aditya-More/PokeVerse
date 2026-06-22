@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,13 +24,12 @@ private const val PREMIUM_MIN_MINUTES = 40L
 private const val MIN_GAP_BETWEEN_POPUPS_MINUTES = 30L
 private const val SLOW_POPUP_STARTUP_DELAY_MS = 4_000L
 
-enum class HomePopup { None, Update, Assets, Rating, Premium }
+enum class HomePopup { None, Assets, Rating, Premium }
 
 // Single dialog visible at a time. Priority:
-//   1. Update  — urgent, shows as soon as DataStore is ready
-//   2. Assets  — first-ever launch only, shows after DataStore is ready
-//   3. Rating  — signed-in users only; triggers Play In-App Review after RATING_MIN_MINUTES
-//   4. Premium — after PREMIUM_MIN_MINUTES, 30-min gap since last popup
+//   1. Assets  — first-ever launch only, shows after DataStore is ready
+//   2. Rating  — signed-in users only; triggers Play In-App Review after RATING_MIN_MINUTES
+//   3. Premium — after PREMIUM_MIN_MINUTES, 30-min gap since last popup
 
 @Composable
 fun HomePopupOrchestrator(
@@ -37,12 +37,9 @@ fun HomePopupOrchestrator(
     totalSessionMinutes: Long,
     isGuest: Boolean,
     isPremium: Boolean,
-    latestVersionCode: Long = 0L,
-    currentVersionCode: Long = 0L,
     onEnableAssets: () -> Unit,
     onRateNow: () -> Unit,
     onGoPremium: () -> Unit,
-    onGoUpdate: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -50,7 +47,6 @@ fun HomePopupOrchestrator(
     var assetsShown by remember { mutableStateOf(false) }
     var ratingShown by remember { mutableStateOf(false) }
     var premiumShown by remember { mutableStateOf(false) }
-    var updateShownVersion by remember { mutableStateOf(0L) }
     var lastPopupAtMinutes by remember { mutableLongStateOf(0L) }
     var isReady by remember { mutableStateOf(false) }
     var slowPopupsUnlocked by remember { mutableStateOf(false) }
@@ -59,16 +55,12 @@ fun HomePopupOrchestrator(
         assetsShown = ScreenStateManager.isAssetsShown(context)
         ratingShown = ScreenStateManager.isRatingShown(context)
         premiumShown = ScreenStateManager.isPremiumShown(context)
-        updateShownVersion = ScreenStateManager.getUpdateShownVersion(context)
         lastPopupAtMinutes = ScreenStateManager.getLastPopupShownAtMinutes(context)
         isReady = true
         kotlinx.coroutines.delay(SLOW_POPUP_STARTUP_DELAY_MS)
         slowPopupsUnlocked = true
     }
 
-    // activePopup is always in the composition slot table (not conditional) so that
-    // the LaunchedEffect below can correctly restart whenever latestVersionCode changes,
-    // even if that change arrives before isReady becomes true.
     var activePopup by remember { mutableStateOf<HomePopup>(HomePopup.None) }
 
     LaunchedEffect(
@@ -80,9 +72,6 @@ fun HomePopupOrchestrator(
         totalSessionMinutes,
         isGuest,
         isPremium,
-        latestVersionCode,
-        updateShownVersion,
-        currentVersionCode,
         slowPopupsUnlocked,
         lastPopupAtMinutes
     ) {
@@ -92,9 +81,6 @@ fun HomePopupOrchestrator(
         val cooldownPassed = minutesSinceLastPopup >= MIN_GAP_BETWEEN_POPUPS_MINUTES
 
         activePopup = when {
-            latestVersionCode > currentVersionCode &&
-                    updateShownVersion < latestVersionCode -> HomePopup.Update
-
             !assetsShown && !originalAssetsEnabled -> HomePopup.Assets
 
             !ratingShown && !isGuest &&
@@ -123,22 +109,6 @@ fun HomePopupOrchestrator(
     }
 
     when (activePopup) {
-        HomePopup.Update -> UpdateAvailableDialog(
-            onGoUpdate = {
-                dismissPopup {
-                    ScreenStateManager.markUpdateShown(context, latestVersionCode)
-                    updateShownVersion = latestVersionCode
-                }
-                onGoUpdate()
-            },
-            onDismiss = {
-                dismissPopup {
-                    ScreenStateManager.markUpdateShown(context, latestVersionCode)
-                    updateShownVersion = latestVersionCode
-                }
-            }
-        )
-
         HomePopup.Assets -> AssetsOnboardingDialog(
             onEnable = {
                 dismissPopup {
@@ -187,56 +157,50 @@ fun HomePopupOrchestrator(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. Update dialog
+// Force update screen — non-dismissible, blocks the entire app
+// Shown when BuildConfig.VERSION_CODE < minVersionCode from Firestore
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-fun UpdateAvailableDialog(onGoUpdate: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(24.dp),
-        icon = {
+fun ForceUpdateScreen(onUpdate: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+            modifier = Modifier
+                .padding(40.dp)
+                .widthIn(max = 400.dp)
+        ) {
             Icon(
                 Icons.Default.SystemUpdate, null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(80.dp)
             )
-        },
-        title = {
             Text(
-                stringResource(R.string.popup_update_title),
-                fontWeight = FontWeight.Black, textAlign = TextAlign.Center
+                stringResource(R.string.force_update_title),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center
             )
-        },
-        text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+            Text(
+                stringResource(R.string.force_update_body),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Button(
+                onClick = onUpdate,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    stringResource(R.string.popup_update_body),
-                    style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
-                )
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-                ) {
-                    Text(
-                        stringResource(R.string.popup_update_tip),
-                        modifier = Modifier.padding(10.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onGoUpdate, shape = RoundedCornerShape(12.dp)) {
                 Text(stringResource(R.string.action_update_now), fontWeight = FontWeight.Bold)
             }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_later)) } }
-    )
+        }
+    }
 }
 
 @Composable

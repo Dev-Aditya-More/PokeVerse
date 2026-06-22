@@ -36,6 +36,8 @@ import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessResultScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels.PokeGuessViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
+import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
+import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.utils.SoundManager
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
@@ -58,8 +60,11 @@ fun PokeGuessGameScreen(
     val adState by adManager.adState.collectAsStateWithLifecycle()
     var showAdForReplay by remember { mutableStateOf(false) }
 
-    LaunchedEffect(adState) {
-        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    val connectivityObserver: ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
+
+    LaunchedEffect(adState, isOnline) {
+        if (isOnline && adState is RewardedAdState.Idle) adManager.loadAd(context)
     }
 
     LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }
@@ -90,7 +95,9 @@ fun PokeGuessGameScreen(
                 )
                 .navigationBarsPadding()
         ) { paddingValues ->
-            when (val state = gameState) {
+            if (!isOnline && gameState is GuessGameState.Idle || !isOnline && gameState is GuessGameState.Loading) {
+                NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
+            } else when (val state = gameState) {
                 is GuessGameState.Idle -> {}
                 is GuessGameState.Loading -> Box(
                     Modifier.fillMaxSize(),

@@ -213,37 +213,6 @@ class LeaderboardRepository {
         cacheTimestamps[type] = 0L
     }
 
-    suspend fun saveLastWeekSnapshot(weekOf: Long, entries: List<LeaderboardEntry>) {
-        try {
-            val docRef = firestore.collection("leaderboard_meta").document("last_week_snapshot")
-            val existing = docRef.get().await()
-
-            if (existing.exists()) {
-                val existingWeekOf = when (val v = existing.get("weekOf")) {
-                    is Long -> v
-                    is Timestamp -> v.toDate().time
-                    else -> 0L
-                }
-                if (existingWeekOf == weekOf) return
-            }
-
-            val top10 = entries.take(10).mapIndexed { idx, e ->
-                mapOf(
-                    "uid" to e.uid,
-                    "displayName" to e.displayName,
-                    "photoUrl" to e.photoUrl,
-                    "weeklyXp" to e.weeklyXp,
-                    "level" to e.level,
-                    "rank" to (idx + 1)
-                )
-            }
-
-            docRef.set(mapOf("weekOf" to weekOf, "entries" to top10)).await()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
     suspend fun getLastWeekSnapshot(): Pair<Long, List<LeaderboardEntry>> {
         return try {
             val doc = firestore.collection("leaderboard_meta")

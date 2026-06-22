@@ -79,12 +79,6 @@ class LeaderboardViewModel(
         }
     }
 
-    fun saveLastWeekSnapshot(weekOf: Long, entries: List<LeaderboardEntry>) {
-        viewModelScope.launch {
-            repository.saveLastWeekSnapshot(weekOf, entries)
-        }
-    }
-
     private var isPaginating = false
 
     fun loadNextPage() {

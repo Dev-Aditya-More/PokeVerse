@@ -40,6 +40,8 @@ import com.aditya1875.pokeverse.feature.game.poketype.presentation.components.Ty
 import com.aditya1875.pokeverse.feature.game.poketype.presentation.viewmodels.TypeRushViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
 import com.aditya1875.pokeverse.utils.SoundManager
+import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
+import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -72,8 +74,10 @@ fun TypeRushScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     var showAdForReplay by remember { mutableStateOf(false) }
-    LaunchedEffect(adState) {
-        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    val connectivityObserver: ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
+    LaunchedEffect(adState, isOnline) {
+        if (isOnline && adState is RewardedAdState.Idle) adManager.loadAd(context)
     }
 
     LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }
@@ -88,7 +92,9 @@ fun TypeRushScreen(
                 .background(MaterialTheme.colorScheme.background)
                 .navigationBarsPadding()
         ) { paddingValues ->
-            when (val s = state) {
+            if (!isOnline && (state is TypeRushState.Idle || state is TypeRushState.Loading)) {
+                NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
+            } else when (val s = state) {
                 is TypeRushState.Idle -> {}
                 is TypeRushState.Loading -> TypeRushLoadingContent()
                 is TypeRushState.Playing -> PlayingContent(

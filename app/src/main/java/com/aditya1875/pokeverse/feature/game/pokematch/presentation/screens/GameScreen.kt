@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,6 +68,8 @@ import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOv
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.viewmodels.MatchViewModel
 import com.aditya1875.pokeverse.feature.game.pokematch.domain.model.Difficulty
 import com.aditya1875.pokeverse.feature.game.pokematch.domain.model.GameState
+import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
+import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -95,8 +98,11 @@ fun GameScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     var showAdForReplay by remember { mutableStateOf(false) }
-    LaunchedEffect(adState) {
-        if (adState is RewardedAdState.Idle) adManager.loadAd(context)
+    val connectivityObserver: ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
+
+    LaunchedEffect(adState, isOnline) {
+        if (isOnline && adState is RewardedAdState.Idle) adManager.loadAd(context)
     }
 
     var showExitDialog by remember { mutableStateOf(false) }
@@ -125,7 +131,9 @@ fun GameScreen(
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
-                when (val state = gameState) {
+                if (!isOnline && gameState is GameState.Loading) {
+                    NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
+                } else when (val state = gameState) {
                     is GameState.Loading -> {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(
