@@ -142,8 +142,8 @@
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->
-    <string name="ad_dialog_title">Débloquer le mode difficile</string>
-    <string name="ad_dialog_ready">Regardez une courte pub pour débloquer le mode Difficile pour ce tour. Les abonnés Premium ne voient jamais les pubs.</string>
+    <string name="ad_dialog_title">Débloquer maintenant</string>
+    <string name="ad_dialog_ready">Regardez une courte publicité pour débloquer. Les abonnés Premium ne voient plus jamais de publicités.</string>
     <string name="ad_dialog_loading">Chargement de la pub — veuillez patienter.</string>
     <string name="ad_dialog_error">La pub n\'a pas pu se charger. Appuyez sur Recharger pour réessayer, ou jouez à une difficulté inférieure.</string>
     <string name="ad_dialog_loading_btn">Chargement…</string>

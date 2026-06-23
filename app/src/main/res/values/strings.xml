@@ -147,8 +147,8 @@
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->
-    <string name="ad_dialog_title">Unlock Hard Mode</string>
-    <string name="ad_dialog_ready">Watch a short ad to unlock Hard mode for this round. Premium subscribers skip ads permanently.</string>
+    <string name="ad_dialog_title">Unlock it Now</string>
+    <string name="ad_dialog_ready">Watch a short ad to unlock. Premium subscribers skip ads permanently.</string>
     <string name="ad_dialog_loading">Loading ad — please wait a moment.</string>
     <string name="ad_dialog_error">Ad couldn\'t load right now. Tap Reload to try again, or play on an easier difficulty.</string>
     <string name="ad_dialog_loading_btn">Loading…</string>

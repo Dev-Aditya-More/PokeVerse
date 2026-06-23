@@ -1,7 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens
 
 import android.app.Activity
-import android.content.Context
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
@@ -88,6 +87,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
@@ -245,14 +245,22 @@ fun SharedTransitionScope.HomeScreen(
 
     val context = LocalContext.current
 
-    val clashPrefs = remember { context.getSharedPreferences("clash_prefs", Context.MODE_PRIVATE) }
-    var showClashNewBadge by remember { mutableStateOf(!clashPrefs.getBoolean("fab_new_seen", false)) }
-    val clashBadgePulse by rememberInfiniteTransition(label = "clash_badge")
-        .animateFloat(
-            initialValue = 0.65f, targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(700, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-            label = "clash_badge_alpha"
-        )
+    val clashFabTransition = rememberInfiniteTransition(label = "clash_fab")
+    val clashRing1 by clashFabTransition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Restart),
+        label = "clash_ring1"
+    )
+    val clashRing2 by clashFabTransition.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing, delayMillis = 750), RepeatMode.Restart),
+        label = "clash_ring2"
+    )
+    val clashFabScale by clashFabTransition.animateFloat(
+        initialValue = 1f, targetValue = 1.07f,
+        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "clash_fab_scale"
+    )
 
     val activity = context as? Activity
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
@@ -450,45 +458,52 @@ fun SharedTransitionScope.HomeScreen(
                         Spacer(Modifier.size(52.dp))
                     }
 
-                    Box {
-                            FloatingActionButton(
-                                onClick = {
-                                    if (showClashNewBadge) {
-                                        clashPrefs.edit().putBoolean("fab_new_seen", true).apply()
-                                        showClashNewBadge = false
-                                    }
-                                    navController.navigate(Route.BottomBar.Clash.route)
-                                },
-                                shape = RoundedCornerShape(16.dp),
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                elevation = FloatingActionButtonDefaults.elevation(8.dp),
-                                modifier = Modifier.size(52.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Groups,
-                                    contentDescription = stringResource(R.string.clash_lobby_title),
-                                    tint = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                            if (showClashNewBadge) {
-                                Surface(
-                                    shape = RoundedCornerShape(6.dp),
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = 6.dp, y = (-6).dp)
-                                        .alpha(clashBadgePulse)
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.fab_label_new),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.onError,
-                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
-                                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        // Sonar ring 1
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .graphicsLayer {
+                                    val s = 1f + clashRing1 * 0.75f
+                                    scaleX = s; scaleY = s
+                                    alpha = (1f - clashRing1) * 0.52f
                                 }
-                            }
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(16.dp)
+                                )
+                        )
+                        // Sonar ring 2 (750 ms offset)
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .graphicsLayer {
+                                    val s = 1f + clashRing2 * 0.75f
+                                    scaleX = s; scaleY = s
+                                    alpha = (1f - clashRing2) * 0.52f
+                                }
+                                .background(
+                                    MaterialTheme.colorScheme.primary,
+                                    RoundedCornerShape(16.dp)
+                                )
+                        )
+                        // FAB with gentle scale breath
+                        FloatingActionButton(
+                            onClick = { navController.navigate(Route.BottomBar.Clash.route) },
+                            shape = RoundedCornerShape(16.dp),
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            elevation = FloatingActionButtonDefaults.elevation(8.dp),
+                            modifier = Modifier
+                                .size(52.dp)
+                                .graphicsLayer { scaleX = clashFabScale; scaleY = clashFabScale }
+                        ) {
+                            Icon(
+                                Icons.Default.Groups,
+                                contentDescription = stringResource(R.string.clash_lobby_title),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
+                    }
                 }
             },
             floatingActionButtonPosition = FabPosition.Center

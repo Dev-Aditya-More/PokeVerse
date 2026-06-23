@@ -142,8 +142,8 @@
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->
-    <string name="ad_dialog_title">Hard Mode Unlock करो</string>
-    <string name="ad_dialog_ready">इस round के लिए Hard Mode unlock करने को एक छोटी सी ad देखो। Premium members को कभी ad नहीं देखनी पड़ती।</string>
+    <string name="ad_dialog_title">Unlock करो</string>
+    <string name="ad_dialog_ready">unlock करने को एक छोटी सी ad देखो। Premium members को कभी ad नहीं देखनी पड़ती।</string>
     <string name="ad_dialog_loading">Ad load हो रही है — थोड़ा रुको।</string>
     <string name="ad_dialog_error">Ad अभी load नहीं हो पाई। Reload दबाओ या आसान difficulty पर खेलो।</string>
     <string name="ad_dialog_loading_btn">Load हो रहा है…</string>

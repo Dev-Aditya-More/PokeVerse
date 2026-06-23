@@ -98,6 +98,15 @@ class WildCatchViewModel(
             currentLives--
         }
 
+        // shakeCount tells the visual story: perfect near-miss = 3 nail-biting shakes,
+        // clear miss = 1 shake so the player immediately understands why they failed
+        val shakeCount = if (caught) 3 else when (accuracy) {
+            ThrowAccuracy.PERFECT -> 3
+            ThrowAccuracy.GREAT -> 2
+            ThrowAccuracy.NICE -> 1
+            ThrowAccuracy.MISS -> 1
+        }
+
         _gameState.value = WildCatchGameState.ShakeResult(
             pokemon = state.pokemon,
             caught = caught,
@@ -106,7 +115,8 @@ class WildCatchViewModel(
             pokemonCount = state.pokemonCount,
             catches = catches,
             score = currentScore,
-            lives = currentLives
+            lives = currentLives,
+            shakeCount = shakeCount
         )
     }
 

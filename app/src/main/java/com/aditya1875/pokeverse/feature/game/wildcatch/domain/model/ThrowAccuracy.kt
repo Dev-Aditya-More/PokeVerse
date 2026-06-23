@@ -5,8 +5,8 @@ enum class ThrowAccuracy(
     val catchChance: Float,
     val scoreBonus: Int
 ) {
-    PERFECT("Perfect!", 1.00f, 100),
-    GREAT("Great!", 0.85f, 60),
-    NICE("Nice!", 0.60f, 30),
-    MISS("Missed...", 0.25f, 0)
+    PERFECT("Perfect!", 0.97f, 100),
+    GREAT("Great!", 0.72f, 60),
+    NICE("Nice!", 0.42f, 30),
+    MISS("Missed...", 0.08f, 0)
 }

@@ -77,6 +77,13 @@ fun StatsSection(profile: UserProfile) {
 fun GameStatsSection(profile: UserProfile) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         GameStatRow(
+            icon = Icons.Default.RadioButtonUnchecked,
+            title = "Wild Catch",
+            bestScore = profile.bestWildCatchScore,
+            accentColor = Color(0xFFE53935)
+        )
+
+        GameStatRow(
             icon = Icons.Default.FlashOn,
             title = "Who Wins?",
             bestScore = profile.bestDuelScore,
@@ -107,12 +114,6 @@ fun GameStatsSection(profile: UserProfile) {
             title = "Who's That Monster?",
             bestScore = profile.bestGuessScore,
             accentColor = Color(0xFF9C27B0)
-        )
-        GameStatRow(
-            icon = Icons.Default.RadioButtonUnchecked,
-            title = "Wild Catch",
-            bestScore = profile.bestWildCatchScore,
-            accentColor = Color(0xFFE53935)
         )
     }
 }

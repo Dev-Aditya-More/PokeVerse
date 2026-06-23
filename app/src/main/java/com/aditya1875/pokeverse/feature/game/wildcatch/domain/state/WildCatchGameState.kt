@@ -27,7 +27,8 @@ sealed class WildCatchGameState {
         val pokemonCount: Int,
         val catches: Int,
         val score: Int,
-        val lives: Int
+        val lives: Int,
+        val shakeCount: Int
     ) : WildCatchGameState()
 
     data class Finished(

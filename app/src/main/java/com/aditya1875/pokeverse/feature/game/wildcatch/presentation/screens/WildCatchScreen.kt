@@ -88,6 +88,7 @@ import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.state.WildCatchGameState
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.viewmodels.WildCatchViewModel
+import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
 import com.aditya1875.pokeverse.utils.ConnectivityObserver
@@ -279,7 +280,13 @@ private fun ThrowingContent(
     modifier: Modifier = Modifier,
     onThrow: (Float) -> Unit
 ) {
+    val soundManager: SoundManager = koinInject()
     val ringAnim = remember(state.pokemonCount) { Animatable(1f) }
+
+    LaunchedEffect(state.pokemonCount) {
+        soundManager.play(SoundManager.Sound.RUSH_CLICK, 0.55f)
+    }
+
     LaunchedEffect(state.pokemonCount, state.cycleDurationMs) {
         while (true) {
             ringAnim.snapTo(1f)
@@ -387,6 +394,7 @@ private fun ThrowingContent(
                             isThrown = true
                             val captured = ringAnim.value
                             coroutineScope.launch {
+                                soundManager.play(SoundManager.Sound.BUTTON_CLICK)
                                 val targetX = ringCenterRoot.x - ballCenterRoot.x
                                 val targetY = ringCenterRoot.y - ballCenterRoot.y
                                 launch { ballScale.animateTo(0.4f, tween(450)) }
@@ -623,8 +631,11 @@ private fun ShakeResultContent(
     onRevive: () -> Unit = {},
     isOnline: Boolean = true
 ) {
+    val soundManager: SoundManager = koinInject()
     val shakeAnim = remember { Animatable(0f) }
     var showResult by remember { mutableStateOf(false) }
+    val spriteAlpha = remember { Animatable(1f) }
+    val spriteOffsetY = remember { Animatable(0f) }
 
     val adManager: IRewardedAdManager = koinInject()
     val adState by adManager.adState.collectAsState()
@@ -653,12 +664,26 @@ private fun ShakeResultContent(
     }
 
     LaunchedEffect(Unit) {
-        repeat(3) {
-            shakeAnim.animateTo(14f, tween(80))
-            shakeAnim.animateTo(-14f, tween(80))
+        repeat(state.shakeCount) { i ->
+            shakeAnim.animateTo(15f, tween(75))
+            shakeAnim.animateTo(-15f, tween(75))
+            soundManager.play(SoundManager.Sound.CARD_FLIP, 0.65f)
+            if (i < state.shakeCount - 1) delay(90L)
         }
         shakeAnim.animateTo(0f, spring(Spring.DampingRatioMediumBouncy))
+        delay(110L)
+        soundManager.play(
+            if (state.caught) {
+                if (state.lifeRecovered) SoundManager.Sound.CORRECT_ANSWER else SoundManager.Sound.MATCH_FOUND
+            } else SoundManager.Sound.WRONG_ANSWER
+        )
         showResult = true
+        if (state.caught) {
+            spriteAlpha.animateTo(0.2f, tween(350))
+        } else {
+            launch { spriteAlpha.animateTo(0f, tween(420)) }
+            spriteOffsetY.animateTo(-38f, tween(420))
+        }
     }
 
     val resultColor = if (state.caught) Color(0xFF43A047) else Color(0xFFE53935)
@@ -686,13 +711,16 @@ private fun ShakeResultContent(
 
         Spacer(Modifier.height(20.dp))
 
-        // Pokemon sprite — fades out when caught
+        // Pokemon sprite — ghost when caught, floats away when fled
         AsyncImage(
             model = state.pokemon.spriteUrl,
             contentDescription = state.pokemon.name,
             modifier = Modifier
                 .size(160.dp)
-                .graphicsLayer { alpha = if (showResult && state.caught) 0.25f else 1f },
+                .graphicsLayer {
+                    alpha = spriteAlpha.value
+                    translationY = spriteOffsetY.value.dp.toPx()
+                },
             contentScale = ContentScale.Fit
         )
 
@@ -790,11 +818,16 @@ private fun FinishedContent(
     onPlayAgain: () -> Unit,
     onBack: () -> Unit
 ) {
+    val soundManager: SoundManager = koinInject()
     val catchRate = if (state.pokemonCount > 0) state.catches.toFloat() / state.pokemonCount else 0f
     val stars = when {
         catchRate >= 0.85f -> 3
         catchRate >= 0.60f -> 2
         else -> 1
+    }
+
+    LaunchedEffect(Unit) {
+        soundManager.play(if (stars >= 2) SoundManager.Sound.GAME_WIN else SoundManager.Sound.GAME_LOSE)
     }
 
     Column(

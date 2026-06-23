@@ -142,8 +142,8 @@
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->
-    <string name="ad_dialog_title">Desbloquear Modo Difícil</string>
-    <string name="ad_dialog_ready">Assista um anúncio curto para desbloquear o modo Difícil nesta rodada. Assinantes Premium pulam anúncios permanentemente.</string>
+    <string name="ad_dialog_title">Desbloquear agora</string>
+    <string name="ad_dialog_ready">Assista a um anúncio curto para desbloquear. Assinantes Premium pulam anúncios permanentemente.</string>
     <string name="ad_dialog_loading">Carregando anúncio — aguarde um momento.</string>
     <string name="ad_dialog_error">O anúncio não pôde carregar agora. Toque em Recarregar para tentar novamente ou jogue em uma dificuldade mais fácil.</string>
     <string name="ad_dialog_loading_btn">Carregando…</string>
