@@ -42,6 +42,7 @@ import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.screen.CardClashScreen
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.screens.DuelGameScreen
+import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.screens.WildCatchScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessDifficultyScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.screens.PokeGuessGameScreen
@@ -88,23 +89,22 @@ fun AppNavGraph(
 
     LaunchedEffect(Unit) {
         val firestore = FirebaseFirestore.getInstance()
-        try {
-            val snapshot = firestore
-                .collection("leaderboard")
-                .document("config")
-                .get(Source.SERVER)
-                .await()
-            latestVersionCode = snapshot.getLong("latestVersionCode") ?: 0L
-        } catch (_: Exception) {
-            try {
-                val cached = firestore
-                    .collection("leaderboard")
-                    .document("config")
-                    .get(Source.CACHE)
-                    .await()
-                latestVersionCode = cached.getLong("latestVersionCode") ?: 0L
+        val ref = firestore.collection("leaderboard").document("config")
+        while (true) {
+            val fetched = try {
+                ref.get(Source.SERVER).await().getLong("latestVersionCode") ?: 0L
             } catch (_: Exception) {
-                latestVersionCode = 0L
+                try {
+                    ref.get(Source.CACHE).await().getLong("latestVersionCode") ?: 0L
+                } catch (_: Exception) {
+                    -1L // both failed — retry soon
+                }
+            }
+            if (fetched >= 0L) {
+                latestVersionCode = fetched
+                kotlinx.coroutines.delay(30 * 60 * 1000L) // re-check every 30 min
+            } else {
+                kotlinx.coroutines.delay(60 * 1000L) // retry after 60 s on network failure
             }
         }
     }
@@ -235,6 +235,7 @@ fun AppNavGraph(
                                 "pokematch" -> navController.navigate(Route.GameDifficulty.route)
                                 "pokequiz" -> navController.navigate(Route.QuizDifficulty.route)
                                 "pokeguess" -> navController.navigate(Route.GuessDifficulty.route)
+                                "wildcatch" -> navController.navigate(Route.WildCatchPlay.route)
                             }
                         }
                     )
@@ -427,6 +428,12 @@ fun AppNavGraph(
 
             composable(Route.DuelPlay.route) {
                 DuelGameScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Route.WildCatchPlay.route) {
+                WildCatchScreen(
                     onBack = { navController.popBackStack() }
                 )
             }

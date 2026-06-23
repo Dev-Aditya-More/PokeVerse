@@ -31,6 +31,10 @@ sealed class XPEvent {
     object CardClashRoundWin : XPEvent()
     object CardClashPerfect : XPEvent()
     object CardClashDraw : XPEvent()  // consolation for a drawn match
+
+    // Wild Catch
+    data class WildCatchCaught(val streak: Int) : XPEvent()
+    object WildCatchComplete : XPEvent()
 }
 
 object XPValues {
@@ -65,6 +69,11 @@ object XPValues {
     const val CLASH_ROUND_WIN = 8
     const val CLASH_PERFECT = 40
     const val CLASH_DRAW = 15        // played a full match, earned something
+
+    const val CATCH_CAUGHT = 20
+    const val CATCH_STREAK_3 = 15
+    const val CATCH_STREAK_6 = 30
+    const val CATCH_COMPLETE = 25
 }
 
 // ─── Result returned after awarding XP ───────────────────────────────────────

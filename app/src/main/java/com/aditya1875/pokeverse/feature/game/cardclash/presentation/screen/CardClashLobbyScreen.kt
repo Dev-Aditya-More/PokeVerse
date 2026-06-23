@@ -507,12 +507,13 @@ private fun WaitingView(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
+                        val roomCodeLabel = stringResource(R.string.clash_room_code)
                         FilledTonalButton(
                             onClick = {
                                 val clipboard = context.getSystemService(ClipboardManager::class.java)
                                 clipboard?.setPrimaryClip(
                                     ClipData.newPlainText(
-                                        context.getString(R.string.clash_room_code),
+                                        roomCodeLabel,
                                         roomCode
                                     )
                                 )

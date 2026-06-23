@@ -137,6 +137,8 @@
     <string name="game_name_pokequiz_desc">Teste seu conhecimento em todas as gerações!</string>
     <string name="game_name_pokeguess_title">Quem é esse Monstro?</string>
     <string name="game_name_pokeguess_desc">Adivinhe os monstros pela silhueta!</string>
+    <string name="game_name_wildcatch_title">Captura Selvagem</string>
+    <string name="game_name_wildcatch_desc">Toque no momento certo para capturar Pokémon selvagens. Puro reflexo!</string>
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->

@@ -38,6 +38,7 @@ class UserProfileRepository(private val context: Context) {
         val BEST_GUESS = intPreferencesKey("best_guess")
         val BEST_TYPERUSH = intPreferencesKey("best_typerush")
         val BEST_DUEL = intPreferencesKey("best_duel")
+        val BEST_WILDCATCH = intPreferencesKey("best_wildcatch")
         val IS_GUEST = booleanPreferencesKey("is_guest")
         val LAST_DAILY_DATE = stringPreferencesKey("last_daily_date")
         val DAILY_STREAK = intPreferencesKey("daily_streak")
@@ -68,6 +69,7 @@ class UserProfileRepository(private val context: Context) {
             bestGuessScore = p[K.BEST_GUESS] ?: 0,
             bestTypeRushScore = p[K.BEST_TYPERUSH] ?: 0,
             bestDuelScore = p[K.BEST_DUEL] ?: 0,
+            bestWildCatchScore = p[K.BEST_WILDCATCH] ?: 0,
             isGuest = p[K.IS_GUEST] ?: true,
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
             dailyStreak = p[K.DAILY_STREAK] ?: 0,
@@ -192,6 +194,7 @@ class UserProfileRepository(private val context: Context) {
                 "guess" -> K.BEST_GUESS
                 "typerush" -> K.BEST_TYPERUSH
                 "duel" -> K.BEST_DUEL
+                "wildcatch" -> K.BEST_WILDCATCH
                 else -> return@edit
             }
             if (score > (p[key] ?: 0)) {
@@ -209,6 +212,7 @@ class UserProfileRepository(private val context: Context) {
             "guess" -> "bestGuessScore"
             "typerush" -> "bestTypeRushScore"
             "duel" -> "bestDuelScore"
+            "wildcatch" -> "bestWildCatchScore"
             else -> return
         }
         try {

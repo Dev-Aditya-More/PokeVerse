@@ -137,6 +137,8 @@
     <string name="game_name_pokequiz_desc">सभी generations पर अपना knowledge test करो!</string>
     <string name="game_name_pokeguess_title">यह monster कौन है?</string>
     <string name="game_name_pokeguess_desc">Silhouette देखकर monster पहचानो!</string>
+    <string name="game_name_wildcatch_title">Wild Catch</string>
+    <string name="game_name_wildcatch_desc">सही समय पर tap करके wild Pokémon पकड़ो। सिर्फ timing — कोई knowledge नहीं चाहिए!</string>
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->

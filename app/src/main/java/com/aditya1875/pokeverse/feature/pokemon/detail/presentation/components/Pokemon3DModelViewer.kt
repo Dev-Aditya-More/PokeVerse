@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
+import android.os.Build
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -31,6 +32,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 
@@ -56,7 +58,13 @@ fun Pokemon3DModelViewer(
 
     val imageLoader = remember {
         ImageLoader.Builder(context)
-            .components { add(ImageDecoderDecoder.Factory()) }
+            .components {
+                if (Build.VERSION.SDK_INT >= 28) {
+                    add(ImageDecoderDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
+            }
             .build()
     }
 

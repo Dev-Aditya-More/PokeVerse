@@ -51,37 +51,37 @@ private val PokeverseClassicDark = darkColorScheme(
 private val PikachuClassicDark = darkColorScheme(
 
     primary = Color(0xFFFFD600),           // Pikachu Yellow
-    onPrimary = Color(0xFF1A1A1A),
+    onPrimary = Color(0xFF1A1000),
 
-    primaryContainer = Color(0xFFFFC400),  // Deep Yellow
-    onPrimaryContainer = Color(0xFF2B2B2B),
+    primaryContainer = Color(0xFF332200),  // Dark warm container (no yellow-on-yellow)
+    onPrimaryContainer = Color(0xFFFFE082),
 
-    secondary = Color(0xFFFFEA00),         // Electric Glow
-    onSecondary = Color(0xFF1A1A1A),
+    secondary = Color(0xFFFFC107),         // Amber electric glow
+    onSecondary = Color(0xFF1A0E00),
 
-    secondaryContainer = Color(0xFFFFF176),
-    onSecondaryContainer = Color(0xFF2B2B2B),
+    secondaryContainer = Color(0xFF2B2400), // Dark amber container
+    onSecondaryContainer = Color(0xFFFFEE58),
 
-    tertiary = Color(0xFFFFA000),          // Thunder Accent
-    onTertiary = Color(0xFF1A1A1A),
+    tertiary = Color(0xFFFF8F00),          // Thunder amber-orange
+    onTertiary = Color(0xFF1A0900),
 
-    tertiaryContainer = Color(0xFFFFD54F),
-    onTertiaryContainer = Color(0xFF2B2B2B),
+    tertiaryContainer = Color(0xFF331D00),
+    onTertiaryContainer = Color(0xFFFFCA28),
 
-    background = Color(0xFF121212),        // Dark neutral (so yellow pops)
-    onBackground = Color(0xFFFFFDE7),
+    background = Color(0xFF121006),        // Warm dark background
+    onBackground = Color(0xFFFFFFFF),      // Pure white — max readability
 
-    surface = Color(0xFF1E1E1E),
-    onSurface = Color(0xFFFFFDE7),
+    surface = Color(0xFF1C1A0D),
+    onSurface = Color(0xFFFFFFFF),
 
-    surfaceVariant = Color(0xFF2C2C2C),
-    onSurfaceVariant = Color(0xFFFFF176),
+    surfaceVariant = Color(0xFF2A2710),
+    onSurfaceVariant = Color(0xFFE6C200),  // Rich yellow on dark variant
 
     error = Color(0xFFCF6679),
     onError = Color.White,
 
-    outline = Color(0xFF3A3A3A),
-    outlineVariant = Color(0xFF2C2C2C),
+    outline = Color(0xFF3D3720),
+    outlineVariant = Color(0xFF2A2710),
 )
 
 val DarkraiDark = darkColorScheme(
@@ -117,6 +117,82 @@ val DarkraiDark = darkColorScheme(
 
     outline = Color(0xFF3D2B4D),
     outlineVariant = Color(0xFF1A1025),
+)
+
+// MEWTWO THEME (Psychic)
+
+private val MewtwoClassicDark = darkColorScheme(
+
+    primary = Color(0xFFCE93D8),           // Psychic lavender
+    onPrimary = Color(0xFF1A0030),
+
+    primaryContainer = Color(0xFF3A0060),  // Deep psychic purple
+    onPrimaryContainer = Color(0xFFEDD8FF),
+
+    secondary = Color(0xFF80DEEA),         // Laboratory icy teal
+    onSecondary = Color(0xFF00292E),
+
+    secondaryContainer = Color(0xFF003C44),
+    onSecondaryContainer = Color(0xFFB2EBF2),
+
+    tertiary = Color(0xFFF48FB1),          // Psychic pink beam
+    onTertiary = Color(0xFF2E0015),
+
+    tertiaryContainer = Color(0xFF5C0030),
+    onTertiaryContainer = Color(0xFFFFD9E4),
+
+    background = Color(0xFF080010),        // Deep psychic void
+    onBackground = Color(0xFFF3E5FF),      // Light lavender — readable and on-brand
+
+    surface = Color(0xFF0F0020),
+    onSurface = Color(0xFFF3E5FF),
+
+    surfaceVariant = Color(0xFF1A0835),
+    onSurfaceVariant = Color(0xFFD8B8F0),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF4A2870),
+    outlineVariant = Color(0xFF1A0835),
+)
+
+// UMBREON THEME (Dark / Moonlight)
+
+private val UmbreonClassicDark = darkColorScheme(
+
+    primary = Color(0xFFF5C518),           // Umbreon gold rings
+    onPrimary = Color(0xFF1A1000),
+
+    primaryContainer = Color(0xFF3A2800),  // Dark gold container
+    onPrimaryContainer = Color(0xFFFFDE80),
+
+    secondary = Color(0xFF82B1FF),         // Blue rings
+    onSecondary = Color(0xFF001550),
+
+    secondaryContainer = Color(0xFF002080),
+    onSecondaryContainer = Color(0xFFDAE3FF),
+
+    tertiary = Color(0xFF80CBC4),          // Moonlight teal
+    onTertiary = Color(0xFF003733),
+
+    tertiaryContainer = Color(0xFF004D49),
+    onTertiaryContainer = Color(0xFFB2DFDB),
+
+    background = Color(0xFF060606),        // Moonlit night — true black
+    onBackground = Color(0xFFF5F0FF),      // Near-white cool tint
+
+    surface = Color(0xFF0E0E10),
+    onSurface = Color(0xFFF5F0FF),
+
+    surfaceVariant = Color(0xFF181818),
+    onSurfaceVariant = Color(0xFFD0C8E0),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF383020),
+    outlineVariant = Color(0xFF181818),
 )
 
 // CHARIZARD THEME (Fire/Flying)
@@ -224,6 +300,8 @@ enum class AppTheme {
     DEXVERSE,
     PIKACHU,
     DARKRAI,
+    MEWTWO,
+    UMBREON,
     CHARIZARD,
     VENUSAUR,
     BLASTOISE
@@ -240,6 +318,8 @@ fun PokeverseTheme(
         AppTheme.DEXVERSE -> PokeverseClassicDark
         AppTheme.PIKACHU -> PikachuClassicDark
         AppTheme.DARKRAI -> DarkraiDark
+        AppTheme.MEWTWO -> MewtwoClassicDark
+        AppTheme.UMBREON -> UmbreonClassicDark
         AppTheme.CHARIZARD -> CharizardDark
         AppTheme.VENUSAUR -> VenusaurDark
         AppTheme.BLASTOISE -> BlastoiseDark

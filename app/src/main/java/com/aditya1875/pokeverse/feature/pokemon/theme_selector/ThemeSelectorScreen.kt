@@ -227,6 +227,36 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
     ),
 
     StarterTheme(
+        theme = AppTheme.MEWTWO,
+        pokemonName = "Mewtwo",
+        pokemonNumber = "#150",
+        type = "Psychic",
+        emoji = "🔮",
+        description = "Pure psychic power. Clinical, mysterious, and dangerously elegant",
+        colors = listOf(
+            Color(0xFFCE93D8), // Psychic lavender
+            Color(0xFF080010), // Void black
+            Color(0xFF80DEEA)  // Lab teal
+        ),
+        premium = true
+    ),
+
+    StarterTheme(
+        theme = AppTheme.UMBREON,
+        pokemonName = "Umbreon",
+        pokemonNumber = "#197",
+        type = "Dark",
+        emoji = "🌙",
+        description = "Sleek as midnight with rings that glow under the moon",
+        colors = listOf(
+            Color(0xFFF5C518), // Gold rings
+            Color(0xFF060606), // Night black
+            Color(0xFF82B1FF)  // Blue rings
+        ),
+        premium = true
+    ),
+
+    StarterTheme(
         theme = AppTheme.CHARIZARD,
         pokemonName = "Charizard",
         pokemonNumber = "#006",

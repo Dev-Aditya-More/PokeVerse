@@ -49,10 +49,16 @@ class LeaderboardViewModel(
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                _state.value = repository.getLeaderboard(
-                    type = _type.value,
-                    forceRefresh = true
-                )
+                if (_type.value == LeaderboardType.LAST_WEEK) {
+                    val (weekOf, entries) = repository.getLastWeekSnapshot()
+                    _lastWeekEntries.value = entries
+                    _lastWeekOf.value = weekOf
+                } else {
+                    _state.value = repository.getLeaderboard(
+                        type = _type.value,
+                        forceRefresh = true
+                    )
+                }
             } finally {
                 _isRefreshing.value = false
             }

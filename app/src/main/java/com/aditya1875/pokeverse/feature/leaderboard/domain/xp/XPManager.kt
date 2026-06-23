@@ -119,6 +119,18 @@ class XPManager(
                 XPValues.CLASH_PERFECT to "Perfect Sweep! +${XPValues.CLASH_PERFECT} XP"
             is XPEvent.CardClashDraw ->
                 XPValues.CLASH_DRAW to "Clash Draw +${XPValues.CLASH_DRAW} XP"
+            is XPEvent.WildCatchCaught -> {
+                val streakBonus = when {
+                    event.streak >= 6 -> XPValues.CATCH_STREAK_6
+                    event.streak >= 3 -> XPValues.CATCH_STREAK_3
+                    else -> 0
+                }
+                val total = XPValues.CATCH_CAUGHT + streakBonus
+                val lbl = if (streakBonus > 0) "Caught! +$total XP 🎣 x${event.streak}" else "Caught! +$total XP"
+                total to lbl
+            }
+            is XPEvent.WildCatchComplete ->
+                XPValues.CATCH_COMPLETE to "Wild Catch Complete +${XPValues.CATCH_COMPLETE} XP"
         }
 
         if (gained == 0) return noOpResult(profile)

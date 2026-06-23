@@ -7,6 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
 
 sealed class LeaderboardState {
@@ -214,13 +215,25 @@ class LeaderboardRepository {
     }
 
     suspend fun getLastWeekSnapshot(): Pair<Long, List<LeaderboardEntry>> {
-        return try {
-            val doc = firestore.collection("leaderboard_meta")
+        // Always try the server first so we never serve a stale cached empty document.
+        // If offline, fall back to cache.
+        val doc = try {
+            firestore.collection("leaderboard_meta")
                 .document("last_week_snapshot")
-                .get().await()
+                .get(Source.SERVER).await()
+        } catch (_: Exception) {
+            try {
+                firestore.collection("leaderboard_meta")
+                    .document("last_week_snapshot")
+                    .get(Source.CACHE).await()
+            } catch (_: Exception) {
+                return 0L to emptyList()
+            }
+        }
 
-            if (!doc.exists()) return 0L to emptyList()
+        if (!doc.exists()) return 0L to emptyList()
 
+        return try {
             val weekOf = when (val v = doc.get("weekOf")) {
                 is Long -> v
                 is Timestamp -> v.toDate().time

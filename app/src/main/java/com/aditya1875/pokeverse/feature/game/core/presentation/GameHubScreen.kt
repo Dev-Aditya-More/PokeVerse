@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -32,6 +33,8 @@ import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBanner
 import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.viewmodels.MatchViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.ui.BannerAd
+import com.aditya1875.pokeverse.ui.BannerAdUnitIds
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -86,6 +89,15 @@ fun GameHubScreen(
 
     val games = listOf(
         GameEntry(
+            id = "wildcatch",
+            title = stringResource(R.string.game_name_wildcatch_title),
+            description = stringResource(R.string.game_name_wildcatch_desc),
+            icon = Icons.Default.RadioButtonUnchecked,
+            accentColor = Color(0xFFE53935),
+            tag = "Reflex",
+            stats = "Timing"
+        ),
+        GameEntry(
             id = "pokeduel",
             title = stringResource(R.string.game_name_pokeduel_title),
             description = stringResource(R.string.game_name_pokeduel_desc),
@@ -134,6 +146,11 @@ fun GameHubScreen(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            if (BuildConfig.ENABLE_ADS) {
+                BannerAd(adUnitId = BannerAdUnitIds.GAME_HUB)
+            }
+        },
         topBar = {
             TopAppBar(
                 title = {
@@ -403,7 +420,7 @@ fun FeaturedGameCard(
                     }
 
                     Icon(
-                        imageVector = Icons.Default.ArrowForwardIos,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.size(14.dp)

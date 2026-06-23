@@ -77,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.inbox.presentation.screens.InboxSheet
 import com.aditya1875.pokeverse.feature.inbox.presentation.viewmodels.InboxViewModel
@@ -88,6 +89,8 @@ import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.Lead
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardViewModel
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.auth.AuthState
+import com.aditya1875.pokeverse.ui.BannerAd
+import com.aditya1875.pokeverse.ui.BannerAdUnitIds
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
@@ -128,19 +131,31 @@ fun LeaderboardScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            if (BuildConfig.ENABLE_ADS) {
+                BannerAd(adUnitId = BannerAdUnitIds.LEADERBOARD)
+            }
+        }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             if (type == LeaderboardType.LAST_WEEK) {
                 if (lastWeekLoading) LeaderboardSkeleton()
-                else LastWeekList(
-                    entries = lastWeekEntries,
-                    weekOf = lastWeekOf,
-                    type = type,
-                    onTypeChange = { viewModel.switchType(it) },
-                    unreadCount = unreadCount,
-                    onBellClick = { showInbox = true }
-                )
+                else PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = { viewModel.refresh() },
+                    state = pullState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    LastWeekList(
+                        entries = lastWeekEntries,
+                        weekOf = lastWeekOf,
+                        type = type,
+                        onTypeChange = { viewModel.switchType(it) },
+                        unreadCount = unreadCount,
+                        onBellClick = { showInbox = true }
+                    )
+                }
             } else when (val s = state) {
                 is LeaderboardState.Loading -> LeaderboardSkeleton()
                 is LeaderboardState.Error -> LeaderboardError(s.message) { viewModel.load() }
@@ -249,67 +264,69 @@ private fun LeaderboardList(
 ) {
     val listState = rememberLazyListState()
 
+    val rowCount = (entries.size - 3).coerceAtLeast(0)
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisible >= entries.size - 5 && canLoadMore
+            lastVisible >= rowCount - 5 && canLoadMore
         }
     }
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore) onLoadMore()
     }
 
-    LazyColumn(
-        state = listState,
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
-    ) {
-        item {
-            LeaderboardHeader(
-                type = type,
-                onTypeChange = onTypeChange,
-                unreadCount = unreadCount,
-                onBellClick = onBellClick
-            )
-        }
+    Column(modifier = Modifier.fillMaxSize()) {
+        // ── Sticky: tabs + subtitle + podium ─────────────────────────────
+        LeaderboardHeader(
+            type = type,
+            onTypeChange = onTypeChange,
+            unreadCount = unreadCount,
+            onBellClick = onBellClick
+        )
 
         if (entries.size >= 3) {
-            item {
-                PodiumSection(
-                    type = type,
-                    first = entries[0],
-                    second = entries[1],
-                    third = entries[2]
-                )
-                Spacer(Modifier.height(8.dp))
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                Spacer(Modifier.height(4.dp))
-            }
-        }
-
-        itemsIndexed(
-            items = entries.drop(3),
-            key = { index, e -> "${e.uid}_$index" }
-        ) { index, entry ->
-            val isUser = entry.uid == userEntry?.uid
-            LeaderboardRow(
+            PodiumSection(
                 type = type,
-                entry = entry,
-                isUser = isUser,
-                maxXp = entries[0].totalXp
+                first = entries[0],
+                second = entries[1],
+                third = entries[2]
             )
+            Spacer(Modifier.height(8.dp))
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+            Spacer(Modifier.height(4.dp))
         }
 
-        if (canLoadMore) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+        // ── Scrollable: rank rows 4+ ──────────────────────────────────────
+        LazyColumn(
+            state = listState,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(bottom = 100.dp)
+        ) {
+            itemsIndexed(
+                items = entries.drop(3),
+                key = { index, e -> "${e.uid}_$index" }
+            ) { index, entry ->
+                val isUser = entry.uid == userEntry?.uid
+                LeaderboardRow(
+                    type = type,
+                    entry = entry,
+                    isUser = isUser,
+                    maxXp = entries[0].totalXp
+                )
+            }
+
+            if (canLoadMore) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    }
                 }
             }
         }
@@ -791,66 +808,69 @@ private fun LastWeekList(
 ) {
     val currentUid = remember { FirebaseAuth.getInstance().currentUser?.uid }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 100.dp)
-    ) {
-        item {
-            LeaderboardHeader(
-                type = type,
-                onTypeChange = onTypeChange,
-                unreadCount = unreadCount,
-                onBellClick = onBellClick
-            )
+    Column(modifier = Modifier.fillMaxSize()) {
+        // ── Sticky: tabs + subtitle + hero banner + podium ────────────────
+        LeaderboardHeader(
+            type = type,
+            onTypeChange = onTypeChange,
+            unreadCount = unreadCount,
+            onBellClick = onBellClick
+        )
+
+        if (entries.isNotEmpty()) {
+            LastWeekHeroHeader(weekOf = weekOf)
+            if (entries.size >= 3) {
+                LastWeekPodiumSection(
+                    first = entries[0],
+                    second = entries[1],
+                    third = entries[2]
+                )
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                Spacer(Modifier.height(4.dp))
+            }
         }
 
-        if (entries.isEmpty()) {
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 48.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🏆", fontSize = 48.sp)
-                        Spacer(Modifier.height(12.dp))
-                        Text(
-                            stringResource(R.string.leaderboard_last_week_empty),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
+        // ── Scrollable: rows 4+ (or empty state) ─────────────────────────
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            contentPadding = PaddingValues(bottom = 100.dp)
+        ) {
+            if (entries.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("🏆", fontSize = 48.sp)
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                stringResource(R.string.leaderboard_last_week_empty),
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     }
                 }
-            }
-        } else {
-            item { LastWeekHeroHeader(weekOf = weekOf) }
-
-            if (entries.size >= 3) {
-                item {
-                    LastWeekPodiumSection(
-                        first = entries[0],
-                        second = entries[1],
-                        third = entries[2]
+            } else {
+                val listEntries = if (entries.size >= 3) entries.drop(3) else entries
+                itemsIndexed(
+                    items = listEntries,
+                    key = { idx, e -> "${e.uid}_$idx" }
+                ) { idx, entry ->
+                    AnimatedLastWeekRow(
+                        entry = entry,
+                        index = idx,
+                        isUser = entry.uid == currentUid,
+                        maxXp = entries[0].weeklyXp
                     )
-                    Spacer(Modifier.height(8.dp))
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    Spacer(Modifier.height(4.dp))
                 }
-            }
-
-            val listEntries = if (entries.size >= 3) entries.drop(3) else entries
-            itemsIndexed(
-                items = listEntries,
-                key = { idx, e -> "${e.uid}_$idx" }
-            ) { idx, entry ->
-                AnimatedLastWeekRow(
-                    entry = entry,
-                    index = idx,
-                    isUser = entry.uid == currentUid,
-                    maxXp = entries[0].weeklyXp
-                )
             }
         }
     }

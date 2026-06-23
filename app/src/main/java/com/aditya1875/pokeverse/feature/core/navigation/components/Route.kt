@@ -57,6 +57,8 @@ sealed class Route(val route: String) {
 
     object DuelPlay : Route("duel/play")
 
+    object WildCatchPlay : Route("wildcatch/play")
+
     // Other screens
     object Analysis : Route("analysis?teamId={teamId}") {
         fun createRoute(teamId: String) = "analysis?teamId=$teamId"

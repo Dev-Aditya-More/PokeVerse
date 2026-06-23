@@ -58,62 +58,58 @@ fun ProfileScreen(
         result = pendingXp,
         onDismiss = { pendingXp = null }
     ) {
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = hPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = hPadding)
         ) {
-            item { Spacer(Modifier.height(8.dp)) }
+            // ── Sticky header: avatar card + XP progress ──────────────────
+            Spacer(Modifier.height(8.dp))
+            ProfileHeader(
+                profile = profile,
+                currentUser = currentUser,
+                onEditName = onEditName,
+                photoUploading = photoUploading,
+                onEditPhoto = {
+                    if (!photoUploading) imagePicker.launch("image/*")
+                }
+            )
+            if (authState is AuthState.Authenticated) {
+                Spacer(Modifier.height(16.dp))
+                XPProgress(profile = profile)
+            }
+            Spacer(Modifier.height(16.dp))
 
-            item {
-                ProfileHeader(
-                    profile = profile,
-                    currentUser = currentUser,
-                    onEditName = onEditName,
-                    photoUploading = photoUploading,
-                    onEditPhoto = {
-                        if (!photoUploading) imagePicker.launch("image/*")
+            // ── Scrollable section: account cards + stats + actions ────────
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (profile.isGuest && authState !is AuthState.Authenticated) {
+                    item { GuestLoginCard() }
+                }
+
+                if (authState is AuthState.Authenticated) {
+                    item {
+                        SignedInCard(
+                            user = currentUser,
+                            onSignOut = { viewModel.signOut() }
+                        )
                     }
-                )
-            }
-
-            if (authState is AuthState.Authenticated) {
-                item {
-                    XPProgress(profile = profile)
                 }
-            }
 
-            if (profile.isGuest && authState !is AuthState.Authenticated) {
-                item {
-                    GuestLoginCard()
+                if (!profile.isGuest) {
+                    item { StatsSection(profile = profile) }
                 }
-            }
 
-            if (authState is AuthState.Authenticated) {
-                item {
-                    SignedInCard(
-                        user = currentUser,
-                        onSignOut = { viewModel.signOut() }
-                    )
-                }
-            }
+                item { GameStatsSection(profile = profile) }
 
-            if (!profile.isGuest) {
-                item {
-                    StatsSection(profile = profile)
-                }
-            }
+                item { ProfileActions(onSettingsClick = onSettingsClick) }
 
-            item {
-                GameStatsSection(profile = profile)
+                item { Spacer(Modifier.height(24.dp)) }
             }
-
-            item {
-                ProfileActions(onSettingsClick = onSettingsClick)
-            }
-
-            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 }

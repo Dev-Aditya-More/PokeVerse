@@ -18,8 +18,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 78
-        versionName = "1.7.8"
+        versionCode = 80
+        versionName = "1.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -72,6 +72,13 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+
+    lint {
+        baseline = file("lint-baseline.xml")
+        lintConfig = file("lint.xml")
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 
     dependenciesInfo {

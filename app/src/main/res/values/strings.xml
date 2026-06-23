@@ -142,6 +142,8 @@
     <string name="game_name_pokequiz_desc">Test your knowledge across generations!</string>
     <string name="game_name_pokeguess_title">Who\'s That Monster?</string>
     <string name="game_name_pokeguess_desc">Guess the monsters from its silhouette!</string>
+    <string name="game_name_wildcatch_title">Wild Catch</string>
+    <string name="game_name_wildcatch_desc">Tap at the right moment to catch wild Pokémon. Pure timing — no knowledge needed!</string>
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->

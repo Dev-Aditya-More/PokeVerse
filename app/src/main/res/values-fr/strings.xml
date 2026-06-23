@@ -137,6 +137,8 @@
     <string name="game_name_pokequiz_desc">Testez vos connaissances sur toutes les générations !</string>
     <string name="game_name_pokeguess_title">C\'est qui ce monstre ?</string>
     <string name="game_name_pokeguess_desc">Devinez les monstres à partir de leur silhouette !</string>
+    <string name="game_name_wildcatch_title">Attrape Sauvage</string>
+    <string name="game_name_wildcatch_desc">Tapez au bon moment pour attraper des Pokémon sauvages. Pur réflexe !</string>
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->

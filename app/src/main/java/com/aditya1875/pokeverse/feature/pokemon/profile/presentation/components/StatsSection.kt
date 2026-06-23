@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Quiz
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
@@ -106,6 +107,12 @@ fun GameStatsSection(profile: UserProfile) {
             title = "Who's That Monster?",
             bestScore = profile.bestGuessScore,
             accentColor = Color(0xFF9C27B0)
+        )
+        GameStatRow(
+            icon = Icons.Default.RadioButtonUnchecked,
+            title = "Wild Catch",
+            bestScore = profile.bestWildCatchScore,
+            accentColor = Color(0xFFE53935)
         )
     }
 }
