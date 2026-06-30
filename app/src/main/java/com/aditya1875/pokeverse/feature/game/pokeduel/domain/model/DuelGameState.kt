@@ -11,9 +11,10 @@ sealed class DuelGameState {
         val score: Int,
         val streak: Int,
         val lives: Int = 3,
-        val result: DuelResult? = null,       // null = not answered yet
-        val userChoice: DuelOutcome? = null,  // null = not answered yet
-        val isCorrect: Boolean? = null
+        val result: DuelResult? = null,
+        val userChoice: DuelOutcome? = null,
+        val isCorrect: Boolean? = null,
+        val bestScore: Int = 0
     ) : DuelGameState()
 
     data class GameOver(

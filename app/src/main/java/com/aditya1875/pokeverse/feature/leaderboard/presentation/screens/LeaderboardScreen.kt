@@ -264,69 +264,70 @@ private fun LeaderboardList(
 ) {
     val listState = rememberLazyListState()
 
-    val rowCount = (entries.size - 3).coerceAtLeast(0)
     val shouldLoadMore by remember {
         derivedStateOf {
             val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            lastVisible >= rowCount - 5 && canLoadMore
+            val total = listState.layoutInfo.totalItemsCount
+            lastVisible >= total - 6 && canLoadMore
         }
     }
     LaunchedEffect(shouldLoadMore) {
         if (shouldLoadMore) onLoadMore()
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // ── Sticky: tabs + subtitle + podium ─────────────────────────────
-        LeaderboardHeader(
-            type = type,
-            onTypeChange = onTypeChange,
-            unreadCount = unreadCount,
-            onBellClick = onBellClick
-        )
-
-        if (entries.size >= 3) {
-            PodiumSection(
-                type = type,
-                first = entries[0],
-                second = entries[1],
-                third = entries[2]
-            )
-            Spacer(Modifier.height(8.dp))
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            Spacer(Modifier.height(4.dp))
+    LazyColumn(
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 100.dp)
+    ) {
+        // Scrolls away: title + bell
+        item(key = "title") {
+            LeaderboardTitleRow(unreadCount = unreadCount, onBellClick = onBellClick)
         }
 
-        // ── Scrollable: rank rows 4+ ──────────────────────────────────────
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentPadding = PaddingValues(bottom = 100.dp)
-        ) {
-            itemsIndexed(
-                items = entries.drop(3),
-                key = { index, e -> "${e.uid}_$index" }
-            ) { index, entry ->
-                val isUser = entry.uid == userEntry?.uid
-                LeaderboardRow(
-                    type = type,
-                    entry = entry,
-                    isUser = isUser,
-                    maxXp = entries[0].totalXp
-                )
-            }
+        // Stays pinned: only the three filter chips
+        stickyHeader(key = "tabs") {
+            LeaderboardTabStrip(type = type, onTypeChange = onTypeChange)
+        }
 
-            if (canLoadMore) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    }
+        // Scrolls away: top-3 podium
+        if (entries.size >= 3) {
+            item(key = "podium") {
+                PodiumSection(
+                    type = type,
+                    first = entries[0],
+                    second = entries[1],
+                    third = entries[2]
+                )
+                Spacer(Modifier.height(8.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+
+        // Scrolls: rank rows 4+
+        itemsIndexed(
+            items = entries.drop(3),
+            key = { index, e -> "${e.uid}_$index" }
+        ) { index, entry ->
+            val isUser = entry.uid == userEntry?.uid
+            LeaderboardRow(
+                type = type,
+                entry = entry,
+                isUser = isUser,
+                maxXp = entries[0].totalXp
+            )
+        }
+
+        if (canLoadMore) {
+            item(key = "load_more") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 }
             }
         }
@@ -334,79 +335,87 @@ private fun LeaderboardList(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Scrollable title row — slides away when the user scrolls down
 @Composable
-private fun LeaderboardHeader(
-    type: LeaderboardType,
-    onTypeChange: (LeaderboardType) -> Unit,
-    unreadCount: Int = 0,
-    onBellClick: () -> Unit = {}
-) {
-    Column(
+private fun LeaderboardTitleRow(unreadCount: Int, onBellClick: () -> Unit) {
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(start = 20.dp, end = 4.dp, top = 16.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                stringResource(R.string.screen_title_leaderboard),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Black,
-                modifier = Modifier.weight(1f)
-            )
-            BadgedBox(
-                badge = {
-                    if (unreadCount > 0) {
-                        Badge { Text(unreadCount.coerceAtMost(99).toString()) }
-                    }
-                }
-            ) {
-                IconButton(onClick = onBellClick) {
-                    Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = "Inbox",
-                        tint = if (unreadCount > 0)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+        Text(
+            stringResource(R.string.screen_title_leaderboard),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Black,
+            modifier = Modifier.weight(1f)
+        )
+        BadgedBox(
+            badge = {
+                if (unreadCount > 0) {
+                    Badge { Text(unreadCount.coerceAtMost(99).toString()) }
                 }
             }
+        ) {
+            IconButton(onClick = onBellClick) {
+                Icon(
+                    Icons.Default.Notifications,
+                    contentDescription = "Inbox",
+                    tint = if (unreadCount > 0)
+                        MaterialTheme.colorScheme.primary
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
+    }
+}
 
-        Spacer(Modifier.height(8.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            LeaderboardTab(
-                text = stringResource(R.string.leaderboard_tab_global),
-                selected = type == LeaderboardType.GLOBAL,
-                onClick = { onTypeChange(LeaderboardType.GLOBAL) }
-            )
-            LeaderboardTab(
-                text = stringResource(R.string.leaderboard_tab_weekly),
-                selected = type == LeaderboardType.WEEKLY,
-                onClick = { onTypeChange(LeaderboardType.WEEKLY) }
-            )
-            LeaderboardTab(
-                text = stringResource(R.string.leaderboard_tab_last_week),
-                selected = type == LeaderboardType.LAST_WEEK,
-                onClick = { onTypeChange(LeaderboardType.LAST_WEEK) }
+// Sticky tab strip — only this stays pinned when scrolling
+@Composable
+private fun LeaderboardTabStrip(type: LeaderboardType, onTypeChange: (LeaderboardType) -> Unit) {
+    Surface(
+        color = MaterialTheme.colorScheme.background,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = 20.dp,
+                    end = 20.dp,
+                    top = 8.dp,
+                    bottom = 12.dp
+                )
+        ) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                LeaderboardTab(
+                    text = stringResource(R.string.leaderboard_tab_global),
+                    selected = type == LeaderboardType.GLOBAL,
+                    onClick = { onTypeChange(LeaderboardType.GLOBAL) }
+                )
+                LeaderboardTab(
+                    text = stringResource(R.string.leaderboard_tab_weekly),
+                    selected = type == LeaderboardType.WEEKLY,
+                    onClick = { onTypeChange(LeaderboardType.WEEKLY) }
+                )
+                LeaderboardTab(
+                    text = stringResource(R.string.leaderboard_tab_last_week),
+                    selected = type == LeaderboardType.LAST_WEEK,
+                    onClick = { onTypeChange(LeaderboardType.LAST_WEEK) }
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                when (type) {
+                    LeaderboardType.WEEKLY -> stringResource(R.string.leaderboard_weekly_reset)
+                    LeaderboardType.LAST_WEEK -> stringResource(R.string.leaderboard_last_week_title)
+                    else -> stringResource(R.string.leaderboard_all_time)
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-
-        Spacer(Modifier.height(6.dp))
-
-        Text(
-            when (type) {
-                LeaderboardType.WEEKLY -> stringResource(R.string.leaderboard_weekly_reset)
-                LeaderboardType.LAST_WEEK -> stringResource(R.string.leaderboard_last_week_title)
-                else -> stringResource(R.string.leaderboard_all_time)
-            },
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
 
@@ -808,69 +817,69 @@ private fun LastWeekList(
 ) {
     val currentUid = remember { FirebaseAuth.getInstance().currentUser?.uid }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        // ── Sticky: tabs + subtitle + hero banner + podium ────────────────
-        LeaderboardHeader(
-            type = type,
-            onTypeChange = onTypeChange,
-            unreadCount = unreadCount,
-            onBellClick = onBellClick
-        )
-
-        if (entries.isNotEmpty()) {
-            LastWeekHeroHeader(weekOf = weekOf)
-            if (entries.size >= 3) {
-                LastWeekPodiumSection(
-                    first = entries[0],
-                    second = entries[1],
-                    third = entries[2]
-                )
-                Spacer(Modifier.height(8.dp))
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                Spacer(Modifier.height(4.dp))
-            }
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(bottom = 100.dp)
+    ) {
+        // Scrolls away: title + bell
+        item(key = "title") {
+            LeaderboardTitleRow(unreadCount = unreadCount, onBellClick = onBellClick)
         }
 
-        // ── Scrollable: rows 4+ (or empty state) ─────────────────────────
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentPadding = PaddingValues(bottom = 100.dp)
-        ) {
-            if (entries.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 48.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🏆", fontSize = 48.sp)
-                            Spacer(Modifier.height(12.dp))
-                            Text(
-                                stringResource(R.string.leaderboard_last_week_empty),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+        // Stays pinned: only the three filter chips
+        stickyHeader(key = "tabs") {
+            LeaderboardTabStrip(type = type, onTypeChange = onTypeChange)
+        }
+
+        if (entries.isEmpty()) {
+            item(key = "empty") {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 48.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text("🏆", fontSize = 48.sp)
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            stringResource(R.string.leaderboard_last_week_empty),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
                     }
                 }
-            } else {
-                val listEntries = if (entries.size >= 3) entries.drop(3) else entries
-                itemsIndexed(
-                    items = listEntries,
-                    key = { idx, e -> "${e.uid}_$idx" }
-                ) { idx, entry ->
-                    AnimatedLastWeekRow(
-                        entry = entry,
-                        index = idx,
-                        isUser = entry.uid == currentUid,
-                        maxXp = entries[0].weeklyXp
+            }
+        } else {
+            // Scrolls away: hero banner + podium
+            item(key = "hero") { LastWeekHeroHeader(weekOf = weekOf) }
+
+            if (entries.size >= 3) {
+                item(key = "podium") {
+                    LastWeekPodiumSection(
+                        first = entries[0],
+                        second = entries[1],
+                        third = entries[2]
                     )
+                    Spacer(Modifier.height(8.dp))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    Spacer(Modifier.height(4.dp))
                 }
+            }
+
+            // Scrolls: rows 4+
+            val listEntries = if (entries.size >= 3) entries.drop(3) else entries
+            itemsIndexed(
+                items = listEntries,
+                key = { idx, e -> "${e.uid}_$idx" }
+            ) { idx, entry ->
+                AnimatedLastWeekRow(
+                    entry = entry,
+                    index = idx,
+                    isUser = entry.uid == currentUid,
+                    maxXp = entries[0].weeklyXp
+                )
             }
         }
     }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.net.toUri
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.ForceUpdateScreen
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.UpdateAvailableDialog
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
@@ -55,6 +56,7 @@ import com.aditya1875.pokeverse.feature.game.pokequiz.presentation.screens.QuizG
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
 import com.aditya1875.pokeverse.feature.game.poketype.presentation.components.TypeRushDifficultyScreen
 import com.aditya1875.pokeverse.feature.game.poketype.presentation.screens.TypeRushScreen
+import com.aditya1875.pokeverse.feature.berry.presentation.screens.BerryDetailScreen
 import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemDetailScreen
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.screens.LeaderboardScreen
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens.PokemonDetailScreen
@@ -85,26 +87,37 @@ fun AppNavGraph(
     val currentRoute = navBackStackEntry?.destination?.route
     val scope = rememberCoroutineScope()
 
+    // latestVersionCode  → soft "update available" dialog (dismissible)
+    // minVersionCode     → hard block, app unusable below this (existing ForceUpdateScreen)
     var latestVersionCode by remember { mutableLongStateOf(0L) }
+    var minVersionCode by remember { mutableLongStateOf(0L) }
+    var latestVersionName by remember { mutableStateOf("") }
+    var showSoftUpdate by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val firestore = FirebaseFirestore.getInstance()
         val ref = firestore.collection("leaderboard").document("config")
         while (true) {
-            val fetched = try {
-                ref.get(Source.SERVER).await().getLong("latestVersionCode") ?: 0L
+            val doc = try {
+                ref.get(Source.SERVER).await()
             } catch (_: Exception) {
-                try {
-                    ref.get(Source.CACHE).await().getLong("latestVersionCode") ?: 0L
-                } catch (_: Exception) {
-                    -1L // both failed — retry soon
-                }
+                try { ref.get(Source.CACHE).await() } catch (_: Exception) { null }
             }
-            if (fetched >= 0L) {
-                latestVersionCode = fetched
-                kotlinx.coroutines.delay(30 * 60 * 1000L) // re-check every 30 min
+
+            if (doc != null) {
+                latestVersionCode = doc.getLong("latestVersionCode") ?: 0L
+                minVersionCode = doc.getLong("minVersionCode") ?: 0L
+                latestVersionName = doc.getString("latestVersionName") ?: ""
+
+                val current = BuildConfig.VERSION_CODE.toLong()
+                // Only show soft dialog once per session and only when not hard-blocked
+                if (current >= minVersionCode && current < latestVersionCode && latestVersionName.isNotEmpty()) {
+                    showSoftUpdate = true
+                }
+
+                kotlinx.coroutines.delay(30 * 60 * 1000L)
             } else {
-                kotlinx.coroutines.delay(60 * 1000L) // retry after 60 s on network failure
+                kotlinx.coroutines.delay(60 * 1000L)
             }
         }
     }
@@ -212,6 +225,19 @@ fun AppNavGraph(
                 }
             }
 
+            composable(
+                route = Route.BerryDetail.route,
+                arguments = listOf(
+                    navArgument("berryName") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val berryName = backStackEntry.arguments?.getString("berryName") ?: return@composable
+                BerryDetailScreen(
+                    berryName = berryName,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
             composable(Route.BottomBar.Team.route) {
                 WithBottomBar(
                     navController
@@ -237,7 +263,7 @@ fun AppNavGraph(
                                 "pokeguess" -> navController.navigate(Route.GuessDifficulty.route)
                                 "wildcatch" -> navController.navigate(Route.WildCatchPlay.route)
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -510,7 +536,17 @@ fun AppNavGraph(
         modifier = Modifier.align(Alignment.TopCenter)
     )
 
-    if (latestVersionCode > 0L && BuildConfig.VERSION_CODE.toLong() < latestVersionCode) {
+    // Soft nudge — dismissible dialog for non-breaking updates
+    if (showSoftUpdate) {
+        UpdateAvailableDialog(
+            latestVersionName = latestVersionName,
+            packageName = context.packageName,
+            onDismiss = { showSoftUpdate = false }
+        )
+    }
+
+    // Hard block — app is unusable below minVersionCode (security / API break)
+    if (minVersionCode > 0L && BuildConfig.VERSION_CODE.toLong() < minVersionCode) {
         ForceUpdateScreen(
             onUpdate = {
                 val uri = "market://details?id=${context.packageName}".toUri()

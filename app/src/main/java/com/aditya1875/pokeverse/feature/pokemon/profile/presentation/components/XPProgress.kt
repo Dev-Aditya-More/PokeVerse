@@ -1,7 +1,11 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +30,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +43,26 @@ fun XPProgress(profile: UserProfile) {
 
     val targetProgress = (profile.currentXp.toFloat() / profile.nextLevelXp.toFloat())
         .coerceIn(0f, 1f)
+
+    val streakTransition = rememberInfiniteTransition(label = "streak_pulse")
+    val streakScale by streakTransition.animateFloat(
+        initialValue = 0.85f,
+        targetValue = 1.20f,
+        animationSpec = infiniteRepeatable(
+            tween(900, easing = FastOutSlowInEasing),
+            RepeatMode.Reverse
+        ),
+        label = "streak_scale"
+    )
+    val streakAlpha by streakTransition.animateFloat(
+        initialValue = 0.65f,
+        targetValue = 1.0f,
+        animationSpec = infiniteRepeatable(
+            tween(900, easing = FastOutSlowInEasing),
+            RepeatMode.Reverse
+        ),
+        label = "streak_alpha"
+    )
 
     val animatedProgress by animateFloatAsState(
         targetValue = targetProgress,
@@ -125,8 +150,10 @@ fun XPProgress(profile: UserProfile) {
                         Icon(
                             Icons.Default.LocalFireDepartment,
                             contentDescription = null,
-                            tint = Color(0xFFFF6D00),
-                            modifier = Modifier.size(15.dp)
+                            tint = Color(0xFFFF6D00).copy(alpha = streakAlpha),
+                            modifier = Modifier
+                                .size(15.dp)
+                                .scale(streakScale)
                         )
                         Text(
                             text = "${profile.dailyStreak} day streak",

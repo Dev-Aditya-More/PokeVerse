@@ -28,7 +28,14 @@ data class UserProfile(
     // Leaderboard
     val rank: Int = 0,
     val photoUrl: String = "",
-    val email: String = ""
+    val email: String = "",
+
+    // Daily Duel — async ranked mode
+    val duelPoints: Int = 1000,
+    val duelWins: Int = 0,
+    val duelLosses: Int = 0,
+    val duelStreak: Int = 0,
+    val lastDuelDate: String = ""
 ) {
     companion object {
         val GUEST = UserProfile(

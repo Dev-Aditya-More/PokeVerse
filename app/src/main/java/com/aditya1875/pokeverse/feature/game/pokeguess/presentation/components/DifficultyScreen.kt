@@ -251,6 +251,7 @@ fun PokeGuessResultScreen(
     correctAnswers: Int,
     totalQuestions: Int,
     difficulty: GuessDifficulty,
+    isNewBest: Boolean = false,
     onPlayAgain: () -> Unit,
     onBackToMenu: () -> Unit,
     soundManager: SoundManager = koinInject()
@@ -281,6 +282,7 @@ fun PokeGuessResultScreen(
         scoreLabel = stringResource(R.string.result_score_label_points),
         heroColor = heroColor,
         stars = stars,
+        isNewBest = isNewBest,
         onPlayAgain = onPlayAgain,
         onBack = onBackToMenu,
         heroContent = {

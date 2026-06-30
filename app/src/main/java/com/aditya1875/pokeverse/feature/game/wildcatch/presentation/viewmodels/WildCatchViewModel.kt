@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
@@ -45,6 +46,7 @@ class WildCatchViewModel(
     private var currentScore = 0
     private var currentStreak = 0
     private var nextPokemon: WildCatchPokemon? = null
+    private var sessionBestScore = 0
 
     fun startGame() {
         currentLives = MAX_LIVES
@@ -55,6 +57,7 @@ class WildCatchViewModel(
         nextPokemon = null
         _gameState.value = WildCatchGameState.Loading
         viewModelScope.launch {
+            sessionBestScore = userRepository.profileFlow.first().bestWildCatchScore
             val pokemon = loadRandomPokemon()
             if (pokemon != null) {
                 pokemonCount++
@@ -116,7 +119,8 @@ class WildCatchViewModel(
             catches = catches,
             score = currentScore,
             lives = currentLives,
-            shakeCount = shakeCount
+            shakeCount = shakeCount,
+            bestScore = sessionBestScore
         )
     }
 
@@ -168,7 +172,8 @@ class WildCatchViewModel(
         catches = catches,
         score = currentScore,
         streak = currentStreak,
-        lives = currentLives
+        lives = currentLives,
+        bestScore = sessionBestScore
     )
 
     private fun prefetchNext() {
@@ -230,7 +235,8 @@ class WildCatchViewModel(
         _gameState.value = WildCatchGameState.Finished(
             catches = catches,
             pokemonCount = pokemonCount,
-            score = currentScore
+            score = currentScore,
+            isNewBest = currentScore > sessionBestScore
         )
     }
 }

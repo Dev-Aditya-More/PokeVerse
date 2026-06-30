@@ -30,6 +30,8 @@ import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GuessGameState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -140,6 +142,7 @@ fun PokeGuessGameScreen(
                     correctAnswers = state.correctAnswers,
                     totalQuestions = state.totalQuestions,
                     difficulty = state.difficulty,
+                    isNewBest = state.isNewBest,
                     onPlayAgain = {
                         if (difficulty == GuessDifficulty.HARD && subscriptionState !is SubscriptionState.Premium)
                             showAdForReplay = true
@@ -213,17 +216,20 @@ private fun SilhouetteScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Text(
-                    "${state.score}",
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+            Column(horizontalAlignment = Alignment.End) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        "${state.score}",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                PbChip(bestScore = state.bestScore, currentScore = state.score)
             }
         }
 
@@ -252,7 +258,9 @@ private fun SilhouetteScreen(
             )
         }
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(6.dp))
+        ComboLabel(combo = state.combo, modifier = Modifier.align(Alignment.CenterHorizontally))
+        Spacer(Modifier.height(6.dp))
 
         // Title
         Text(
@@ -449,6 +457,11 @@ private fun RevealScreen(
                     textAlign = TextAlign.Center,
                     letterSpacing = 1.sp
                 )
+
+                if (isCorrect && state.combo >= 2) {
+                    Spacer(Modifier.height(8.dp))
+                    ComboLabel(combo = state.combo)
+                }
 
                 Spacer(Modifier.height(24.dp))
 

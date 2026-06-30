@@ -5,6 +5,7 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import kotlin.math.roundToInt
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -963,14 +964,19 @@ fun PokemonDetailPage(
                                     Spacer(modifier = Modifier.height(12.dp))
 
                                     pokemon.stats.forEachIndexed { index, stat ->
-                                        val animatedProgress = animateFloatAsState(
-                                            targetValue = stat.base_stat / 255f,
+                                        var targetFraction by remember(stat.stat.name) { mutableStateOf(0f) }
+                                        val animatedProgress by animateFloatAsState(
+                                            targetValue = targetFraction,
                                             animationSpec = tween(
-                                                durationMillis = 2500,
-                                                delayMillis = index * 120,
+                                                durationMillis = 900,
+                                                delayMillis = index * 100,
                                                 easing = FastOutSlowInEasing
-                                            ), label = "statAnimation"
+                                            ),
+                                            label = "stat_$index"
                                         )
+                                        LaunchedEffect(stat.base_stat) {
+                                            targetFraction = stat.base_stat / 255f
+                                        }
 
                                         Column(
                                             modifier = Modifier
@@ -991,7 +997,7 @@ fun PokemonDetailPage(
                                                     modifier = Modifier.weight(1f)
                                                 )
                                                 Text(
-                                                    text = stat.base_stat.toString(),
+                                                    text = (animatedProgress * 255f).roundToInt().coerceIn(0, stat.base_stat).toString(),
                                                     style = MaterialTheme.typography.labelMedium,
                                                     color = MaterialTheme.colorScheme.onSurface.copy(
                                                         alpha = 0.7f
@@ -1016,7 +1022,7 @@ fun PokemonDetailPage(
                                             ) {
                                                 Box(
                                                     modifier = Modifier
-                                                        .fillMaxWidth(animatedProgress.value)
+                                                        .fillMaxWidth(animatedProgress)
                                                         .fillMaxHeight()
                                                         .clip(RoundedCornerShape(50))
                                                         .background(
@@ -1038,15 +1044,19 @@ fun PokemonDetailPage(
                                     )
 
                                     val totalBst = pokemon.stats.sumOf { it.base_stat }
+                                    var totalTarget by remember { mutableStateOf(0f) }
                                     val totalAnimated by animateFloatAsState(
-                                        targetValue = (totalBst / 720f).coerceIn(0f, 1f),
+                                        targetValue = totalTarget,
                                         animationSpec = tween(
-                                            durationMillis = 2500,
-                                            delayMillis = pokemon.stats.size * 120,
+                                            durationMillis = 900,
+                                            delayMillis = pokemon.stats.size * 100,
                                             easing = FastOutSlowInEasing
                                         ),
                                         label = "totalBstAnimation"
                                     )
+                                    LaunchedEffect(totalBst) {
+                                        totalTarget = (totalBst / 720f).coerceIn(0f, 1f)
+                                    }
 
                                     Column(
                                         modifier = Modifier
@@ -1065,7 +1075,7 @@ fun PokemonDetailPage(
                                                 modifier = Modifier.weight(1f)
                                             )
                                             Text(
-                                                text = totalBst.toString(),
+                                                text = (totalAnimated * 720f).roundToInt().coerceIn(0, totalBst).toString(),
                                                 style = MaterialTheme.typography.labelMedium,
                                                 fontWeight = FontWeight.ExtraBold,
                                                 color = bgColor,

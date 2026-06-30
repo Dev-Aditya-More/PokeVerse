@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -51,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import androidx.compose.ui.graphics.FilterQuality
 import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemDetailState
 import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemViewModel
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components.InfoBlock
@@ -124,32 +126,36 @@ fun SharedTransitionScope.ItemDetailScreen(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(260.dp)
-                                .background(
-                                    Brush.radialGradient(
-                                        listOf(
-                                            bgColor.copy(alpha = 0.4f),
-                                            Color.Transparent
-                                        )
-                                    )
-                                )
+                                .height(240.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(bgColor.copy(alpha = 0.08f))
                                 .sharedElement(
                                     sharedContentState = rememberSharedContentState(key = key),
                                     animatedVisibilityScope = animatedVisibilityScope
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
+                            // Soft radial glow behind sprite
+                            Box(
+                                modifier = Modifier
+                                    .size(200.dp)
+                                    .background(
+                                        Brush.radialGradient(
+                                            listOf(bgColor.copy(alpha = 0.35f), Color.Transparent)
+                                        ),
+                                        shape = CircleShape
+                                    )
+                            )
                             val context = LocalContext.current
-
                             AsyncImage(
                                 model = ImageRequest.Builder(context)
                                     .data(item.spriteUrl)
-                                    .size(512)
-                                    .crossfade(true)
+                                    .crossfade(false)
                                     .build(),
                                 contentDescription = item.displayName,
-                                modifier = Modifier.size(140.dp),
-                                contentScale = ContentScale.Fit
+                                modifier = Modifier.size(160.dp),
+                                contentScale = ContentScale.Fit,
+                                filterQuality = FilterQuality.None
                             )
                         }
                     }

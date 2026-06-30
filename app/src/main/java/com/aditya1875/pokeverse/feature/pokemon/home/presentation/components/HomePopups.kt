@@ -3,7 +3,9 @@ package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import android.content.Intent
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,6 +17,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import kotlinx.coroutines.launch
@@ -160,6 +163,58 @@ fun HomePopupOrchestrator(
 // Force update screen — non-dismissible, blocks the entire app
 // Shown when BuildConfig.VERSION_CODE < minVersionCode from Firestore
 // ─────────────────────────────────────────────────────────────────────────────
+@Composable
+fun UpdateAvailableDialog(
+    latestVersionName: String,
+    packageName: String,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        shape = RoundedCornerShape(24.dp),
+        icon = { Icon(Icons.Default.NewReleases, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp)) },
+        title = {
+            Text(
+                "Update Available",
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center
+            )
+        },
+        text = {
+            Text(
+                "Version $latestVersionName is here with new features and improvements. Update now to stay in the game!",
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val uri = "market://details?id=$packageName".toUri()
+                    val intent = Intent(Intent.ACTION_VIEW, uri).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    try { context.startActivity(intent) } catch (_: Exception) {
+                        val webUri = "https://play.google.com/store/apps/details?id=$packageName".toUri()
+                        context.startActivity(Intent(Intent.ACTION_VIEW, webUri))
+                    }
+                },
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Update Now", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                Text("Maybe Later", color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+    )
+}
+
 @Composable
 fun ForceUpdateScreen(onUpdate: () -> Unit) {
     Box(

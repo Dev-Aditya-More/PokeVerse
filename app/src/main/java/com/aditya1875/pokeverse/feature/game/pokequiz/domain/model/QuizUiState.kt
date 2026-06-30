@@ -15,6 +15,7 @@ sealed class QuizUiState {
         val correctAnswers: Int,
         val totalQuestions: Int,
         val difficulty: QuizDifficulty,
-        val stars: Int
+        val stars: Int,
+        val isNewBest: Boolean = false
     ) : QuizUiState()
 }

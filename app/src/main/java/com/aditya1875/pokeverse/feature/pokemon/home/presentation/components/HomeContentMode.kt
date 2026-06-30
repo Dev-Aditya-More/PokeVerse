@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 
-enum class HomeContentMode { POKEMON, ITEMS }
+enum class HomeContentMode { POKEMON, ITEMS, BERRIES }
 
 @Composable
 fun HomeFabCluster(
@@ -70,6 +70,17 @@ fun HomeFabCluster(
                         expanded = false
                     }
                 )
+                // Berries option
+                MiniActionRow(
+                    label = "Berries",
+                    emoji = "🍓",
+                    isActive = currentMode == HomeContentMode.BERRIES,
+                    activeColor = Color(0xFFE65100),
+                    onClick = {
+                        onModeChange(HomeContentMode.BERRIES)
+                        expanded = false
+                    }
+                )
                 // Pokémon option
                 MiniActionRow(
                     label = "Pokémon",
@@ -104,9 +115,11 @@ fun HomeFabCluster(
             FloatingActionButton(
                 onClick = { expanded = !expanded },
                 shape = RoundedCornerShape(16.dp),
-                containerColor = if (currentMode == HomeContentMode.ITEMS)
-                    Color(0xFF6A1B9A)
-                else MaterialTheme.colorScheme.primary,
+                containerColor = when (currentMode) {
+                    HomeContentMode.ITEMS -> Color(0xFF6A1B9A)
+                    HomeContentMode.BERRIES -> Color(0xFFE65100)
+                    else -> MaterialTheme.colorScheme.primary
+                },
                 modifier = Modifier.size(52.dp)
             ) {
                 Icon(

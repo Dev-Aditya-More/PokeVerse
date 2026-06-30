@@ -53,7 +53,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -107,6 +106,11 @@ import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
+import com.aditya1875.pokeverse.feature.berry.presentation.screens.BerryGridCard
+import com.aditya1875.pokeverse.feature.berry.presentation.screens.BerryGridSkeleton
+import com.aditya1875.pokeverse.feature.berry.presentation.screens.BerryListError
+import com.aditya1875.pokeverse.feature.berry.presentation.viewmodels.BerryListState
+import com.aditya1875.pokeverse.feature.berry.presentation.viewmodels.BerryViewModel
 import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemGridCard
 import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemGridSkeleton
 import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemListError
@@ -158,6 +162,7 @@ fun SharedTransitionScope.HomeScreen(
     profileViewModel: ProfileViewModel = koinViewModel(),
     triviaViewModel: DailyTriviaViewModel = koinViewModel(),
     itemViewModel: ItemViewModel = koinViewModel(),
+    berryViewModel: BerryViewModel = koinViewModel(),
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val pokemonList by viewModel.pokemonList.collectAsStateWithLifecycle()
@@ -196,14 +201,21 @@ fun SharedTransitionScope.HomeScreen(
 
     val pokemonGridState = rememberLazyGridState()
     val itemGridState = rememberLazyGridState()
+    val berryGridState = rememberLazyGridState()
 
     val itemListState by itemViewModel.listState.collectAsStateWithLifecycle()
     val filteredItems by itemViewModel.filteredItems.collectAsStateWithLifecycle()
     val searchQuery by itemViewModel.searchQuery.collectAsStateWithLifecycle()
 
-    val textFieldValue =
-        if (contentMode == HomeContentMode.POKEMON) query
-        else searchQuery
+    val berryListState by berryViewModel.listState.collectAsStateWithLifecycle()
+    val filteredBerries by berryViewModel.filteredBerries.collectAsStateWithLifecycle()
+    val berrySearchQuery by berryViewModel.searchQuery.collectAsStateWithLifecycle()
+
+    val textFieldValue = when (contentMode) {
+        HomeContentMode.POKEMON -> query
+        HomeContentMode.BERRIES -> berrySearchQuery
+        else -> searchQuery
+    }
 
     val displayList =
         if (searchQuery.isNotEmpty()) filteredItems
@@ -377,42 +389,29 @@ fun SharedTransitionScope.HomeScreen(
                                 )
 
                                 DropdownMenuItem(
-                                    text = {
-                                        if (isPremium) {
-                                            Text(
-                                                "Items",
-                                                color = MaterialTheme.colorScheme.onSurface
-                                            )
-                                        } else {
-                                            Text(
-                                                "Items",
-                                                color = MaterialTheme.colorScheme.onSurface.copy(
-                                                    alpha = 0.5f
-                                                )
-                                            )
-                                        }
-                                    },
+                                    text = { Text("Items") },
                                     trailingIcon = {
-                                        if (isPremium) {
-                                            if (contentMode == HomeContentMode.ITEMS) {
-                                                Icon(
-                                                    Icons.Default.Check,
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        } else {
-                                            Icon(Icons.Default.Lock, contentDescription = null)
+                                        if (contentMode == HomeContentMode.ITEMS) {
+                                            Icon(Icons.Default.Check, contentDescription = null)
                                         }
                                     },
                                     onClick = {
-                                        if (isPremium) {
-                                            contentMode = HomeContentMode.ITEMS
-                                            showMenu = false
-                                        } else {
-                                            showPremiumSheet = true
+                                        contentMode = HomeContentMode.ITEMS
+                                        showMenu = false
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Berries") },
+                                    trailingIcon = {
+                                        if (contentMode == HomeContentMode.BERRIES) {
+                                            Icon(Icons.Default.Check, contentDescription = null)
                                         }
                                     },
-                                    modifier = Modifier.alpha(if (isPremium) 1f else 0.5f),
+                                    onClick = {
+                                        contentMode = HomeContentMode.BERRIES
+                                        showMenu = false
+                                    }
                                 )
                             }
                         }
@@ -571,18 +570,20 @@ fun SharedTransitionScope.HomeScreen(
                     OutlinedTextField(
                         value = textFieldValue,
                         onValueChange = {
-                            if (contentMode == HomeContentMode.POKEMON) {
-                                query = it
-                                searchViewModel.onQueryChange(it)
-                            } else {
-                                itemViewModel.onSearchChange(it)
+                            when (contentMode) {
+                                HomeContentMode.POKEMON -> {
+                                    query = it
+                                    searchViewModel.onQueryChange(it)
+                                }
+                                HomeContentMode.ITEMS -> itemViewModel.onSearchChange(it)
+                                HomeContentMode.BERRIES -> berryViewModel.onSearchChange(it)
                             }
                         },
                         label = {
-                            if (contentMode == HomeContentMode.POKEMON) {
-                                Text(stringResource(R.string.home_search_pokemon))
-                            } else {
-                                Text(stringResource(R.string.home_search_item))
+                            when (contentMode) {
+                                HomeContentMode.POKEMON -> Text(stringResource(R.string.home_search_pokemon))
+                                HomeContentMode.ITEMS -> Text(stringResource(R.string.home_search_item))
+                                HomeContentMode.BERRIES -> Text("Search berries...")
                             }
                         },
                         singleLine = true,
@@ -606,8 +607,11 @@ fun SharedTransitionScope.HomeScreen(
                             } else null,
 
                         trailingIcon = {
-                            val activeQuery =
-                                if (contentMode == HomeContentMode.POKEMON) query else searchQuery
+                            val activeQuery = when (contentMode) {
+                                HomeContentMode.POKEMON -> query
+                                HomeContentMode.BERRIES -> berrySearchQuery
+                                else -> searchQuery
+                            }
                             when {
                                 isSearching -> {
                                     CircularProgressIndicator(
@@ -619,11 +623,13 @@ fun SharedTransitionScope.HomeScreen(
 
                                 activeQuery.isNotEmpty() -> {
                                     IconButton(onClick = {
-                                        if (contentMode == HomeContentMode.POKEMON) {
-                                            query = ""
-                                            searchViewModel.onQueryChange("")
-                                        } else {
-                                            itemViewModel.onSearchChange("")
+                                        when (contentMode) {
+                                            HomeContentMode.POKEMON -> {
+                                                query = ""
+                                                searchViewModel.onQueryChange("")
+                                            }
+                                            HomeContentMode.ITEMS -> itemViewModel.onSearchChange("")
+                                            HomeContentMode.BERRIES -> berryViewModel.onSearchChange("")
                                         }
                                     }) {
                                         Icon(Icons.Default.Close, stringResource(R.string.home_clear_search))
@@ -811,7 +817,12 @@ fun SharedTransitionScope.HomeScreen(
                                                         navController.navigate(
                                                             Route.Details.createDetails(pokemon.name)
                                                         )
-                                                    }
+                                                    },
+                                                    modifier = Modifier.animateItem(
+                                                        fadeInSpec = tween(280),
+                                                        fadeOutSpec = tween(200),
+                                                        placementSpec = tween(320, easing = FastOutSlowInEasing)
+                                                    )
                                                 )
                                             }
 
@@ -895,12 +906,52 @@ fun SharedTransitionScope.HomeScreen(
                                             }
                                         }
                                     }
+
+                                    HomeContentMode.BERRIES -> {
+                                        when (val bs = berryListState) {
+                                            is BerryListState.Loading -> BerryGridSkeleton()
+                                            is BerryListState.Error -> BerryListError(
+                                                message = bs.message,
+                                                onRetry = { berryViewModel.loadBerries() }
+                                            )
+                                            is BerryListState.Success -> {
+                                                val displayBerries =
+                                                    if (berrySearchQuery.isNotEmpty()) filteredBerries
+                                                    else bs.berries
+                                                LazyVerticalGrid(
+                                                    columns = GridCells.Adaptive(minSize = 180.dp),
+                                                    state = berryGridState,
+                                                    contentPadding = PaddingValues(
+                                                        start = hPadding,
+                                                        end = hPadding,
+                                                        top = 8.dp,
+                                                        bottom = 120.dp
+                                                    ),
+                                                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                                                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                    modifier = Modifier.fillMaxSize()
+                                                ) {
+                                                    items(displayBerries, key = { it.id }) { berry ->
+                                                        BerryGridCard(
+                                                            berry = berry,
+                                                            onClick = {
+                                                                navController.navigate(
+                                                                    Route.BerryDetail.createRoute(berry.name)
+                                                                )
+                                                            }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
 
                                 PullRefreshIndicator(
                                     refreshing = when (contentMode) {
                                         HomeContentMode.POKEMON -> isLoading
                                         HomeContentMode.ITEMS -> itemListState is ItemListState.Loading
+                                        HomeContentMode.BERRIES -> berryListState is BerryListState.Loading
                                     },
                                     state = pullRefreshState,
                                     modifier = Modifier.align(Alignment.TopCenter),

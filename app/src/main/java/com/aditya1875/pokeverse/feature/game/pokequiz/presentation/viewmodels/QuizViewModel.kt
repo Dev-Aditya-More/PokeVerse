@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -63,8 +64,8 @@ class QuizViewModel(
                 if (bonus.xpGained > 0) _xpResult.emit(bonus)
             }
 
-            // Try dynamic questions from PokeAPI; fall back to local bank if the
-            // network fails or returns fewer questions than needed.
+            val bestScore = repository.profileFlow.first().bestQuizScore
+
             val questions = run {
                 val dynamic = dynamicQuizRepo.generateQuestions(difficulty)
                 if (dynamic.size >= difficulty.questionCount) {
@@ -83,7 +84,9 @@ class QuizViewModel(
                 correctAnswers = 0,
                 timeRemaining = difficulty.timePerQuestion,
                 totalTimePerQuestion = difficulty.timePerQuestion,
-                difficulty = difficulty
+                difficulty = difficulty,
+                combo = 0,
+                bestScore = bestScore
             )
 
             _uiState.value = QuizUiState.Playing(gameState)
@@ -127,6 +130,8 @@ class QuizViewModel(
             )
         } else 0
 
+        val newCombo = if (isCorrect) gameState.combo + 1 else 0
+
         val newAnswers = gameState.answers.toMutableList().apply {
             this[gameState.currentQuestionIndex] = answerIndex
         }
@@ -134,7 +139,8 @@ class QuizViewModel(
         val updatedGameState = gameState.copy(
             score = gameState.score + questionScore,
             correctAnswers = if (isCorrect) gameState.correctAnswers + 1 else gameState.correctAnswers,
-            answers = newAnswers
+            answers = newAnswers,
+            combo = newCombo
         )
 
         _uiState.value = QuizUiState.ShowingAnswer(
@@ -158,6 +164,7 @@ class QuizViewModel(
         val nextGameState = gameState.copy(
             currentQuestionIndex = gameState.currentQuestionIndex + 1,
             timeRemaining = gameState.totalTimePerQuestion
+            // combo and bestScore carry forward automatically via copy
         )
         _uiState.value = QuizUiState.Playing(nextGameState)
         startTimer()
@@ -189,6 +196,7 @@ class QuizViewModel(
 
     private fun finishQuiz(gameState: QuizGameState) {
         val stars = calculateStars(gameState.score, gameState.questions.size)
+        val isNewBest = gameState.score > gameState.bestScore
 
         viewModelScope.launch {
             val result = xpManager.awardGameXP(
@@ -219,7 +227,8 @@ class QuizViewModel(
             correctAnswers = gameState.correctAnswers,
             totalQuestions = gameState.questions.size,
             difficulty = gameState.difficulty,
-            stars = stars
+            stars = stars,
+            isNewBest = isNewBest
         )
     }
 

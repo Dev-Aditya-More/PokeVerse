@@ -28,6 +28,10 @@ sealed class Route(val route: String) {
     object ItemDetail : Route("item_detail/{itemName}") {
         fun createRoute(name: String) = "item_detail/$name"
     }
+
+    object BerryDetail : Route("berry_detail/{berryName}") {
+        fun createRoute(name: String) = "berry_detail/$name"
+    }
     object EditProfile : Route("edit_profile")
 
     object Settings : Route("settings")

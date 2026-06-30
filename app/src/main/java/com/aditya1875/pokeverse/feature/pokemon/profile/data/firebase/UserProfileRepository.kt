@@ -48,6 +48,12 @@ class UserProfileRepository(private val context: Context) {
 
         val RANK = intPreferencesKey("rank")
         val EMAIL = stringPreferencesKey("email")
+
+        val DUEL_POINTS = intPreferencesKey("duel_points")
+        val DUEL_WINS = intPreferencesKey("duel_wins")
+        val DUEL_LOSSES = intPreferencesKey("duel_losses")
+        val DUEL_STREAK = intPreferencesKey("duel_streak")
+        val LAST_DUEL_DATE = stringPreferencesKey("last_duel_date")
     }
 
     val profileFlow: Flow<UserProfile> = ds.data.map { p ->
@@ -77,6 +83,11 @@ class UserProfileRepository(private val context: Context) {
             photoUrl = p[K.PHOTO_URL] ?: "",
             rank = p[K.RANK] ?: 0,
             email = p[K.EMAIL] ?: "",
+            duelPoints = p[K.DUEL_POINTS] ?: 1000,
+            duelWins = p[K.DUEL_WINS] ?: 0,
+            duelLosses = p[K.DUEL_LOSSES] ?: 0,
+            duelStreak = p[K.DUEL_STREAK] ?: 0,
+            lastDuelDate = p[K.LAST_DUEL_DATE] ?: "",
         )
     }
 
@@ -101,6 +112,11 @@ class UserProfileRepository(private val context: Context) {
             p[K.PHOTO_URL] = profile.photoUrl
             p[K.RANK] = profile.rank
             p[K.EMAIL] = profile.email
+            p[K.DUEL_POINTS] = profile.duelPoints
+            p[K.DUEL_WINS] = profile.duelWins
+            p[K.DUEL_LOSSES] = profile.duelLosses
+            p[K.DUEL_STREAK] = profile.duelStreak
+            p[K.LAST_DUEL_DATE] = profile.lastDuelDate
         }
     }
 
@@ -132,6 +148,11 @@ class UserProfileRepository(private val context: Context) {
                 photoUrl = doc.getString("photoUrl") ?: "",
                 rank = (doc.getLong("rank") ?: 0L).toInt(),
                 email = doc.getString("email") ?: "",
+                duelPoints = (doc.getLong("duelPoints") ?: 1000L).toInt(),
+                duelWins = (doc.getLong("duelWins") ?: 0L).toInt(),
+                duelLosses = (doc.getLong("duelLosses") ?: 0L).toInt(),
+                duelStreak = (doc.getLong("duelStreak") ?: 0L).toInt(),
+                lastDuelDate = doc.getString("lastDuelDate") ?: "",
             )
         } catch (e: Exception) {
             null
@@ -160,6 +181,11 @@ class UserProfileRepository(private val context: Context) {
                     "dailyStreak" to profile.dailyStreak,
                     "lastDailyXpDate" to profile.lastDailyXpDate,
                     "lastActiveDateMs" to profile.lastActiveDateMillis,
+                    "duelPoints" to profile.duelPoints,
+                    "duelWins" to profile.duelWins,
+                    "duelLosses" to profile.duelLosses,
+                    "duelStreak" to profile.duelStreak,
+                    "lastDuelDate" to profile.lastDuelDate,
                     "updatedAt" to Timestamp.now()
                 ),
                 SetOptions.merge()

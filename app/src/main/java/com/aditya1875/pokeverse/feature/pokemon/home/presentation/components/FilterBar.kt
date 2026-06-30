@@ -9,6 +9,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -17,7 +20,9 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.aditya1875.pokeverse.R
@@ -47,6 +52,11 @@ fun FilterBar(
         ) {
             item {
                 val selected = currentFilter.selectedRegion == null
+                val chipScale by animateFloatAsState(
+                    targetValue = if (selected) 1.06f else 1f,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
+                    label = "chip_scale_all_regions"
+                )
                 FilterChip(
                     onClick = { onRegionChange(null) },
                     label = { Text(stringResource(R.string.filter_all_regions)) },
@@ -61,7 +71,9 @@ fun FilterBar(
                             )
                         }
                     } else null,
-                    modifier = Modifier.padding(vertical = 2.dp),
+                    modifier = Modifier
+                        .padding(vertical = 2.dp)
+                        .graphicsLayer { scaleX = chipScale; scaleY = chipScale },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -71,6 +83,11 @@ fun FilterBar(
 
             items(Region.entries.toTypedArray()) { region ->
                 val selected = currentFilter.selectedRegion == region
+                val chipScale by animateFloatAsState(
+                    targetValue = if (selected) 1.06f else 1f,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
+                    label = "chip_scale_${region.name}"
+                )
                 FilterChip(
                     onClick = { onRegionChange(region) },
                     label = { Text(region.displayName) },
@@ -85,7 +102,9 @@ fun FilterBar(
                             )
                         }
                     } else null,
-                    modifier = Modifier.padding(vertical = 2.dp),
+                    modifier = Modifier
+                        .padding(vertical = 2.dp)
+                        .graphicsLayer { scaleX = chipScale; scaleY = chipScale },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -100,6 +119,11 @@ fun FilterBar(
         ) {
             item {
                 val selected = currentFilter.selectedType == null
+                val chipScale by animateFloatAsState(
+                    targetValue = if (selected) 1.06f else 1f,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
+                    label = "chip_scale_all_types"
+                )
                 FilterChip(
                     onClick = { onTypeChange(null) },
                     label = { Text(stringResource(R.string.filter_all_types)) },
@@ -118,7 +142,9 @@ fun FilterBar(
                             }
                         }
                     } else null,
-                    modifier = Modifier.padding(vertical = 2.dp),
+                    modifier = Modifier
+                        .padding(vertical = 2.dp)
+                        .graphicsLayer { scaleX = chipScale; scaleY = chipScale },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -128,6 +154,11 @@ fun FilterBar(
 
             items(PokemonType.entries.toTypedArray()) { type ->
                 val selected = currentFilter.selectedType == type
+                val chipScale by animateFloatAsState(
+                    targetValue = if (selected) 1.06f else 1f,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
+                    label = "chip_scale_${type.name}"
+                )
                 FilterChip(
                     onClick = { onTypeChange(type) },
                     label = { Text(type.displayName) },
@@ -142,7 +173,9 @@ fun FilterBar(
                             )
                         }
                     } else null,
-                    modifier = Modifier.padding(vertical = 2.dp),
+                    modifier = Modifier
+                        .padding(vertical = 2.dp)
+                        .graphicsLayer { scaleX = chipScale; scaleY = chipScale },
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
                         selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer

@@ -12,7 +12,9 @@ sealed class GuessGameState {
         val currentQuestionIndex: Int,
         val totalQuestions: Int,
         val score: Int,
-        val timeRemaining: Int
+        val timeRemaining: Int,
+        val combo: Int = 0,
+        val bestScore: Int = 0
     ) : GuessGameState()
 
     data class Revealing(
@@ -22,13 +24,16 @@ sealed class GuessGameState {
         val isTimeUp: Boolean,
         val currentQuestionIndex: Int,
         val totalQuestions: Int,
-        val score: Int
+        val score: Int,
+        val combo: Int = 0,
+        val bestScore: Int = 0
     ) : GuessGameState()
 
     data class Finished(
         val score: Int,
         val correctAnswers: Int,
         val totalQuestions: Int,
-        val difficulty: GuessDifficulty
+        val difficulty: GuessDifficulty,
+        val isNewBest: Boolean = false
     ) : GuessGameState()
 }

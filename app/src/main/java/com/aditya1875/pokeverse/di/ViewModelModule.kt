@@ -8,6 +8,7 @@ import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels.P
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.viewmodels.MatchViewModel
 import com.aditya1875.pokeverse.feature.game.pokequiz.presentation.viewmodels.QuizViewModel
 import com.aditya1875.pokeverse.feature.game.poketype.presentation.viewmodels.TypeRushViewModel
+import com.aditya1875.pokeverse.feature.berry.presentation.viewmodels.BerryViewModel
 import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardViewModel
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels.PokemonDetailsViewModel
@@ -36,6 +37,7 @@ val viewModelModule = module {
     viewModelOf(::BillingViewModel)
     viewModelOf(::DailyTriviaViewModel)
     viewModelOf(::ItemViewModel)
+    viewModelOf(::BerryViewModel)
     viewModelOf(::PokeGuessViewModel)
     viewModelOf(::TypeRushViewModel)
     viewModelOf(::MatchViewModel)

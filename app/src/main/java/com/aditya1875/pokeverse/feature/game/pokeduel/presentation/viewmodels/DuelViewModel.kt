@@ -37,7 +37,8 @@ class DuelViewModel(
     fun startGame() {
         viewModelScope.launch {
             _state.value = DuelGameState.Loading
-            loadNextRound(round = 1, score = 0, streak = 0, lives = 3)
+            val bestScore = userRepository.profileFlow.first().bestDuelScore
+            loadNextRound(round = 1, score = 0, streak = 0, lives = 3, bestScore = bestScore)
         }
     }
 
@@ -75,26 +76,26 @@ class DuelViewModel(
             if (newLives <= 0) {
                 val xp = xpManager.awardGameXP(XPEvent.DuelComplete)
                 if (xp.xpGained > 0) _xpResult.emit(xp)
-                val currentBest = userRepository.profileFlow.first().bestDuelScore
                 userRepository.updateBestScore("duel", newScore)
                 userRepository.incrementGamesPlayed()
                 _state.value = DuelGameState.GameOver(
                     score = newScore,
                     round = current.round,
-                    isNewBest = newScore > currentBest
+                    isNewBest = newScore > current.bestScore
                 )
             } else {
                 loadNextRound(
                     round = current.round + 1,
                     score = newScore,
                     streak = newStreak,
-                    lives = newLives
+                    lives = newLives,
+                    bestScore = current.bestScore
                 )
             }
         }
     }
 
-    private suspend fun loadNextRound(round: Int, score: Int, streak: Int, lives: Int) {
+    private suspend fun loadNextRound(round: Int, score: Int, streak: Int, lives: Int, bestScore: Int = 0) {
         _state.value = DuelGameState.Loading
         try {
             val (left, right) = fetchTwoDifferentPokemon()
@@ -104,7 +105,8 @@ class DuelViewModel(
                 round = round,
                 score = score,
                 streak = streak,
-                lives = lives
+                lives = lives,
+                bestScore = bestScore
             )
         } catch (e: Exception) {
             _state.value = DuelGameState.Idle

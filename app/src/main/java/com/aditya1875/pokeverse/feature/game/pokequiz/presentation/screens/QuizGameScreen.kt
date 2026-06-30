@@ -5,6 +5,8 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -162,6 +164,7 @@ fun QuizGameScreen(
                     totalQuestions = state.totalQuestions,
                     difficulty = state.difficulty,
                     stars = state.stars,
+                    isNewBest = state.isNewBest,
                     onPlayAgain = {
                         if (difficulty == QuizDifficulty.HARD && subscriptionState !is SubscriptionState.Premium)
                             showAdForReplay = true
@@ -251,17 +254,20 @@ private fun QuizPlayingContent(
                 )
             }
 
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Text(
-                    "${gameState.score}",
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Black,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+            Column(horizontalAlignment = Alignment.End) {
+                Surface(
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        "${gameState.score}",
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+                PbChip(bestScore = gameState.bestScore, currentScore = gameState.score)
             }
         }
 
@@ -285,7 +291,9 @@ private fun QuizPlayingContent(
             )
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(8.dp))
+        ComboLabel(combo = gameState.combo, modifier = Modifier.align(Alignment.CenterHorizontally))
+        Spacer(Modifier.height(8.dp))
 
         // ── Question card ─────────────────────────────────────────────────────
         Card(
@@ -433,6 +441,11 @@ private fun QuizAnswerFeedbackContent(
                 color = accentColor,
                 modifier = Modifier.alpha(entrance.value)
             )
+
+            if (isCorrect && gameState.combo >= 2) {
+                Spacer(Modifier.height(8.dp))
+                ComboLabel(combo = gameState.combo)
+            }
 
             if (!isCorrect) {
                 Spacer(Modifier.height(12.dp))

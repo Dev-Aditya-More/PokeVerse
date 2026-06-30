@@ -11,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
+import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.FactOfTheDayCard
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.GameStatsSection
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.GuestLoginCard
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.ProfileActions
@@ -87,6 +88,8 @@ fun ProfileScreen(
                     .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                item { FactOfTheDayCard() }
+
                 if (profile.isGuest && authState !is AuthState.Authenticated) {
                     item { GuestLoginCard() }
                 }

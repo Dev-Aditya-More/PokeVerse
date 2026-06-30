@@ -25,6 +25,7 @@ fun QuizResultScreen(
     totalQuestions: Int,
     difficulty: QuizDifficulty,
     stars: Int,
+    isNewBest: Boolean = false,
     onPlayAgain: () -> Unit,
     onBackToMenu: () -> Unit,
     soundManager: SoundManager = koinInject()
@@ -54,6 +55,7 @@ fun QuizResultScreen(
         scoreLabel = stringResource(R.string.result_score_label_points),
         heroColor = heroColor,
         stars = stars,
+        isNewBest = isNewBest,
         onPlayAgain = onPlayAgain,
         onBack = onBackToMenu,
         heroContent = {

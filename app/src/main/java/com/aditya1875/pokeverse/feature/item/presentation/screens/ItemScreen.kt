@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.*
 import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import androidx.compose.ui.graphics.FilterQuality
 import com.aditya1875.pokeverse.feature.item.data.source.remote.model.itemModels.ItemUiModel
 import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemListState
 import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemViewModel
@@ -93,7 +94,8 @@ fun SharedTransitionScope.ItemGridCard(
                     model = item.spriteUrl,
                     contentDescription = item.displayName,
                     modifier = Modifier.size(40.dp),
-                    contentScale = ContentScale.Fit
+                    contentScale = ContentScale.Fit,
+                    filterQuality = FilterQuality.None
                 )
             }
 

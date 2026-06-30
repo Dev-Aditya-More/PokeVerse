@@ -2,18 +2,20 @@ package com.aditya1875.pokeverse.feature.game.core.presentation
 
 import android.app.Activity
 import android.widget.Toast
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +47,15 @@ fun GameHubScreen(
 ) {
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
     var showPremiumSheet by remember { mutableStateOf(false) }
+
+    // Stagger: each card becomes visible 80 ms after the previous one (6 cards = 400 ms total)
+    var visibleCardCount by remember { mutableStateOf(0) }
+    LaunchedEffect(Unit) {
+        repeat(6) { i ->
+            if (i > 0) delay(80L)
+            visibleCardCount = i + 1
+        }
+    }
 
     val billingViewModel: BillingViewModel = koinViewModel()
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
@@ -209,7 +220,7 @@ fun GameHubScreen(
         ) {
             item { Spacer(Modifier.height(4.dp)) }
 
-            if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
+if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
                 item {
                     PremiumBanner(
                         price = monthly,
@@ -220,18 +231,24 @@ fun GameHubScreen(
 
             item { Spacer(Modifier.height(6.dp)) }
 
-            items(games) { game ->
-                FeaturedGameCard(
-                    title = game.title,
-                    description = game.description,
-                    icon = game.icon,
-                    accentColor = game.accentColor,
-                    tag = game.tag,
-                    stats = game.stats,
-                    onClick = {
-                        onGameSelected(game.id)
-                    }
-                )
+            itemsIndexed(games) { index, game ->
+                AnimatedVisibility(
+                    visible = index < visibleCardCount,
+                    enter = slideInVertically(
+                        initialOffsetY = { it / 2 },
+                        animationSpec = tween(320, easing = FastOutSlowInEasing)
+                    ) + fadeIn(tween(280, easing = FastOutSlowInEasing))
+                ) {
+                    FeaturedGameCard(
+                        title = game.title,
+                        description = game.description,
+                        icon = game.icon,
+                        accentColor = game.accentColor,
+                        tag = game.tag,
+                        stats = game.stats,
+                        onClick = { onGameSelected(game.id) }
+                    )
+                }
             }
 
             item { Spacer(Modifier.height(10.dp)) }

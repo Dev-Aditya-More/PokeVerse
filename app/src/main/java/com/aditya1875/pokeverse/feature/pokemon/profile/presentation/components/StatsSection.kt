@@ -1,6 +1,9 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -33,6 +36,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -124,6 +133,15 @@ fun GameStatRow(
     bestScore: Int,
     accentColor: Color
 ) {
+    // Count-up animation: start at 0, animate to bestScore on first composition
+    var scoreTarget by remember { mutableStateOf(0) }
+    LaunchedEffect(bestScore) { scoreTarget = bestScore }
+    val animatedScore by animateFloatAsState(
+        targetValue = scoreTarget.toFloat(),
+        animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
+        label = "score_counter"
+    )
+
     Card(
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = accentColor.copy(alpha = 0.08f)),
@@ -168,7 +186,7 @@ fun GameStatRow(
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = if (bestScore > 0) bestScore.toString() else "—",
+                    text = if (bestScore > 0) animatedScore.roundToInt().toString() else "—",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black,
                     color = accentColor

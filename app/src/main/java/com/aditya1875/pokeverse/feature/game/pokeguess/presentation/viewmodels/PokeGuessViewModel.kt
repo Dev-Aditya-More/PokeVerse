@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.collections.forEach
@@ -56,6 +57,7 @@ class PokeGuessViewModel(
     private var currentScore = 0
     private var correctAnswers = 0
     private var currentStreak = 0
+    private var bestScore = 0
     private val allQuestions = mutableListOf<PokeGuessQuestion>()
     private var firstGameOfDayAwarded = false
 
@@ -88,6 +90,7 @@ class PokeGuessViewModel(
             }
 
             try {
+                bestScore = userRepository.profileFlow.first().bestGuessScore
                 val questions = generateQuestionsUseCase(difficulty)
                 allQuestions.clear()
                 allQuestions.addAll(questions)
@@ -130,7 +133,9 @@ class PokeGuessViewModel(
             currentQuestionIndex = index,
             totalQuestions = allQuestions.size,
             score = currentScore,
-            timeRemaining = difficulty.timePerQuestion
+            timeRemaining = difficulty.timePerQuestion,
+            combo = currentStreak,
+            bestScore = bestScore
         )
 
         startTimer(difficulty.timePerQuestion, index)
@@ -157,6 +162,7 @@ class PokeGuessViewModel(
 
     private fun onTimeUp(questionIndex: Int) {
         timerJob?.cancel()
+        currentStreak = 0
 
         val question = allQuestions[questionIndex]
 
@@ -167,7 +173,9 @@ class PokeGuessViewModel(
             isTimeUp = true,
             currentQuestionIndex = questionIndex,
             totalQuestions = allQuestions.size,
-            score = currentScore
+            score = currentScore,
+            combo = 0,
+            bestScore = bestScore
         )
     }
 
@@ -203,7 +211,9 @@ class PokeGuessViewModel(
             isTimeUp = false,
             currentQuestionIndex = questionIndex,
             totalQuestions = allQuestions.size,
-            score = currentScore
+            score = currentScore,
+            combo = currentStreak,
+            bestScore = bestScore
         )
     }
 
@@ -246,7 +256,8 @@ class PokeGuessViewModel(
             score = currentScore,
             correctAnswers = correctAnswers,
             totalQuestions = allQuestions.size,
-            difficulty = difficulty
+            difficulty = difficulty,
+            isNewBest = currentScore > bestScore
         )
     }
 

@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.di
 import coil.ImageLoader
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.PokemonDetailsApi
 import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.PokemonListApi
+import com.aditya1875.pokeverse.feature.berry.data.source.remote.BerryApiService
 import com.aditya1875.pokeverse.feature.item.data.source.remote.model.ItemApiService
 import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import org.koin.android.ext.koin.androidContext
@@ -29,6 +30,7 @@ val networkModule = module {
     }
 
     single { get<Retrofit>(named("pokeapi")).create(ItemApiService::class.java) }
+    single { get<Retrofit>(named("pokeapi")).create(BerryApiService::class.java) }
 
     single {
         ImageLoader.Builder(androidContext())

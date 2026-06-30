@@ -86,6 +86,8 @@ import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.state.WildCatchGameState
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.viewmodels.WildCatchViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
@@ -451,34 +453,25 @@ private fun ThrowingContent(
                         )
                     }
                 }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Color.Black.copy(alpha = 0.45f))
-                        .padding(horizontal = 14.dp, vertical = 6.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.End) {
+                Column(horizontalAlignment = Alignment.End) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.Black.copy(alpha = 0.45f))
+                            .padding(horizontal = 14.dp, vertical = 6.dp)
+                    ) {
                         Text(
                             "${state.score} pts",
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFFD600)
                         )
-                        if (state.streak >= 2) {
-                            Text(
-                                "🔥 ×${state.streak}",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFFFF6D00),
-                                fontWeight = FontWeight.Bold
-                            )
-                        } else {
-                            Spacer(Modifier.height(14.dp))
-                        }
                     }
+                    PbChip(bestScore = state.bestScore, currentScore = state.score)
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            ComboLabel(combo = state.streak)
 
             Text(
                 text = state.pokemon.name.replaceFirstChar { it.uppercase() },
@@ -840,6 +833,22 @@ private fun FinishedContent(
         Spacer(Modifier.height(20.dp))
 
         Text("Wild Catch Over!", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
+        if (state.isNewBest) {
+            Spacer(Modifier.height(6.dp))
+            androidx.compose.material3.Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = Color(0xFFFFD700).copy(alpha = 0.2f),
+                border = BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.5f))
+            ) {
+                Text(
+                    "🏆 NEW BEST!",
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Black,
+                    color = Color(0xFFFFD700)
+                )
+            }
+        }
         Spacer(Modifier.height(8.dp))
         Text("${state.catches} / ${state.pokemonCount} Pokémon caught", style = MaterialTheme.typography.titleLarge, color = Color(0xFFFFD600), fontWeight = FontWeight.Bold)
 

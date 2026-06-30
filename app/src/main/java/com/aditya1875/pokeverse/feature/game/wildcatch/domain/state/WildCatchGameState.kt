@@ -16,7 +16,8 @@ sealed class WildCatchGameState {
         val catches: Int,
         val score: Int,
         val streak: Int,
-        val lives: Int
+        val lives: Int,
+        val bestScore: Int = 0
     ) : WildCatchGameState()
 
     data class ShakeResult(
@@ -28,12 +29,14 @@ sealed class WildCatchGameState {
         val catches: Int,
         val score: Int,
         val lives: Int,
-        val shakeCount: Int
+        val shakeCount: Int,
+        val bestScore: Int = 0
     ) : WildCatchGameState()
 
     data class Finished(
         val catches: Int,
         val pokemonCount: Int,
-        val score: Int
+        val score: Int,
+        val isNewBest: Boolean = false
     ) : WildCatchGameState()
 }

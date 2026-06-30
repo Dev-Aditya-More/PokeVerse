@@ -1,7 +1,9 @@
 package com.aditya1875.pokeverse.feature.core.navigation
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -90,6 +93,15 @@ fun BottomNavigationBar(
                 label = "bg_color"
             )
 
+            val iconScale by animateFloatAsState(
+                targetValue = if (selected) 1.18f else 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMedium
+                ),
+                label = "icon_scale"
+            )
+
             NavigationBarItem(
                 selected = selected,
                 onClick = {
@@ -106,6 +118,7 @@ fun BottomNavigationBar(
                 icon = {
                     Box(
                         modifier = Modifier
+                            .scale(iconScale)
                             .background(bgColor, shape = CircleShape)
                             .padding(10.dp)
                     ) {

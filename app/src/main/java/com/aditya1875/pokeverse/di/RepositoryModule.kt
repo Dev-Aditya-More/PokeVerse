@@ -6,6 +6,7 @@ import com.aditya1875.pokeverse.feature.inbox.data.repository.InboxRepository
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardRepository
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.PokemonDetailImpl
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.repository.PokemonDetailRepo
+import com.aditya1875.pokeverse.feature.berry.data.repository.BerryRepository
 import com.aditya1875.pokeverse.feature.item.data.repository.ItemRepository
 import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.PokemonListImpl
 import com.aditya1875.pokeverse.feature.pokemon.home.domain.repository.DescriptionRepo
@@ -18,6 +19,7 @@ import org.koin.dsl.module
 val repositoryModule = module {
 
     single { ItemRepository(get()) }
+    single { BerryRepository(get()) }
 
     single<PokemonListRepo> {
         PokemonListImpl(get())

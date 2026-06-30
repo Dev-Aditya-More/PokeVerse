@@ -8,5 +8,7 @@ data class QuizGameState(
     val timeRemaining: Int,
     val totalTimePerQuestion: Int,
     val difficulty: QuizDifficulty,
-    val answers: List<Int?> = List(10) { null }
+    val answers: List<Int?> = List(10) { null },
+    val combo: Int = 0,
+    val bestScore: Int = 0
 )
