@@ -95,6 +95,21 @@ class DuelViewModel(
         }
     }
 
+    /** Rewarded-ad perk: skip this matchup — no life lost, streak kept */
+    fun skipRound() {
+        val current = _state.value as? DuelGameState.Dueling ?: return
+        if (current.result != null) return // already answered
+        viewModelScope.launch {
+            loadNextRound(
+                round = current.round + 1,
+                score = current.score,
+                streak = current.streak,
+                lives = current.lives,
+                bestScore = current.bestScore
+            )
+        }
+    }
+
     private suspend fun loadNextRound(round: Int, score: Int, streak: Int, lives: Int, bestScore: Int = 0) {
         _state.value = DuelGameState.Loading
         try {

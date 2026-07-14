@@ -77,6 +77,8 @@ class QuizViewModel(
                 }
             }
 
+            usedQuestionIds.addAll(questions.map { it.id })
+
             val gameState = QuizGameState(
                 questions = questions,
                 currentQuestionIndex = 0,
@@ -92,6 +94,92 @@ class QuizViewModel(
             _uiState.value = QuizUiState.Playing(gameState)
             startTimer()
         }
+    }
+
+    // ── Endless mode: keep the question pool topped up ────────────────────────
+    // Called whenever the player nears the end of the loaded pool.
+    private fun extendQuestionPoolIfNeeded(gameState: QuizGameState) {
+        val remaining = gameState.questions.size - gameState.currentQuestionIndex - 1
+        if (remaining > 3) return
+
+        viewModelScope.launch {
+            val more = run {
+                val dynamic = try {
+                    dynamicQuizRepo.generateQuestions(gameState.difficulty)
+                        .filter { it.id !in usedQuestionIds }
+                } catch (e: Exception) {
+                    emptyList()
+                }
+                dynamic.ifEmpty {
+                    QuizQuestionBank.getUnusedQuestions(gameState.difficulty, usedQuestionIds)
+                }
+            }
+            if (more.isEmpty()) return@launch
+            usedQuestionIds.addAll(more.map { it.id })
+
+            // Append to whatever state we're in now — the pool only ever grows
+            when (val s = _uiState.value) {
+                is QuizUiState.Playing ->
+                    _uiState.value = QuizUiState.Playing(
+                        s.gameState.copy(questions = s.gameState.questions + more)
+                    )
+                is QuizUiState.ShowingAnswer ->
+                    _uiState.value = s.copy(
+                        gameState = s.gameState.copy(questions = s.gameState.questions + more)
+                    )
+                else -> Unit
+            }
+        }
+    }
+
+    // ── Rewarded-ad perks ──────────────────────────────────────────────────────
+    /** Freeze the countdown while the ad dialog / rewarded ad is on screen */
+    fun pauseTimer() {
+        timerJob?.cancel()
+    }
+
+    /** Resume the countdown from where it was paused */
+    fun resumeTimer() {
+        if (_uiState.value is QuizUiState.Playing) startTimer()
+    }
+
+    /** Skip the current question: no life lost, combo kept, doesn't count as answered */
+    fun skipQuestion() {
+        val currentState = _uiState.value
+        if (currentState !is QuizUiState.Playing) return
+        timerJob?.cancel()
+
+        val gameState = currentState.gameState
+        if (gameState.currentQuestionIndex >= gameState.questions.size - 1) {
+            // Pool exhausted and nothing to skip to — treat as finish
+            finishQuiz(gameState)
+            return
+        }
+        val next = gameState.copy(
+            currentQuestionIndex = gameState.currentQuestionIndex + 1,
+            timeRemaining = gameState.totalTimePerQuestion,
+            eliminatedOptions = emptyList()
+        )
+        _uiState.value = QuizUiState.Playing(next)
+        extendQuestionPoolIfNeeded(next)
+        startTimer()
+    }
+
+    /** 50/50 hint: eliminates two wrong options on the current question */
+    fun useHint() {
+        val currentState = _uiState.value
+        if (currentState !is QuizUiState.Playing) return
+        val gameState = currentState.gameState
+        if (gameState.eliminatedOptions.isNotEmpty()) return
+
+        val question = gameState.questions[gameState.currentQuestionIndex]
+        val wrong = question.options.indices
+            .filter { it != question.correctAnswerIndex }
+            .shuffled()
+            .take(2)
+        _uiState.value = QuizUiState.Playing(
+            gameState.copy(eliminatedOptions = wrong)
+        )
     }
 
     fun onBackToMenu() {
@@ -132,14 +220,14 @@ class QuizViewModel(
 
         val newCombo = if (isCorrect) gameState.combo + 1 else 0
 
-        val newAnswers = gameState.answers.toMutableList().apply {
-            this[gameState.currentQuestionIndex] = answerIndex
-        }
+        // Endless mode: wrong answers and timeouts cost a heart
+        val newLives = if (isCorrect) gameState.lives else gameState.lives - 1
 
         val updatedGameState = gameState.copy(
             score = gameState.score + questionScore,
             correctAnswers = if (isCorrect) gameState.correctAnswers + 1 else gameState.correctAnswers,
-            answers = newAnswers,
+            questionsAnswered = gameState.questionsAnswered + 1,
+            lives = newLives,
             combo = newCombo
         )
 
@@ -149,6 +237,7 @@ class QuizViewModel(
             isCorrect = isCorrect,
             explanation = currentQuestion.explanation
         )
+        extendQuestionPoolIfNeeded(updatedGameState)
     }
 
     fun nextQuestion() {
@@ -156,17 +245,20 @@ class QuizViewModel(
         if (currentState !is QuizUiState.ShowingAnswer) return
 
         val gameState = currentState.gameState
-        if (gameState.currentQuestionIndex >= gameState.questions.size - 1) {
+        // Run ends when the hearts run out — or the question pool is truly dry
+        if (gameState.lives <= 0 || gameState.currentQuestionIndex >= gameState.questions.size - 1) {
             finishQuiz(gameState)
             return
         }
 
         val nextGameState = gameState.copy(
             currentQuestionIndex = gameState.currentQuestionIndex + 1,
-            timeRemaining = gameState.totalTimePerQuestion
+            timeRemaining = gameState.totalTimePerQuestion,
+            eliminatedOptions = emptyList()
             // combo and bestScore carry forward automatically via copy
         )
         _uiState.value = QuizUiState.Playing(nextGameState)
+        extendQuestionPoolIfNeeded(nextGameState)
         startTimer()
     }
 
@@ -195,14 +287,15 @@ class QuizViewModel(
     }
 
     private fun finishQuiz(gameState: QuizGameState) {
-        val stars = calculateStars(gameState.score, gameState.questions.size)
+        val answered = gameState.questionsAnswered.coerceAtLeast(1)
+        val stars = calculateStars(gameState.score, answered)
         val isNewBest = gameState.score > gameState.bestScore
 
         viewModelScope.launch {
             val result = xpManager.awardGameXP(
                 XPEvent.QuizComplete(
                     score = gameState.correctAnswers,
-                    total = gameState.questions.size
+                    total = gameState.questionsAnswered
                 )
             )
             if (result.xpGained > 0) _xpResult.emit(result)
@@ -225,7 +318,7 @@ class QuizViewModel(
         _uiState.value = QuizUiState.Finished(
             score = gameState.score,
             correctAnswers = gameState.correctAnswers,
-            totalQuestions = gameState.questions.size,
+            totalQuestions = gameState.questionsAnswered,
             difficulty = gameState.difficulty,
             stars = stars,
             isNewBest = isNewBest

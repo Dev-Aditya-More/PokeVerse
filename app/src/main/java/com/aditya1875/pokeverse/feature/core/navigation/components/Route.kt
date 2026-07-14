@@ -34,6 +34,9 @@ sealed class Route(val route: String) {
     }
     object EditProfile : Route("edit_profile")
 
+    // TODO(friends): re-enable when the friends feature ships
+    // object Friends : Route("friends")
+
     object Settings : Route("settings")
 
     object GameDifficulty : Route("game/difficulty")

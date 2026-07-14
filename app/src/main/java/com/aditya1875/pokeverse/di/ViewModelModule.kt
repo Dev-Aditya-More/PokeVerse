@@ -2,6 +2,10 @@ package com.aditya1875.pokeverse.di
 
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.CardClashViewModel
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.viewmodels.WildCatchViewModel
+import com.aditya1875.pokeverse.feature.badges.presentation.viewmodels.BadgesViewModel
+import com.aditya1875.pokeverse.feature.characters.presentation.viewmodels.CharactersViewModel
+// TODO(friends): re-add when the feature ships
+// import com.aditya1875.pokeverse.feature.friends.presentation.viewmodels.FriendsViewModel
 import com.aditya1875.pokeverse.feature.inbox.presentation.viewmodels.InboxViewModel
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.viewmodels.DuelViewModel
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels.PokeGuessViewModel
@@ -45,4 +49,8 @@ val viewModelModule = module {
     viewModelOf(::CardClashViewModel)
     viewModelOf(::InboxViewModel)
     viewModelOf(::WildCatchViewModel)
+    // TODO(friends): re-add when the feature ships
+    // viewModelOf(::FriendsViewModel)
+    viewModelOf(::BadgesViewModel)
+    viewModelOf(::CharactersViewModel)
 }

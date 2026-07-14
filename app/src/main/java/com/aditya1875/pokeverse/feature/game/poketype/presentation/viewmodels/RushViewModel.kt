@@ -18,6 +18,7 @@ import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.poketype.data.generator.TypeRushQuestionGenerator
 import com.aditya1875.pokeverse.feature.game.poketype.domain.engine.TypeRushEngine
+import com.aditya1875.pokeverse.feature.game.poketype.domain.model.RUSH_MAX_LIVES
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushQuestion
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushRoundResult
@@ -57,6 +58,10 @@ class TypeRushViewModel(
     private val roundResults = mutableListOf<TypeRushRoundResult>()
     private var currentScore = 0
     private var correctRounds = 0
+    private var lives = RUSH_MAX_LIVES
+    private var roundsPlayed = 0
+    private val usedPokemonIds = mutableSetOf<Int>()
+    private var isExtendingPool = false
     private var currentDifficulty = TypeRushDifficulty.EASY
     private var firstGameAwarded = false
 
@@ -81,8 +86,11 @@ class TypeRushViewModel(
         currentDifficulty = difficulty
         currentScore = 0
         correctRounds = 0
+        lives = RUSH_MAX_LIVES
+        roundsPlayed = 0
         questions.clear()
         roundResults.clear()
+        usedPokemonIds.clear()
 
         viewModelScope.launch {
             _state.value = TypeRushState.Loading
@@ -96,12 +104,71 @@ class TypeRushViewModel(
             try {
                 val generated = generator.generate(difficulty)
                 questions.addAll(generated)
+                usedPokemonIds.addAll(generated.map { it.pokemonId })
                 showQuestion(0)
             } catch (e: Exception) {
                 Log.e("TypeRush", "Failed to generate questions", e)
                 _state.value = TypeRushState.Idle
             }
         }
+    }
+
+    // ── Endless mode: keep the round pool topped up ───────────────────────────
+    private fun extendPoolIfNeeded(currentIndex: Int) {
+        if (questions.size - currentIndex - 1 > 3 || isExtendingPool) return
+        isExtendingPool = true
+        viewModelScope.launch {
+            try {
+                val more = generator.generate(currentDifficulty)
+                    .filter { it.pokemonId !in usedPokemonIds }
+                if (more.isNotEmpty()) {
+                    questions.addAll(more)
+                    usedPokemonIds.addAll(more.map { it.pokemonId })
+                    prefetchSprites(more.take(3))
+                }
+            } catch (e: Exception) {
+                Log.e("TypeRush", "Failed to extend round pool", e)
+            } finally {
+                isExtendingPool = false
+            }
+        }
+    }
+
+    /** Freeze the countdown while the ad dialog / rewarded ad is on screen */
+    fun pauseTimer() {
+        timerJob?.cancel()
+    }
+
+    /** Resume the countdown from where it was paused */
+    fun resumeTimer() {
+        val current = _state.value as? TypeRushState.Playing ?: return
+        if (!current.isLocked && current.timeRemaining > 0) {
+            startTimer(current.questionIndex, startFrom = current.timeRemaining)
+        }
+    }
+
+    /** Rewarded-ad perk: advance without answering — no life lost */
+    fun skipRound() {
+        val current = _state.value as? TypeRushState.Playing ?: return
+        timerJob?.cancel()
+        val nextIndex = current.questionIndex + 1
+        if (nextIndex >= questions.size) {
+            finishGame()
+            return
+        }
+        prefetchSprites(listOfNotNull(questions.getOrNull(nextIndex + 1)))
+        showQuestion(nextIndex)
+    }
+
+    /** Rewarded-ad perk: 50/50 — removes two wrong type bubbles */
+    fun useHint() {
+        val current = _state.value as? TypeRushState.Playing ?: return
+        if (current.isLocked || current.eliminatedTypes.isNotEmpty()) return
+        val wrong = current.question.options
+            .filter { it !in current.question.correctTypes && it !in current.selectedTypes }
+            .shuffled()
+            .take(2)
+        _state.value = current.copy(eliminatedTypes = wrong.toSet())
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -145,6 +212,11 @@ class TypeRushViewModel(
     // ─────────────────────────────────────────────────────────────────────────
     fun nextRound() {
         val current = _state.value as? TypeRushState.RoundResult ?: return
+        // Run ends when the hearts run out
+        if (lives <= 0) {
+            finishGame()
+            return
+        }
         val nextIndex = current.questionIndex + 1
         if (nextIndex >= questions.size) {
             finishGame()
@@ -160,17 +232,19 @@ class TypeRushViewModel(
         _state.value = TypeRushState.Playing(
             question = q,
             questionIndex = index,
-            totalQuestions = questions.size,
+            roundsPlayed = roundsPlayed,
+            lives = lives,
             score = currentScore,
             timeRemaining = currentDifficulty.timePerRound,
         )
+        extendPoolIfNeeded(index)
         startTimer(index)
     }
 
-    private fun startTimer(questionIndex: Int) {
+    private fun startTimer(questionIndex: Int, startFrom: Int = currentDifficulty.timePerRound) {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
-            var timeLeft = currentDifficulty.timePerRound
+            var timeLeft = startFrom
             while (timeLeft > 0) {
                 delay(1000)
                 timeLeft--
@@ -197,7 +271,8 @@ class TypeRushViewModel(
         val totalPoints = result.pointsEarned + result.timeBonus
 
         currentScore += totalPoints
-        if (result.isFullyCorrect) correctRounds++
+        if (result.isFullyCorrect) correctRounds++ else lives--
+        roundsPlayed++
 
         // XP — only fully correct answers earn XP (partial correct = 0 XP, same as before)
         if (result.isFullyCorrect) {
@@ -210,23 +285,25 @@ class TypeRushViewModel(
         _state.value = TypeRushState.RoundResult(
             result = result,
             questionIndex = playingState.questionIndex,
-            totalQuestions = playingState.totalQuestions,
+            roundsPlayed = roundsPlayed,
+            lives = lives,
             score = currentScore
         )
     }
 
     private fun finishGame() {
+        timerJob?.cancel()
         viewModelScope.launch {
             // Completion XP
             val result = xpManager.awardGameXP(
-                XPEvent.RushComplete(score = correctRounds, total = questions.size)
+                XPEvent.RushComplete(score = correctRounds, total = roundsPlayed)
             )
             if (result.xpGained > 0) _xpResult.emit(result)
 
             repository.updateBestScore("typerush", currentScore)
             repository.incrementGamesPlayed()
 
-            val totalQ = questions.size.coerceAtLeast(1)
+            val totalQ = roundsPlayed.coerceAtLeast(1)
             gameScoreDao.insertScore(
                 GameScoreEntity(
                     gameType = "typerush",
@@ -246,7 +323,7 @@ class TypeRushViewModel(
         _state.value = TypeRushState.Finished(
             score = currentScore,
             correctRounds = correctRounds,
-            totalRounds = questions.size,
+            totalRounds = roundsPlayed,
             difficulty = currentDifficulty,
             results = roundResults.toList(),
         )

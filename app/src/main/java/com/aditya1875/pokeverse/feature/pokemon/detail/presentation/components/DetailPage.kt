@@ -5,6 +5,8 @@ import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.ui.res.stringResource
+import com.aditya1875.pokeverse.R
 import kotlin.math.roundToInt
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -66,6 +68,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -987,15 +990,34 @@ fun PokemonDetailPage(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.SpaceBetween
                                             ) {
-                                                Text(
-                                                    text = statLabel(stat.stat.name).replace("-", " ")
-                                                        .replaceFirstChar { it.uppercase() },
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    color = MaterialTheme.colorScheme.onSurface.copy(
-                                                        alpha = 0.9f
-                                                    ),
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
                                                     modifier = Modifier.weight(1f)
-                                                )
+                                                ) {
+                                                    Text(
+                                                        text = statLabel(stat.stat.name).replace("-", " ")
+                                                            .replaceFirstChar { it.uppercase() },
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = MaterialTheme.colorScheme.onSurface.copy(
+                                                            alpha = 0.9f
+                                                        )
+                                                    )
+                                                    if (stat.effort > 0) {
+                                                        Spacer(modifier = Modifier.width(6.dp))
+                                                        Surface(
+                                                            shape = RoundedCornerShape(50),
+                                                            color = bgColor.copy(alpha = 0.16f)
+                                                        ) {
+                                                            Text(
+                                                                text = stringResource(R.string.ev_yield_badge, stat.effort),
+                                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+                                                                style = MaterialTheme.typography.labelSmall,
+                                                                fontWeight = FontWeight.Bold,
+                                                                color = bgColor
+                                                            )
+                                                        }
+                                                    }
+                                                }
                                                 Text(
                                                     text = (animatedProgress * 255f).roundToInt().coerceIn(0, stat.base_stat).toString(),
                                                     style = MaterialTheme.typography.labelMedium,
@@ -1110,6 +1132,14 @@ fun PokemonDetailPage(
                                     }
                                 }
                             }
+                        }
+
+                        item {
+                            StatCalculatorCard(pokemon = pokemon, accentColor = bgColor)
+                        }
+
+                        item {
+                            GoBattlePowerCard(pokemonId = pokemon.id, accentColor = bgColor)
                         }
 
                         val movesByMethod: Map<String, List<DisplayMove>> =

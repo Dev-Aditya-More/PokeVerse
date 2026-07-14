@@ -254,6 +254,33 @@
     <string name="leaderboard_you_label">You</string>
     <string name="leaderboard_your_rank">Your Rank</string>
     <string name="leaderboard_error">Couldn\'t load leaderboard</string>
+    <string name="leaderboard_tab_friends">Friends</string>
+    <string name="leaderboard_friends_subtitle">You and your friends</string>
+    <string name="leaderboard_friends_empty_title">No friends yet</string>
+    <string name="leaderboard_friends_empty_subtitle">Add friends to compete with them here</string>
+
+    <!-- Friends -->
+    <string name="friends_title">Friends</string>
+    <string name="friends_back">Back</string>
+    <string name="friends_search_hint">Search trainers by name…</string>
+    <string name="friends_search_empty">No trainers found. Try a different name.</string>
+    <string name="friends_requests_header">Friend Requests (%1$d)</string>
+    <string name="friends_sent_header">Sent Requests</string>
+    <string name="friends_list_header">My Friends (%1$d)</string>
+    <string name="friends_empty">Search for trainers above and add them to compete together!</string>
+    <string name="friends_row_stats">Level %1$d · %2$d XP</string>
+    <string name="friends_weekly_chip">%1$d XP this week</string>
+    <string name="friends_request_level">Level %1$d wants to be friends</string>
+    <string name="friends_accept">Accept</string>
+    <string name="friends_decline">Decline</string>
+    <string name="friends_add">Add friend</string>
+    <string name="friends_requested">Requested</string>
+    <string name="friends_already">Friends ✓</string>
+    <string name="friends_cancel_request">Cancel</string>
+    <string name="friends_remove">Remove friend</string>
+    <string name="friends_stat_level">Level</string>
+    <string name="friends_stat_total_xp">Total XP</string>
+    <string name="friends_stat_weekly_xp">Weekly XP</string>
 
     <!-- XP Overlay -->
     <string name="xp_level_up">LEVEL UP!</string>
@@ -396,6 +423,61 @@
     <string name="detail_audio_stop_pokedex_entry">Stop Pokédex Entry</string>
     <string name="detail_audio_cry">Pokémon Cry</string>
     <string name="detail_audio_stop_cry">Stop Cry</string>
+
+    <!-- Stat Calculator (mainline IV / EV / Nature) -->
+    <string name="stat_calc_title">Stat Calculator</string>
+    <string name="stat_calc_subtitle">Real stats at any Level, IV, EV and Nature</string>
+    <string name="stat_calc_level">Level</string>
+    <string name="stat_calc_nature">Nature</string>
+    <string name="stat_calc_nature_neutral">Neutral — no boost or drop</string>
+    <string name="stat_calc_nature_boost_lower">+%1$s · −%2$s</string>
+    <string name="stat_calc_iv">IV</string>
+    <string name="stat_calc_ev">EV</string>
+    <string name="stat_calc_ev_total">EVs used: %1$d / %2$d</string>
+    <string name="stat_calc_ev_over_limit">Over the %1$d EV total limit — extra points are ignored</string>
+    <string name="stat_calc_max_ivs">Max IVs</string>
+    <string name="stat_calc_reset">Reset</string>
+    <string name="ev_yield_badge">+%1$d EV</string>
+
+    <!-- GO Battle Power (Pokémon GO CP calculator) -->
+    <string name="go_cp_title">GO Battle Power</string>
+    <string name="go_cp_subtitle">Estimate CP at any Level and IV combo</string>
+    <string name="go_cp_level">Level</string>
+    <string name="go_cp_iv_attack">Attack IV</string>
+    <string name="go_cp_iv_defense">Defense IV</string>
+    <string name="go_cp_iv_stamina">Stamina IV</string>
+    <string name="go_cp_result_cp">CP</string>
+    <string name="go_cp_result_hp">HP</string>
+    <string name="go_cp_iv_percent">IV %1$d%%</string>
+    <string name="go_cp_perfect_ivs">Perfect IVs</string>
+    <string name="go_cp_max_note">Max CP at Level %1$s with perfect IVs (15 / 15 / 15)</string>
+    <string name="go_cp_raid_note">Raid, Egg and Field Research catches guarantee a minimum IV floor (commonly 10/15 or higher) — check your in-game Appraisal to see a caught Pokémon\'s exact IVs.</string>
+    <string name="go_cp_unavailable">GO battle data isn\'t available yet for this Pokémon or form.</string>
+    <string name="battle_calc_expand">Show calculator</string>
+    <string name="battle_calc_collapse">Hide calculator</string>
+    <string name="battle_calc_learn_more">Learn more</string>
+
+    <!-- Stat Guide (mainline IV / EV / Nature explainer) -->
+    <string name="stat_guide_title">Understanding IVs &amp; EVs</string>
+    <string name="stat_guide_iv_heading">What are IVs?</string>
+    <string name="stat_guide_iv_body">Individual Values (IVs) are hidden numbers from 0–31 for each stat, randomly set when a Pokémon is generated. Think of them as genetic potential — two Pokémon of the same species at the same level can have different stats purely because of IVs. A Pokémon with 31 IV in every stat is called \"perfect\" or \"6IV.\"</string>
+    <string name="stat_guide_ev_heading">What are EVs?</string>
+    <string name="stat_guide_ev_body">Effort Values (EVs) are extra points a Pokémon earns from battling. Every 4 EVs invested in a stat adds roughly +1 point to that stat at Level 100. You can put up to 252 EVs into a single stat, and 510 total across all six — most competitive players focus EVs into just two or three stats instead of spreading them thin.</string>
+    <string name="stat_guide_nature_heading">Nature</string>
+    <string name="stat_guide_nature_body">Every Pokémon also has a Nature, which boosts one stat by 10%% and lowers another by 10%% — or does nothing, for five neutral natures. Pairing the right Nature with EV investment is a core part of building a strong Pokémon.</string>
+    <string name="stat_guide_together_heading">Putting it together</string>
+    <string name="stat_guide_together_body">A Pokémon\'s final stat comes from its species\' Base Stat, your chosen IV and EV, its Level, and its Nature. Try the calculator above to see how much a single stat can swing between a worst case (0 IV, 0 EV, negative Nature) and best case (31 IV, 252 EV, positive Nature) Pokémon of the same species.</string>
+
+    <!-- GO CP Guide (Pokémon GO CP / IV explainer) -->
+    <string name="go_guide_title">Understanding CP &amp; GO IVs</string>
+    <string name="go_guide_cp_heading">What is CP?</string>
+    <string name="go_guide_cp_body">Combat Power (CP) is Pokémon GO\'s single number summarizing how strong a Pokémon is right now. It\'s calculated from the species\' Attack, Defense and Stamina, its Level, and its individual IVs — a higher CP generally means a stronger Pokémon in battle.</string>
+    <string name="go_guide_iv_heading">What are IVs in Pokémon GO?</string>
+    <string name="go_guide_iv_body">Unlike the main games (0–31), Pokémon GO IVs range from 0–15 per stat (Attack, Defense, Stamina). They\'re set randomly when you catch or hatch a Pokémon and never change afterward. A Pokémon with 15/15/15 is called \"Perfect\" or \"100%.\"</string>
+    <string name="go_guide_appraisal_heading">Checking your Pokémon\'s real IVs</string>
+    <string name="go_guide_appraisal_body">This app can\'t read your save data, so it can only estimate. To see the exact IVs of a Pokémon you\'ve caught, use the in-game Appraisal — tap the Pokémon, open the ⋮ menu, then Appraise.</string>
+    <string name="go_guide_raid_heading">Raid, Egg &amp; Research IV floors</string>
+    <string name="go_guide_raid_body">Pokémon caught from Raids, hatched from Eggs, or earned via Field Research are guaranteed a minimum IV floor in every stat (commonly 10/15 or higher) — so they tend to be stronger on average than a random wild catch.</string>
 
     <!-- Asset Onboarding Banner -->
     <string name="banner_original_visuals">Original Visuals</string>

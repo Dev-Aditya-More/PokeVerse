@@ -14,6 +14,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -105,6 +107,7 @@ import kotlin.math.sin
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LeaderboardScreen(
+    // TODO(friends): re-enable onFriendsClick param when the friends feature ships
     viewModel: LeaderboardViewModel = koinViewModel(),
     profileViewModel: ProfileViewModel = koinViewModel(),
     inboxViewModel: InboxViewModel = koinViewModel()
@@ -282,16 +285,20 @@ private fun LeaderboardList(
     ) {
         // Scrolls away: title + bell
         item(key = "title") {
-            LeaderboardTitleRow(unreadCount = unreadCount, onBellClick = onBellClick)
+            LeaderboardTitleRow(
+                unreadCount = unreadCount,
+                onBellClick = onBellClick
+            )
         }
 
-        // Stays pinned: only the three filter chips
+        // Stays pinned: only the filter chips
         stickyHeader(key = "tabs") {
             LeaderboardTabStrip(type = type, onTypeChange = onTypeChange)
         }
 
-        // Scrolls away: top-3 podium
-        if (entries.size >= 3) {
+        // Scrolls away: top-3 podium (only when there are enough entries)
+        val hasPodium = entries.size >= 3
+        if (hasPodium) {
             item(key = "podium") {
                 PodiumSection(
                     type = type,
@@ -305,9 +312,9 @@ private fun LeaderboardList(
             }
         }
 
-        // Scrolls: rank rows 4+
+        // Scrolls: remaining rank rows (all rows when the list is too small for a podium)
         itemsIndexed(
-            items = entries.drop(3),
+            items = if (hasPodium) entries.drop(3) else entries,
             key = { index, e -> "${e.uid}_$index" }
         ) { index, entry ->
             val isUser = entry.uid == userEntry?.uid
@@ -318,6 +325,8 @@ private fun LeaderboardList(
                 maxXp = entries[0].totalXp
             )
         }
+
+        // TODO(friends): re-add the friends-tab empty-state nudge when the feature ships
 
         if (canLoadMore) {
             item(key = "load_more") {
@@ -337,7 +346,10 @@ private fun LeaderboardList(
 // ─────────────────────────────────────────────────────────────────────────────
 // Scrollable title row — slides away when the user scrolls down
 @Composable
-private fun LeaderboardTitleRow(unreadCount: Int, onBellClick: () -> Unit) {
+private fun LeaderboardTitleRow(
+    unreadCount: Int,
+    onBellClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -350,6 +362,7 @@ private fun LeaderboardTitleRow(unreadCount: Int, onBellClick: () -> Unit) {
             fontWeight = FontWeight.Black,
             modifier = Modifier.weight(1f)
         )
+        // TODO(friends): re-add the friend-add entry icon when the feature ships
         BadgedBox(
             badge = {
                 if (unreadCount > 0) {
@@ -388,7 +401,10 @@ private fun LeaderboardTabStrip(type: LeaderboardType, onTypeChange: (Leaderboar
                     bottom = 12.dp
                 )
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.horizontalScroll(rememberScrollState())
+            ) {
                 LeaderboardTab(
                     text = stringResource(R.string.leaderboard_tab_global),
                     selected = type == LeaderboardType.GLOBAL,
@@ -399,6 +415,7 @@ private fun LeaderboardTabStrip(type: LeaderboardType, onTypeChange: (Leaderboar
                     selected = type == LeaderboardType.WEEKLY,
                     onClick = { onTypeChange(LeaderboardType.WEEKLY) }
                 )
+                // TODO(friends): re-add the Friends tab chip when the feature ships
                 LeaderboardTab(
                     text = stringResource(R.string.leaderboard_tab_last_week),
                     selected = type == LeaderboardType.LAST_WEEK,
@@ -409,6 +426,7 @@ private fun LeaderboardTabStrip(type: LeaderboardType, onTypeChange: (Leaderboar
             Text(
                 when (type) {
                     LeaderboardType.WEEKLY -> stringResource(R.string.leaderboard_weekly_reset)
+                    LeaderboardType.FRIENDS -> stringResource(R.string.leaderboard_friends_subtitle)
                     LeaderboardType.LAST_WEEK -> stringResource(R.string.leaderboard_last_week_title)
                     else -> stringResource(R.string.leaderboard_all_time)
                 },
@@ -823,7 +841,10 @@ private fun LastWeekList(
     ) {
         // Scrolls away: title + bell
         item(key = "title") {
-            LeaderboardTitleRow(unreadCount = unreadCount, onBellClick = onBellClick)
+            LeaderboardTitleRow(
+                unreadCount = unreadCount,
+                onBellClick = onBellClick
+            )
         }
 
         // Stays pinned: only the three filter chips

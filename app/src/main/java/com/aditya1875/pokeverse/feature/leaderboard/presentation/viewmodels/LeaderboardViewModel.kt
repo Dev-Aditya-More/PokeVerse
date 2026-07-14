@@ -106,5 +106,6 @@ class LeaderboardViewModel(
 enum class LeaderboardType {
     GLOBAL,
     WEEKLY,
+    FRIENDS,
     LAST_WEEK
 }

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.LevelConfig
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
+import com.aditya1875.pokeverse.utils.WeeklyReset
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -43,6 +44,7 @@ class UserProfileRepository(private val context: Context) {
         val LAST_DAILY_DATE = stringPreferencesKey("last_daily_date")
         val DAILY_STREAK = intPreferencesKey("daily_streak")
         val LAST_EXPLORATION_DATE = stringPreferencesKey("last_exploration_date")
+        val LAST_FIRST_GAME_DATE = stringPreferencesKey("last_first_game_date")
         val LAST_ACTIVE_MS = longPreferencesKey("last_active_ms")
         val PHOTO_URL = stringPreferencesKey("photo_url")
 
@@ -59,12 +61,14 @@ class UserProfileRepository(private val context: Context) {
     val profileFlow: Flow<UserProfile> = ds.data.map { p ->
         val totalXp = p[K.TOTAL_XP] ?: 0
         val (level, currentXp, nextLevelXp) = LevelConfig.computeLevel(totalXp)
+        val lastWeeklyReset = p[K.LAST_WEEKLY_RESET] ?: 0L
         UserProfile(
             uid = p[K.UID] ?: "guest",
             username = p[K.USERNAME] ?: "Trainer",
             totalXp = totalXp,
-            weeklyXp = p[K.WEEKLY_XP] ?: 0,
-            lastWeeklyReset = p[K.LAST_WEEKLY_RESET] ?: 0L,
+            // Weekly XP from before the Monday 00:00 IST boundary belongs to last week
+            weeklyXp = if (WeeklyReset.isStale(lastWeeklyReset)) 0 else (p[K.WEEKLY_XP] ?: 0),
+            lastWeeklyReset = lastWeeklyReset,
             level = level,
             currentXp = currentXp,
             nextLevelXp = nextLevelXp,
@@ -78,6 +82,7 @@ class UserProfileRepository(private val context: Context) {
             bestWildCatchScore = p[K.BEST_WILDCATCH] ?: 0,
             isGuest = p[K.IS_GUEST] ?: true,
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
+            lastFirstGameXpDate = p[K.LAST_FIRST_GAME_DATE] ?: "",
             dailyStreak = p[K.DAILY_STREAK] ?: 0,
             lastActiveDateMillis = p[K.LAST_ACTIVE_MS] ?: 0L,
             photoUrl = p[K.PHOTO_URL] ?: "",
@@ -104,8 +109,10 @@ class UserProfileRepository(private val context: Context) {
             p[K.BEST_GUESS] = profile.bestGuessScore
             p[K.BEST_TYPERUSH] = profile.bestTypeRushScore
             p[K.BEST_DUEL] = profile.bestDuelScore
+            p[K.BEST_WILDCATCH] = profile.bestWildCatchScore
             p[K.IS_GUEST] = profile.isGuest
             p[K.LAST_EXPLORATION_DATE] = profile.lastExplorationXpDate
+            p[K.LAST_FIRST_GAME_DATE] = profile.lastFirstGameXpDate
             p[K.LAST_DAILY_DATE] = profile.lastDailyXpDate
             p[K.DAILY_STREAK] = profile.dailyStreak
             p[K.LAST_ACTIVE_MS] = profile.lastActiveDateMillis
@@ -126,12 +133,20 @@ class UserProfileRepository(private val context: Context) {
             if (!doc.exists()) return null
             val totalXp = (doc.getLong("totalXp") ?: 0L).toInt()
             val (level, currentXp, nextLevelXp) = LevelConfig.computeLevel(totalXp)
+            // Cloud Function writes Timestamps; the app writes Longs — handle both
+            val lastWeeklyReset = when (val raw = doc.get("lastWeeklyReset")) {
+                is Long -> raw
+                is Number -> raw.toLong()
+                is Timestamp -> raw.toDate().time
+                else -> 0L
+            }
             UserProfile(
                 uid = uid,
                 username = doc.getString("username") ?: "Trainer",
                 totalXp = totalXp,
-                weeklyXp = (doc.getLong("weeklyXp") ?: 0L).toInt(),
-                lastWeeklyReset = doc.getLong("lastWeeklyReset") ?: 0L,
+                weeklyXp = if (WeeklyReset.isStale(lastWeeklyReset)) 0
+                           else (doc.getLong("weeklyXp") ?: 0L).toInt(),
+                lastWeeklyReset = lastWeeklyReset,
                 level = level,
                 currentXp = currentXp,
                 nextLevelXp = nextLevelXp,
@@ -141,8 +156,11 @@ class UserProfileRepository(private val context: Context) {
                 bestGuessScore = (doc.getLong("bestGuessScore") ?: 0L).toInt(),
                 bestTypeRushScore = (doc.getLong("bestTypeRushScore") ?: 0L).toInt(),
                 bestDuelScore = (doc.getLong("bestDuelScore") ?: 0L).toInt(),
+                bestWildCatchScore = (doc.getLong("bestWildCatchScore") ?: 0L).toInt(),
                 isGuest = false,
                 lastDailyXpDate = doc.getString("lastDailyXpDate") ?: "",
+                lastExplorationXpDate = doc.getString("lastExplorationXpDate") ?: "",
+                lastFirstGameXpDate = doc.getString("lastFirstGameXpDate") ?: "",
                 dailyStreak = (doc.getLong("dailyStreak") ?: 0L).toInt(),
                 lastActiveDateMillis = doc.getLong("lastActiveDateMs") ?: 0L,
                 photoUrl = doc.getString("photoUrl") ?: "",
@@ -161,31 +179,39 @@ class UserProfileRepository(private val context: Context) {
 
     suspend fun syncToFirestore(profile: UserProfile) {
         val uid = auth.currentUser?.uid ?: return
+        // Never upload weekly XP from before the Monday boundary — it would
+        // overwrite the Cloud Function's weekly reset with last week's value.
+        val p = if (WeeklyReset.isStale(profile.lastWeeklyReset)) {
+            profile.copy(weeklyXp = 0, lastWeeklyReset = WeeklyReset.startOfCurrentWeekMillis())
+        } else profile
         try {
             firestore.collection("users").document(uid).set(
                 mapOf(
                     "uid" to uid,
-                    "username" to profile.username,
-                    "photoUrl" to profile.photoUrl,
-                    "email" to profile.email,
-                    "totalXp" to profile.totalXp,
-                    "weeklyXp" to profile.weeklyXp,
-                    "lastWeeklyReset" to profile.lastWeeklyReset,
-                    "level" to profile.level,
-                    "gamesPlayed" to profile.gamesPlayed,
-                    "bestQuizScore" to profile.bestQuizScore,
-                    "bestMatchScore" to profile.bestMatchScore,
-                    "bestGuessScore" to profile.bestGuessScore,
-                    "bestTypeRushScore" to profile.bestTypeRushScore,
-                    "bestDuelScore" to profile.bestDuelScore,
-                    "dailyStreak" to profile.dailyStreak,
-                    "lastDailyXpDate" to profile.lastDailyXpDate,
-                    "lastActiveDateMs" to profile.lastActiveDateMillis,
-                    "duelPoints" to profile.duelPoints,
-                    "duelWins" to profile.duelWins,
-                    "duelLosses" to profile.duelLosses,
-                    "duelStreak" to profile.duelStreak,
-                    "lastDuelDate" to profile.lastDuelDate,
+                    "username" to p.username,
+                    "photoUrl" to p.photoUrl,
+                    "email" to p.email,
+                    "totalXp" to p.totalXp,
+                    "weeklyXp" to p.weeklyXp,
+                    "lastWeeklyReset" to p.lastWeeklyReset,
+                    "level" to p.level,
+                    "gamesPlayed" to p.gamesPlayed,
+                    "bestQuizScore" to p.bestQuizScore,
+                    "bestMatchScore" to p.bestMatchScore,
+                    "bestGuessScore" to p.bestGuessScore,
+                    "bestTypeRushScore" to p.bestTypeRushScore,
+                    "bestDuelScore" to p.bestDuelScore,
+                    "bestWildCatchScore" to p.bestWildCatchScore,
+                    "dailyStreak" to p.dailyStreak,
+                    "lastDailyXpDate" to p.lastDailyXpDate,
+                    "lastExplorationXpDate" to p.lastExplorationXpDate,
+                    "lastFirstGameXpDate" to p.lastFirstGameXpDate,
+                    "lastActiveDateMs" to p.lastActiveDateMillis,
+                    "duelPoints" to p.duelPoints,
+                    "duelWins" to p.duelWins,
+                    "duelLosses" to p.duelLosses,
+                    "duelStreak" to p.duelStreak,
+                    "lastDuelDate" to p.lastDuelDate,
                     "updatedAt" to Timestamp.now()
                 ),
                 SetOptions.merge()
@@ -194,14 +220,16 @@ class UserProfileRepository(private val context: Context) {
             firestore.collection("leaderboard").document(uid).set(
                 mapOf(
                     "uid" to uid,
-                    "displayName" to profile.username,
-                    "photoUrl" to profile.photoUrl,
-                    "totalXp" to profile.totalXp,
-                    "weeklyXp" to profile.weeklyXp,
-                    "lastWeeklyReset" to profile.lastWeeklyReset,
-                    "level" to profile.level,
+                    "displayName" to p.username,
+                    // lowercase copy for case-insensitive friend search (prefix queries)
+                    "displayNameLower" to p.username.lowercase(),
+                    "photoUrl" to p.photoUrl,
+                    "totalXp" to p.totalXp,
+                    "weeklyXp" to p.weeklyXp,
+                    "lastWeeklyReset" to p.lastWeeklyReset,
+                    "level" to p.level,
                     "updatedAt" to Timestamp.now(),
-                    "weeklyActive" to (profile.weeklyXp > 0),
+                    "weeklyActive" to (p.weeklyXp > 0),
                 ),
                 SetOptions.merge()
             ).await()

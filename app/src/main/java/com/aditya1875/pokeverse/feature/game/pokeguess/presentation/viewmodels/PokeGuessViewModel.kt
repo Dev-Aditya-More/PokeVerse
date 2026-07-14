@@ -20,6 +20,7 @@ import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.PokeGuessQuestion
+import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GUESS_MAX_LIVES
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GuessGameState
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.usecases.GeneratePokeGuessQuestionsUseCase
 import kotlinx.coroutines.Job
@@ -58,7 +59,11 @@ class PokeGuessViewModel(
     private var correctAnswers = 0
     private var currentStreak = 0
     private var bestScore = 0
+    private var lives = GUESS_MAX_LIVES
+    private var questionsAnswered = 0
     private val allQuestions = mutableListOf<PokeGuessQuestion>()
+    private val usedPokemonIds = mutableSetOf<Int>()
+    private var isExtendingPool = false
     private var firstGameOfDayAwarded = false
 
     val topScores: StateFlow<List<GameScoreEntity>> = gameScoreDao.getTopScoresForGame("guess")
@@ -93,10 +98,14 @@ class PokeGuessViewModel(
                 bestScore = userRepository.profileFlow.first().bestGuessScore
                 val questions = generateQuestionsUseCase(difficulty)
                 allQuestions.clear()
+                usedPokemonIds.clear()
                 allQuestions.addAll(questions)
+                usedPokemonIds.addAll(questions.map { it.pokemonId })
                 currentScore = 0
                 correctAnswers = 0
                 currentStreak = 0
+                lives = GUESS_MAX_LIVES
+                questionsAnswered = 0
                 showQuestion(0, difficulty)
             } catch (e: Exception) {
                 Log.e("PokeGuess", "Failed to generate questions", e)
@@ -105,24 +114,32 @@ class PokeGuessViewModel(
         }
     }
 
+    // ── Endless mode: keep the silhouette pool topped up ──────────────────────
+    private fun extendPoolIfNeeded(currentIndex: Int, difficulty: GuessDifficulty) {
+        if (allQuestions.size - currentIndex - 1 > 3 || isExtendingPool) return
+        isExtendingPool = true
+        viewModelScope.launch {
+            try {
+                val more = generateQuestionsUseCase(difficulty)
+                    .filter { it.pokemonId !in usedPokemonIds }
+                if (more.isNotEmpty()) {
+                    allQuestions.addAll(more)
+                    usedPokemonIds.addAll(more.map { it.pokemonId })
+                    prefetchSprites(more.take(3))
+                }
+            } catch (e: Exception) {
+                Log.e("PokeGuess", "Failed to extend question pool", e)
+            } finally {
+                isExtendingPool = false
+            }
+        }
+    }
+
     private fun showQuestion(index: Int, difficulty: GuessDifficulty) {
 
         if (index >= allQuestions.size) {
-            val current = _gameState.value
-            if (current is GuessGameState.ShowingSilhouette) {
-                finishGame(difficulty, current)
-            } else {
-                finishGame(
-                    difficulty,
-                    GuessGameState.ShowingSilhouette(
-                        question = allQuestions.last(),
-                        currentQuestionIndex = index,
-                        totalQuestions = allQuestions.size,
-                        score = currentScore,
-                        timeRemaining = 0
-                    )
-                )
-            }
+            // Pool is dry (offline / generation failed) — end the run gracefully
+            finishGame(difficulty)
             return
         }
 
@@ -131,14 +148,51 @@ class PokeGuessViewModel(
         _gameState.value = GuessGameState.ShowingSilhouette(
             question = question,
             currentQuestionIndex = index,
-            totalQuestions = allQuestions.size,
+            questionsAnswered = questionsAnswered,
+            lives = lives,
             score = currentScore,
             timeRemaining = difficulty.timePerQuestion,
             combo = currentStreak,
             bestScore = bestScore
         )
 
+        extendPoolIfNeeded(index, difficulty)
         startTimer(difficulty.timePerQuestion, index)
+    }
+
+    /** Freeze the countdown while the ad dialog / rewarded ad is on screen */
+    fun pauseTimer() {
+        timerJob?.cancel()
+    }
+
+    /** Resume the countdown from where it was paused */
+    fun resumeTimer() {
+        val current = _gameState.value as? GuessGameState.ShowingSilhouette ?: return
+        if (current.timeRemaining > 0) {
+            startTimer(current.timeRemaining, current.currentQuestionIndex)
+        }
+    }
+
+    /** Rewarded-ad perk: advance without answering — no life lost, combo kept */
+    fun skipQuestion(difficulty: GuessDifficulty) {
+        val current = _gameState.value
+        if (current !is GuessGameState.ShowingSilhouette) return
+        timerJob?.cancel()
+        allQuestions.getOrNull(current.currentQuestionIndex + 2)
+            ?.let { prefetchSprites(listOf(it)) }
+        showQuestion(current.currentQuestionIndex + 1, difficulty)
+    }
+
+    /** Rewarded-ad perk: 50/50 — removes two wrong options */
+    fun useHint() {
+        val current = _gameState.value
+        if (current !is GuessGameState.ShowingSilhouette) return
+        if (current.eliminatedOptions.isNotEmpty()) return
+        val wrong = current.question.options.indices
+            .filter { it != current.question.correctIndex }
+            .shuffled()
+            .take(2)
+        _gameState.value = current.copy(eliminatedOptions = wrong)
     }
 
     private fun startTimer(totalTime: Int, questionIndex: Int) {
@@ -163,6 +217,8 @@ class PokeGuessViewModel(
     private fun onTimeUp(questionIndex: Int) {
         timerJob?.cancel()
         currentStreak = 0
+        lives--
+        questionsAnswered++
 
         val question = allQuestions[questionIndex]
 
@@ -172,7 +228,8 @@ class PokeGuessViewModel(
             isCorrect = false,
             isTimeUp = true,
             currentQuestionIndex = questionIndex,
-            totalQuestions = allQuestions.size,
+            questionsAnswered = questionsAnswered,
+            lives = lives,
             score = currentScore,
             combo = 0,
             bestScore = bestScore
@@ -202,7 +259,9 @@ class PokeGuessViewModel(
             }
         } else {
             currentStreak = 0   // reset streak on wrong answer
+            lives--             // endless mode: wrong answers cost a heart
         }
+        questionsAnswered++
 
         _gameState.value = GuessGameState.Revealing(
             question = question,
@@ -210,7 +269,8 @@ class PokeGuessViewModel(
             isCorrect = isCorrect,
             isTimeUp = false,
             currentQuestionIndex = questionIndex,
-            totalQuestions = allQuestions.size,
+            questionsAnswered = questionsAnswered,
+            lives = lives,
             score = currentScore,
             combo = currentStreak,
             bestScore = bestScore
@@ -220,6 +280,11 @@ class PokeGuessViewModel(
     fun nextQuestion(difficulty: GuessDifficulty) {
         val currentState = _gameState.value
         if (currentState is GuessGameState.Revealing) {
+            // Run ends when the hearts run out
+            if (lives <= 0) {
+                finishGame(difficulty)
+                return
+            }
             val nextIndex = currentState.currentQuestionIndex + 1
             // Eagerly prefetch the one after next too
             allQuestions.getOrNull(nextIndex + 1)?.let { prefetchSprites(listOf(it)) }
@@ -227,7 +292,8 @@ class PokeGuessViewModel(
         }
     }
 
-    private fun finishGame(difficulty: GuessDifficulty, state: GuessGameState.ShowingSilhouette) {
+    private fun finishGame(difficulty: GuessDifficulty) {
+        timerJob?.cancel()
         viewModelScope.launch {
             val result = xpManager.awardGameXP(XPEvent.GuessComplete)
             if (result.xpGained > 0) _xpResult.emit(result)
@@ -235,7 +301,7 @@ class PokeGuessViewModel(
             userRepository.updateBestScore("guess", currentScore)
             userRepository.incrementGamesPlayed()
 
-            val totalQ = allQuestions.size.coerceAtLeast(1)
+            val totalQ = questionsAnswered.coerceAtLeast(1)
             gameScoreDao.insertScore(
                 GameScoreEntity(
                     gameType = "guess",
@@ -255,7 +321,7 @@ class PokeGuessViewModel(
         _gameState.value = GuessGameState.Finished(
             score = currentScore,
             correctAnswers = correctAnswers,
-            totalQuestions = allQuestions.size,
+            totalQuestions = questionsAnswered,
             difficulty = difficulty,
             isNewBest = currentScore > bestScore
         )
@@ -266,7 +332,10 @@ class PokeGuessViewModel(
         _gameState.value = GuessGameState.Idle
         currentScore = 0
         correctAnswers = 0
+        questionsAnswered = 0
+        lives = GUESS_MAX_LIVES
         allQuestions.clear()
+        usedPokemonIds.clear()
     }
 
     override fun onCleared() {

@@ -50,7 +50,7 @@ data class Sprites(
 )
 data class TypeSlot(val type: Type)
 data class Type(val name: String)
-data class StatSlot(val base_stat: Int, val stat: Stat)
+data class StatSlot(val base_stat: Int, val effort: Int = 0, val stat: Stat)
 data class Stat(val name: String)
 
 data class OtherSprites(

@@ -106,6 +106,16 @@ import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
+import com.aditya1875.pokeverse.feature.badges.domain.GymBadge
+import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeDetailSheet
+import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeGridCard
+import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeRegionFilter
+import com.aditya1875.pokeverse.feature.badges.presentation.viewmodels.BadgesViewModel
+import com.aditya1875.pokeverse.feature.characters.domain.PokeCharacter
+import com.aditya1875.pokeverse.feature.characters.presentation.screens.CharacterDetailSheet
+import com.aditya1875.pokeverse.feature.characters.presentation.screens.CharacterGridCard
+import com.aditya1875.pokeverse.feature.characters.presentation.screens.CharacterRoleFilter
+import com.aditya1875.pokeverse.feature.characters.presentation.viewmodels.CharactersViewModel
 import com.aditya1875.pokeverse.feature.berry.presentation.screens.BerryGridCard
 import com.aditya1875.pokeverse.feature.berry.presentation.screens.BerryGridSkeleton
 import com.aditya1875.pokeverse.feature.berry.presentation.screens.BerryListError
@@ -163,6 +173,8 @@ fun SharedTransitionScope.HomeScreen(
     triviaViewModel: DailyTriviaViewModel = koinViewModel(),
     itemViewModel: ItemViewModel = koinViewModel(),
     berryViewModel: BerryViewModel = koinViewModel(),
+    badgesViewModel: BadgesViewModel = koinViewModel(),
+    charactersViewModel: CharactersViewModel = koinViewModel(),
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val pokemonList by viewModel.pokemonList.collectAsStateWithLifecycle()
@@ -211,9 +223,21 @@ fun SharedTransitionScope.HomeScreen(
     val filteredBerries by berryViewModel.filteredBerries.collectAsStateWithLifecycle()
     val berrySearchQuery by berryViewModel.searchQuery.collectAsStateWithLifecycle()
 
+    val badges by badgesViewModel.badges.collectAsStateWithLifecycle()
+    val badgeSearchQuery by badgesViewModel.searchQuery.collectAsStateWithLifecycle()
+    val selectedRegion by badgesViewModel.selectedRegion.collectAsStateWithLifecycle()
+    var badgeDetail by remember { mutableStateOf<GymBadge?>(null) }
+
+    val characters by charactersViewModel.characters.collectAsStateWithLifecycle()
+    val characterSearchQuery by charactersViewModel.searchQuery.collectAsStateWithLifecycle()
+    val selectedRole by charactersViewModel.selectedRole.collectAsStateWithLifecycle()
+    var characterDetail by remember { mutableStateOf<PokeCharacter?>(null) }
+
     val textFieldValue = when (contentMode) {
         HomeContentMode.POKEMON -> query
         HomeContentMode.BERRIES -> berrySearchQuery
+        HomeContentMode.BADGES -> badgeSearchQuery
+        HomeContentMode.CHARACTERS -> characterSearchQuery
         else -> searchQuery
     }
 
@@ -413,6 +437,32 @@ fun SharedTransitionScope.HomeScreen(
                                         showMenu = false
                                     }
                                 )
+
+                                DropdownMenuItem(
+                                    text = { Text("Badges") },
+                                    trailingIcon = {
+                                        if (contentMode == HomeContentMode.BADGES) {
+                                            Icon(Icons.Default.Check, contentDescription = null)
+                                        }
+                                    },
+                                    onClick = {
+                                        contentMode = HomeContentMode.BADGES
+                                        showMenu = false
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Characters") },
+                                    trailingIcon = {
+                                        if (contentMode == HomeContentMode.CHARACTERS) {
+                                            Icon(Icons.Default.Check, contentDescription = null)
+                                        }
+                                    },
+                                    onClick = {
+                                        contentMode = HomeContentMode.CHARACTERS
+                                        showMenu = false
+                                    }
+                                )
                             }
                         }
                     },
@@ -523,6 +573,14 @@ fun SharedTransitionScope.HomeScreen(
                 )
             }
 
+            badgeDetail?.let { badge ->
+                BadgeDetailSheet(badge = badge, onDismiss = { badgeDetail = null })
+            }
+
+            characterDetail?.let { character ->
+                CharacterDetailSheet(character = character, onDismiss = { characterDetail = null })
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -577,6 +635,8 @@ fun SharedTransitionScope.HomeScreen(
                                 }
                                 HomeContentMode.ITEMS -> itemViewModel.onSearchChange(it)
                                 HomeContentMode.BERRIES -> berryViewModel.onSearchChange(it)
+                                HomeContentMode.BADGES -> badgesViewModel.onSearchChange(it)
+                                HomeContentMode.CHARACTERS -> charactersViewModel.onSearchChange(it)
                             }
                         },
                         label = {
@@ -584,6 +644,8 @@ fun SharedTransitionScope.HomeScreen(
                                 HomeContentMode.POKEMON -> Text(stringResource(R.string.home_search_pokemon))
                                 HomeContentMode.ITEMS -> Text(stringResource(R.string.home_search_item))
                                 HomeContentMode.BERRIES -> Text("Search berries...")
+                                HomeContentMode.BADGES -> Text("Search badges, leaders, types...")
+                                HomeContentMode.CHARACTERS -> Text("Search characters...")
                             }
                         },
                         singleLine = true,
@@ -610,6 +672,8 @@ fun SharedTransitionScope.HomeScreen(
                             val activeQuery = when (contentMode) {
                                 HomeContentMode.POKEMON -> query
                                 HomeContentMode.BERRIES -> berrySearchQuery
+                                HomeContentMode.BADGES -> badgeSearchQuery
+                                HomeContentMode.CHARACTERS -> characterSearchQuery
                                 else -> searchQuery
                             }
                             when {
@@ -630,6 +694,8 @@ fun SharedTransitionScope.HomeScreen(
                                             }
                                             HomeContentMode.ITEMS -> itemViewModel.onSearchChange("")
                                             HomeContentMode.BERRIES -> berryViewModel.onSearchChange("")
+                                            HomeContentMode.BADGES -> badgesViewModel.onSearchChange("")
+                                            HomeContentMode.CHARACTERS -> charactersViewModel.onSearchChange("")
                                         }
                                     }) {
                                         Icon(Icons.Default.Close, stringResource(R.string.home_clear_search))
@@ -945,6 +1011,64 @@ fun SharedTransitionScope.HomeScreen(
                                             }
                                         }
                                     }
+
+                                    HomeContentMode.BADGES -> {
+                                        Column(modifier = Modifier.fillMaxSize()) {
+                                            BadgeRegionFilter(
+                                                regions = badgesViewModel.regions,
+                                                selected = selectedRegion,
+                                                onSelect = { badgesViewModel.onRegionSelect(it) }
+                                            )
+                                            LazyVerticalGrid(
+                                                columns = GridCells.Adaptive(minSize = 160.dp),
+                                                contentPadding = PaddingValues(
+                                                    start = hPadding,
+                                                    end = hPadding,
+                                                    top = 8.dp,
+                                                    bottom = 120.dp
+                                                ),
+                                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                items(badges, key = { "${it.region}_${it.name}" }) { badge ->
+                                                    BadgeGridCard(
+                                                        badge = badge,
+                                                        onClick = { badgeDetail = badge }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    HomeContentMode.CHARACTERS -> {
+                                        Column(modifier = Modifier.fillMaxSize()) {
+                                            CharacterRoleFilter(
+                                                roles = charactersViewModel.roles,
+                                                selected = selectedRole,
+                                                onSelect = { charactersViewModel.onRoleSelect(it) }
+                                            )
+                                            LazyVerticalGrid(
+                                                columns = GridCells.Adaptive(minSize = 160.dp),
+                                                contentPadding = PaddingValues(
+                                                    start = hPadding,
+                                                    end = hPadding,
+                                                    top = 8.dp,
+                                                    bottom = 120.dp
+                                                ),
+                                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                                modifier = Modifier.fillMaxSize()
+                                            ) {
+                                                items(characters, key = { it.name }) { character ->
+                                                    CharacterGridCard(
+                                                        character = character,
+                                                        onClick = { characterDetail = character }
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
 
                                 PullRefreshIndicator(
@@ -952,6 +1076,8 @@ fun SharedTransitionScope.HomeScreen(
                                         HomeContentMode.POKEMON -> isLoading
                                         HomeContentMode.ITEMS -> itemListState is ItemListState.Loading
                                         HomeContentMode.BERRIES -> berryListState is BerryListState.Loading
+                                        // Badges & characters are bundled data — never loading
+                                        else -> false
                                     },
                                     state = pullRefreshState,
                                     modifier = Modifier.align(Alignment.TopCenter),

@@ -98,6 +98,8 @@
     <string name="popup_update_title">Atualização Disponível</string>
     <string name="popup_update_body">Uma nova versão do Dexverse está pronta com correções e novidades.</string>
     <string name="popup_update_tip">Atualize agora para a melhor experiência.</string>
+    <string name="force_update_title">Atualização Necessária</string>
+    <string name="force_update_body">Esta versão do Dexverse não é mais suportada. Atualize para continuar jogando.</string>
     <string name="popup_assets_title">Visuais Originais Disponíveis</string>
     <string name="popup_assets_body">O Dexverse pode mostrar sprites originais da franquia e reproduzir áudio autêntico para uma experiência mais rica.</string>
     <string name="popup_assets_disclaimer">⚠️  Esses recursos pertencem aos seus respectivos donos. Este app é não oficial e não é afiliado.</string>
@@ -245,6 +247,37 @@
     <string name="leaderboard_you_label">Você</string>
     <string name="leaderboard_your_rank">Sua Classificação</string>
     <string name="leaderboard_error">Não foi possível carregar a classificação</string>
+    <string name="leaderboard_tab_last_week">Semana Passada</string>
+    <string name="leaderboard_last_week_title">Os Melhores da Semana Passada</string>
+    <string name="leaderboard_last_week_week_of">Semana de %1$s</string>
+    <string name="leaderboard_last_week_empty">Ainda sem dados · jogue esta semana para aparecer aqui!</string>
+    <string name="leaderboard_tab_friends">Amigos</string>
+    <string name="leaderboard_friends_subtitle">Você e seus amigos</string>
+    <string name="leaderboard_friends_empty_title">Ainda sem amigos</string>
+    <string name="leaderboard_friends_empty_subtitle">Adicione amigos para competir com eles aqui</string>
+
+    <!-- Friends -->
+    <string name="friends_title">Amigos</string>
+    <string name="friends_back">Voltar</string>
+    <string name="friends_search_hint">Buscar treinadores pelo nome…</string>
+    <string name="friends_search_empty">Nenhum treinador encontrado. Tente outro nome.</string>
+    <string name="friends_requests_header">Solicitações de Amizade (%1$d)</string>
+    <string name="friends_sent_header">Solicitações Enviadas</string>
+    <string name="friends_list_header">Meus Amigos (%1$d)</string>
+    <string name="friends_empty">Busque treinadores acima e adicione-os para competir juntos!</string>
+    <string name="friends_row_stats">Nível %1$d · %2$d XP</string>
+    <string name="friends_weekly_chip">%1$d XP esta semana</string>
+    <string name="friends_request_level">Nível %1$d quer ser seu amigo</string>
+    <string name="friends_accept">Aceitar</string>
+    <string name="friends_decline">Recusar</string>
+    <string name="friends_add">Adicionar amigo</string>
+    <string name="friends_requested">Solicitado</string>
+    <string name="friends_already">Amigos ✓</string>
+    <string name="friends_cancel_request">Cancelar</string>
+    <string name="friends_remove">Remover amigo</string>
+    <string name="friends_stat_level">Nível</string>
+    <string name="friends_stat_total_xp">XP Total</string>
+    <string name="friends_stat_weekly_xp">XP Semanal</string>
 
     <!-- XP Overlay -->
     <string name="xp_level_up">SUBIU DE NÍVEL!</string>
@@ -317,6 +350,10 @@
     <string name="premium_renewal_lifetime">Compra única · Sem cobranças recorrentes. Para sempre.</string>
     <string name="premium_not_required">O Premium é opcional. O app é gratuito; Premium desbloqueia o Modo Difícil e recursos exclusivos.</string>
     <string name="premium_payment_notice">🔒 Assinaturas renovam automaticamente até o cancelamento. Gerencie ou cancele no Google Play → Assinaturas. Pagamento processado com segurança pelo Google Play.</string>
+    <string name="premium_sign_in_to_continue">Entrar para Continuar</string>
+    <string name="premium_sign_in_required">É necessária uma conta do Google para comprar o Premium.</string>
+    <string name="premium_restore_purchases">Restaurar Compras</string>
+    <string name="premium_restore_not_found">Nenhuma compra anterior encontrada nesta conta.</string>
 
     <!-- Daily Trivia -->
     <string name="trivia_loading">Carregando o Pokémon do dia…</string>
@@ -388,6 +425,61 @@
     <string name="detail_audio_cry">Grito do Pokémon</string>
     <string name="detail_audio_stop_cry">Parar Grito</string>
 
+    <!-- Stat Calculator (IV / EV / Natureza dos jogos principais) -->
+    <string name="stat_calc_title">Calculadora de Status</string>
+    <string name="stat_calc_subtitle">Status reais em qualquer Nível, IV, EV e Natureza</string>
+    <string name="stat_calc_level">Nível</string>
+    <string name="stat_calc_nature">Natureza</string>
+    <string name="stat_calc_nature_neutral">Neutra — sem bônus ou redução</string>
+    <string name="stat_calc_nature_boost_lower">+%1$s · −%2$s</string>
+    <string name="stat_calc_iv">IV</string>
+    <string name="stat_calc_ev">EV</string>
+    <string name="stat_calc_ev_total">EVs usados: %1$d / %2$d</string>
+    <string name="stat_calc_ev_over_limit">Acima do limite de %1$d EVs totais — os pontos extras são ignorados</string>
+    <string name="stat_calc_max_ivs">IVs Máximos</string>
+    <string name="stat_calc_reset">Redefinir</string>
+    <string name="ev_yield_badge">+%1$d EV</string>
+
+    <!-- GO Battle Power (calculadora de CP do Pokémon GO) -->
+    <string name="go_cp_title">Poder de Batalha GO</string>
+    <string name="go_cp_subtitle">Estime o CP em qualquer combinação de Nível e IV</string>
+    <string name="go_cp_level">Nível</string>
+    <string name="go_cp_iv_attack">IV de Ataque</string>
+    <string name="go_cp_iv_defense">IV de Defesa</string>
+    <string name="go_cp_iv_stamina">IV de Resistência</string>
+    <string name="go_cp_result_cp">CP</string>
+    <string name="go_cp_result_hp">HP</string>
+    <string name="go_cp_iv_percent">IV %1$d%%</string>
+    <string name="go_cp_perfect_ivs">IVs Perfeitos</string>
+    <string name="go_cp_max_note">CP máximo no Nível %1$s com IVs perfeitos (15 / 15 / 15)</string>
+    <string name="go_cp_raid_note">Capturas de Raids, Ovos e Pesquisa de Campo garantem um piso mínimo de IV (geralmente 10/15 ou mais) — verifique a Avaliação no jogo para ver os IVs exatos de um Pokémon capturado.</string>
+    <string name="go_cp_unavailable">Os dados de batalha do GO ainda não estão disponíveis para este Pokémon ou forma.</string>
+    <string name="battle_calc_expand">Mostrar calculadora</string>
+    <string name="battle_calc_collapse">Ocultar calculadora</string>
+    <string name="battle_calc_learn_more">Saiba mais</string>
+
+    <!-- Stat Guide (explicação de IV / EV / Natureza dos jogos principais) -->
+    <string name="stat_guide_title">Entendendo IVs e EVs</string>
+    <string name="stat_guide_iv_heading">O que são IVs?</string>
+    <string name="stat_guide_iv_body">Individual Values (IVs) são números ocultos de 0 a 31 para cada status, definidos aleatoriamente quando um Pokémon é gerado. Pense neles como potencial genético — dois Pokémon da mesma espécie no mesmo nível podem ter status diferentes só por causa dos IVs. Um Pokémon com 31 de IV em todos os status é chamado de \"perfeito\" ou \"6IV.\"</string>
+    <string name="stat_guide_ev_heading">O que são EVs?</string>
+    <string name="stat_guide_ev_body">Effort Values (EVs) são pontos extras que um Pokémon ganha ao batalhar. A cada 4 EVs investidos em um status, ele ganha aproximadamente +1 ponto nesse status no Nível 100. Você pode colocar até 252 EVs em um único status, e 510 no total entre os seis — a maioria dos jogadores competitivos foca os EVs em apenas dois ou três status em vez de espalhá-los.</string>
+    <string name="stat_guide_nature_heading">Natureza</string>
+    <string name="stat_guide_nature_body">Todo Pokémon também tem uma Natureza, que aumenta um status em 10%% e reduz outro em 10%% — ou não faz nada, no caso de cinco naturezas neutras. Combinar a Natureza certa com o investimento em EVs é uma parte essencial para deixar um Pokémon forte.</string>
+    <string name="stat_guide_together_heading">Juntando tudo</string>
+    <string name="stat_guide_together_body">O status final de um Pokémon vem do Status Base da espécie, do IV e EV escolhidos, do Nível e da Natureza. Use a calculadora acima para ver o quanto um único status pode variar entre o pior caso (0 IV, 0 EV, Natureza negativa) e o melhor caso (31 IV, 252 EV, Natureza positiva) de um Pokémon da mesma espécie.</string>
+
+    <!-- GO CP Guide (explicação de CP / IV do Pokémon GO) -->
+    <string name="go_guide_title">Entendendo CP e IVs do GO</string>
+    <string name="go_guide_cp_heading">O que é CP?</string>
+    <string name="go_guide_cp_body">Combat Power (CP) é o número único do Pokémon GO que resume o quão forte um Pokémon é no momento. É calculado a partir do Ataque, Defesa e Resistência da espécie, do Nível e dos IVs individuais — um CP mais alto geralmente indica um Pokémon mais forte em batalha.</string>
+    <string name="go_guide_iv_heading">O que são IVs no Pokémon GO?</string>
+    <string name="go_guide_iv_body">Diferente dos jogos principais (0–31), os IVs do Pokémon GO variam de 0 a 15 por status (Ataque, Defesa, Resistência). Eles são definidos aleatoriamente quando você captura ou choca um Pokémon e nunca mudam depois disso. Um Pokémon com 15/15/15 é chamado de \"Perfeito\" ou \"100%.\"</string>
+    <string name="go_guide_appraisal_heading">Verificando os IVs reais do seu Pokémon</string>
+    <string name="go_guide_appraisal_body">Este app não consegue ler os dados salvos da sua conta, então só pode estimar. Para ver os IVs exatos de um Pokémon que você capturou, use a Avaliação dentro do jogo — toque no Pokémon, abra o menu ⋮ e depois Avaliar.</string>
+    <string name="go_guide_raid_heading">Piso de IV em Raids, Ovos e Pesquisas</string>
+    <string name="go_guide_raid_body">Pokémon capturados em Raids, chocados de Ovos ou obtidos por Pesquisa de Campo têm garantido um piso mínimo de IV em todos os status (geralmente 10/15 ou mais) — por isso tendem a ser mais fortes, em média, do que uma captura selvagem aleatória.</string>
+
     <!-- Asset Onboarding Banner -->
     <string name="banner_original_visuals">Visuais Originais</string>
     <string name="banner_original_assets_desc">Ative sprites e áudio originais da franquia para uma experiência mais rica. Esses recursos pertencem aos seus respectivos donos — este app é não oficial e não é afiliado.</string>
@@ -443,6 +535,16 @@
     <string name="clash_defeated">Derrotado</string>
     <string name="clash_timer_seconds">%1$ds</string>
     <string name="clash_card_number">Carta %1$d</string>
+    <string name="clash_matchmaking_soon">Nenhum treinador por perto · Partida contra IA em %1$ds</string>
+    <string name="clash_searching_msg1">Explorando a região…</string>
+    <string name="clash_searching_msg2">Verificando ginásios próximos…</string>
+    <string name="clash_searching_msg3">Procurando um rival…</string>
+    <string name="clash_searching_msg4">Sondando radares de treinadores…</string>
+    <string name="clash_loading_team">Preparando seu time…</string>
+    <string name="clash_loading_dealing">Embaralhando as cartas…</string>
+    <string name="clash_loading_gathering">Reunindo Pokémon…</string>
+    <string name="clash_loading_bot">Configurando oponente de IA…</string>
+    <string name="clash_bot_opponent">CPU</string>
     <!-- Guide dialog -->
     <string name="clash_guide_title">Como funciona</string>
     <string name="clash_guide_step_count">%1$d de %2$d</string>

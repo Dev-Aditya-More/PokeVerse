@@ -9,6 +9,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
@@ -66,6 +69,22 @@ class BillingManager(
 
     private val _billingError = MutableStateFlow<String?>(null)
     override val billingError: StateFlow<String?> = _billingError
+
+    init {
+        // Google Play only reflects a cancellation once the paid period actually ends —
+        // until then the purchase legitimately stays PURCHASED, that part is correct.
+        // But this app only re-verified against Play's live purchase state on cold start,
+        // so a user whose period *had* already ended kept local Premium access for as
+        // long as the process stayed alive. Re-checking on every foreground return closes
+        // that staleness window down to "since last backgrounded" instead of "since last
+        // full app restart" — matches Google's own recommended practice of re-querying
+        // purchases in onResume.
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStart(owner: LifecycleOwner) {
+                coroutineScope.launch { queryExistingPurchases() }
+            }
+        })
+    }
 
     override fun startConnection() {
         // Restore cached premium state immediately so the UI never flashes Free on cold start

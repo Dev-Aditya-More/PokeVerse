@@ -33,6 +33,9 @@ import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
+import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
+import com.aditya1875.pokeverse.feature.game.poketype.domain.model.RUSH_MAX_LIVES
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
@@ -74,6 +77,23 @@ fun TypeRushScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     var showAdForReplay by remember { mutableStateOf(false) }
+    // Which perk the player is unlocking via rewarded ad: "skip" or "hint"
+    var pendingPerk by remember { mutableStateOf<String?>(null) }
+    // Perk granted by the ad, applied only once the ad is fully dismissed
+    var earnedPerk by remember { mutableStateOf<String?>(null) }
+
+    // Keep the game frozen from ad-dialog open until the rewarded ad closes
+    LaunchedEffect(adState, earnedPerk) {
+        if (earnedPerk != null && adState !is RewardedAdState.Showing) {
+            val perk = earnedPerk
+            earnedPerk = null
+            if (perk == "skip") viewModel.skipRound()
+            else {
+                viewModel.useHint()
+                viewModel.resumeTimer()
+            }
+        }
+    }
     val connectivityObserver: ConnectivityObserver = koinInject()
     val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
     LaunchedEffect(adState, isOnline) {
@@ -101,6 +121,21 @@ fun TypeRushScreen(
                     state = s, difficulty = difficulty,
                     onTypeTapped = { viewModel.onTypeTapped(it) },
                     onBack = { showExitDialog = true },
+                    onSkip = {
+                        if (subscriptionState is SubscriptionState.Premium) viewModel.skipRound()
+                        else {
+                            viewModel.pauseTimer()
+                            pendingPerk = "skip"
+                        }
+                    },
+                    onHint = {
+                        if (subscriptionState is SubscriptionState.Premium) viewModel.useHint()
+                        else {
+                            viewModel.pauseTimer()
+                            pendingPerk = "hint"
+                        }
+                    },
+                    showAdTag = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
                 is TypeRushState.RoundResult -> RoundResultContent(
@@ -148,6 +183,27 @@ fun TypeRushScreen(
             onRetry = { adManager.loadAd(context) }
         )
     }
+
+    pendingPerk?.let { perk ->
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        // Reward fires while the ad is still on screen — defer
+                        // applying the perk until the ad is dismissed
+                        earnedPerk = perk
+                        pendingPerk = null
+                    }
+                }
+            },
+            onDismiss = {
+                pendingPerk = null
+                viewModel.resumeTimer()
+            },
+            onRetry = { adManager.loadAd(context) }
+        )
+    }
 }
 
 @Composable
@@ -156,6 +212,9 @@ private fun PlayingContent(
     difficulty: TypeRushDifficulty,
     onTypeTapped: (String) -> Unit,
     onBack: () -> Unit,
+    onSkip: () -> Unit = {},
+    onHint: () -> Unit = {},
+    showAdTag: Boolean = true,
     modifier: Modifier
 ) {
     val timerFraction = (state.timeRemaining.toFloat() / difficulty.timePerRound.coerceAtLeast(1)).coerceIn(0f, 1f)
@@ -209,20 +268,14 @@ private fun PlayingContent(
                     Icon(Icons.Default.Close, null,
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                 }
-                // Dot progress
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                    repeat(state.totalQuestions) { i ->
-                        val w by animateDpAsState(
-                            if (i == state.questionIndex) 18.dp else 6.dp, label = "dot"
-                        )
-                        Box(
-                            modifier = Modifier.width(w).height(6.dp).clip(CircleShape)
-                                .background(
-                                    if (i <= state.questionIndex) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.surfaceVariant
-                                )
-                        )
-                    }
+                // Hearts + round counter
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    LivesRow(lives = state.lives, maxLives = RUSH_MAX_LIVES)
+                    Text(
+                        "Round ${state.roundsPlayed + 1}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 Surface(
                     shape = RoundedCornerShape(20.dp),
@@ -316,13 +369,25 @@ private fun PlayingContent(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(12.dp))
+
+            // Rewarded perks: 50/50 hint + skip
+            SkipHintBar(
+                onSkip = onSkip,
+                onHint = onHint,
+                hintUsed = state.eliminatedTypes.isNotEmpty(),
+                showAdTag = showAdTag,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+
+            Spacer(Modifier.height(12.dp))
 
             TypeBubbleGrid(
                 options = state.question.options,
                 correctTypes = state.question.correctTypes,
                 selectedTypes = state.selectedTypes,
                 isLocked = state.isLocked,
+                eliminatedTypes = state.eliminatedTypes,
                 onTypeTapped = onTypeTapped,
             )
         }
@@ -335,6 +400,7 @@ private fun TypeBubbleGrid(
     correctTypes: List<String>,
     selectedTypes: Set<String>,
     isLocked: Boolean,
+    eliminatedTypes: Set<String> = emptySet(),
     onTypeTapped: (String) -> Unit,
 ) {
     val soundManager: SoundManager = koinInject()
@@ -347,6 +413,7 @@ private fun TypeBubbleGrid(
                     val isSelected = type in selectedTypes
                     val isCorrect = type in correctTypes
                     val isWrong = isLocked && isSelected && !isCorrect
+                    val isEliminated = type in eliminatedTypes
                     val tc = typeColor(type)
 
                     val bgAlpha by animateFloatAsState(
@@ -361,6 +428,7 @@ private fun TypeBubbleGrid(
                     Box(
                         modifier = Modifier
                             .weight(1f).scale(scale)
+                            .alpha(if (isEliminated) 0.25f else 1f)
                             .clip(RoundedCornerShape(14.dp))
                             .background(tc.copy(alpha = bgAlpha))
                             .border(
@@ -369,7 +437,7 @@ private fun TypeBubbleGrid(
                                 else tc.copy(alpha = if (isSelected || (isLocked && isCorrect)) 1f else 0.28f),
                                 RoundedCornerShape(14.dp)
                             )
-                            .clickable(enabled = !isLocked) {
+                            .clickable(enabled = !isLocked && !isEliminated) {
                                 soundManager.play(SoundManager.Sound.RUSH_CLICK); onTypeTapped(type)
                             }
                             .padding(vertical = 15.dp),
@@ -501,7 +569,7 @@ private fun RoundResultContent(state: TypeRushState.RoundResult, onNext: () -> U
                 elevation = ButtonDefaults.buttonElevation(4.dp)
             ) {
                 Text(
-                    if (state.questionIndex >= state.totalQuestions - 1) "See Results →" else "Next Pokémon →",
+                    if (state.lives <= 0) "See Results →" else "Next Pokémon →",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color.White

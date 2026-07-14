@@ -6,7 +6,10 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
+import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
+import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.QUIZ_MAX_LIVES
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -104,6 +107,25 @@ fun QuizGameScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     var showAdForReplay by remember { mutableStateOf(false) }
+    // Which perk the player is unlocking via rewarded ad: "skip" or "hint"
+    var pendingPerk by remember { mutableStateOf<String?>(null) }
+    // Perk granted by the ad, applied only once the ad is fully dismissed
+    var earnedPerk by remember { mutableStateOf<String?>(null) }
+
+    // The game stays frozen from the moment the ad dialog opens until the
+    // rewarded ad is closed — otherwise the countdown eats a life while the
+    // player is watching the ad
+    LaunchedEffect(adState, earnedPerk) {
+        if (earnedPerk != null && adState !is RewardedAdState.Showing) {
+            val perk = earnedPerk
+            earnedPerk = null
+            if (perk == "skip") viewModel.skipQuestion()
+            else {
+                viewModel.useHint()
+                viewModel.resumeTimer()
+            }
+        }
+    }
     val connectivityObserver: ConnectivityObserver = koinInject()
     val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
     LaunchedEffect(adState, isOnline) {
@@ -141,6 +163,21 @@ fun QuizGameScreen(
                     difficulty = difficulty,
                     onAnswerSelected = { viewModel.selectAnswer(it) },
                     onRequestExit = { showExitDialog = true },
+                    onSkip = {
+                        if (subscriptionState is SubscriptionState.Premium) viewModel.skipQuestion()
+                        else {
+                            viewModel.pauseTimer()
+                            pendingPerk = "skip"
+                        }
+                    },
+                    onHint = {
+                        if (subscriptionState is SubscriptionState.Premium) viewModel.useHint()
+                        else {
+                            viewModel.pauseTimer()
+                            pendingPerk = "hint"
+                        }
+                    },
+                    showAdTag = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
                 is QuizUiState.ShowingAnswer -> {
@@ -205,6 +242,27 @@ fun QuizGameScreen(
             onRetry = { adManager.loadAd(context) }
         )
     }
+
+    pendingPerk?.let { perk ->
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        // Reward fires while the ad is still on screen — defer
+                        // applying the perk until the ad is dismissed
+                        earnedPerk = perk
+                        pendingPerk = null
+                    }
+                }
+            },
+            onDismiss = {
+                pendingPerk = null
+                viewModel.resumeTimer()
+            },
+            onRetry = { adManager.loadAd(context) }
+        )
+    }
 }
 
 @Composable
@@ -213,6 +271,9 @@ private fun QuizPlayingContent(
     difficulty: QuizDifficulty,
     onAnswerSelected: (Int) -> Unit,
     onRequestExit: () -> Unit,
+    onSkip: () -> Unit = {},
+    onHint: () -> Unit = {},
+    showAdTag: Boolean = true,
     modifier: Modifier
 ) {
     val currentQuestion = gameState.questions[gameState.currentQuestionIndex]
@@ -242,13 +303,10 @@ private fun QuizPlayingContent(
             }
 
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                LivesRow(lives = gameState.lives, maxLives = QUIZ_MAX_LIVES)
                 Text(
-                    "${gameState.currentQuestionIndex + 1} / ${gameState.questions.size}",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    difficulty.name.lowercase().replaceFirstChar { it.uppercase() },
+                    "Q${gameState.questionsAnswered + 1} · " +
+                            difficulty.name.lowercase().replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -320,14 +378,27 @@ private fun QuizPlayingContent(
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(14.dp))
+
+        // ── Rewarded perks: 50/50 hint + skip ─────────────────────────────────
+        SkipHintBar(
+            onSkip = onSkip,
+            onHint = onHint,
+            hintUsed = gameState.eliminatedOptions.isNotEmpty(),
+            showAdTag = showAdTag,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(Modifier.height(14.dp))
 
         // ── Answer options ────────────────────────────────────────────────────
         currentQuestion.options.forEachIndexed { index, option ->
+            val eliminated = index in gameState.eliminatedOptions
             QuizAnswerOption(
                 text = option,
                 label = OPTION_LABELS[index],
-                onClick = { onAnswerSelected(index) }
+                enabled = !eliminated,
+                onClick = { if (!eliminated) onAnswerSelected(index) }
             )
             if (index < currentQuestion.options.size - 1) Spacer(Modifier.height(10.dp))
         }
@@ -338,15 +409,19 @@ private fun QuizPlayingContent(
 private fun QuizAnswerOption(
     text: String,
     label: String,
+    enabled: Boolean = true,
     onClick: () -> Unit,
     soundManager: SoundManager = koinInject()
 ) {
     val interactionColor = MaterialTheme.colorScheme.primary
 
     Card(
-        modifier = Modifier.fillMaxWidth().clickable {
-            soundManager.play(SoundManager.Sound.BUTTON_CLICK); onClick()
-        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .alpha(if (enabled) 1f else 0.35f)
+            .clickable(enabled = enabled) {
+                soundManager.play(SoundManager.Sound.BUTTON_CLICK); onClick()
+            },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
@@ -442,6 +517,9 @@ private fun QuizAnswerFeedbackContent(
                 modifier = Modifier.alpha(entrance.value)
             )
 
+            Spacer(Modifier.height(6.dp))
+            LivesRow(lives = gameState.lives, maxLives = QUIZ_MAX_LIVES)
+
             if (isCorrect && gameState.combo >= 2) {
                 Spacer(Modifier.height(8.dp))
                 ComboLabel(combo = gameState.combo)
@@ -513,7 +591,8 @@ private fun QuizAnswerFeedbackContent(
                 colors = ButtonDefaults.buttonColors(containerColor = accentColor),
                 elevation = ButtonDefaults.buttonElevation(4.dp)
             ) {
-                val isLast = gameState.currentQuestionIndex >= gameState.questions.size - 1
+                val isLast = gameState.lives <= 0 ||
+                        gameState.currentQuestionIndex >= gameState.questions.size - 1
                 Text(
                     if (isLast) stringResource(R.string.action_see_results) else stringResource(R.string.action_next_question),
                     style = MaterialTheme.typography.titleMedium,

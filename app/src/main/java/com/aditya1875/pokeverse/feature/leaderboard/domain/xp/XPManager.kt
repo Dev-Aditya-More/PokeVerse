@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.feature.leaderboard.domain.xp
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.LevelConfig
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
+import com.aditya1875.pokeverse.utils.WeeklyReset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -135,11 +136,15 @@ class XPManager(
 
         if (gained == 0) return noOpResult(profile)
 
+        // Each once-per-day event stamps only its own dedup field — stamping both
+        // on every award would let any game event suppress the exploration bonus
+        // (and vice versa) for the rest of the day.
         return applyXP(profile, gained, label) { updated ->
-            updated.copy(
-                lastExplorationXpDate = today,
-                lastFirstGameXpDate = today   // persists for FirstGameOfDay deduplication
-            )
+            when (event) {
+                is XPEvent.FirstGameOfDay -> updated.copy(lastFirstGameXpDate = today)
+                is XPEvent.FirstExplorationOfDay -> updated.copy(lastExplorationXpDate = today)
+                else -> updated
+            }
         }
     }
 
@@ -154,13 +159,14 @@ class XPManager(
         val leveledUp = newLevel > profile.level
 
         val now = System.currentTimeMillis()
-        val oneWeek = 7 * 24 * 60 * 60 * 1000L
-
-        val shouldReset = profile.lastWeeklyReset == 0L ||
-                now - profile.lastWeeklyReset > oneWeek
+        // Same boundary as the resetWeeklyXp Cloud Function (Monday 00:00 IST) —
+        // a rolling window here would let a stale local weeklyXp overwrite the
+        // server reset on the next sync.
+        val weekStart = WeeklyReset.startOfCurrentWeekMillis(now)
+        val shouldReset = profile.lastWeeklyReset < weekStart
 
         val baseWeeklyXp = if (shouldReset) 0 else profile.weeklyXp
-        val newWeeklyResetTime = if (shouldReset) now else profile.lastWeeklyReset
+        val newWeeklyResetTime = if (shouldReset) weekStart else profile.lastWeeklyReset
 
         val updated = extraUpdate(
             profile.copy(totalXp = newTotal, currentXp = newCurrent,

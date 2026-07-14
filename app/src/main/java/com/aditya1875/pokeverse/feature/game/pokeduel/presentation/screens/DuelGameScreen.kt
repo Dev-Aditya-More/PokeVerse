@@ -8,8 +8,16 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
+import android.app.Activity
+import androidx.compose.ui.platform.LocalContext
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
+import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,6 +84,17 @@ fun DuelGameScreen(
     val connectivityObserver: ConnectivityObserver = koinInject()
     val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
 
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val billingManager = koinInject<IBillingManager>()
+    val subscriptionState by billingManager.subscriptionState.collectAsStateWithLifecycle()
+    val adManager = koinInject<IRewardedAdManager>()
+    val adState by adManager.adState.collectAsStateWithLifecycle()
+    var showAdForSkip by remember { mutableStateOf(false) }
+    LaunchedEffect(adState, isOnline) {
+        if (isOnline && adState is RewardedAdState.Idle) adManager.loadAd(context)
+    }
+
     LaunchedEffect(Unit) {
         viewModel.xpResult.collect { pendingXp = it }
     }
@@ -130,6 +149,11 @@ fun DuelGameScreen(
                         soundManager.play(SoundManager.Sound.BUTTON_CLICK)
                         viewModel.onChoice(choice)
                     },
+                    onSkip = {
+                        if (subscriptionState is SubscriptionState.Premium) viewModel.skipRound()
+                        else showAdForSkip = true
+                    },
+                    showAdTag = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(innerPadding)
                 )
 
@@ -144,6 +168,22 @@ fun DuelGameScreen(
                 )
             }
         }
+    }
+
+    if (showAdForSkip) {
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        viewModel.skipRound()
+                        showAdForSkip = false
+                    }
+                }
+            },
+            onDismiss = { showAdForSkip = false },
+            onRetry = { adManager.loadAd(context) }
+        )
     }
 }
 
@@ -272,6 +312,8 @@ private fun DuelIdleScreen(
 private fun DuelingScreen(
     state: DuelGameState.Dueling,
     onChoice: (DuelOutcome) -> Unit,
+    onSkip: () -> Unit = {},
+    showAdTag: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val answered = state.result != null
@@ -338,6 +380,17 @@ private fun DuelingScreen(
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold
         )
+
+        if (!answered) {
+            Spacer(Modifier.height(10.dp))
+            // Rewarded perk: skip this matchup (no 50/50 — only two choices)
+            SkipHintBar(
+                onSkip = onSkip,
+                showAdTag = showAdTag,
+                showHint = false,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
 
         Spacer(Modifier.height(30.dp))
 

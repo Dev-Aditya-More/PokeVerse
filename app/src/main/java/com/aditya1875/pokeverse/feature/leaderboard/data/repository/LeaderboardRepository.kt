@@ -4,7 +4,9 @@ import com.aditya1875.pokeverse.feature.leaderboard.data.remote.model.Leaderboar
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardType
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.AggregateSource
 import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.Source
@@ -32,8 +34,19 @@ class LeaderboardRepository {
     private val cache = mutableMapOf<LeaderboardType, List<LeaderboardEntry>>()
     private val lastDocs = mutableMapOf<LeaderboardType, DocumentSnapshot?>()
     private val cacheTimestamps = mutableMapOf<LeaderboardType, Long>()
-    private var lastDocument: DocumentSnapshot? = null
     private val CACHE_TTL_MS = 5 * 60 * 1000L
+
+    // Pinned user entry per type, so tab switches within the TTL don't re-run
+    // the rank aggregation query
+    private val userEntryCache = mutableMapOf<LeaderboardType, LeaderboardEntry?>()
+    private val userEntryCacheTs = mutableMapOf<LeaderboardType, Long>()
+
+    // WEEKLY initial load may fall back to the weeklyXp>0 query; pagination must
+    // mirror whichever query produced the cursor or startAfter() misbehaves
+    private var weeklyUsedFallback = false
+
+    private fun hasFullPages(size: Int): Boolean =
+        size > 0 && size % PAGE_SIZE.toInt() == 0
 
     suspend fun getLeaderboard(
         type: LeaderboardType = LeaderboardType.GLOBAL,
@@ -45,12 +58,43 @@ class LeaderboardRepository {
         val now = System.currentTimeMillis()
 
         if (!forceRefresh && cachedEntries.isNotEmpty() && (now - cacheTimestamp) < CACHE_TTL_MS) {
-            return buildState(cachedEntries, canLoadMore = cachedEntries.size.toLong() == PAGE_SIZE)
+            return buildState(cachedEntries, canLoadMore = hasFullPages(cachedEntries.size), type = type)
+        }
+
+        if (forceRefresh) {
+            userEntryCache.remove(type)
+            userEntryCacheTs.remove(type)
         }
 
         return try {
             val snapshot = when (type) {
                 LeaderboardType.LAST_WEEK -> return LeaderboardState.Error("Use getLastWeekSnapshot()")
+                LeaderboardType.FRIENDS -> {
+                    val uid = auth.currentUser?.uid
+                        ?: return LeaderboardState.Error("Not signed in")
+                    val memberSnap = firestore.collection("friendships")
+                        .whereArrayContains("members", uid)
+                        .get().await()
+                    val friendUids = memberSnap.documents.mapNotNull { d ->
+                        (d.get("members") as? List<*>)
+                            ?.filterIsInstance<String>()
+                            ?.firstOrNull { it != uid }
+                    }
+                    // Include self so the user always sees their own row
+                    val allUids = (friendUids + uid).distinct()
+                    val docs = allUids.chunked(10).flatMap { chunk ->
+                        firestore.collection("leaderboard")
+                            .whereIn(FieldPath.documentId(), chunk)
+                            .get().await().documents
+                    }
+                    val entries = docs
+                        .sortedByDescending { it.getLong("totalXp") ?: 0L }
+                        .mapIndexed { i, d -> d.toLeaderboardEntry(rank = i + 1) }
+                    cache[type] = entries
+                    cacheTimestamps[type] = now
+                    lastDocs[type] = null
+                    return buildState(entries, canLoadMore = false, type = type)
+                }
                 LeaderboardType.GLOBAL -> {
                     firestore.collection("leaderboard")
                         .orderBy("totalXp", Query.Direction.DESCENDING)
@@ -75,13 +119,17 @@ class LeaderboardRepository {
 
                     // Fallback: weeklyActive flag may not be set yet on older docs
                     if (primary == null || primary.isEmpty) {
+                        weeklyUsedFallback = true
                         firestore.collection("leaderboard")
                             .whereGreaterThan("weeklyXp", 0)
                             .orderBy("weeklyXp", Query.Direction.DESCENDING)
                             .orderBy("updatedAt", Query.Direction.ASCENDING)
                             .limit(PAGE_SIZE)
                             .get().await()
-                    } else primary
+                    } else {
+                        weeklyUsedFallback = false
+                        primary
+                    }
                 }
             }
 
@@ -102,13 +150,13 @@ class LeaderboardRepository {
             lastDocs[type] = snapshot.documents.lastOrNull()
             cacheTimestamps[type] = now
 
-            buildState(entries, canLoadMore = entries.size.toLong() == PAGE_SIZE)
+            buildState(entries, canLoadMore = entries.size.toLong() == PAGE_SIZE, type = type)
 
         } catch (e: Exception) {
             e.printStackTrace()
             val cached = cache[type]
             if (!cached.isNullOrEmpty()) {
-                buildState(cached, canLoadMore = cached.size.toLong() == PAGE_SIZE)
+                buildState(cached, canLoadMore = hasFullPages(cached.size), type = type)
             } else {
                 LeaderboardState.Error(e.message ?: "Failed to load leaderboard")
             }
@@ -126,19 +174,28 @@ class LeaderboardRepository {
             // Query must exactly mirror the initial load query for startAfter cursor to work
             val snapshot = when (type) {
                 LeaderboardType.LAST_WEEK -> return LeaderboardState.Error("No pagination for last week")
+                LeaderboardType.FRIENDS -> return LeaderboardState.Error("No pagination for friends")
                 LeaderboardType.GLOBAL -> firestore.collection("leaderboard")
                     .orderBy("totalXp", Query.Direction.DESCENDING)
                     .orderBy("updatedAt", Query.Direction.ASCENDING)
                     .startAfter(cursor)
                     .limit(PAGE_SIZE)
                     .get().await()
-                LeaderboardType.WEEKLY -> firestore.collection("leaderboard")
-                    .whereEqualTo("weeklyActive", true)
-                    .orderBy("weeklyXp", Query.Direction.DESCENDING)
-                    .orderBy("updatedAt", Query.Direction.DESCENDING)
-                    .startAfter(cursor)
-                    .limit(PAGE_SIZE)
-                    .get().await()
+                LeaderboardType.WEEKLY -> {
+                    // Mirror whichever query variant produced the cursor
+                    val base = if (weeklyUsedFallback) {
+                        firestore.collection("leaderboard")
+                            .whereGreaterThan("weeklyXp", 0)
+                            .orderBy("weeklyXp", Query.Direction.DESCENDING)
+                            .orderBy("updatedAt", Query.Direction.ASCENDING)
+                    } else {
+                        firestore.collection("leaderboard")
+                            .whereEqualTo("weeklyActive", true)
+                            .orderBy("weeklyXp", Query.Direction.DESCENDING)
+                            .orderBy("updatedAt", Query.Direction.DESCENDING)
+                    }
+                    base.startAfter(cursor).limit(PAGE_SIZE).get().await()
+                }
             }
 
             val newEntries = snapshot.documents.mapIndexedNotNull { index, doc ->
@@ -149,7 +206,7 @@ class LeaderboardRepository {
             cache[type] = updated
             lastDocs[type] = snapshot.documents.lastOrNull()
 
-            buildState(updated, canLoadMore = newEntries.size.toLong() == PAGE_SIZE)
+            buildState(updated, canLoadMore = newEntries.size.toLong() == PAGE_SIZE, type = type)
         } catch (e: Exception) {
             e.printStackTrace()
             LeaderboardState.Error(e.message ?: "Failed to load more")
@@ -157,14 +214,26 @@ class LeaderboardRepository {
     }
 
     // ── Fetch current user's own leaderboard entry + rank ─────────────────────
-    // Used to pin the user row even if they're outside top-50
-    suspend fun getUserEntry(): LeaderboardEntry? {
+    // Used to pin the user row even if they're outside the loaded pages.
+    // Rank = players strictly above the user + 1, via a server-side count()
+    // aggregation (no Cloud Function writes a rank field).
+    suspend fun getUserEntry(type: LeaderboardType = LeaderboardType.GLOBAL): LeaderboardEntry? {
         val uid = auth.currentUser?.uid ?: return null
         return try {
             val doc = firestore.collection("leaderboard").document(uid).get().await()
             if (!doc.exists()) return null
-            // rank field is written by Cloud Function
-            doc.toLeaderboardEntry(rank = (doc.getLong("rank") ?: 0L).toInt())
+            val field = if (type == LeaderboardType.WEEKLY) "weeklyXp" else "totalXp"
+            val myXp = doc.getLong(field) ?: 0L
+            val rank = try {
+                val agg = firestore.collection("leaderboard")
+                    .whereGreaterThan(field, myXp)
+                    .count()
+                    .get(AggregateSource.SERVER).await()
+                (agg.count + 1).toInt()
+            } catch (_: Exception) {
+                0
+            }
+            doc.toLeaderboardEntry(rank = rank)
         } catch (e: Exception) {
             null
         }
@@ -172,14 +241,25 @@ class LeaderboardRepository {
 
     private suspend fun buildState(
         entries: List<LeaderboardEntry>,
-        canLoadMore: Boolean
+        canLoadMore: Boolean,
+        type: LeaderboardType
     ): LeaderboardState {
         val uid = auth.currentUser?.uid
         val userInList = entries.find { it.uid == uid }
         // Fetch user's own doc from Firestore when outside the loaded page so
         // the sticky rank banner always has a rank to display.
         val userEntry = userInList ?: if (uid != null) {
-            try { getUserEntry() } catch (_: Exception) { null }
+            val cachedTs = userEntryCacheTs[type] ?: 0L
+            if (userEntryCache.containsKey(type) &&
+                System.currentTimeMillis() - cachedTs < CACHE_TTL_MS
+            ) {
+                userEntryCache[type]
+            } else {
+                val fetched = try { getUserEntry(type) } catch (_: Exception) { null }
+                userEntryCache[type] = fetched
+                userEntryCacheTs[type] = System.currentTimeMillis()
+                fetched
+            }
         } else null
         return LeaderboardState.Success(
             entries = entries,
@@ -212,6 +292,8 @@ class LeaderboardRepository {
         cache[type] = emptyList()
         lastDocs[type] = null
         cacheTimestamps[type] = 0L
+        userEntryCache.remove(type)
+        userEntryCacheTs.remove(type)
     }
 
     suspend fun getLastWeekSnapshot(): Pair<Long, List<LeaderboardEntry>> {

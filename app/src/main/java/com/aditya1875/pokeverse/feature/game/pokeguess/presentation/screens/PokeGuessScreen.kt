@@ -31,8 +31,11 @@ import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
+import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
+import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GUESS_MAX_LIVES
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GuessGameState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessResultScreen
@@ -61,6 +64,23 @@ fun PokeGuessGameScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     var showAdForReplay by remember { mutableStateOf(false) }
+    // Which perk the player is unlocking via rewarded ad: "skip" or "hint"
+    var pendingPerk by remember { mutableStateOf<String?>(null) }
+    // Perk granted by the ad, applied only once the ad is fully dismissed
+    var earnedPerk by remember { mutableStateOf<String?>(null) }
+
+    // Keep the game frozen from ad-dialog open until the rewarded ad closes
+    LaunchedEffect(adState, earnedPerk) {
+        if (earnedPerk != null && adState !is RewardedAdState.Showing) {
+            val perk = earnedPerk
+            earnedPerk = null
+            if (perk == "skip") viewModel.skipQuestion(difficulty)
+            else {
+                viewModel.useHint()
+                viewModel.resumeTimer()
+            }
+        }
+    }
 
     val connectivityObserver: ConnectivityObserver = koinInject()
     val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
@@ -129,6 +149,21 @@ fun PokeGuessGameScreen(
                             viewModel.submitAnswer(answer, state.currentQuestionIndex, difficulty)
                     },
                     onBack = onBack,
+                    onSkip = {
+                        if (subscriptionState is SubscriptionState.Premium) viewModel.skipQuestion(difficulty)
+                        else {
+                            viewModel.pauseTimer()
+                            pendingPerk = "skip"
+                        }
+                    },
+                    onHint = {
+                        if (subscriptionState is SubscriptionState.Premium) viewModel.useHint()
+                        else {
+                            viewModel.pauseTimer()
+                            pendingPerk = "hint"
+                        }
+                    },
+                    showAdTag = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
 
@@ -169,6 +204,27 @@ fun PokeGuessGameScreen(
             onRetry = { adManager.loadAd(context) }
         )
     }
+
+    pendingPerk?.let { perk ->
+        AdUnlockDialog(
+            adState = adState,
+            onWatchAd = {
+                activity?.let { act ->
+                    adManager.showAd(act) {
+                        // Reward fires while the ad is still on screen — defer
+                        // applying the perk until the ad is dismissed
+                        earnedPerk = perk
+                        pendingPerk = null
+                    }
+                }
+            },
+            onDismiss = {
+                pendingPerk = null
+                viewModel.resumeTimer()
+            },
+            onRetry = { adManager.loadAd(context) }
+        )
+    }
 }
 
 @Composable
@@ -177,6 +233,9 @@ private fun SilhouetteScreen(
     difficulty: GuessDifficulty,
     onAnswerSelected: (String) -> Unit,
     onBack: () -> Unit,
+    onSkip: () -> Unit = {},
+    onHint: () -> Unit = {},
+    showAdTag: Boolean = true,
     modifier: Modifier
 ) {
     val timerColor by animateColorAsState(
@@ -210,10 +269,11 @@ private fun SilhouetteScreen(
                 )
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                LivesRow(lives = state.lives, maxLives = GUESS_MAX_LIVES)
                 Text(
-                    "${state.currentQuestionIndex + 1} / ${state.totalQuestions}",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
+                    "Q${state.questionsAnswered + 1}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
@@ -323,15 +383,27 @@ private fun SilhouetteScreen(
             } // BoxWithConstraints
         } // Card
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(12.dp))
+
+        // Rewarded perks: 50/50 hint + skip
+        SkipHintBar(
+            onSkip = onSkip,
+            onHint = onHint,
+            hintUsed = state.eliminatedOptions.isNotEmpty(),
+            showAdTag = showAdTag,
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+
+        Spacer(Modifier.height(12.dp))
 
         // Options
         state.question.options.forEachIndexed { i, option ->
+            val eliminated = i in state.eliminatedOptions
             GuessOptionCard(
                 text = option.split("-")
                     .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } },
                 index = i,
-                enabled = !timeUp,
+                enabled = !timeUp && !eliminated,
                 onClick = { onAnswerSelected(option) }
             )
             if (i < state.question.options.size - 1) Spacer(Modifier.height(8.dp))
@@ -551,7 +623,7 @@ private fun RevealScreen(
                     colors = ButtonDefaults.buttonColors(containerColor = accentColor),
                     elevation = ButtonDefaults.buttonElevation(4.dp)
                 ) {
-                    val isLast = state.currentQuestionIndex >= state.totalQuestions - 1
+                    val isLast = state.lives <= 0
                     Text(
                         if (isLast) "See Results" else "Next Pokémon",
                         style = MaterialTheme.typography.titleMedium,

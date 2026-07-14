@@ -58,6 +58,8 @@ import com.aditya1875.pokeverse.feature.game.poketype.presentation.components.Ty
 import com.aditya1875.pokeverse.feature.game.poketype.presentation.screens.TypeRushScreen
 import com.aditya1875.pokeverse.feature.berry.presentation.screens.BerryDetailScreen
 import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemDetailScreen
+// TODO(friends): re-add when the feature ships
+// import com.aditya1875.pokeverse.feature.friends.presentation.screens.FriendsScreen
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.screens.LeaderboardScreen
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens.PokemonDetailScreen
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens.HomeScreen
@@ -275,6 +277,11 @@ fun AppNavGraph(
                     LeaderboardScreen()
                 }
             }
+
+            // TODO(friends): re-add the Friends route when the feature ships
+            // composable(Route.Friends.route) {
+            //     FriendsScreen(onBack = { navController.popBackStack() })
+            // }
 
             composable(Route.BottomBar.Profile.route) {
                 WithBottomBar(

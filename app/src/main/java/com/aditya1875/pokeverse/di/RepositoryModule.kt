@@ -2,6 +2,11 @@ package com.aditya1875.pokeverse.di
 
 import com.aditya1875.pokeverse.feature.game.cardclash.data.repository.CardClashRepository
 import com.aditya1875.pokeverse.feature.game.cardclash.data.repository.CardClashRepositoryImpl
+import com.aditya1875.pokeverse.feature.badges.domain.BadgeRepository
+import com.aditya1875.pokeverse.feature.characters.domain.CharacterRepository
+import com.aditya1875.pokeverse.feature.pokemon.detail.domain.battlestats.GoStatsRepository
+// TODO(friends): re-add when the feature ships
+// import com.aditya1875.pokeverse.feature.friends.data.repository.FriendsRepository
 import com.aditya1875.pokeverse.feature.inbox.data.repository.InboxRepository
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardRepository
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.PokemonDetailImpl
@@ -38,6 +43,15 @@ val repositoryModule = module {
     single { LeaderboardRepository() }
 
     single { InboxRepository() }
+
+    // TODO(friends): re-add when the feature ships
+    // single { FriendsRepository() }
+
+    single { BadgeRepository(get()) }
+
+    single { CharacterRepository(get()) }
+
+    single { GoStatsRepository(get()) }
 
     single<CardClashRepository> { CardClashRepositoryImpl(get()) }
 

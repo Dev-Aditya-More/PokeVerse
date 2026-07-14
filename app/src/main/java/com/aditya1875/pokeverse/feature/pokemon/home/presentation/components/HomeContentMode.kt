@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 
-enum class HomeContentMode { POKEMON, ITEMS, BERRIES }
+enum class HomeContentMode { POKEMON, ITEMS, BERRIES, BADGES, CHARACTERS }
 
 @Composable
 fun HomeFabCluster(
@@ -81,6 +81,28 @@ fun HomeFabCluster(
                         expanded = false
                     }
                 )
+                // Badges option
+                MiniActionRow(
+                    label = "Badges",
+                    emoji = "🏅",
+                    isActive = currentMode == HomeContentMode.BADGES,
+                    activeColor = Color(0xFF00897B),
+                    onClick = {
+                        onModeChange(HomeContentMode.BADGES)
+                        expanded = false
+                    }
+                )
+                // Characters option
+                MiniActionRow(
+                    label = "Characters",
+                    emoji = "🧑‍🏫",
+                    isActive = currentMode == HomeContentMode.CHARACTERS,
+                    activeColor = Color(0xFF1E88E5),
+                    onClick = {
+                        onModeChange(HomeContentMode.CHARACTERS)
+                        expanded = false
+                    }
+                )
                 // Pokémon option
                 MiniActionRow(
                     label = "Pokémon",
@@ -118,6 +140,8 @@ fun HomeFabCluster(
                 containerColor = when (currentMode) {
                     HomeContentMode.ITEMS -> Color(0xFF6A1B9A)
                     HomeContentMode.BERRIES -> Color(0xFFE65100)
+                    HomeContentMode.BADGES -> Color(0xFF00897B)
+                    HomeContentMode.CHARACTERS -> Color(0xFF1E88E5)
                     else -> MaterialTheme.colorScheme.primary
                 },
                 modifier = Modifier.size(52.dp)
