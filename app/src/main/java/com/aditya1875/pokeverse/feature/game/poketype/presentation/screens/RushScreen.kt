@@ -32,7 +32,8 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
-import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
+import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
 import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.RUSH_MAX_LIVES
@@ -76,9 +77,6 @@ fun TypeRushScreen(
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
-    var showAdForReplay by remember { mutableStateOf(false) }
-    // Which perk the player is unlocking via rewarded ad: "skip" or "hint"
-    var pendingPerk by remember { mutableStateOf<String?>(null) }
     // Perk granted by the ad, applied only once the ad is fully dismissed
     var earnedPerk by remember { mutableStateOf<String?>(null) }
 
@@ -122,20 +120,18 @@ fun TypeRushScreen(
                     onTypeTapped = { viewModel.onTypeTapped(it) },
                     onBack = { showExitDialog = true },
                     onSkip = {
-                        if (subscriptionState is SubscriptionState.Premium) viewModel.skipRound()
-                        else {
-                            viewModel.pauseTimer()
-                            pendingPerk = "skip"
-                        }
+                        requestRewardedAd(
+                            context, activity, adManager, adState,
+                            onAdWillShow = { viewModel.pauseTimer() }
+                        ) { earnedPerk = "skip" }
                     },
                     onHint = {
-                        if (subscriptionState is SubscriptionState.Premium) viewModel.useHint()
-                        else {
-                            viewModel.pauseTimer()
-                            pendingPerk = "hint"
-                        }
+                        requestRewardedAd(
+                            context, activity, adManager, adState,
+                            onAdWillShow = { viewModel.pauseTimer() }
+                        ) { earnedPerk = "hint" }
                     },
-                    showAdTag = subscriptionState !is SubscriptionState.Premium,
+                    showSkipHint = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
                 is TypeRushState.RoundResult -> RoundResultContent(
@@ -144,9 +140,11 @@ fun TypeRushScreen(
                 is TypeRushState.Finished -> TypeRushResultScreen(
                     state = s,
                     onPlayAgain = {
-                        if (difficulty == TypeRushDifficulty.HARD && subscriptionState !is SubscriptionState.Premium)
-                            showAdForReplay = true
-                        else viewModel.startGame(difficulty)
+                        if (difficulty == TypeRushDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                            requestRewardedAd(context, activity, adManager, adState) {
+                                viewModel.startGame(difficulty)
+                            }
+                        } else viewModel.startGame(difficulty)
                     },
                     onBack = onBack
                 )
@@ -168,42 +166,6 @@ fun TypeRushScreen(
         )
     }
 
-    if (showAdForReplay) {
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        showAdForReplay = false
-                        viewModel.startGame(difficulty)
-                    }
-                }
-            },
-            onDismiss = { showAdForReplay = false },
-            onRetry = { adManager.loadAd(context) }
-        )
-    }
-
-    pendingPerk?.let { perk ->
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        // Reward fires while the ad is still on screen — defer
-                        // applying the perk until the ad is dismissed
-                        earnedPerk = perk
-                        pendingPerk = null
-                    }
-                }
-            },
-            onDismiss = {
-                pendingPerk = null
-                viewModel.resumeTimer()
-            },
-            onRetry = { adManager.loadAd(context) }
-        )
-    }
 }
 
 @Composable
@@ -214,7 +176,7 @@ private fun PlayingContent(
     onBack: () -> Unit,
     onSkip: () -> Unit = {},
     onHint: () -> Unit = {},
-    showAdTag: Boolean = true,
+    showSkipHint: Boolean = true,
     modifier: Modifier
 ) {
     val timerFraction = (state.timeRemaining.toFloat() / difficulty.timePerRound.coerceAtLeast(1)).coerceIn(0f, 1f)
@@ -371,16 +333,18 @@ private fun PlayingContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // Rewarded perks: 50/50 hint + skip
-            SkipHintBar(
-                onSkip = onSkip,
-                onHint = onHint,
-                hintUsed = state.eliminatedTypes.isNotEmpty(),
-                showAdTag = showAdTag,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+            // Rewarded perks: 50/50 hint + skip (free users only)
+            if (showSkipHint) {
+                SkipHintBar(
+                    onSkip = onSkip,
+                    onHint = onHint,
+                    hintUsed = state.eliminatedTypes.isNotEmpty(),
+                    showAdTag = true,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
 
-            Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
+            }
 
             TypeBubbleGrid(
                 options = state.question.options,
@@ -592,12 +556,7 @@ private fun PointPill(value: String, label: String, color: Color) {
 
 @Composable
 private fun TypeRushLoadingContent() {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("⚡", fontSize = 52.sp)
-            CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 3.dp)
-            Text(stringResource(R.string.rush_loading_types), style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-    }
+    GameLoadingContent(
+        text = stringResource(R.string.rush_loading_types)
+    )
 }

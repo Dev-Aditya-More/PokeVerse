@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import android.content.Intent
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.SystemUpdate
@@ -17,12 +18,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import kotlinx.coroutines.launch
 
-private const val RATING_MIN_MINUTES = 20L
+private const val RATING_MIN_MINUTES = 10L
 private const val PREMIUM_MIN_MINUTES = 40L
 private const val MIN_GAP_BETWEEN_POPUPS_MINUTES = 30L
 private const val SLOW_POPUP_STARTUP_DELAY_MS = 4_000L
@@ -31,7 +33,8 @@ enum class HomePopup { None, Assets, Rating, Premium }
 
 // Single dialog visible at a time. Priority:
 //   1. Assets  — first-ever launch only, shows after DataStore is ready
-//   2. Rating  — signed-in users only; triggers Play In-App Review after RATING_MIN_MINUTES
+//   2. Rating  — signed-in users only; asks "enjoying it?" after RATING_MIN_MINUTES,
+//                only launching Play In-App Review if they say yes
 //   3. Premium — after PREMIUM_MIN_MINUTES, 30-min gap since last popup
 
 @Composable
@@ -128,16 +131,21 @@ fun HomePopupOrchestrator(
             }
         )
 
-        HomePopup.Rating -> {
-            // Trigger Play In-App Review silently — no custom dialog shown
-            LaunchedEffect(Unit) {
+        HomePopup.Rating -> RatingPromptDialog(
+            onEnjoying = {
+                dismissPopup {
+                    ScreenStateManager.markRatingShown(context)
+                    ratingShown = true
+                }
                 onRateNow()
-                ScreenStateManager.markLastPopupShownAt(context, totalSessionMinutes)
-                ScreenStateManager.markRatingShown(context)
-                lastPopupAtMinutes = totalSessionMinutes
-                ratingShown = true
+            },
+            onNotReally = {
+                dismissPopup {
+                    ScreenStateManager.markRatingShown(context)
+                    ratingShown = true
+                }
             }
-        }
+        )
 
         HomePopup.Premium -> PremiumUpsellDialog(
             onGoPremium = {
@@ -215,44 +223,79 @@ fun UpdateAvailableDialog(
     )
 }
 
+@Preview(showSystemUi = true)
 @Composable
-fun ForceUpdateScreen(onUpdate: () -> Unit) {
+fun ForceUpdateScreen(onUpdate: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+            .background(MaterialTheme.colorScheme.surface),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp),
+        Surface(
             modifier = Modifier
-                .padding(40.dp)
-                .widthIn(max = 400.dp)
+                .padding(24.dp)
+                .widthIn(max = 420.dp),
+            shape = RoundedCornerShape(28.dp),
+            tonalElevation = 8.dp,
+            shadowElevation = 8.dp
         ) {
-            Icon(
-                Icons.Default.SystemUpdate, null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(80.dp)
-            )
-            Text(
-                stringResource(R.string.force_update_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Black,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                stringResource(R.string.force_update_body),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Button(
-                onClick = onUpdate,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
+            Column(
+                modifier = Modifier.padding(
+                    horizontal = 28.dp,
+                    vertical = 36.dp
+                ),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(stringResource(R.string.action_update_now), fontWeight = FontWeight.Bold)
+
+                Surface(
+                    modifier = Modifier.size(96.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.SystemUpdate,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                Text(
+                    text = stringResource(R.string.force_update_title),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = stringResource(R.string.force_update_body),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                Button(
+                    onClick = onUpdate,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.action_update_now),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
     }
@@ -305,6 +348,35 @@ fun AssetsOnboardingDialog(onEnable: () -> Unit, onDismiss: () -> Unit) {
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_not_now)) } }
+    )
+}
+
+@Composable
+fun RatingPromptDialog(onEnjoying: () -> Unit, onNotReally: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onNotReally,
+        shape = RoundedCornerShape(24.dp),
+        icon = { Text("⭐", fontSize = 36.sp) },
+        title = {
+            Text(
+                stringResource(R.string.popup_rating_title),
+                fontWeight = FontWeight.Black, textAlign = TextAlign.Center
+            )
+        },
+        text = {
+            Text(
+                stringResource(R.string.popup_rating_body),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        },
+        confirmButton = {
+            Button(onClick = onEnjoying, shape = RoundedCornerShape(12.dp)) {
+                Text(stringResource(R.string.action_rating_yes), fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = { TextButton(onClick = onNotReally) { Text(stringResource(R.string.action_rating_no)) } }
     )
 }
 

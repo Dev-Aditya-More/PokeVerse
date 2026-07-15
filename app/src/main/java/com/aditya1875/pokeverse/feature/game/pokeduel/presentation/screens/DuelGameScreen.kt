@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.pokeduel.presentation.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -14,8 +15,9 @@ import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
-import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
 import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
 import androidx.compose.foundation.background
@@ -30,17 +32,22 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -80,6 +87,7 @@ fun DuelGameScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
+    var showExitDialog by remember { mutableStateOf(false) }
     val soundManager: SoundManager = koinInject()
     val connectivityObserver: ConnectivityObserver = koinInject()
     val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
@@ -90,7 +98,6 @@ fun DuelGameScreen(
     val subscriptionState by billingManager.subscriptionState.collectAsStateWithLifecycle()
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
-    var showAdForSkip by remember { mutableStateOf(false) }
     LaunchedEffect(adState, isOnline) {
         if (isOnline && adState is RewardedAdState.Idle) adManager.loadAd(context)
     }
@@ -116,6 +123,8 @@ fun DuelGameScreen(
             soundManager.play(SoundManager.Sound.GAME_LOSE)
         }
     }
+
+    BackHandler(enabled = state is DuelGameState.Dueling) { showExitDialog = true }
 
     XPOverlay(
         result = pendingXp,
@@ -150,10 +159,12 @@ fun DuelGameScreen(
                         viewModel.onChoice(choice)
                     },
                     onSkip = {
-                        if (subscriptionState is SubscriptionState.Premium) viewModel.skipRound()
-                        else showAdForSkip = true
+                        requestRewardedAd(context, activity, adManager, adState) {
+                            viewModel.skipRound()
+                        }
                     },
-                    showAdTag = subscriptionState !is SubscriptionState.Premium,
+                    onExit = { showExitDialog = true },
+                    showSkip = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(innerPadding)
                 )
 
@@ -170,49 +181,27 @@ fun DuelGameScreen(
         }
     }
 
-    if (showAdForSkip) {
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        viewModel.skipRound()
-                        showAdForSkip = false
-                    }
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text(stringResource(R.string.dialog_exit_game_title)) },
+            text = { Text(stringResource(R.string.dialog_exit_game_message)) },
+            confirmButton = {
+                TextButton(onClick = { showExitDialog = false; viewModel.resetGame(); onBack() }) {
+                    Text(stringResource(R.string.quiz_exit_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
-            onDismiss = { showAdForSkip = false },
-            onRetry = { adManager.loadAd(context) }
+            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text(stringResource(R.string.cancel)) } }
         )
     }
 }
 
 @Composable
 private fun LoadingScreen(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "swords")
-    val rotation by infiniteTransition.animateFloat(
-        initialValue = -15f, targetValue = 15f,
-        animationSpec = infiniteRepeatable(tween(500), RepeatMode.Reverse),
-        label = "rock"
+    GameLoadingContent(
+        text = stringResource(R.string.duel_loading),
+        modifier = modifier
     )
-    Box(
-        modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "⚔️",
-                fontSize = 52.sp,
-                modifier = Modifier.graphicsLayer { rotationZ = rotation }
-            )
-            Spacer(Modifier.height(16.dp))
-            Text(
-                stringResource(R.string.duel_loading),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
 }
 
 @Composable
@@ -313,7 +302,8 @@ private fun DuelingScreen(
     state: DuelGameState.Dueling,
     onChoice: (DuelOutcome) -> Unit,
     onSkip: () -> Unit = {},
-    showAdTag: Boolean = true,
+    onExit: () -> Unit = {},
+    showSkip: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val answered = state.result != null
@@ -344,15 +334,25 @@ private fun DuelingScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                repeat(3) { i ->
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onExit, modifier = Modifier.size(32.dp)) {
                     Icon(
-                        imageVector = if (i < state.lives) Icons.Default.Favorite
-                        else Icons.Default.FavoriteBorder,
-                        contentDescription = null,
-                        tint = Color(0xFFE53935),
-                        modifier = Modifier.size(22.dp)
+                        Icons.Default.Close, null,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
                     )
+                }
+                Spacer(Modifier.width(4.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    repeat(3) { i ->
+                        Icon(
+                            imageVector = if (i < state.lives) Icons.Default.Favorite
+                            else Icons.Default.FavoriteBorder,
+                            contentDescription = null,
+                            tint = Color(0xFFE53935),
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
             Text(
@@ -381,12 +381,12 @@ private fun DuelingScreen(
             fontWeight = FontWeight.Bold
         )
 
-        if (!answered) {
+        if (!answered && showSkip) {
             Spacer(Modifier.height(10.dp))
             // Rewarded perk: skip this matchup (no 50/50 — only two choices)
             SkipHintBar(
                 onSkip = onSkip,
-                showAdTag = showAdTag,
+                showAdTag = true,
                 showHint = false,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )

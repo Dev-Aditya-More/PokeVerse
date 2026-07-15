@@ -27,13 +27,14 @@ import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.core.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels.PokeGuessViewModel
-import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameDifficultyLayout
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameResultLayout
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultHeroIcon
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatChips
 import com.aditya1875.pokeverse.feature.game.core.presentation.ResultStatRow
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
+import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GUESS_MAX_LIVES
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
@@ -53,29 +54,11 @@ fun PokeGuessDifficultyScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
 
-    var showAdDialog by remember { mutableStateOf(false) }
-
     val context = LocalContext.current
     val activity = context as? Activity
 
     LaunchedEffect(adState) {
         if (adState is RewardedAdState.Idle) adManager.loadAd(context)
-    }
-
-    if (showAdDialog) {
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        showAdDialog = false
-                        onDifficultySelected(GuessDifficulty.HARD)
-                    }
-                }
-            },
-            onDismiss = { showAdDialog = false },
-            onRetry = { adManager.loadAd(context) }
-        )
     }
 
     GameDifficultyLayout(
@@ -123,7 +106,9 @@ fun PokeGuessDifficultyScreen(
                     .maxByOrNull { it.score },
                 onClick = {
                     if (isPremium) onDifficultySelected(GuessDifficulty.HARD)
-                    else showAdDialog = true
+                    else requestRewardedAd(context, activity, adManager, adState) {
+                        onDifficultySelected(GuessDifficulty.HARD)
+                    }
                 }
             )
         }
@@ -220,7 +205,7 @@ private fun GuessDifficultyCard(
                 }
 
                 Text(
-                    text = "${difficulty.questionsPerGame} Pokémon • ${difficulty.timePerQuestion}s • ${difficulty.optionCount} options",
+                    text = "$GUESS_MAX_LIVES Lives • ${difficulty.timePerQuestion}s • ${difficulty.optionCount} options",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (!locked) 1f else 0.4f)
                 )

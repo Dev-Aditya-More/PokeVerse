@@ -142,7 +142,7 @@ fun GameHubScreen(
             icon = Icons.Default.Quiz,
             accentColor = Color(0xFF2196F3),
             tag = "Trivia",
-            stats = "10 questions"
+            stats = "3 Lives"
         ),
         GameEntry(
             id = "pokeguess",

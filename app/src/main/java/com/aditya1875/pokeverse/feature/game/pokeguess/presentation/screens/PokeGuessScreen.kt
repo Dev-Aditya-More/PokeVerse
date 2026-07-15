@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.pokeguess.presentation.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.*
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -26,11 +28,13 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
 import android.app.Activity
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
-import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
 import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
@@ -57,15 +61,13 @@ fun PokeGuessGameScreen(
     val gameState by viewModel.gameState.collectAsStateWithLifecycle()
     val soundManager: SoundManager = koinInject()
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
+    var showExitDialog by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val activity = context as? Activity
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
-    var showAdForReplay by remember { mutableStateOf(false) }
-    // Which perk the player is unlocking via rewarded ad: "skip" or "hint"
-    var pendingPerk by remember { mutableStateOf<String?>(null) }
     // Perk granted by the ad, applied only once the ad is fully dismissed
     var earnedPerk by remember { mutableStateOf<String?>(null) }
 
@@ -103,6 +105,7 @@ fun PokeGuessGameScreen(
     }
     LaunchedEffect(difficulty) { viewModel.startGame(difficulty) }
     DisposableEffect(Unit) { onDispose { viewModel.resetGame() } }
+    BackHandler { showExitDialog = true }
 
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
         Scaffold(
@@ -121,25 +124,9 @@ fun PokeGuessGameScreen(
                 NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
             } else when (val state = gameState) {
                 is GuessGameState.Idle -> {}
-                is GuessGameState.Loading -> Box(
-                    Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(28.dp),
-                            strokeWidth = 3.dp
-                        )
-                        Text(
-                            "Loading Pokémon…",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                is GuessGameState.Loading -> GameLoadingContent(
+                    text = stringResource(R.string.guess_loading)
+                )
 
                 is GuessGameState.ShowingSilhouette -> SilhouetteScreen(
                     state = state,
@@ -148,22 +135,20 @@ fun PokeGuessGameScreen(
                         if (state.timeRemaining > 0)
                             viewModel.submitAnswer(answer, state.currentQuestionIndex, difficulty)
                     },
-                    onBack = onBack,
+                    onBack = { showExitDialog = true },
                     onSkip = {
-                        if (subscriptionState is SubscriptionState.Premium) viewModel.skipQuestion(difficulty)
-                        else {
-                            viewModel.pauseTimer()
-                            pendingPerk = "skip"
-                        }
+                        requestRewardedAd(
+                            context, activity, adManager, adState,
+                            onAdWillShow = { viewModel.pauseTimer() }
+                        ) { earnedPerk = "skip" }
                     },
                     onHint = {
-                        if (subscriptionState is SubscriptionState.Premium) viewModel.useHint()
-                        else {
-                            viewModel.pauseTimer()
-                            pendingPerk = "hint"
-                        }
+                        requestRewardedAd(
+                            context, activity, adManager, adState,
+                            onAdWillShow = { viewModel.pauseTimer() }
+                        ) { earnedPerk = "hint" }
                     },
-                    showAdTag = subscriptionState !is SubscriptionState.Premium,
+                    showSkipHint = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
 
@@ -179,9 +164,11 @@ fun PokeGuessGameScreen(
                     difficulty = state.difficulty,
                     isNewBest = state.isNewBest,
                     onPlayAgain = {
-                        if (difficulty == GuessDifficulty.HARD && subscriptionState !is SubscriptionState.Premium)
-                            showAdForReplay = true
-                        else viewModel.startGame(difficulty)
+                        if (difficulty == GuessDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                            requestRewardedAd(context, activity, adManager, adState) {
+                                viewModel.startGame(difficulty)
+                            }
+                        } else viewModel.startGame(difficulty)
                     },
                     onBackToMenu = onBack
                 )
@@ -189,40 +176,17 @@ fun PokeGuessGameScreen(
         }
     }
 
-    if (showAdForReplay) {
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        showAdForReplay = false
-                        viewModel.startGame(difficulty)
-                    }
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text(stringResource(R.string.dialog_exit_game_title)) },
+            text = { Text(stringResource(R.string.dialog_exit_game_message)) },
+            confirmButton = {
+                TextButton(onClick = { showExitDialog = false; onBack() }) {
+                    Text(stringResource(R.string.quiz_exit_confirm), color = MaterialTheme.colorScheme.error)
                 }
             },
-            onDismiss = { showAdForReplay = false },
-            onRetry = { adManager.loadAd(context) }
-        )
-    }
-
-    pendingPerk?.let { perk ->
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        // Reward fires while the ad is still on screen — defer
-                        // applying the perk until the ad is dismissed
-                        earnedPerk = perk
-                        pendingPerk = null
-                    }
-                }
-            },
-            onDismiss = {
-                pendingPerk = null
-                viewModel.resumeTimer()
-            },
-            onRetry = { adManager.loadAd(context) }
+            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text(stringResource(R.string.cancel)) } }
         )
     }
 }
@@ -235,7 +199,7 @@ private fun SilhouetteScreen(
     onBack: () -> Unit,
     onSkip: () -> Unit = {},
     onHint: () -> Unit = {},
-    showAdTag: Boolean = true,
+    showSkipHint: Boolean = true,
     modifier: Modifier
 ) {
     val timerColor by animateColorAsState(
@@ -385,16 +349,18 @@ private fun SilhouetteScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // Rewarded perks: 50/50 hint + skip
-        SkipHintBar(
-            onSkip = onSkip,
-            onHint = onHint,
-            hintUsed = state.eliminatedOptions.isNotEmpty(),
-            showAdTag = showAdTag,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        // Rewarded perks: 50/50 hint + skip (free users only)
+        if (showSkipHint) {
+            SkipHintBar(
+                onSkip = onSkip,
+                onHint = onHint,
+                hintUsed = state.eliminatedOptions.isNotEmpty(),
+                showAdTag = true,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
 
-        Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
+        }
 
         // Options
         state.question.options.forEachIndexed { i, option ->

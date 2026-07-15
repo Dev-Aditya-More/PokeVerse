@@ -484,9 +484,9 @@ fun SettingsScreen(
                         MaterialTheme.colorScheme.onSurface
                     ),
                     SocialLink(
-                        "Linkedin",
-                        "https://linkedin.com/in/adityamore2005",
-                        ImageVector.vectorResource(id = R.drawable.linkedin_brands_solid_full),
+                        "Instagram",
+                        "https://www.instagram.com/dexverse.app/",
+                        ImageVector.vectorResource(id = R.drawable.instagram_brands_solid_full),
                         size = 20.dp,
                         MaterialTheme.colorScheme.onSurface
                     ),

@@ -4,12 +4,17 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material3.CircularWavyProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -54,6 +59,37 @@ fun LivesRow(
                 text = if (filled) "❤️" else "🤍",
                 fontSize = 16.sp,
                 modifier = Modifier.scale(scale)
+            )
+        }
+    }
+}
+
+/**
+ * Shared loading state for every game screen — same wavy spinner, spacing
+ * and text style everywhere. The color overrides let a game keep its own
+ * background contrast (e.g. WildCatch's sky background needs light text)
+ * without diverging in layout or spinner style.
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun GameLoadingContent(
+    text: String,
+    modifier: Modifier = Modifier,
+    textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    spinnerColor: Color = MaterialTheme.colorScheme.primary
+) {
+    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CircularWavyProgressIndicator(
+                color = spinnerColor
+            )
+            Text(
+                text,
+                style = MaterialTheme.typography.bodyLarge,
+                color = textColor
             )
         }
     }

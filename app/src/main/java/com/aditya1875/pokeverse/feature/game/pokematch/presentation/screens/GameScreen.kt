@@ -27,8 +27,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -58,7 +56,8 @@ import coil.ImageLoader
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
-import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
+import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.components.GameTimer
 import com.aditya1875.pokeverse.feature.game.pokematch.presentation.components.PokemonCard
@@ -74,7 +73,6 @@ import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun GameScreen(
     difficulty: Difficulty,
@@ -97,7 +95,6 @@ fun GameScreen(
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
-    var showAdForReplay by remember { mutableStateOf(false) }
     val connectivityObserver: ConnectivityObserver = koinInject()
     val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
 
@@ -134,22 +131,9 @@ fun GameScreen(
                 if (!isOnline && gameState is GameState.Loading) {
                     NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
                 } else when (val state = gameState) {
-                    is GameState.Loading -> {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                CircularWavyProgressIndicator(
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = stringResource(R.string.match_preparing),
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                        }
-                    }
+                    is GameState.Loading -> GameLoadingContent(
+                        text = stringResource(R.string.match_preparing)
+                    )
 
                     is GameState.Playing, is GameState.Paused -> {
                         val playing =
@@ -334,9 +318,11 @@ fun GameScreen(
                     is GameState.Victory -> VictoryScreen(
                         victory = state,
                         onPlayAgain = {
-                            if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium)
-                                showAdForReplay = true
-                            else viewModel.startGame(state.difficulty)
+                            if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                                requestRewardedAd(context, activity, adManager, adState) {
+                                    viewModel.startGame(state.difficulty)
+                                }
+                            } else viewModel.startGame(state.difficulty)
                         },
                         onChangeDifficulty = onBack,
                         onHome = { showExitDialog = true }
@@ -345,9 +331,11 @@ fun GameScreen(
                     is GameState.TimeUp -> TimeUpScreen(
                         timeUp = state,
                         onPlayAgain = {
-                            if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium)
-                                showAdForReplay = true
-                            else viewModel.startGame(state.difficulty)
+                            if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                                requestRewardedAd(context, activity, adManager, adState) {
+                                    viewModel.startGame(state.difficulty)
+                                }
+                            } else viewModel.startGame(state.difficulty)
                         },
                         onBack = { showExitDialog = true }
                     )
@@ -382,19 +370,4 @@ fun GameScreen(
         }
     }
 
-    if (showAdForReplay) {
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        showAdForReplay = false
-                        viewModel.startGame(difficulty)
-                    }
-                }
-            },
-            onDismiss = { showAdForReplay = false },
-            onRetry = { adManager.loadAd(context) }
-        )
-    }
 }

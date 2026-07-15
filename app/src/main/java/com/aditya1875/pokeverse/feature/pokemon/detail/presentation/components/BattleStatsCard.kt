@@ -416,7 +416,7 @@ fun GoBattlePowerCard(
             return@CalculatorShell
         }
 
-        val levels = remember { repository.availableLevels() }
+        val levels = remember { repository.availableLevels().filter { it == it.toInt().toFloat() } }
         var levelIndex by remember {
             mutableIntStateOf(levels.indexOf(40f).takeIf { it >= 0 } ?: (levels.size - 1))
         }
@@ -543,8 +543,7 @@ private fun GoIvSlider(label: String, value: Int, accentColor: Color, onValueCha
     )
 }
 
-private fun formatGoLevel(level: Float): String =
-    if (level == level.toInt().toFloat()) level.toInt().toString() else level.toString()
+private fun formatGoLevel(level: Float): String = level.toInt().toString()
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Guide sheets — plain-language explainers opened via "Learn more" on each card

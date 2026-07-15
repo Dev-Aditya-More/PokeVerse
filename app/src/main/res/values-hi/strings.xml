@@ -23,7 +23,6 @@
     <string name="action_go_premium">Premium लो 👑</string>
     <string name="action_update_now">अभी अपडेट करें</string>
     <string name="action_watch_ad">Ad देखें</string>
-    <string name="action_reload_ad">Ad फिर लोड करें</string>
     <string name="action_sign_in_google">Google से लॉग इन करें</string>
     <string name="action_sign_out">लॉग आउट</string>
     <string name="action_try_again">फिर कोशिश करें</string>
@@ -108,6 +107,10 @@
     <string name="popup_premium_feature_experience">पूरा Dexverse experience</string>
     <string name="popup_premium_feature_themes">Exclusive themes और badges</string>
     <string name="popup_premium_feature_support">Dexverse को support करो</string>
+    <string name="popup_rating_title">क्या आपको Dexverse अच्छा लग रहा है?</string>
+    <string name="popup_rating_body">हमें आपकी राय जानना अच्छा लगेगा — इसमें बस कुछ सेकंड लगेंगे और यह हमारी बहुत मदद करता है!</string>
+    <string name="action_rating_yes">हाँ, मुझे पसंद है!</string>
+    <string name="action_rating_no">ज़्यादा नहीं</string>
 
     <!-- Pokemon Card -->
     <string name="card_in_team">टीम में है</string>
@@ -142,11 +145,7 @@
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->
-    <string name="ad_dialog_title">Unlock करो</string>
-    <string name="ad_dialog_ready">unlock करने को एक छोटी सी ad देखो। Premium members को कभी ad नहीं देखनी पड़ती।</string>
-    <string name="ad_dialog_loading">Ad load हो रही है — थोड़ा रुको।</string>
-    <string name="ad_dialog_error">Ad अभी load नहीं हो पाई। Reload दबाओ या आसान difficulty पर खेलो।</string>
-    <string name="ad_dialog_loading_btn">Load हो रहा है…</string>
+    <string name="ad_not_ready_toast">Ad अभी भी load हो रही है — थोड़ी देर में फिर कोशिश करें।</string>
 
     <!-- Result / Game Over -->
     <string name="result_play_again">फिर खेलें</string>
@@ -175,6 +174,7 @@
     <string name="quiz_game_subtitle">अपना Pokémon knowledge test करो!</string>
     <string name="quiz_difficulty_hint">Pokémon के सवालों का सही जवाब दो।</string>
     <string name="quiz_loading">सवाल load हो रहे हैं…</string>
+    <string name="guess_loading">Pokémon load हो रहे हैं…</string>
     <string name="quiz_exit_title">Quiz छोड़ें?</string>
     <string name="quiz_exit_body">सारी progress चली जाएगी।</string>
     <string name="quiz_exit_confirm">छोड़ें</string>
@@ -227,6 +227,7 @@
     <string name="duel_game_title">PokéDuel</string>
     <string name="duel_intro_body">दो Pokémon आमने-सामने!\nType advantage देखकर winner चुनो।</string>
     <string name="duel_loading">Opponent ढूंढ रहे हैं…</string>
+    <string name="wildcatch_loading">एक जंगली Pokémon पास आ रहा है...</string>
     <string name="duel_who_wins">Battle में कौन जीतेगा?</string>
     <string name="duel_draw">🤝 Draw</string>
     <string name="duel_new_best">🏆 नया रिकॉर्ड!</string>

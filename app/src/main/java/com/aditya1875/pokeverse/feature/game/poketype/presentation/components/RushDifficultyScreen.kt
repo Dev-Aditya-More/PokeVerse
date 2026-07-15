@@ -17,7 +17,7 @@ import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.poketype.presentation.viewmodels.TypeRushViewModel
-import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameDifficultyLayout
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
 import org.koin.compose.koinInject
@@ -37,8 +37,6 @@ fun TypeRushDifficultyScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
 
-    var showAdDialog by remember { mutableStateOf(false) }
-
     val context = LocalContext.current
     val activity = context as? Activity
 
@@ -46,21 +44,6 @@ fun TypeRushDifficultyScreen(
         if (adState is RewardedAdState.Idle) adManager.loadAd(context)
     }
 
-    if (showAdDialog) {
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        showAdDialog = false
-                        onDifficultySelected(TypeRushDifficulty.HARD)
-                    }
-                }
-            },
-            onDismiss = { showAdDialog = false },
-            onRetry = { adManager.loadAd(context) }
-        )
-    }
 
     GameDifficultyLayout(
         gameTitle = stringResource(R.string.typerush_game_title),
@@ -83,7 +66,11 @@ fun TypeRushDifficultyScreen(
                     .maxByOrNull { it.score },
                 onSelect = {
                     if (canPlay) onDifficultySelected(difficulty)
-                    else if (difficulty == TypeRushDifficulty.HARD) showAdDialog = true
+                    else if (difficulty == TypeRushDifficulty.HARD) {
+                        requestRewardedAd(context, activity, adManager, adState) {
+                            onDifficultySelected(TypeRushDifficulty.HARD)
+                        }
+                    }
                 }
             )
         }

@@ -23,7 +23,6 @@
     <string name="action_go_premium">Passer Premium 👑</string>
     <string name="action_update_now">Mettre à jour</string>
     <string name="action_watch_ad">Regarder la pub</string>
-    <string name="action_reload_ad">Recharger la pub</string>
     <string name="action_sign_in_google">Se connecter avec Google</string>
     <string name="action_sign_out">Se déconnecter</string>
     <string name="action_try_again">Réessayer</string>
@@ -108,6 +107,10 @@
     <string name="popup_premium_feature_experience">Expérience Dexverse complète</string>
     <string name="popup_premium_feature_themes">Thèmes et badges exclusifs</string>
     <string name="popup_premium_feature_support">Soutenir la croissance de Dexverse</string>
+    <string name="popup_rating_title">Vous aimez Dexverse jusqu\'ici ?</string>
+    <string name="popup_rating_body">Nous aimerions connaître votre avis — cela ne prend que quelques secondes et nous aide beaucoup !</string>
+    <string name="action_rating_yes">Oui, j\'adore !</string>
+    <string name="action_rating_no">Pas vraiment</string>
 
     <!-- Pokemon Card -->
     <string name="card_in_team">Dans l\'équipe</string>
@@ -142,11 +145,7 @@
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->
-    <string name="ad_dialog_title">Débloquer maintenant</string>
-    <string name="ad_dialog_ready">Regardez une courte publicité pour débloquer. Les abonnés Premium ne voient plus jamais de publicités.</string>
-    <string name="ad_dialog_loading">Chargement de la pub — veuillez patienter.</string>
-    <string name="ad_dialog_error">La pub n\'a pas pu se charger. Appuyez sur Recharger pour réessayer, ou jouez à une difficulté inférieure.</string>
-    <string name="ad_dialog_loading_btn">Chargement…</string>
+    <string name="ad_not_ready_toast">La pub charge encore — réessayez dans un instant.</string>
 
     <!-- Result / Game Over -->
     <string name="result_play_again">Rejouer</string>
@@ -175,6 +174,7 @@
     <string name="quiz_game_subtitle">Testez vos connaissances Pokémon !</string>
     <string name="quiz_difficulty_hint">Répondez correctement aux questions sur les Pokémon.</string>
     <string name="quiz_loading">Chargement des questions…</string>
+    <string name="guess_loading">Chargement des Pokémon…</string>
     <string name="quiz_exit_title">Quitter le quiz ?</string>
     <string name="quiz_exit_body">Votre progression sera perdue.</string>
     <string name="quiz_exit_confirm">Quitter</string>
@@ -227,6 +227,7 @@
     <string name="duel_game_title">PokéDuel</string>
     <string name="duel_intro_body">Deux Pokémon s\'affrontent !\nChoisissez le vainqueur selon l\'avantage de type.</string>
     <string name="duel_loading">Recherche d\'adversaires...</string>
+    <string name="wildcatch_loading">Un Pokémon sauvage apparaît...</string>
     <string name="duel_who_wins">Qui gagne le combat ?</string>
     <string name="duel_draw">🤝 Égalité</string>
     <string name="duel_new_best">🏆 Nouveau record !</string>

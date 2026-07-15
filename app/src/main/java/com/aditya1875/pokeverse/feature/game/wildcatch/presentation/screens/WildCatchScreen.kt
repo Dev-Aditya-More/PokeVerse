@@ -1,15 +1,12 @@
 package com.aditya1875.pokeverse.feature.game.wildcatch.presentation.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -36,6 +33,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
@@ -45,6 +43,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import android.app.Activity
@@ -75,6 +74,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
@@ -82,11 +82,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
-import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.state.WildCatchGameState
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.viewmodels.WildCatchViewModel
@@ -130,9 +134,15 @@ fun WildCatchScreen(
 ) {
     val gameState by viewModel.gameState.collectAsStateWithLifecycle()
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
+    var showExitDialog by remember { mutableStateOf(false) }
+    val hasActiveProgress = gameState is WildCatchGameState.Throwing || gameState is WildCatchGameState.ShakeResult
+    val requestExit: () -> Unit = { if (hasActiveProgress) showExitDialog = true else onBack() }
 
     val connectivityObserver: ConnectivityObserver = koinInject()
     val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
+    val billingManager: IBillingManager = koinInject()
+    val subscriptionState by billingManager.subscriptionState.collectAsStateWithLifecycle()
+    val isPremium = subscriptionState is SubscriptionState.Premium
 
     LaunchedEffect(Unit) {
         viewModel.xpResult.collect { pendingXp = it }
@@ -149,13 +159,15 @@ fun WildCatchScreen(
         return
     }
 
+    BackHandler(enabled = hasActiveProgress) { showExitDialog = true }
+
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("Wild Catch", color = Color.White) },
                     navigationIcon = {
-                        IconButton(onClick = onBack) {
+                        IconButton(onClick = requestExit) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Back",
@@ -196,7 +208,8 @@ fun WildCatchScreen(
                             modifier = Modifier.fillMaxSize().padding(padding),
                             onNext = { viewModel.nextRound() },
                             onRevive = { viewModel.reviveGame() },
-                            isOnline = isOnline
+                            isOnline = isOnline,
+                            isPremium = isPremium
                         )
                         is WildCatchGameState.Finished -> FinishedContent(
                             state = state,
@@ -208,6 +221,20 @@ fun WildCatchScreen(
                 }
             }
         }
+    }
+
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text(stringResource(R.string.dialog_exit_game_title)) },
+            text = { Text(stringResource(R.string.dialog_exit_game_message)) },
+            confirmButton = {
+                TextButton(onClick = { showExitDialog = false; onBack() }) {
+                    Text(stringResource(R.string.quiz_exit_confirm), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text(stringResource(R.string.cancel)) } }
+        )
     }
 }
 
@@ -247,33 +274,12 @@ private fun DrawScope.drawSparkle(x: Float, y: Float, life: Float) {
 
 @Composable
 private fun LoadingContent(modifier: Modifier = Modifier) {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val pulse by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(800), RepeatMode.Reverse),
-        label = "pulse"
+    GameLoadingContent(
+        text = stringResource(R.string.wildcatch_loading),
+        modifier = modifier,
+        textColor = Color.White.copy(alpha = 0.85f),
+        spinnerColor = Color.White
     )
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            PokeballCanvas(
-                modifier = Modifier
-                    .size(80.dp)
-                    .graphicsLayer {
-                        val s = 0.92f + pulse * 0.08f
-                        scaleX = s; scaleY = s
-                        alpha = 0.5f + pulse * 0.5f
-                    }
-            )
-            Spacer(Modifier.height(20.dp))
-            Text(
-                "A wild Pokémon is approaching...",
-                style = MaterialTheme.typography.bodyLarge,
-                color = Color.White.copy(alpha = 0.5f + pulse * 0.5f),
-                textAlign = TextAlign.Center
-            )
-        }
-    }
 }
 
 @Composable
@@ -622,7 +628,8 @@ private fun ShakeResultContent(
     modifier: Modifier = Modifier,
     onNext: () -> Unit,
     onRevive: () -> Unit = {},
-    isOnline: Boolean = true
+    isOnline: Boolean = true,
+    isPremium: Boolean = false
 ) {
     val soundManager: SoundManager = koinInject()
     val shakeAnim = remember { Animatable(0f) }
@@ -634,26 +641,11 @@ private fun ShakeResultContent(
     val adState by adManager.adState.collectAsState()
     val context = LocalContext.current
     val activity = context as? Activity
-    var showReviveDialog by remember { mutableStateOf(false) }
 
-    LaunchedEffect(adState, isOnline) {
-        if (isOnline && state.lives <= 0 && adState is RewardedAdState.Idle) {
+    LaunchedEffect(adState, isOnline, isPremium) {
+        if (!isPremium && isOnline && state.lives <= 0 && adState is RewardedAdState.Idle) {
             adManager.loadAd(context)
         }
-    }
-
-    if (showReviveDialog) {
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                if (activity != null) {
-                    adManager.showAd(activity) { onRevive() }
-                }
-                showReviveDialog = false
-            },
-            onDismiss = { showReviveDialog = false },
-            onRetry = { adManager.loadAd(context) }
-        )
     }
 
     LaunchedEffect(Unit) {
@@ -768,7 +760,10 @@ private fun ShakeResultContent(
 
         if (state.lives <= 0 && showResult) {
             OutlinedButton(
-                onClick = { showReviveDialog = true },
+                onClick = {
+                    if (isPremium) onRevive()
+                    else requestRewardedAd(context, activity, adManager, adState) { onRevive() }
+                },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
@@ -777,7 +772,7 @@ private fun ShakeResultContent(
                 border = BorderStroke(1.5.dp, Color(0xFFFFD600).copy(alpha = 0.6f))
             ) {
                 Text(
-                    "📺  Watch Ad to Revive  ❤️",
+                    if (isPremium) "Revive  ❤️" else "📺  Watch Ad to Revive  ❤️",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )

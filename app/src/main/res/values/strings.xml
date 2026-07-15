@@ -27,7 +27,6 @@
     <string name="action_go_premium">Go Premium 👑</string>
     <string name="action_update_now">Update Now</string>
     <string name="action_watch_ad">Watch Ad</string>
-    <string name="action_reload_ad">Reload Ad</string>
     <string name="action_sign_in_google">Sign In with Google</string>
     <string name="action_sign_out">Sign Out</string>
     <string name="action_try_again">Try Again</string>
@@ -113,6 +112,10 @@
     <string name="popup_premium_feature_experience">Full Dexverse Experience</string>
     <string name="popup_premium_feature_themes">Exclusive themes &amp; badges</string>
     <string name="popup_premium_feature_support">Support Dexverse\'s growth</string>
+    <string name="popup_rating_title">Enjoying Dexverse so far?</string>
+    <string name="popup_rating_body">We\'d love to hear what you think — it only takes a few seconds and really helps us out!</string>
+    <string name="action_rating_yes">Yes, I love it!</string>
+    <string name="action_rating_no">Not really</string>
 
     <!-- Pokemon Card -->
     <string name="card_in_team">In Team</string>
@@ -146,12 +149,8 @@
     <string name="game_name_wildcatch_desc">Tap at the right moment to catch wild Pokémon. Pure timing — no knowledge needed!</string>
     <string name="label_premium">Premium</string>
 
-    <!-- Ad Unlock Dialog -->
-    <string name="ad_dialog_title">Unlock it Now</string>
-    <string name="ad_dialog_ready">Watch a short ad to unlock. Premium subscribers skip ads permanently.</string>
-    <string name="ad_dialog_loading">Loading ad — please wait a moment.</string>
-    <string name="ad_dialog_error">Ad couldn\'t load right now. Tap Reload to try again, or play on an easier difficulty.</string>
-    <string name="ad_dialog_loading_btn">Loading…</string>
+    <!-- Rewarded ads -->
+    <string name="ad_not_ready_toast">Ad is still loading — try again in a moment.</string>
 
     <!-- Result / Game Over -->
     <string name="result_play_again">Play Again</string>
@@ -180,6 +179,7 @@
     <string name="quiz_game_subtitle">Test your Pokémon knowledge!</string>
     <string name="quiz_difficulty_hint">Answer Pokémon questions correctly.</string>
     <string name="quiz_loading">Loading questions…</string>
+    <string name="guess_loading">Loading Pokémon…</string>
     <string name="quiz_exit_title">Exit quiz?</string>
     <string name="quiz_exit_body">Your progress will be lost.</string>
     <string name="quiz_exit_confirm">Exit</string>
@@ -232,6 +232,7 @@
     <string name="duel_game_title">PokéDuel</string>
     <string name="duel_intro_body">Two Pokémon face off!\nPick the winner based on type advantage.</string>
     <string name="duel_loading">Finding opponents...</string>
+    <string name="wildcatch_loading">A wild Pokémon is approaching...</string>
     <string name="duel_who_wins">Who wins in a battle?</string>
     <string name="duel_draw">🤝 It\'s a Draw</string>
     <string name="duel_new_best">🏆 New Best!</string>

@@ -6,6 +6,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
+import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
 import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
@@ -37,7 +38,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -74,7 +74,7 @@ import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
-import com.aditya1875.pokeverse.feature.game.core.presentation.AdUnlockDialog
+import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.QuizDifficulty
 import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.QuizGameState
@@ -106,9 +106,6 @@ fun QuizGameScreen(
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
-    var showAdForReplay by remember { mutableStateOf(false) }
-    // Which perk the player is unlocking via rewarded ad: "skip" or "hint"
-    var pendingPerk by remember { mutableStateOf<String?>(null) }
     // Perk granted by the ad, applied only once the ad is fully dismissed
     var earnedPerk by remember { mutableStateOf<String?>(null) }
 
@@ -146,38 +143,27 @@ fun QuizGameScreen(
         ) { paddingValues ->
             when (val state = uiState) {
                 is QuizUiState.Idle -> {}
-                is QuizUiState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text("🧠", fontSize = 48.sp)
-                            CircularProgressIndicator(modifier = Modifier.size(28.dp), strokeWidth = 3.dp)
-                            Text(stringResource(R.string.quiz_loading),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                    }
-                }
+                is QuizUiState.Loading -> GameLoadingContent(
+                    text = stringResource(R.string.quiz_loading)
+                )
                 is QuizUiState.Playing -> QuizPlayingContent(
                     gameState = state.gameState,
                     difficulty = difficulty,
                     onAnswerSelected = { viewModel.selectAnswer(it) },
                     onRequestExit = { showExitDialog = true },
                     onSkip = {
-                        if (subscriptionState is SubscriptionState.Premium) viewModel.skipQuestion()
-                        else {
-                            viewModel.pauseTimer()
-                            pendingPerk = "skip"
-                        }
+                        requestRewardedAd(
+                            context, activity, adManager, adState,
+                            onAdWillShow = { viewModel.pauseTimer() }
+                        ) { earnedPerk = "skip" }
                     },
                     onHint = {
-                        if (subscriptionState is SubscriptionState.Premium) viewModel.useHint()
-                        else {
-                            viewModel.pauseTimer()
-                            pendingPerk = "hint"
-                        }
+                        requestRewardedAd(
+                            context, activity, adManager, adState,
+                            onAdWillShow = { viewModel.pauseTimer() }
+                        ) { earnedPerk = "hint" }
                     },
-                    showAdTag = subscriptionState !is SubscriptionState.Premium,
+                    showSkipHint = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
                 is QuizUiState.ShowingAnswer -> {
@@ -203,9 +189,11 @@ fun QuizGameScreen(
                     stars = state.stars,
                     isNewBest = state.isNewBest,
                     onPlayAgain = {
-                        if (difficulty == QuizDifficulty.HARD && subscriptionState !is SubscriptionState.Premium)
-                            showAdForReplay = true
-                        else viewModel.startQuiz(difficulty)
+                        if (difficulty == QuizDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                            requestRewardedAd(context, activity, adManager, adState) {
+                                viewModel.startQuiz(difficulty)
+                            }
+                        } else viewModel.startQuiz(difficulty)
                     },
                     onBackToMenu = { viewModel.onBackToMenu(); onBack() }
                 )
@@ -227,42 +215,6 @@ fun QuizGameScreen(
         )
     }
 
-    if (showAdForReplay) {
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        showAdForReplay = false
-                        viewModel.startQuiz(difficulty)
-                    }
-                }
-            },
-            onDismiss = { showAdForReplay = false },
-            onRetry = { adManager.loadAd(context) }
-        )
-    }
-
-    pendingPerk?.let { perk ->
-        AdUnlockDialog(
-            adState = adState,
-            onWatchAd = {
-                activity?.let { act ->
-                    adManager.showAd(act) {
-                        // Reward fires while the ad is still on screen — defer
-                        // applying the perk until the ad is dismissed
-                        earnedPerk = perk
-                        pendingPerk = null
-                    }
-                }
-            },
-            onDismiss = {
-                pendingPerk = null
-                viewModel.resumeTimer()
-            },
-            onRetry = { adManager.loadAd(context) }
-        )
-    }
 }
 
 @Composable
@@ -273,7 +225,7 @@ private fun QuizPlayingContent(
     onRequestExit: () -> Unit,
     onSkip: () -> Unit = {},
     onHint: () -> Unit = {},
-    showAdTag: Boolean = true,
+    showSkipHint: Boolean = true,
     modifier: Modifier
 ) {
     val currentQuestion = gameState.questions[gameState.currentQuestionIndex]
@@ -380,16 +332,18 @@ private fun QuizPlayingContent(
 
         Spacer(Modifier.height(14.dp))
 
-        // ── Rewarded perks: 50/50 hint + skip ─────────────────────────────────
-        SkipHintBar(
-            onSkip = onSkip,
-            onHint = onHint,
-            hintUsed = gameState.eliminatedOptions.isNotEmpty(),
-            showAdTag = showAdTag,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        // ── Rewarded perks: 50/50 hint + skip (free users only) ────────────────
+        if (showSkipHint) {
+            SkipHintBar(
+                onSkip = onSkip,
+                onHint = onHint,
+                hintUsed = gameState.eliminatedOptions.isNotEmpty(),
+                showAdTag = true,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
 
-        Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(14.dp))
+        }
 
         // ── Answer options ────────────────────────────────────────────────────
         currentQuestion.options.forEachIndexed { index, option ->
