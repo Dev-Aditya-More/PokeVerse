@@ -35,7 +35,9 @@ import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
-import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
+import com.aditya1875.pokeverse.feature.game.core.presentation.SkipBar
+import com.aditya1875.pokeverse.feature.core.ui.components.LegendaryBadge
+import com.aditya1875.pokeverse.utils.LegendaryPokemon
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.RUSH_MAX_LIVES
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
 import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushState
@@ -78,18 +80,13 @@ fun TypeRushScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     // Perk granted by the ad, applied only once the ad is fully dismissed
-    var earnedPerk by remember { mutableStateOf<String?>(null) }
+    var skipPending by remember { mutableStateOf(false) }
 
     // Keep the game frozen from ad-dialog open until the rewarded ad closes
-    LaunchedEffect(adState, earnedPerk) {
-        if (earnedPerk != null && adState !is RewardedAdState.Showing) {
-            val perk = earnedPerk
-            earnedPerk = null
-            if (perk == "skip") viewModel.skipRound()
-            else {
-                viewModel.useHint()
-                viewModel.resumeTimer()
-            }
+    LaunchedEffect(adState, skipPending) {
+        if (skipPending && adState !is RewardedAdState.Showing) {
+            skipPending = false
+            viewModel.skipRound()
         }
     }
     val connectivityObserver: ConnectivityObserver = koinInject()
@@ -123,15 +120,9 @@ fun TypeRushScreen(
                         requestRewardedAd(
                             context, activity, adManager, adState,
                             onAdWillShow = { viewModel.pauseTimer() }
-                        ) { earnedPerk = "skip" }
+                        ) { skipPending = true }
                     },
-                    onHint = {
-                        requestRewardedAd(
-                            context, activity, adManager, adState,
-                            onAdWillShow = { viewModel.pauseTimer() }
-                        ) { earnedPerk = "hint" }
-                    },
-                    showSkipHint = subscriptionState !is SubscriptionState.Premium,
+                    showSkip = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
                 is TypeRushState.RoundResult -> RoundResultContent(
@@ -175,8 +166,7 @@ private fun PlayingContent(
     onTypeTapped: (String) -> Unit,
     onBack: () -> Unit,
     onSkip: () -> Unit = {},
-    onHint: () -> Unit = {},
-    showSkipHint: Boolean = true,
+    showSkip: Boolean = true,
     modifier: Modifier
 ) {
     val timerFraction = (state.timeRemaining.toFloat() / difficulty.timePerRound.coerceAtLeast(1)).coerceIn(0f, 1f)
@@ -333,12 +323,10 @@ private fun PlayingContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // Rewarded perks: 50/50 hint + skip (free users only)
-            if (showSkipHint) {
-                SkipHintBar(
+            // Rewarded perk: skip (free users only)
+            if (showSkip) {
+                SkipBar(
                     onSkip = onSkip,
-                    onHint = onHint,
-                    hintUsed = state.eliminatedTypes.isNotEmpty(),
                     showAdTag = true,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
@@ -351,7 +339,6 @@ private fun PlayingContent(
                 correctTypes = state.question.correctTypes,
                 selectedTypes = state.selectedTypes,
                 isLocked = state.isLocked,
-                eliminatedTypes = state.eliminatedTypes,
                 onTypeTapped = onTypeTapped,
             )
         }
@@ -364,7 +351,6 @@ private fun TypeBubbleGrid(
     correctTypes: List<String>,
     selectedTypes: Set<String>,
     isLocked: Boolean,
-    eliminatedTypes: Set<String> = emptySet(),
     onTypeTapped: (String) -> Unit,
 ) {
     val soundManager: SoundManager = koinInject()
@@ -377,7 +363,6 @@ private fun TypeBubbleGrid(
                     val isSelected = type in selectedTypes
                     val isCorrect = type in correctTypes
                     val isWrong = isLocked && isSelected && !isCorrect
-                    val isEliminated = type in eliminatedTypes
                     val tc = typeColor(type)
 
                     val bgAlpha by animateFloatAsState(
@@ -392,7 +377,6 @@ private fun TypeBubbleGrid(
                     Box(
                         modifier = Modifier
                             .weight(1f).scale(scale)
-                            .alpha(if (isEliminated) 0.25f else 1f)
                             .clip(RoundedCornerShape(14.dp))
                             .background(tc.copy(alpha = bgAlpha))
                             .border(
@@ -401,7 +385,7 @@ private fun TypeBubbleGrid(
                                 else tc.copy(alpha = if (isSelected || (isLocked && isCorrect)) 1f else 0.28f),
                                 RoundedCornerShape(14.dp)
                             )
-                            .clickable(enabled = !isLocked && !isEliminated) {
+                            .clickable(enabled = !isLocked) {
                                 soundManager.play(SoundManager.Sound.RUSH_CLICK); onTypeTapped(type)
                             }
                             .padding(vertical = 15.dp),
@@ -477,6 +461,11 @@ private fun RoundResultContent(state: TypeRushState.RoundResult, onNext: () -> U
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
+
+            if (LegendaryPokemon.isLegendary(result.question.pokemonId)) {
+                Spacer(Modifier.height(6.dp))
+                LegendaryBadge()
+            }
 
             Spacer(Modifier.height(14.dp))
 

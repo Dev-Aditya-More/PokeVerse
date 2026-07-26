@@ -83,6 +83,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.core.ui.components.LegendaryBadge
 import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
@@ -92,12 +93,14 @@ import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
+import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.WildCatchDifficulty
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.state.WildCatchGameState
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.viewmodels.WildCatchViewModel
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
 import com.aditya1875.pokeverse.utils.ConnectivityObserver
+import com.aditya1875.pokeverse.utils.LegendaryPokemon
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
@@ -485,6 +488,10 @@ private fun ThrowingContent(
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White
             )
+            if (LegendaryPokemon.isLegendary(state.pokemon.id)) {
+                Spacer(Modifier.height(2.dp))
+                LegendaryBadge()
+            }
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 state.pokemon.types.forEach { type -> TypeChip(type) }
@@ -537,11 +544,14 @@ private fun ThrowingContent(
 
             Spacer(Modifier.height(12.dp))
 
-            // Accuracy zone hint
+            // Accuracy zone hint — windows tighten as more Pokémon appear
+            val thresholds = remember(state.pokemonCount) {
+                WildCatchDifficulty.ringThresholds(state.pokemonCount)
+            }
             val hintText = when {
-                ringAnim.value <= 0.20f -> "✨  Perfect!"
-                ringAnim.value <= 0.40f -> "🎯  Great"
-                ringAnim.value <= 0.70f -> "👍  Nice"
+                ringAnim.value <= thresholds.perfect -> "✨  Perfect!"
+                ringAnim.value <= thresholds.great -> "🎯  Great"
+                ringAnim.value <= thresholds.nice -> "👍  Nice"
                 else -> "Wait for the ring..."
             }
             Box(
@@ -741,6 +751,10 @@ private fun ShakeResultContent(
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White.copy(alpha = 0.7f)
                 )
+                if (LegendaryPokemon.isLegendary(state.pokemon.id)) {
+                    Spacer(Modifier.height(6.dp))
+                    LegendaryBadge()
+                }
             }
         }
 

@@ -157,29 +157,11 @@ class QuizViewModel(
         }
         val next = gameState.copy(
             currentQuestionIndex = gameState.currentQuestionIndex + 1,
-            timeRemaining = gameState.totalTimePerQuestion,
-            eliminatedOptions = emptyList()
+            timeRemaining = gameState.totalTimePerQuestion
         )
         _uiState.value = QuizUiState.Playing(next)
         extendQuestionPoolIfNeeded(next)
         startTimer()
-    }
-
-    /** 50/50 hint: eliminates two wrong options on the current question */
-    fun useHint() {
-        val currentState = _uiState.value
-        if (currentState !is QuizUiState.Playing) return
-        val gameState = currentState.gameState
-        if (gameState.eliminatedOptions.isNotEmpty()) return
-
-        val question = gameState.questions[gameState.currentQuestionIndex]
-        val wrong = question.options.indices
-            .filter { it != question.correctAnswerIndex }
-            .shuffled()
-            .take(2)
-        _uiState.value = QuizUiState.Playing(
-            gameState.copy(eliminatedOptions = wrong)
-        )
     }
 
     fun onBackToMenu() {
@@ -253,8 +235,7 @@ class QuizViewModel(
 
         val nextGameState = gameState.copy(
             currentQuestionIndex = gameState.currentQuestionIndex + 1,
-            timeRemaining = gameState.totalTimePerQuestion,
-            eliminatedOptions = emptyList()
+            timeRemaining = gameState.totalTimePerQuestion
             // combo and bestScore carry forward automatically via copy
         )
         _uiState.value = QuizUiState.Playing(nextGameState)

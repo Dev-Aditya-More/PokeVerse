@@ -19,7 +19,7 @@ import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
 import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
-import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
+import com.aditya1875.pokeverse.feature.game.core.presentation.SkipBar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -383,11 +383,10 @@ private fun DuelingScreen(
 
         if (!answered && showSkip) {
             Spacer(Modifier.height(10.dp))
-            // Rewarded perk: skip this matchup (no 50/50 — only two choices)
-            SkipHintBar(
+            // Rewarded perk: skip this matchup
+            SkipBar(
                 onSkip = onSkip,
                 showAdTag = true,
-                showHint = false,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }

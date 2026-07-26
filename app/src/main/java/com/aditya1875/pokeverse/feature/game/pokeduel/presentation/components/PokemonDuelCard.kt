@@ -14,7 +14,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.aditya1875.pokeverse.feature.core.ui.components.LegendaryBadge
 import com.aditya1875.pokeverse.feature.game.pokeduel.domain.model.DuelPokemon
+import com.aditya1875.pokeverse.utils.LegendaryPokemon
 
 @Composable
 fun PokemonDuelCard(
@@ -60,6 +62,7 @@ fun PokemonDuelCard(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
+            if (LegendaryPokemon.isLegendary(pokemon.id)) LegendaryBadge()
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.padding(bottom = 4.dp)

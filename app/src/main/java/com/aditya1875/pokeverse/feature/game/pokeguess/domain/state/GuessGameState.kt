@@ -17,9 +17,7 @@ sealed class GuessGameState {
         val score: Int,
         val timeRemaining: Int,
         val combo: Int = 0,
-        val bestScore: Int = 0,
-        // 50/50 hint: option indices removed for the current question
-        val eliminatedOptions: List<Int> = emptyList()
+        val bestScore: Int = 0
     ) : GuessGameState()
 
     data class Revealing(

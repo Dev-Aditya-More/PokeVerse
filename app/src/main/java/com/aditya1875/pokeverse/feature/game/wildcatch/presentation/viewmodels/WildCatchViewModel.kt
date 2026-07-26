@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.game.core.data.local.dao.GameScoreDao
 import com.aditya1875.pokeverse.feature.game.core.data.local.entity.GameScoreEntity
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.ThrowAccuracy
+import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.WildCatchDifficulty
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.WildCatchPokemon
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.state.WildCatchGameState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
@@ -69,18 +70,22 @@ class WildCatchViewModel(
         }
     }
 
-    // ringFraction: 1f = ring at full size (worst), 0f = ring smallest (perfect)
+    // ringFraction: 1f = ring at full size (worst), 0f = ring smallest (perfect).
+    // Both the timing windows and the odds get tougher as more Pokémon appear —
+    // see WildCatchDifficulty for the ramp.
     fun throwBall(ringFraction: Float) {
         val state = _gameState.value as? WildCatchGameState.Throwing ?: return
 
+        val thresholds = WildCatchDifficulty.ringThresholds(state.pokemonCount)
         val accuracy = when {
-            ringFraction <= 0.20f -> ThrowAccuracy.PERFECT
-            ringFraction <= 0.40f -> ThrowAccuracy.GREAT
-            ringFraction <= 0.70f -> ThrowAccuracy.NICE
+            ringFraction <= thresholds.perfect -> ThrowAccuracy.PERFECT
+            ringFraction <= thresholds.great -> ThrowAccuracy.GREAT
+            ringFraction <= thresholds.nice -> ThrowAccuracy.NICE
             else -> ThrowAccuracy.MISS
         }
 
-        val caught = Random.nextFloat() < accuracy.catchChance
+        val catchChance = accuracy.baseCatchChance * WildCatchDifficulty.catchChanceMultiplier(state.pokemonCount)
+        val caught = Random.nextFloat() < catchChance
         var lifeRecovered = false
 
         if (caught) {

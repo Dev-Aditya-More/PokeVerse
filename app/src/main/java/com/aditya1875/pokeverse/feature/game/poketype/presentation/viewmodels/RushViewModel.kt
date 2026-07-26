@@ -105,6 +105,10 @@ class TypeRushViewModel(
                 val generated = generator.generate(difficulty)
                 questions.addAll(generated)
                 usedPokemonIds.addAll(generated.map { it.pokemonId })
+                // Warm the image cache for the whole batch now — by the time the
+                // player advances past round 1, the rest are already downloading/cached
+                // instead of only starting once each round composes.
+                prefetchSprites(generated.drop(1))
                 showQuestion(0)
             } catch (e: Exception) {
                 Log.e("TypeRush", "Failed to generate questions", e)
@@ -158,17 +162,6 @@ class TypeRushViewModel(
         }
         prefetchSprites(listOfNotNull(questions.getOrNull(nextIndex + 1)))
         showQuestion(nextIndex)
-    }
-
-    /** Rewarded-ad perk: 50/50 — removes two wrong type bubbles */
-    fun useHint() {
-        val current = _state.value as? TypeRushState.Playing ?: return
-        if (current.isLocked || current.eliminatedTypes.isNotEmpty()) return
-        val wrong = current.question.options
-            .filter { it !in current.question.correctTypes && it !in current.selectedTypes }
-            .shuffled()
-            .take(2)
-        _state.value = current.copy(eliminatedTypes = wrong.toSet())
     }
 
     // ─────────────────────────────────────────────────────────────────────────

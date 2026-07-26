@@ -37,7 +37,9 @@ import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
-import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
+import com.aditya1875.pokeverse.feature.game.core.presentation.SkipBar
+import com.aditya1875.pokeverse.feature.core.ui.components.LegendaryBadge
+import com.aditya1875.pokeverse.utils.LegendaryPokemon
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GUESS_MAX_LIVES
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.state.GuessGameState
@@ -69,18 +71,13 @@ fun PokeGuessGameScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     // Perk granted by the ad, applied only once the ad is fully dismissed
-    var earnedPerk by remember { mutableStateOf<String?>(null) }
+    var skipPending by remember { mutableStateOf(false) }
 
     // Keep the game frozen from ad-dialog open until the rewarded ad closes
-    LaunchedEffect(adState, earnedPerk) {
-        if (earnedPerk != null && adState !is RewardedAdState.Showing) {
-            val perk = earnedPerk
-            earnedPerk = null
-            if (perk == "skip") viewModel.skipQuestion(difficulty)
-            else {
-                viewModel.useHint()
-                viewModel.resumeTimer()
-            }
+    LaunchedEffect(adState, skipPending) {
+        if (skipPending && adState !is RewardedAdState.Showing) {
+            skipPending = false
+            viewModel.skipQuestion(difficulty)
         }
     }
 
@@ -140,15 +137,9 @@ fun PokeGuessGameScreen(
                         requestRewardedAd(
                             context, activity, adManager, adState,
                             onAdWillShow = { viewModel.pauseTimer() }
-                        ) { earnedPerk = "skip" }
+                        ) { skipPending = true }
                     },
-                    onHint = {
-                        requestRewardedAd(
-                            context, activity, adManager, adState,
-                            onAdWillShow = { viewModel.pauseTimer() }
-                        ) { earnedPerk = "hint" }
-                    },
-                    showSkipHint = subscriptionState !is SubscriptionState.Premium,
+                    showSkip = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
 
@@ -198,8 +189,7 @@ private fun SilhouetteScreen(
     onAnswerSelected: (String) -> Unit,
     onBack: () -> Unit,
     onSkip: () -> Unit = {},
-    onHint: () -> Unit = {},
-    showSkipHint: Boolean = true,
+    showSkip: Boolean = true,
     modifier: Modifier
 ) {
     val timerColor by animateColorAsState(
@@ -349,12 +339,10 @@ private fun SilhouetteScreen(
 
         Spacer(Modifier.height(12.dp))
 
-        // Rewarded perks: 50/50 hint + skip (free users only)
-        if (showSkipHint) {
-            SkipHintBar(
+        // Rewarded perk: skip (free users only)
+        if (showSkip) {
+            SkipBar(
                 onSkip = onSkip,
-                onHint = onHint,
-                hintUsed = state.eliminatedOptions.isNotEmpty(),
                 showAdTag = true,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
@@ -364,12 +352,11 @@ private fun SilhouetteScreen(
 
         // Options
         state.question.options.forEachIndexed { i, option ->
-            val eliminated = i in state.eliminatedOptions
             GuessOptionCard(
                 text = option.split("-")
                     .joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } },
                 index = i,
-                enabled = !timeUp && !eliminated,
+                enabled = !timeUp,
                 onClick = { onAnswerSelected(option) }
             )
             if (i < state.question.options.size - 1) Spacer(Modifier.height(8.dp))
@@ -541,6 +528,11 @@ private fun RevealScreen(
                     fontWeight = FontWeight.Black,
                     textAlign = TextAlign.Center
                 )
+
+                if (LegendaryPokemon.isLegendary(state.question.pokemonId)) {
+                    Spacer(Modifier.height(8.dp))
+                    LegendaryBadge()
+                }
 
                 Spacer(Modifier.weight(1f))
 

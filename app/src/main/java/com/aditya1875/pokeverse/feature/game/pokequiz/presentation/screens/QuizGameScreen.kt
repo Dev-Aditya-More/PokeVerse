@@ -9,7 +9,7 @@ import com.aditya1875.pokeverse.feature.game.core.presentation.ComboLabel
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameLoadingContent
 import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
 import com.aditya1875.pokeverse.feature.game.core.presentation.PbChip
-import com.aditya1875.pokeverse.feature.game.core.presentation.SkipHintBar
+import com.aditya1875.pokeverse.feature.game.core.presentation.SkipBar
 import com.aditya1875.pokeverse.feature.game.pokequiz.domain.model.QUIZ_MAX_LIVES
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -107,20 +107,15 @@ fun QuizGameScreen(
     val adManager = koinInject<IRewardedAdManager>()
     val adState by adManager.adState.collectAsStateWithLifecycle()
     // Perk granted by the ad, applied only once the ad is fully dismissed
-    var earnedPerk by remember { mutableStateOf<String?>(null) }
+    var skipPending by remember { mutableStateOf(false) }
 
     // The game stays frozen from the moment the ad dialog opens until the
     // rewarded ad is closed — otherwise the countdown eats a life while the
     // player is watching the ad
-    LaunchedEffect(adState, earnedPerk) {
-        if (earnedPerk != null && adState !is RewardedAdState.Showing) {
-            val perk = earnedPerk
-            earnedPerk = null
-            if (perk == "skip") viewModel.skipQuestion()
-            else {
-                viewModel.useHint()
-                viewModel.resumeTimer()
-            }
+    LaunchedEffect(adState, skipPending) {
+        if (skipPending && adState !is RewardedAdState.Showing) {
+            skipPending = false
+            viewModel.skipQuestion()
         }
     }
     val connectivityObserver: ConnectivityObserver = koinInject()
@@ -155,15 +150,9 @@ fun QuizGameScreen(
                         requestRewardedAd(
                             context, activity, adManager, adState,
                             onAdWillShow = { viewModel.pauseTimer() }
-                        ) { earnedPerk = "skip" }
+                        ) { skipPending = true }
                     },
-                    onHint = {
-                        requestRewardedAd(
-                            context, activity, adManager, adState,
-                            onAdWillShow = { viewModel.pauseTimer() }
-                        ) { earnedPerk = "hint" }
-                    },
-                    showSkipHint = subscriptionState !is SubscriptionState.Premium,
+                    showSkip = subscriptionState !is SubscriptionState.Premium,
                     modifier = Modifier.padding(paddingValues)
                 )
                 is QuizUiState.ShowingAnswer -> {
@@ -224,8 +213,7 @@ private fun QuizPlayingContent(
     onAnswerSelected: (Int) -> Unit,
     onRequestExit: () -> Unit,
     onSkip: () -> Unit = {},
-    onHint: () -> Unit = {},
-    showSkipHint: Boolean = true,
+    showSkip: Boolean = true,
     modifier: Modifier
 ) {
     val currentQuestion = gameState.questions[gameState.currentQuestionIndex]
@@ -332,12 +320,10 @@ private fun QuizPlayingContent(
 
         Spacer(Modifier.height(14.dp))
 
-        // ── Rewarded perks: 50/50 hint + skip (free users only) ────────────────
-        if (showSkipHint) {
-            SkipHintBar(
+        // ── Rewarded perk: skip (free users only) ───────────────────────────────
+        if (showSkip) {
+            SkipBar(
                 onSkip = onSkip,
-                onHint = onHint,
-                hintUsed = gameState.eliminatedOptions.isNotEmpty(),
                 showAdTag = true,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
@@ -347,12 +333,10 @@ private fun QuizPlayingContent(
 
         // ── Answer options ────────────────────────────────────────────────────
         currentQuestion.options.forEachIndexed { index, option ->
-            val eliminated = index in gameState.eliminatedOptions
             QuizAnswerOption(
                 text = option,
                 label = OPTION_LABELS[index],
-                enabled = !eliminated,
-                onClick = { if (!eliminated) onAnswerSelected(index) }
+                onClick = { onAnswerSelected(index) }
             )
             if (index < currentQuestion.options.size - 1) Spacer(Modifier.height(10.dp))
         }

@@ -101,6 +101,10 @@ class PokeGuessViewModel(
                 usedPokemonIds.clear()
                 allQuestions.addAll(questions)
                 usedPokemonIds.addAll(questions.map { it.pokemonId })
+                // Warm the image cache for the whole batch now — by the time the
+                // player advances past Q1, the rest are already downloading/cached
+                // instead of only starting once each silhouette composes.
+                prefetchSprites(questions.drop(1))
                 currentScore = 0
                 correctAnswers = 0
                 currentStreak = 0
@@ -181,18 +185,6 @@ class PokeGuessViewModel(
         allQuestions.getOrNull(current.currentQuestionIndex + 2)
             ?.let { prefetchSprites(listOf(it)) }
         showQuestion(current.currentQuestionIndex + 1, difficulty)
-    }
-
-    /** Rewarded-ad perk: 50/50 — removes two wrong options */
-    fun useHint() {
-        val current = _gameState.value
-        if (current !is GuessGameState.ShowingSilhouette) return
-        if (current.eliminatedOptions.isNotEmpty()) return
-        val wrong = current.question.options.indices
-            .filter { it != current.question.correctIndex }
-            .shuffled()
-            .take(2)
-        _gameState.value = current.copy(eliminatedOptions = wrong)
     }
 
     private fun startTimer(totalTime: Int, questionIndex: Int) {

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material3.CircularWavyProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -96,17 +95,14 @@ fun GameLoadingContent(
 }
 
 /**
- * Skip / hint perk buttons shown during endless play. Both perks are
- * unlocked by watching a rewarded ad (or free for premium users —
- * the caller decides and just invokes the action).
+ * Skip perk button shown during endless play. Unlocked by watching a
+ * rewarded ad (or free for premium users — the caller decides and just
+ * invokes the action).
  */
 @Composable
-fun SkipHintBar(
+fun SkipBar(
     onSkip: () -> Unit,
-    onHint: () -> Unit = {},
-    hintUsed: Boolean = true,
     showAdTag: Boolean,
-    showHint: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -114,14 +110,6 @@ fun SkipHintBar(
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (showHint) PerkChip(
-            icon = Icons.Default.Lightbulb,
-            label = "50/50",
-            enabled = !hintUsed,
-            showAdTag = showAdTag,
-            accent = Color(0xFFFFB300),
-            onClick = onHint
-        )
         PerkChip(
             icon = Icons.Default.SkipNext,
             label = "Skip",

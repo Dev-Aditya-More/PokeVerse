@@ -14,8 +14,6 @@ sealed class TypeRushState {
         val timeRemaining: Int,
         val selectedTypes: Set<String> = emptySet(),
         val isLocked: Boolean = false,        // true after time up or all correct tapped
-        // 50/50 hint: wrong types removed from the grid for this round
-        val eliminatedTypes: Set<String> = emptySet(),
     ) : TypeRushState()
 
     data class RoundResult(

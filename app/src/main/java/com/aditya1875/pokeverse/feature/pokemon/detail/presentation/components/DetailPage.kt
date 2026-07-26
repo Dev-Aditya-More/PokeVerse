@@ -111,7 +111,9 @@ import com.aditya1875.pokeverse.feature.team.presentation.components.CreateTeamD
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.TeamViewModel
+import com.aditya1875.pokeverse.feature.core.ui.components.LegendaryBadge
 import com.aditya1875.pokeverse.utils.DisplayMove
+import com.aditya1875.pokeverse.utils.LegendaryPokemon
 import com.aditya1875.pokeverse.utils.UiError
 import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.aditya1875.pokeverse.utils.rememberDetailHeaderMaxWidth
@@ -749,10 +751,16 @@ fun PokemonDetailPage(
                         item {
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text(
-                                        "ID: #${pokemon.id.toString().padStart(4, '0')}",
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        Text(
+                                            "ID: #${pokemon.id.toString().padStart(4, '0')}",
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                        if (LegendaryPokemon.isLegendary(pokemon.id)) LegendaryBadge()
+                                    }
                                     Text(
                                         "Height: ${pokemon.height / 10.0} m",
                                         color = MaterialTheme.colorScheme.onSurface
