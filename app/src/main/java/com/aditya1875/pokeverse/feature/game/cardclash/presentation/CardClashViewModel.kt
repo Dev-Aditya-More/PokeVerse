@@ -68,7 +68,10 @@ class CardClashViewModel(
         private const val ROUND_TIMER_SECONDS = 60
         private const val HEARTBEAT_INTERVAL_MS = 20_000L
         private const val DISCONNECT_THRESHOLD_MS = 60_000L
-        private const val BOT_MATCHMAKING_TIMEOUT = 30
+        // Shorter than before (was 30s) — a snappy fallback beats a long, boring wait, and
+        // keeps this in sync with CardClashRepositoryImpl.STALE_MATCH_THRESHOLD_MS so a room
+        // is never left joinable past the point its own creator has already bailed on it.
+        private const val BOT_MATCHMAKING_TIMEOUT = 18
     }
 
     // ─── Lobby ───────────────────────────────────────────────────────────────
@@ -643,6 +646,25 @@ class CardClashViewModel(
                 MatchOutcome.LOSE -> Unit // losing still earns per-round XP above
             }
         }
+    }
+
+    /**
+     * Called when the user backs out of the waiting screen. Unlike [reset], this also marks
+     * the Firestore room we created as no longer waiting — otherwise it lingers forever as a
+     * dead entry that a future player can match into and then never hear from again. This was
+     * previously the biggest reason matchmaking felt broken: `onCancelWait` only cleared local
+     * state, so every abandoned wait (back button, backgrounding, force-close) left a permanent
+     * zombie room behind.
+     */
+    fun cancelWait() {
+        val state = _uiState.value
+        val matchId = state.matchId
+        if (matchId != null && !state.isBotMatch && state.phase == ClashPhase.WAITING_FOR_OPPONENT) {
+            viewModelScope.launch {
+                runCatching { repository.finishMatch(matchId, "cancelled", 0.0, 0.0) }
+            }
+        }
+        reset()
     }
 
     // ─── Reset ────────────────────────────────────────────────────────────────

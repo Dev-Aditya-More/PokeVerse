@@ -35,6 +35,9 @@ sealed class XPEvent {
     // Wild Catch
     data class WildCatchCaught(val streak: Int) : XPEvent()
     object WildCatchComplete : XPEvent()
+
+    // Easter Egg
+    object EasterEggClaim : XPEvent()
 }
 
 object XPValues {
@@ -74,6 +77,8 @@ object XPValues {
     const val CATCH_STREAK_3 = 15
     const val CATCH_STREAK_6 = 30
     const val CATCH_COMPLETE = 25
+
+    const val EASTER_EGG_CLAIM = 25
 }
 
 // ─── Result returned after awarding XP ───────────────────────────────────────

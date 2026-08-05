@@ -4,75 +4,42 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 class BillingViewModel(
     private val billingManager: IBillingManager
 ) : ViewModel() {
 
     val subscriptionState = billingManager.subscriptionState
-    val monthlyProduct = billingManager.monthlyProduct
-    val yearlyProduct = billingManager.yearlyProduct
-
-    val lifetimeProduct = billingManager.lifetimeProduct
+    val monthlyPrice = billingManager.monthlyPrice
+    val yearlyPrice = billingManager.yearlyPrice
+    val lifetimePrice = billingManager.lifetimePrice
+    val billingError = billingManager.billingError
 
     init {
         billingManager.startConnection()
     }
 
-    val monthlyPrice: StateFlow<String> =
-        monthlyProduct
-            .map { product ->
-                product?.subscriptionOfferDetails
-                    ?.firstOrNull()
-                    ?.pricingPhases
-                    ?.pricingPhaseList
-                    ?.firstOrNull()
-                    ?.formattedPrice ?: ""
-            }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
-
-    val yearlyPrice: StateFlow<String> =
-        yearlyProduct
-            .map { product ->
-                product?.subscriptionOfferDetails
-                    ?.firstOrNull()
-                    ?.pricingPhases
-                    ?.pricingPhaseList
-                    ?.firstOrNull()
-                    ?.formattedPrice ?: ""
-            }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
-
-    val lifetimePrice: StateFlow<String> =
-        lifetimeProduct
-            .map { product ->
-                product?.oneTimePurchaseOfferDetails?.formattedPrice ?: ""
-            }
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
-
     fun purchaseMonthly(activity: Activity) {
-        val product = monthlyProduct.value ?: return
-        billingManager.launchPurchaseFlow(activity, product)
+        billingManager.launchPurchaseFlow(activity, PremiumPlan.MONTHLY)
     }
 
     fun purchaseYearly(activity: Activity) {
-        val product = yearlyProduct.value ?: return
-        billingManager.launchPurchaseFlow(activity, product)
+        billingManager.launchPurchaseFlow(activity, PremiumPlan.YEARLY)
     }
 
     fun purchaseLifetime(activity: Activity) {
-        val product = lifetimeProduct.value ?: return
-        billingManager.launchPurchaseFlow(activity, product)
+        billingManager.launchPurchaseFlow(activity, PremiumPlan.LIFETIME)
     }
 
     suspend fun restorePurchases(): Boolean {
-        billingManager.queryExistingPurchases()
-        return billingManager.subscriptionState.value is SubscriptionState.Premium
+        return billingManager.restorePurchases()
+    }
+
+    fun clearError() {
+        billingManager.clearError()
     }
 
     override fun onCleared() {

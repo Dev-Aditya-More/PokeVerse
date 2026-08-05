@@ -97,6 +97,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -105,8 +106,9 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
-import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.feature.badges.domain.GymBadge
+import com.revenuecat.purchases.ui.revenuecatui.PaywallDialog
+import com.revenuecat.purchases.ui.revenuecatui.PaywallDialogOptions
 import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeDetailSheet
 import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeGridCard
 import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeRegionFilter
@@ -127,7 +129,9 @@ import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemListError
 import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemListState
 import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components.CustomProgressIndicator
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DailyHoppingPokemon
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DailyTriviaFab
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DailyTriviaSheet
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.FilterBar
@@ -233,6 +237,8 @@ fun SharedTransitionScope.HomeScreen(
     val selectedRole by charactersViewModel.selectedRole.collectAsStateWithLifecycle()
     var characterDetail by remember { mutableStateOf<PokeCharacter?>(null) }
 
+    val canClaimEasterEgg by profileViewModel.canClaimEasterEgg.collectAsStateWithLifecycle()
+
     val textFieldValue = when (contentMode) {
         HomeContentMode.POKEMON -> query
         HomeContentMode.BERRIES -> berrySearchQuery
@@ -302,10 +308,7 @@ fun SharedTransitionScope.HomeScreen(
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
     val lifetime by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
-    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
-    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
-    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
+    val isBillingReady = monthly.isNotBlank() || yearly.isNotBlank() || lifetime.isNotBlank()
 
     var showPremiumSheet by remember { mutableStateOf(false) }
 
@@ -325,6 +328,10 @@ fun SharedTransitionScope.HomeScreen(
         triviaViewModel.xpResult.collect { pendingXp = it }
     }
 
+    LaunchedEffect(Unit) {
+        profileViewModel.xpEvent.collect { pendingXp = it }
+    }
+
     HomePopupOrchestrator(
         originalAssetsEnabled = originalAssetsEnabled,
         totalSessionMinutes = totalSessionMinutes,
@@ -340,24 +347,11 @@ fun SharedTransitionScope.HomeScreen(
     )
 
     if (showPremiumSheet) {
-        PremiumBottomSheet(
-            onDismiss = { showPremiumSheet = false },
-            onSubscribeMonthly = {
-                showPremiumSheet = false
-                activity?.let { billingViewModel.purchaseMonthly(it) }
-            },
-            onSubscribeYearly = {
-                showPremiumSheet = false
-                activity?.let { billingViewModel.purchaseYearly(it) }
-            },
-            onSubscribeLifetime = {
-                showPremiumSheet = false
-                activity?.let { billingViewModel.purchaseLifetime(it) }
-            },
-            monthlyPrice = monthly,
-            yearlyPrice = yearly,
-            isSubscribeEnabled = isBillingReady,
-            lifetimePrice = lifetime
+        PaywallDialog(
+            PaywallDialogOptions.Builder()
+                .setDismissRequest { showPremiumSheet = false }
+                .setShouldDisplayDismissButton(true)
+                .build()
         )
     }
 
@@ -579,6 +573,18 @@ fun SharedTransitionScope.HomeScreen(
 
             characterDetail?.let { character ->
                 CharacterDetailSheet(character = character, onDismiss = { characterDetail = null })
+            }
+
+            if (canClaimEasterEgg) {
+                Box(modifier = Modifier.zIndex(100f)) {
+                    DailyHoppingPokemon(
+                        onClicked = { profileViewModel.claimEasterEggXP() }
+                    )
+                }
+            }
+
+            Box(modifier = Modifier.zIndex(200f)) {
+                XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {}
             }
 
             Box(

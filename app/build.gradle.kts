@@ -18,8 +18,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 84
-        versionName = "1.9.2"
+        versionCode = 85
+        versionName = "1.9.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -207,7 +207,6 @@ dependencies {
     add("playImplementation", libs.firebase.analytics)
     add("playImplementation", libs.firebase.crashlytics)
     add("playImplementation", libs.firebase.messaging)
-    add("playImplementation", libs.billing.ktx)
 
     add("playImplementation", libs.firebase.auth)
     add("playImplementation", libs.firebase.database)
@@ -216,6 +215,8 @@ dependencies {
     add("playImplementation", libs.play.services.auth)
     add("playImplementation", libs.play.services.ads)
     add("playImplementation", libs.play.review.ktx)
+    add("playImplementation", libs.revenuecat.purchases)
+    add("playImplementation", libs.revenuecat.purchases.ui)
 
     // Glance Widget
     implementation (libs.androidx.glance.appwidget)

@@ -47,6 +47,7 @@ turbine = "1.2.1"
 uiTextGoogleFontsVersion = "1.10.6"
 aboutLibraries = "13.2.1"
 workRuntimeKtx = "2.11.2"
+revenuecat = "10.16.0"
 animationCore = "1.10.6"
 animation = "1.10.6"
 animationVersion = "1.10.6"
@@ -126,6 +127,8 @@ aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-com
 androidx-compose-animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 androidx-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animationVersion" }
+revenuecat-purchases = { module = "com.revenuecat.purchases:purchases", version.ref = "revenuecat" }
+revenuecat-purchases-ui = { module = "com.revenuecat.purchases:purchases-ui", version.ref = "revenuecat" }
 volley = { group = "com.android.volley", name = "volley", version.ref = "volley" }
 
 [plugins]

@@ -95,10 +95,7 @@ fun TeamAnalysisScreen(
     val monthlyPrice by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearlyPrice by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
     val lifetimePrice by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
-    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
-    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
-    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
+    val isBillingReady = monthlyPrice.isNotBlank() || yearlyPrice.isNotBlank() || lifetimePrice.isNotBlank()
 
     val rewardedAdManager: IRewardedAdManager = koinInject()
     val adState by rewardedAdManager.adState.collectAsStateWithLifecycle()

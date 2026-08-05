@@ -110,7 +110,12 @@ fun CardClashLobbyScreen(
             TopAppBar(
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
+                    IconButton(
+                        // Backing out while a waiting-room doc is live must go through
+                        // onCancelWait so it gets marked cancelled in Firestore — otherwise
+                        // it lingers as a zombie room a future player can match into.
+                        onClick = if (state.phase == ClashPhase.WAITING_FOR_OPPONENT) onCancelWait else onBack
+                    ) {
                         Icon(Icons.Default.Close, contentDescription = "Back")
                     }
                 },

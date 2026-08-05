@@ -45,6 +45,7 @@ class UserProfileRepository(private val context: Context) {
         val DAILY_STREAK = intPreferencesKey("daily_streak")
         val LAST_EXPLORATION_DATE = stringPreferencesKey("last_exploration_date")
         val LAST_FIRST_GAME_DATE = stringPreferencesKey("last_first_game_date")
+        val LAST_EASTER_EGG_DATE = stringPreferencesKey("last_easter_egg_date")
         val LAST_ACTIVE_MS = longPreferencesKey("last_active_ms")
         val PHOTO_URL = stringPreferencesKey("photo_url")
 
@@ -83,6 +84,7 @@ class UserProfileRepository(private val context: Context) {
             isGuest = p[K.IS_GUEST] ?: true,
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
             lastFirstGameXpDate = p[K.LAST_FIRST_GAME_DATE] ?: "",
+            lastEasterEggXpDate = p[K.LAST_EASTER_EGG_DATE] ?: "",
             dailyStreak = p[K.DAILY_STREAK] ?: 0,
             lastActiveDateMillis = p[K.LAST_ACTIVE_MS] ?: 0L,
             photoUrl = p[K.PHOTO_URL] ?: "",
@@ -113,6 +115,7 @@ class UserProfileRepository(private val context: Context) {
             p[K.IS_GUEST] = profile.isGuest
             p[K.LAST_EXPLORATION_DATE] = profile.lastExplorationXpDate
             p[K.LAST_FIRST_GAME_DATE] = profile.lastFirstGameXpDate
+            p[K.LAST_EASTER_EGG_DATE] = profile.lastEasterEggXpDate
             p[K.LAST_DAILY_DATE] = profile.lastDailyXpDate
             p[K.DAILY_STREAK] = profile.dailyStreak
             p[K.LAST_ACTIVE_MS] = profile.lastActiveDateMillis
@@ -161,6 +164,7 @@ class UserProfileRepository(private val context: Context) {
                 lastDailyXpDate = doc.getString("lastDailyXpDate") ?: "",
                 lastExplorationXpDate = doc.getString("lastExplorationXpDate") ?: "",
                 lastFirstGameXpDate = doc.getString("lastFirstGameXpDate") ?: "",
+                lastEasterEggXpDate = doc.getString("lastEasterEggXpDate") ?: "",
                 dailyStreak = (doc.getLong("dailyStreak") ?: 0L).toInt(),
                 lastActiveDateMillis = doc.getLong("lastActiveDateMs") ?: 0L,
                 photoUrl = doc.getString("photoUrl") ?: "",
@@ -206,6 +210,7 @@ class UserProfileRepository(private val context: Context) {
                     "lastDailyXpDate" to p.lastDailyXpDate,
                     "lastExplorationXpDate" to p.lastExplorationXpDate,
                     "lastFirstGameXpDate" to p.lastFirstGameXpDate,
+                    "lastEasterEggXpDate" to p.lastEasterEggXpDate,
                     "lastActiveDateMs" to p.lastActiveDateMillis,
                     "duelPoints" to p.duelPoints,
                     "duelWins" to p.duelWins,

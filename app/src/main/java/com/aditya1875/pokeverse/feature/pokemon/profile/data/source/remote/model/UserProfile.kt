@@ -24,6 +24,7 @@ data class UserProfile(
     val lastActiveDateMillis: Long = 0L,
     val lastExplorationXpDate: String = "",
     val lastFirstGameXpDate: String = "",   // deduplicates FirstGameOfDay per calendar day
+    val lastEasterEggXpDate: String = "",
 
     // Leaderboard
     val rank: Int = 0,

@@ -294,6 +294,51 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
             Color(0xFF1565C0),  // Deep Blue
             Color(0xFF00BCD4)   // Cyan
         )
+    ),
+
+    StarterTheme(
+        theme = AppTheme.GENGAR,
+        pokemonName = "Gengar",
+        pokemonNumber = "#094",
+        type = "Ghost • Poison",
+        emoji = "👻",
+        description = "Mischievous and spooky — shadow purple with a wicked green grin",
+        colors = listOf(
+            Color(0xFF9C27B0), // Gengar Purple
+            Color(0xFF0A0612), // Shadow Black
+            Color(0xFFC6FF00)  // Acid Green
+        ),
+        premium = true
+    ),
+
+    StarterTheme(
+        theme = AppTheme.RAYQUAZA,
+        pokemonName = "Rayquaza",
+        pokemonNumber = "#384",
+        type = "Dragon • Flying",
+        emoji = "🐉",
+        description = "Legendary sky serpent — emerald scales and gold markings above the clouds",
+        colors = listOf(
+            Color(0xFF00C853), // Emerald Scales
+            Color(0xFF061A0F), // Upper Atmosphere
+            Color(0xFFFFD600)  // Gold Markings
+        ),
+        premium = true
+    ),
+
+    StarterTheme(
+        theme = AppTheme.SYLVEON,
+        pokemonName = "Sylveon",
+        pokemonNumber = "#700",
+        type = "Fairy",
+        emoji = "🎀",
+        description = "Soft and sweet — pastel ribbons and gentle warmth",
+        colors = listOf(
+            Color(0xFFFF8FB1), // Ribbon Pink
+            Color(0xFF1A0E16), // Warm Plum
+            Color(0xFF9FE0FF)  // Baby Blue
+        ),
+        premium = true
     )
 )
 

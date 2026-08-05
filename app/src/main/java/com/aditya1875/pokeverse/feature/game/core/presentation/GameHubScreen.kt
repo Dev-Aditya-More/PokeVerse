@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.*
 import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.BuildConfig
+import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
+import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.premium.screens.PremiumWelcomeDialog
 import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBanner
@@ -37,7 +39,9 @@ import com.aditya1875.pokeverse.feature.game.pokematch.presentation.viewmodels.M
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import com.aditya1875.pokeverse.ui.BannerAd
 import com.aditya1875.pokeverse.ui.BannerAdUnitIds
+import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,12 +65,24 @@ fun GameHubScreen(
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
     val lifetime by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
-    val monthlyProduct by billingViewModel.monthlyProduct.collectAsStateWithLifecycle()
-    val yearlyProduct by billingViewModel.yearlyProduct.collectAsStateWithLifecycle()
-    val lifetimeProduct by billingViewModel.lifetimeProduct.collectAsStateWithLifecycle()
-    val isBillingReady = monthlyProduct != null || yearlyProduct != null || lifetimeProduct != null
+    val isBillingReady = monthly.isNotBlank() || yearly.isNotBlank() || lifetime.isNotBlank()
+    val isPremium = subscriptionState is SubscriptionState.Premium
 
     val context = LocalContext.current
+
+    // Warm the rewarded ad as soon as the hub is shown — by the time the player
+    // picks a game, works through the difficulty screen, and hits their first
+    // skip/revive perk, the ad has had much more lead time to finish loading
+    // instead of only starting once they're already mid-game.
+    val rewardedAdManager: IRewardedAdManager = koinInject()
+    val adState by rewardedAdManager.adState.collectAsStateWithLifecycle()
+    val connectivityObserver: ConnectivityObserver = koinInject()
+    val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
+    LaunchedEffect(adState, isOnline, isPremium) {
+        if (!isPremium && isOnline && adState is RewardedAdState.Idle) {
+            rewardedAdManager.loadAd(context)
+        }
+    }
     var showThankYouDialog by remember { mutableStateOf(false) }
     var hasShownThankYou by remember { mutableStateOf(false) }
     var lastSubscriptionState by remember { mutableStateOf<SubscriptionState?>(null) }

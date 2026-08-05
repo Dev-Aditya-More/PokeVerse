@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.presentation.auth.AuthManager
@@ -23,11 +24,16 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ProfileViewModel(
     private val authManager: AuthManager,
@@ -40,6 +46,11 @@ class ProfileViewModel(
             viewModelScope, SharingStarted.Companion.Eagerly,
             UserProfile()
         )
+
+    val canClaimEasterEgg: StateFlow<Boolean> = userProfile.map { profile ->
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        profile.lastEasterEggXpDate != today
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val authState: StateFlow<AuthState> = authManager.authState
     val currentUser: StateFlow<FirebaseUser?> = authManager.currentUser
@@ -118,6 +129,15 @@ class ProfileViewModel(
 
     fun incrementGamesPlayed() {
         viewModelScope.launch { repository.incrementGamesPlayed() }
+    }
+
+    fun claimEasterEggXP() {
+        viewModelScope.launch {
+            val result = xpManager.awardGameXP(XPEvent.EasterEggClaim)
+            if (result.xpGained > 0) {
+                _xpEvent.emit(result)
+            }
+        }
     }
 
     suspend fun signInWithGoogle(activity: Activity): AuthResult {

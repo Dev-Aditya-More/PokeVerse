@@ -63,7 +63,7 @@ fun CardClashScreen(
                 onCreateFriendRoom = viewModel::createMatch,
                 onJoinByCode = viewModel::joinByCode,
                 onCodeChanged = viewModel::updateEnteredCode,
-                onCancelWait = viewModel::reset
+                onCancelWait = viewModel::cancelWait
             )
         }
     }

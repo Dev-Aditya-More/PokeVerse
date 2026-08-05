@@ -18,6 +18,13 @@ class CardClashRepositoryImpl(
     private val firestore = FirebaseFirestore.getInstance()
     private val matches = firestore.collection("card_battles")
 
+    companion object {
+        // A legit waiting room converts to a bot match (or gets cancelled) well before this —
+        // see CardClashViewModel.BOT_MATCHMAKING_TIMEOUT. Anything still "waiting" past this
+        // age was abandoned without cleanup and should never be matched into.
+        private const val STALE_MATCH_THRESHOLD_MS = 25_000L
+    }
+
     // IDs of legendary/mythical Pokémon excluded from the random pool (Gen 1-5)
     private val excludedIds = setOf(
         144, 145, 146, 150, 151,
@@ -76,8 +83,21 @@ class CardClashRepositoryImpl(
             .get()
             .await()
 
-        // Pick first match not created by this user (don't join your own open match)
-        val target = snapshot.documents.firstOrNull { it.getString("player1Id") != myId }
+        val now = System.currentTimeMillis()
+
+        // Waiting rooms whose creator bailed (backgrounded, crashed, force-closed) without
+        // going through the cancel/bot-fallback flow linger forever with no fix. Without this
+        // filter, players increasingly match into these ghost rooms whose "opponent" never
+        // shows up — which is what actually made matchmaking feel broken, not just low player
+        // counts. Anything older than the bot-fallback window is almost certainly abandoned;
+        // prefer the freshest candidate among what's left so newer joiners see each other first.
+        val target = snapshot.documents
+            .filter { it.getString("player1Id") != myId }
+            .filter { doc ->
+                val createdAtMs = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L
+                now - createdAtMs < STALE_MATCH_THRESHOLD_MS
+            }
+            .maxByOrNull { it.getTimestamp("createdAt")?.toDate()?.time ?: 0L }
             ?: return null
 
         target.reference.update(

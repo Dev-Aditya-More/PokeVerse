@@ -315,6 +315,117 @@ private val BlastoiseDark = darkColorScheme(
     outlineVariant = Color(0xFF1E2C3A),
 )
 
+// GENGAR THEME (Ghost/Poison)
+
+private val GengarDark = darkColorScheme(
+    primary = Color(0xFF9C27B0),           // Gengar body purple
+    onPrimary = Color(0xFFFDE7FF),
+
+    primaryContainer = Color(0xFF4A0072),  // Deep shadow violet
+    onPrimaryContainer = Color(0xFFF0D9FF),
+
+    secondary = Color(0xFFC6FF00),         // Mischievous acid-green grin/eyes
+    onSecondary = Color(0xFF1B2600),
+
+    secondaryContainer = Color(0xFF2E3D00),
+    onSecondaryContainer = Color(0xFFE6FF8C),
+
+    tertiary = Color(0xFFFF4081),          // Poison glow
+    onTertiary = Color(0xFF2E000E),
+
+    tertiaryContainer = Color(0xFF4A0022),
+    onTertiaryContainer = Color(0xFFFFD1E3),
+
+    background = Color(0xFF0A0612),        // Shadowy purple-black — Gengar hides here
+    onBackground = Color(0xFFF0E5FF),
+
+    surface = Color(0xFF130A22),
+    onSurface = Color(0xFFF0E5FF),
+
+    surfaceVariant = Color(0xFF241238),
+    onSurfaceVariant = Color(0xFFD9BFEF),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF5C2E7A),
+    outlineVariant = Color(0xFF241238),
+)
+
+// RAYQUAZA THEME (Dragon/Flying)
+
+private val RayquazaDark = darkColorScheme(
+    primary = Color(0xFF00C853),           // Vivid emerald scales
+    onPrimary = Color(0xFF00210B),
+
+    primaryContainer = Color(0xFF00701A),
+    onPrimaryContainer = Color(0xFFB9F6CA),
+
+    secondary = Color(0xFFFFD600),         // Gold underbelly markings
+    onSecondary = Color(0xFF1A1400),
+
+    secondaryContainer = Color(0xFF4D3F00),
+    onSecondaryContainer = Color(0xFFFFF176),
+
+    tertiary = Color(0xFF00E5FF),          // Ozone-layer sky blue
+    onTertiary = Color(0xFF00272B),
+
+    tertiaryContainer = Color(0xFF003C40),
+    onTertiaryContainer = Color(0xFFB2F5FF),
+
+    background = Color(0xFF061A0F),        // Deep upper-atmosphere night
+    onBackground = Color(0xFFE3FFEA),
+
+    surface = Color(0xFF0C2417),
+    onSurface = Color(0xFFE3FFEA),
+
+    surfaceVariant = Color(0xFF163826),
+    onSurfaceVariant = Color(0xFFB6E2C6),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF2E5A3E),
+    outlineVariant = Color(0xFF163826),
+)
+
+// SYLVEON THEME (Fairy)
+
+private val SylveonDark = darkColorScheme(
+    primary = Color(0xFFFF8FB1),           // Sylveon ribbon pink
+    onPrimary = Color(0xFF3A0018),
+
+    primaryContainer = Color(0xFF5C1030),
+    onPrimaryContainer = Color(0xFFFFD9E6),
+
+    secondary = Color(0xFF9FE0FF),         // Baby-blue ribbon accents
+    onSecondary = Color(0xFF00293B),
+
+    secondaryContainer = Color(0xFF003E57),
+    onSecondaryContainer = Color(0xFFD3F1FF),
+
+    tertiary = Color(0xFFFFF0B3),          // Cream fur highlight
+    onTertiary = Color(0xFF3A2E00),
+
+    tertiaryContainer = Color(0xFF554300),
+    onTertiaryContainer = Color(0xFFFFF6D6),
+
+    background = Color(0xFF1A0E16),        // Warm dark plum, not harsh black
+    onBackground = Color(0xFFFFE9F3),
+
+    surface = Color(0xFF24121F),
+    onSurface = Color(0xFFFFE9F3),
+
+    surfaceVariant = Color(0xFF35192E),
+    onSurfaceVariant = Color(0xFFE8C2D8),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+
+    outline = Color(0xFF5C3350),
+    outlineVariant = Color(0xFF35192E),
+)
+
 // THEME ENUM
 
 enum class AppTheme {
@@ -325,7 +436,10 @@ enum class AppTheme {
     UMBREON,
     CHARIZARD,
     VENUSAUR,
-    BLASTOISE
+    BLASTOISE,
+    GENGAR,
+    RAYQUAZA,
+    SYLVEON
 }
 
 // MAIN THEME COMPOSABLE
@@ -344,6 +458,9 @@ fun PokeverseTheme(
         AppTheme.CHARIZARD -> CharizardDark
         AppTheme.VENUSAUR -> VenusaurDark
         AppTheme.BLASTOISE -> BlastoiseDark
+        AppTheme.GENGAR -> GengarDark
+        AppTheme.RAYQUAZA -> RayquazaDark
+        AppTheme.SYLVEON -> SylveonDark
     }
 
     // Every color cross-fades to the new palette instead of hard-swapping

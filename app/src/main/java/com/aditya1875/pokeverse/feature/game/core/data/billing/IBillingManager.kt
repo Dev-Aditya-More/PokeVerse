@@ -1,28 +1,30 @@
 package com.aditya1875.pokeverse.feature.game.core.data.billing
 
 import android.app.Activity
-import com.android.billingclient.api.ProductDetails
 import kotlinx.coroutines.flow.StateFlow
 
 interface IBillingManager {
 
     val subscriptionState: StateFlow<SubscriptionState>
 
-    val monthlyProduct: StateFlow<ProductDetails?>
-
-    val yearlyProduct: StateFlow<ProductDetails?>
-
-    val lifetimeProduct: StateFlow<ProductDetails?>
+    /**
+     * Formatted prices for the UI
+     */
+    val monthlyPrice: StateFlow<String>
+    val yearlyPrice: StateFlow<String>
+    val lifetimePrice: StateFlow<String>
 
     val billingError: StateFlow<String?>
 
     fun startConnection()
 
     suspend fun queryExistingPurchases()
+    
+    suspend fun restorePurchases(): Boolean
 
     fun launchPurchaseFlow(
         activity: Activity,
-        productDetails: ProductDetails
+        plan: PremiumPlan
     )
 
     fun clearError()

@@ -132,6 +132,10 @@ class XPManager(
             }
             is XPEvent.WildCatchComplete ->
                 XPValues.CATCH_COMPLETE to "Wild Catch Complete +${XPValues.CATCH_COMPLETE} XP"
+            is XPEvent.EasterEggClaim -> {
+                if (profile.lastEasterEggXpDate == today) return noOpResult(profile)
+                XPValues.EASTER_EGG_CLAIM to "You found it! +${XPValues.EASTER_EGG_CLAIM} XP ✨"
+            }
         }
 
         if (gained == 0) return noOpResult(profile)
@@ -143,6 +147,7 @@ class XPManager(
             when (event) {
                 is XPEvent.FirstGameOfDay -> updated.copy(lastFirstGameXpDate = today)
                 is XPEvent.FirstExplorationOfDay -> updated.copy(lastExplorationXpDate = today)
+                is XPEvent.EasterEggClaim -> updated.copy(lastEasterEggXpDate = today)
                 else -> updated
             }
         }

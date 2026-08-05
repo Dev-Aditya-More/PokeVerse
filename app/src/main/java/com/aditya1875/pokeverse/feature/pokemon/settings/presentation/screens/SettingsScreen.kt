@@ -72,6 +72,9 @@ import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components.SettingsCard
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components.zigZagBackground
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
+import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components.SubscriptionCustomerCenter
 import com.aditya1875.pokeverse.utils.EffectCapabilities
 import com.aditya1875.pokeverse.utils.LocaleHelper
 import org.koin.androidx.compose.koinViewModel
@@ -80,8 +83,12 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    settingsViewModel: SettingsViewModel = koinViewModel()
+    settingsViewModel: SettingsViewModel = koinViewModel(),
+    billingViewModel: BillingViewModel = koinViewModel()
 ) {
+    val subscriptionState by billingViewModel.subscriptionState.collectAsStateWithLifecycle()
+    var showCustomerCenter by remember { mutableStateOf(false) }
+
     val specialEffectsEnabled by settingsViewModel.specialEffectsEnabled
         .collectAsStateWithLifecycle()
     val supportsShaders = EffectCapabilities.supportsShaders
@@ -148,6 +155,40 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
+                // Subscription Management
+                SettingsCard(
+                    title = "Subscription",
+                    icon = Icons.Default.StarRate,
+                    iconTint = Color(0xFFFFD700),
+                    expanded = true,
+                    onExpandToggle = { }
+                ) {
+                    val statusText = when (subscriptionState) {
+                        is SubscriptionState.Premium -> "Dexverse Premium Active"
+                        is SubscriptionState.Free -> "Free Plan"
+                        is SubscriptionState.Pending -> "Purchase Pending"
+                        is SubscriptionState.Loading -> "Loading..."
+                    }
+                    Text(
+                        statusText,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Button(
+                        onClick = { showCustomerCenter = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Manage Subscription")
+                    }
+                }
+
+                SubscriptionCustomerCenter(
+                    visible = showCustomerCenter,
+                    onDismiss = { showCustomerCenter = false }
+                )
 
                 // About
                 SettingsCard(
