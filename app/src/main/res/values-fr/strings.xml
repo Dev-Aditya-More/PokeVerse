@@ -355,6 +355,7 @@
 
     <!-- Game dialogs -->
     <string name="match_preparing">Préparation des Pokémon...</string>
+    <string name="match_memorize_prompt">Mémorisez le plateau ! %1$d</string>
     <string name="match_paused">En pause</string>
     <string name="match_resume">Reprendre</string>
     <string name="match_restart">Recommencer</string>

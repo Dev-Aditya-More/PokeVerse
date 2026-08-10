@@ -355,6 +355,7 @@
 
     <!-- Game dialogs -->
     <string name="match_preparing">Pokémon तैयार हो रहे हैं…</string>
+    <string name="match_memorize_prompt">बोर्ड याद रखें! %1$d</string>
     <string name="match_paused">Paused</string>
     <string name="match_resume">Resume करें</string>
     <string name="match_restart">Restart करें</string>

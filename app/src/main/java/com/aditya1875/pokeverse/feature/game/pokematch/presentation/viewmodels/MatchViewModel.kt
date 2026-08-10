@@ -42,6 +42,10 @@ class MatchViewModel(
     private val appContext: Context
 ) : ViewModel() {
 
+    companion object {
+        private const val MISMATCH_VIEW_DELAY_MS = 1100L
+    }
+
     private val _gameState = MutableStateFlow<GameState>(GameState.Idle)
     val gameState: StateFlow<GameState> = _gameState
 
@@ -63,6 +67,7 @@ class MatchViewModel(
     private var gameCompleted = false
 
     private var timerJob: Job? = null
+    private var previewJob: Job? = null
     private var currentDifficulty = Difficulty.EASY
 
     private var firstGameOfDayAwarded = false
@@ -105,12 +110,14 @@ class MatchViewModel(
                 preloadSprites(urls)
 
                 _gameState.value = GameState.Playing(
-                    cards = cards,
+                    cards = cards.map { it.copy(isFlipped = true) },
                     timeRemaining = difficulty.timeSeconds,
-                    difficulty = difficulty
+                    difficulty = difficulty,
+                    isPreviewing = true,
+                    previewSecondsRemaining = difficulty.previewSeconds
                 )
 
-                startTimer()
+                startPreview()
 
             } catch (e: Exception) {
                 Log.e("MatchVM", "Failed to start game", e)
@@ -168,6 +175,7 @@ class MatchViewModel(
 
     fun onCardFlipped(cardIndex: Int) {
         val currentState = _gameState.value as? GameState.Playing ?: return
+        if (currentState.isPreviewing) return
         val card = currentState.cards[cardIndex]
 
         if (card.isFlipped || card.isMatched) return
@@ -251,7 +259,10 @@ class MatchViewModel(
                         _gameState.value = updatedState
                     }
                 } else {
-                    delay(800)
+                    // Long enough to actually register and remember the mismatched pair —
+                    // 800ms (minus the 400ms flip animation) wasn't giving players a fair
+                    // chance to memorize a sprite before it vanished again.
+                    delay(MISMATCH_VIEW_DELAY_MS)
 
                     val state = _gameState.value as? GameState.Playing ?: return@launch
 
@@ -349,6 +360,26 @@ class MatchViewModel(
         )
     }
 
+    private fun startPreview() {
+        previewJob?.cancel()
+        previewJob = viewModelScope.launch {
+            val startState = _gameState.value as? GameState.Playing ?: return@launch
+            for (remaining in startState.difficulty.previewSeconds - 1 downTo 0) {
+                delay(1000L)
+                val current = _gameState.value as? GameState.Playing ?: return@launch
+                _gameState.value = current.copy(previewSecondsRemaining = remaining)
+            }
+
+            val finalState = _gameState.value as? GameState.Playing ?: return@launch
+            _gameState.value = finalState.copy(
+                cards = finalState.cards.map { it.copy(isFlipped = false) },
+                isPreviewing = false,
+                previewSecondsRemaining = 0
+            )
+            startTimer()
+        }
+    }
+
     private fun startTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
@@ -372,8 +403,11 @@ class MatchViewModel(
     }
 
     fun pauseGame() {
-        timerJob?.cancel()
         val current = _gameState.value as? GameState.Playing ?: return
+        // Pausing mid-preview would strand the preview coroutine (it can no longer see a
+        // Playing state to update) with cards stuck face-up — just ignore the tap instead.
+        if (current.isPreviewing) return
+        timerJob?.cancel()
         _gameState.value = GameState.Paused(current)
     }
 
@@ -385,16 +419,19 @@ class MatchViewModel(
 
     fun restartGame() {
         timerJob?.cancel()
+        previewJob?.cancel()
         startGame(currentDifficulty)
     }
 
     fun returnToMenu() {
         timerJob?.cancel()
+        previewJob?.cancel()
         _gameState.value = GameState.Idle
     }
 
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
+        previewJob?.cancel()
     }
 }

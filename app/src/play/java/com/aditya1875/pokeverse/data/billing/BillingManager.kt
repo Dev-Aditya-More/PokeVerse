@@ -21,8 +21,10 @@ import com.revenuecat.purchases.interfaces.UpdatedCustomerInfoListener
 import com.revenuecat.purchases.purchaseWith
 import com.revenuecat.purchases.restorePurchasesWith
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class BillingManager(
     private val context: Context,
@@ -40,6 +42,8 @@ class BillingManager(
         private const val PACKAGE_ID_MONTHLY = "monthly"
         private const val PACKAGE_ID_YEARLY = "yearly"
         private const val PACKAGE_ID_LIFETIME = "lifetime"
+
+        private const val OFFERINGS_RETRY_DELAY_MS = 3000L
     }
 
     private val _subscriptionState = MutableStateFlow<SubscriptionState>(SubscriptionState.Loading)
@@ -73,10 +77,13 @@ class BillingManager(
     }
 
     override fun startConnection() {
+        // Fire independently of each other: previously loadOfferings() only ran inside the
+        // getCustomerInfo success callback, so a single transient failure of that call (cold
+        // start network hiccup, RC outage) left prices blank for the rest of the session with
+        // no retry — the paywall would show "Loading..." forever.
         Purchases.sharedInstance.getCustomerInfo(object : ReceiveCustomerInfoCallback {
             override fun onReceived(customerInfo: CustomerInfo) {
                 updateSubscriptionState(customerInfo)
-                loadOfferings()
             }
 
             override fun onError(error: PurchasesError) {
@@ -84,22 +91,52 @@ class BillingManager(
                 Log.e("RevenueCat", "Error fetching customer info: ${error.message}")
             }
         })
+        loadOfferings(retriesLeft = 2)
     }
 
-    private fun loadOfferings() {
+    private fun loadOfferings(retriesLeft: Int) {
         Purchases.sharedInstance.getOfferingsWith(
             onError = { error ->
-                Log.e("RevenueCat", "Error fetching offerings: ${error.message}")
+                Log.e("RevenueCat", "Error fetching offerings (retries left: $retriesLeft): ${error.message}")
+                if (retriesLeft > 0) {
+                    coroutineScope.launch {
+                        delay(OFFERINGS_RETRY_DELAY_MS)
+                        loadOfferings(retriesLeft - 1)
+                    }
+                }
             },
             onSuccess = { offerings ->
                 currentOfferings = offerings
-                val current = offerings.current ?: return@getOfferingsWith
+                val current = offerings.current
+                if (current == null) {
+                    // Not a transient error RC surfaces via onError — the SDK fetched
+                    // successfully but no Offering is marked "Current" in the dashboard (or it
+                    // has no packages). Log it distinctly so this is diagnosable from Logcat
+                    // instead of silently leaving the paywall stuck on "Loading...".
+                    Log.e("RevenueCat", "Offerings fetched but no current offering is configured")
+                    return@getOfferingsWith
+                }
 
-                _monthlyPrice.value = findPackage(current, PACKAGE_ID_MONTHLY, current.monthly)?.product?.price?.formatted ?: ""
-                _yearlyPrice.value = findPackage(current, PACKAGE_ID_YEARLY, current.annual)?.product?.price?.formatted ?: ""
-                _lifetimePrice.value = findPackage(current, PACKAGE_ID_LIFETIME, current.lifetime)?.product?.price?.formatted ?: ""
+                _monthlyPrice.value = resolvePrice("monthly", findPackage(current, PACKAGE_ID_MONTHLY, current.monthly))
+                _yearlyPrice.value = resolvePrice("yearly", findPackage(current, PACKAGE_ID_YEARLY, current.annual))
+                _lifetimePrice.value = resolvePrice("lifetime", findPackage(current, PACKAGE_ID_LIFETIME, current.lifetime))
             }
         )
+    }
+
+    // Distinguishes the three ways a price can end up blank, since each points at a different
+    // fix: no package found means an Offering/package-identifier mismatch (dashboard config);
+    // a package with a null product means Play Billing itself failed to resolve that SKU's
+    // StoreProduct on-device (almost always an inactive/unpriced product in Play Console, or a
+    // region without pricing) — that lookup happens locally via BillingClient and RevenueCat's
+    // own getOfferings() call can succeed even when it fails, so this is otherwise invisible.
+    private fun resolvePrice(label: String, pkg: Package?): String {
+        val price = pkg?.product?.price?.formatted
+        when {
+            pkg == null -> Log.e("RevenueCat", "[$label] no package found in the current offering")
+            pkg.product.price.formatted.isBlank() -> Log.e("RevenueCat", "[$label] package found (product id: ${pkg.product.id}) but Play Billing returned no price for it — check the product is Active and priced in Play Console")
+        }
+        return price ?: ""
     }
 
     override suspend fun queryExistingPurchases() {

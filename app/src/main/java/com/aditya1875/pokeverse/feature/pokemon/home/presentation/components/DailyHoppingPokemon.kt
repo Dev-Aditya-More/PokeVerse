@@ -109,8 +109,13 @@ fun DailyHoppingPokemon(
 
     if (isVisible && !hasBeenClicked) {
         Box(
+            // fillMaxSize() here was the bug: it made this Box as tall as the whole
+            // screen, so the content — centered *within* the box — ended up at
+            // fixedY + screenHeight/2, off the bottom of the screen on every device.
+            // fillMaxWidth() lets the box wrap to just the content's height, so the
+            // y-offset lands the sprite where fixedY actually says.
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .offset(x = xAnim.value.dp, y = fixedY + hopY.dp),
             contentAlignment = Alignment.Center
         ) {

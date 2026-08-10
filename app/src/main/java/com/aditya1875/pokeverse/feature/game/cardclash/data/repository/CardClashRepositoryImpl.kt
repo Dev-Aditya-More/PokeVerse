@@ -20,9 +20,12 @@ class CardClashRepositoryImpl(
 
     companion object {
         // A legit waiting room converts to a bot match (or gets cancelled) well before this —
-        // see CardClashViewModel.BOT_MATCHMAKING_TIMEOUT. Anything still "waiting" past this
-        // age was abandoned without cleanup and should never be matched into.
-        private const val STALE_MATCH_THRESHOLD_MS = 25_000L
+        // see CardClashViewModel.BOT_MATCHMAKING_TIMEOUT (30s). Anything still "waiting" past
+        // this age was abandoned without cleanup and should never be matched into. Kept
+        // comfortably above the bot-fallback timeout (not equal to it) so a room that's still
+        // legitimately waiting in its final seconds never gets excluded here as "stale" —
+        // that would just recreate the "matches aren't happening" problem from the other side.
+        private const val STALE_MATCH_THRESHOLD_MS = 40_000L
     }
 
     // IDs of legendary/mythical Pokémon excluded from the random pool (Gen 1-5)
@@ -257,6 +260,30 @@ class CardClashRepositoryImpl(
                 "lastUpdated" to Timestamp.now()
             )
         ).await()
+    }
+
+    override suspend fun cancelWaitingMatchIfUnjoined(matchId: String): Boolean {
+        val docRef = matches.document(matchId)
+        return firestore.runTransaction { tx ->
+            val snap = tx.get(docRef)
+            if (snap.getString("status") != "waiting") {
+                // Someone already joined (status moved to "dealing") in the gap between the
+                // fallback timer firing and this transaction running — leave the doc alone.
+                false
+            } else {
+                tx.update(
+                    docRef,
+                    mapOf(
+                        "status" to "finished",
+                        "winner" to "draw",
+                        "p1Score" to 0.0,
+                        "p2Score" to 0.0,
+                        "lastUpdated" to Timestamp.now()
+                    )
+                )
+                true
+            }
+        }.await()
     }
 
     // ─── Real-time observation ────────────────────────────────────────────────

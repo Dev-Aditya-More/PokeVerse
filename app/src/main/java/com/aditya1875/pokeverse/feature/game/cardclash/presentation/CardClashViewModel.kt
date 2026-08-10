@@ -68,10 +68,13 @@ class CardClashViewModel(
         private const val ROUND_TIMER_SECONDS = 60
         private const val HEARTBEAT_INTERVAL_MS = 20_000L
         private const val DISCONNECT_THRESHOLD_MS = 60_000L
-        // Shorter than before (was 30s) — a snappy fallback beats a long, boring wait, and
-        // keeps this in sync with CardClashRepositoryImpl.STALE_MATCH_THRESHOLD_MS so a room
-        // is never left joinable past the point its own creator has already bailed on it.
-        private const val BOT_MATCHMAKING_TIMEOUT = 18
+        // Real players need a real shot at finding each other before we give up on their
+        // behalf — 18s (previously cut down from 30s for a "snappier" fallback) meant two
+        // humans coordinating a match would routinely both still be tapping through menus
+        // when the bot took over. Keep in sync with
+        // CardClashRepositoryImpl.STALE_MATCH_THRESHOLD_MS, which must stay comfortably above
+        // this so a room is never treated as abandoned while it's still legitimately waiting.
+        private const val BOT_MATCHMAKING_TIMEOUT = 30
     }
 
     // ─── Lobby ───────────────────────────────────────────────────────────────
@@ -161,14 +164,20 @@ class CardClashViewModel(
     }
 
     private suspend fun startBotMatch(waitingMatchId: String) {
+        // A real opponent's join can land after our countdown hits zero but before our
+        // snapshot listener observes it (network latency on either side) — check-and-abandon
+        // atomically so we never overwrite a match someone just joined. If this returns
+        // false, a real player got there first; bail out and let the normal "dealing"/"active"
+        // Firestore updates (still being observed — see below) carry the match forward.
+        val claimedForBot = runCatching { repository.cancelWaitingMatchIfUnjoined(waitingMatchId) }
+            .getOrDefault(false)
+        if (!claimedForBot) return
+
         // Stop watching Firestore — the bot match runs entirely client-side.
         // Do NOT cancel matchmakingTimerJob here: this function runs inside that job,
         // so cancelling it would abort this function before the hands can be fetched.
         observeJob?.cancel()
         observeJob = null
-
-        // Mark the orphaned waiting doc as finished so other players don't join it
-        runCatching { repository.finishMatch(waitingMatchId, "draw", 0.0, 0.0) }
 
         isBotMatchActive = true
         _uiState.update {

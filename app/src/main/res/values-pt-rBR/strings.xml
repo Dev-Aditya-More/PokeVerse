@@ -392,6 +392,7 @@
 
     <!-- Game dialogs -->
     <string name="match_preparing">Preparando Pokémon...</string>
+    <string name="match_memorize_prompt">Memorize o tabuleiro! %1$d</string>
     <string name="match_paused">Pausado</string>
     <string name="match_resume">Retomar</string>
     <string name="match_restart">Reiniciar</string>

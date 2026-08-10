@@ -49,6 +49,15 @@ interface CardClashRepository {
     /** Sets status = finished and winner field on the match document. */
     suspend fun finishMatch(matchId: String, winner: String, p1Score: Double, p2Score: Double)
 
+    /**
+     * Atomically abandons the waiting room for the bot-fallback path — but only if it's
+     * still actually "waiting". Returns false without writing anything if a real opponent
+     * already joined (status moved past "waiting") in the window between the fallback timer
+     * firing and this call landing, so the caller can let the real match proceed instead of
+     * stomping it.
+     */
+    suspend fun cancelWaitingMatchIfUnjoined(matchId: String): Boolean
+
     /** Real-time Firestore listener for the match document. Emits on every change. */
     fun observeMatch(matchId: String): Flow<ClashMatchState>
 

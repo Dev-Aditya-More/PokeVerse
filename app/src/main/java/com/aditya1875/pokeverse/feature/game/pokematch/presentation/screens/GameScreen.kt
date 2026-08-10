@@ -188,6 +188,7 @@ fun GameScreen(
                                 }
 
                                 IconButton(
+                                    enabled = !playing.isPreviewing,
                                     onClick = {
                                         if (isPaused) viewModel.resumeGame()
                                         else viewModel.pauseGame()
@@ -200,11 +201,18 @@ fun GameScreen(
                                 }
                             }
 
-                            // Progress text
+                            // Progress text — swapped for a memorize prompt during the preview window
                             Text(
-                                text = "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
+                                text = if (playing.isPreviewing)
+                                    stringResource(R.string.match_memorize_prompt, playing.previewSecondsRemaining)
+                                else
+                                    "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                                color = if (playing.isPreviewing)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                                fontWeight = if (playing.isPreviewing) FontWeight.Bold else FontWeight.Normal,
                                 modifier = Modifier.padding(vertical = 8.dp)
                             )
 
@@ -242,7 +250,7 @@ fun GameScreen(
                                             PokemonCard(
                                                 card = card,
                                                 onClick = {
-                                                    if (!isPaused) {
+                                                    if (!isPaused && !playing.isPreviewing) {
                                                         soundManager.play(SoundManager.Sound.CARD_FLIP)
                                                         haptic.performHapticFeedback(
                                                             HapticFeedbackType.LongPress
