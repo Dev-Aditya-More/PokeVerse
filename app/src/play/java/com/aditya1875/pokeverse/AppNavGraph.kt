@@ -63,6 +63,7 @@ import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemDetailScre
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.screens.LeaderboardScreen
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens.PokemonDetailScreen
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens.HomeScreen
+import com.aditya1875.pokeverse.feature.facematch.presentation.FaceMatchScreen
 import com.aditya1875.pokeverse.feature.pokemon.onboarding.IntroScreen
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.EditProfileDialog
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.screens.ProfileScreen
@@ -514,6 +515,12 @@ fun AppNavGraph(
                             themePreferences.setTheme(theme)
                         }
                     }
+                )
+            }
+
+            composable(Route.FaceMatch.route) {
+                FaceMatchScreen(
+                    onBack = { navController.popBackStack() }
                 )
             }
         }

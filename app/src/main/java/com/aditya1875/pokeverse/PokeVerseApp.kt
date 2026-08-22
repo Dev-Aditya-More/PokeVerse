@@ -16,9 +16,9 @@ class PokeVerseApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // RevenueCat is configured inside the play-flavor BillingManager's init{} —
-        // this class is compiled for every flavor and the RevenueCat SDK classes are
-        // playImplementation-only, so referencing them here would break other flavors.
+        // Billing (direct Play Billing Library, or RevenueCat when that's back in play) is
+        // configured inside the play-flavor BillingManager's init{} — this class is compiled
+        // for every flavor, so referencing billing SDK classes here would break other flavors.
         startKoin {
             androidContext(this@PokeVerseApp)
             modules(appModules)

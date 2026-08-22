@@ -357,6 +357,19 @@ private fun ThrowingContent(
                     isDragging = true
 
                     var prev = down.position
+                    // Authoritative running position, tracked synchronously in this (restricted-
+                    // suspend) gesture loop. The animatable update below still has to be launched
+                    // on a separate coroutine — awaitEachGesture's scope can't call arbitrary
+                    // suspend functions like Animatable.snapTo directly — but launching one
+                    // coroutine per move event used to compute its delta from ballX.value/
+                    // ballY.value, which is racy: under a fast swipe, several launches could be
+                    // queued before the dispatcher ran any of them, so each one read the same
+                    // stale pre-update value and silently dropped the others' deltas. Tracking
+                    // the position here instead means every launch carries the correct
+                    // accumulated value at the moment it was scheduled, regardless of dispatch
+                    // order or delay.
+                    var posX = ballX.value
+                    var posY = ballY.value
                     while (true) {
                         val event = awaitPointerEvent()
                         val change = event.changes.firstOrNull { it.id == down.id }
@@ -367,10 +380,13 @@ private fun ThrowingContent(
                         val delta = change.position - prev
                         prev = change.position
 
-                        // Update ball visual position synchronously via snapTo in a coroutine
+                        posX += delta.x
+                        posY += delta.y
+                        val targetPosX = posX
+                        val targetPosY = posY
                         coroutineScope.launch {
-                            ballX.snapTo(ballX.value + delta.x)
-                            ballY.snapTo(ballY.value + delta.y)
+                            ballX.snapTo(targetPosX)
+                            ballY.snapTo(targetPosY)
                         }
 
                         // Emit sparkles when moving fast (swirl detection)
@@ -378,8 +394,8 @@ private fun ThrowingContent(
                         val now = System.currentTimeMillis()
                         if (speed > 5f && now - lastEmitMs > 45L) {
                             lastEmitMs = now
-                            val ox = ballLayoutCenter.x + ballX.value
-                            val oy = ballLayoutCenter.y + ballY.value
+                            val ox = ballLayoutCenter.x + posX
+                            val oy = ballLayoutCenter.y + posY
                             repeat(3) {
                                 val angle = (Random.nextFloat() * 2f * PI).toFloat()
                                 val spd = Random.nextFloat() * 7f + 3f

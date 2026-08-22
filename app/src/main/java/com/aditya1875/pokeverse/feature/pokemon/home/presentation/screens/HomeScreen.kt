@@ -49,6 +49,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
@@ -107,8 +108,7 @@ import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.badges.domain.GymBadge
-import com.revenuecat.purchases.ui.revenuecatui.PaywallDialog
-import com.revenuecat.purchases.ui.revenuecatui.PaywallDialogOptions
+import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeDetailSheet
 import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeGridCard
 import com.aditya1875.pokeverse.feature.badges.presentation.screens.BadgeRegionFilter
@@ -347,11 +347,24 @@ fun SharedTransitionScope.HomeScreen(
     )
 
     if (showPremiumSheet) {
-        PaywallDialog(
-            PaywallDialogOptions.Builder()
-                .setDismissRequest { showPremiumSheet = false }
-                .setShouldDisplayDismissButton(true)
-                .build()
+        PremiumBottomSheet(
+            onDismiss = { showPremiumSheet = false },
+            onSubscribeMonthly = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseMonthly(it) }
+            },
+            onSubscribeYearly = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseYearly(it) }
+            },
+            onSubscribeLifetime = {
+                showPremiumSheet = false
+                activity?.let { billingViewModel.purchaseLifetime(it) }
+            },
+            monthlyPrice = monthly,
+            yearlyPrice = yearly,
+            lifetimePrice = lifetime,
+            isSubscribeEnabled = isBillingReady
         )
     }
 
@@ -458,6 +471,15 @@ fun SharedTransitionScope.HomeScreen(
                                     }
                                 )
                             }
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { navController.navigate(Route.FaceMatch.route) }) {
+                            Icon(
+                                Icons.Default.CameraAlt,
+                                contentDescription = "Which Pokémon do you look like?",
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

@@ -73,6 +73,8 @@ sealed class Route(val route: String) {
 
     object ThemeSelector : Route("theme_selector")
 
+    object FaceMatch : Route("face_match")
+
     object Details : Route("pokemon_detail/{pokemonName}") {
         fun createDetails(pokemonName: String): String = "pokemon_detail/$pokemonName"
     }

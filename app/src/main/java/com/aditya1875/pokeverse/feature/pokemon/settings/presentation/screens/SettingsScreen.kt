@@ -512,6 +512,20 @@ fun SettingsScreen(
 
                 val socials = listOf(
                     SocialLink(
+                      "Website",
+                        "https://dexverse.in",
+                        ImageVector.vectorResource(id = R.drawable.globe),
+                        size = 30.dp,
+                        MaterialTheme.colorScheme.onSurface
+                    ),
+                    SocialLink(
+                        "BuyMeACoffee",
+                        "https://www.buymeacoffee.com/aditya1875q",
+                        ImageVector.vectorResource(id = R.drawable.buy_me_coffee_icon),
+                        size = 20.dp,
+                        MaterialTheme.colorScheme.onSurface
+                    ),
+                    SocialLink(
                         "Github",
                         "https://github.com/Dev-Aditya-More/PokeVerse",
                         ImageVector.vectorResource(id = R.drawable.github_brands_solid_full),
@@ -528,27 +542,6 @@ fun SettingsScreen(
                         "Instagram",
                         "https://www.instagram.com/dexverse.app/",
                         ImageVector.vectorResource(id = R.drawable.instagram_brands_solid_full),
-                        size = 20.dp,
-                        MaterialTheme.colorScheme.onSurface
-                    ),
-                    SocialLink(
-                        "BuyMeACoffee",
-                        "https://www.buymeacoffee.com/aditya1875q",
-                        ImageVector.vectorResource(id = R.drawable.buy_me_coffee_icon),
-                        size = 20.dp,
-                        MaterialTheme.colorScheme.onSurface
-                    ),
-                    SocialLink(
-                        "Reddit",
-                        "https://www.reddit.com/user/Incredible_aditya123/",
-                        ImageVector.vectorResource(id = R.drawable.reddit2),
-                        size = 20.dp,
-                        MaterialTheme.colorScheme.onSurface
-                    ),
-                    SocialLink(
-                        "YouTube",
-                        "https://youtube.com/@TheCodeForge-yt",
-                        ImageVector.vectorResource(id = R.drawable.youtube_brands_solid_full_1_),
                         size = 20.dp,
                         MaterialTheme.colorScheme.onSurface
                     ),

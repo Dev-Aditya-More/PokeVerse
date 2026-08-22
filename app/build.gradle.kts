@@ -18,8 +18,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 86
-        versionName = "1.9.4"
+        versionCode = 87
+        versionName = "1.9.9"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -178,6 +178,10 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.foundation)
 
+    // On-device face detection for the "which Pokémon do you look like" feature — bundles its
+    // own model (no Play Services download step), works in both flavors.
+    implementation(libs.mlkit.face.detection)
+
     // Koin Core
     implementation(libs.koin.core)
     implementation(libs.material3.window.size.class1)
@@ -215,8 +219,11 @@ dependencies {
     add("playImplementation", libs.play.services.auth)
     add("playImplementation", libs.play.services.ads)
     add("playImplementation", libs.play.review.ktx)
-    add("playImplementation", libs.revenuecat.purchases)
-    add("playImplementation", libs.revenuecat.purchases.ui)
+    // RevenueCat detached for now (production prices weren't loading and it was costing
+    // subscribers) — back on direct Play Billing until that's sorted out. Re-add
+    // libs.revenuecat.purchases / .purchases.ui (still declared in the version catalog)
+    // when it's time to try again.
+    add("playImplementation", libs.billing.ktx)
 
     // Glance Widget
     implementation (libs.androidx.glance.appwidget)
