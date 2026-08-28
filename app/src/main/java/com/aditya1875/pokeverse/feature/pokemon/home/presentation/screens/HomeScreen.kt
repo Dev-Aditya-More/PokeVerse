@@ -50,6 +50,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
@@ -476,7 +477,7 @@ fun SharedTransitionScope.HomeScreen(
                     actions = {
                         IconButton(onClick = { navController.navigate(Route.FaceMatch.route) }) {
                             Icon(
-                                Icons.Default.CameraAlt,
+                                Icons.Default.Cameraswitch,
                                 contentDescription = "Which Pokémon do you look like?",
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
@@ -538,7 +539,6 @@ fun SharedTransitionScope.HomeScreen(
                                     RoundedCornerShape(16.dp)
                                 )
                         )
-                        // Sonar ring 2 (750 ms offset)
                         Box(
                             modifier = Modifier
                                 .size(52.dp)

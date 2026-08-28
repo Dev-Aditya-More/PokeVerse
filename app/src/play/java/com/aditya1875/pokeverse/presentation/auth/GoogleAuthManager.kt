@@ -13,16 +13,22 @@ import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.security.MessageDigest
 import java.util.UUID
 
-class AuthManager(private val context: Context) {
+class AuthManager(
+    private val context: Context,
+    private val billingManager: IBillingManager
+) {
 
     private val auth = FirebaseAuth.getInstance()
+    private val coroutineScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main)
     private val credentialManager = CredentialManager.create(context.applicationContext)
 
     private val _authState = MutableStateFlow<AuthState>(AuthState.Loading)
@@ -64,6 +70,16 @@ class AuthManager(private val context: Context) {
                 _currentUser.value = user
                 _authState.value = AuthState.Authenticated(user)
                 Log.d("AuthManager", "Sign-in successful: ${user.displayName}")
+
+                // Trigger purchase re-sync to link existing local purchases to the new UID
+                coroutineScope.launch {
+                    try {
+                        billingManager.queryExistingPurchases()
+                    } catch (e: Exception) {
+                        Log.e("AuthManager", "Failed to sync purchases after sign-in", e)
+                    }
+                }
+
                 AuthResult.Success(user)
             } else {
                 _authState.value = AuthState.Error("sign_in_failed")

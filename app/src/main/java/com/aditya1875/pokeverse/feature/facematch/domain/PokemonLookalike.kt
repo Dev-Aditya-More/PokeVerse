@@ -11,6 +11,8 @@ data class PokemonLookalike(
     val displayName: String,
     val representativeColor: RgbColor,
     val shape: FaceShape,
+    val typicalSmiling: Float = 0.5f,
+    val typicalEyeOpen: Float = 0.8f,
     val blurb: String
 ) {
     val spriteUrl: String =

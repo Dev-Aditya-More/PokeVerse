@@ -1,7 +1,10 @@
 package com.aditya1875.pokeverse.di
 
+import android.content.Context
+import androidx.datastore.preferences.preferencesDataStore
 import com.aditya1875.pokeverse.data.ads.RewardedAdManager
 import com.aditya1875.pokeverse.data.billing.BillingManager
+import com.aditya1875.pokeverse.data.billing.PremiumRepository
 import com.aditya1875.pokeverse.data.review.ReviewManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
@@ -15,16 +18,22 @@ import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
+val Context.billingDataStore by preferencesDataStore("billing_prefs")
+
 val billingModule = module {
 
-    single { AuthManager(get()) }
+    single { AuthManager(get(), get()) }
 
     single { UserProfileRepository(androidContext()) }
 
     single { XPManager(get()) }
 
+    single { androidContext().billingDataStore }
+
+    single { PremiumRepository(androidContext(), get()) }
+
     single<IBillingManager> {
-        BillingManager(get(), get())
+        BillingManager(get(), get(), get())
     }
 
     single<IRewardedAdManager> {

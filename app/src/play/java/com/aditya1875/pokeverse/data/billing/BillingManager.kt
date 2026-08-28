@@ -3,12 +3,6 @@ package com.aditya1875.pokeverse.data.billing
 import android.app.Activity
 import android.content.Context
 import android.util.Log
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -25,8 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-private val Context.billingDataStore: DataStore<Preferences> by preferencesDataStore(name = "billing_prefs")
-
 // Direct Google Play Billing Library implementation — RevenueCat is detached for now (its
 // getOfferings()/StoreProduct pricing wasn't resolving in production and it was costing real
 // subscribers a working paywall). This is the pre-RevenueCat implementation, restored as-is,
@@ -34,20 +26,15 @@ private val Context.billingDataStore: DataStore<Preferences> by preferencesDataS
 // Strings instead of raw ProductDetails, PremiumPlan-based purchase flow, restorePurchases())
 // so nothing in the UI layer built since had to change.
 class BillingManager(
-    private val context: Context,
-    private val coroutineScope: CoroutineScope
+    context: Context,
+    private val coroutineScope: CoroutineScope,
+    private val premiumRepository: PremiumRepository
 ) : IBillingManager, PurchasesUpdatedListener {
 
     companion object {
         const val PRODUCT_MONTHLY = "dexverse_premium_monthly"
         const val PRODUCT_YEARLY = "dexverse_premium_yearly"
         const val PRODUCT_LIFETIME = "dexverse_premium_lifetime"
-        // Legacy IDs from before the rebrand; existing subscribers may still hold these
-        private const val PRODUCT_MONTHLY_LEGACY = "pokeverse_premium_monthly"
-        private const val PRODUCT_YEARLY_LEGACY = "pokeverse_premium_yearly"
-
-        private val KEY_IS_PREMIUM = booleanPreferencesKey("is_premium")
-        private val KEY_PREMIUM_PLAN = stringPreferencesKey("premium_plan")
     }
 
     private val billingClient: BillingClient =
@@ -81,14 +68,18 @@ class BillingManager(
     override val billingError: StateFlow<String?> = _billingError
 
     init {
-        // Google Play only reflects a cancellation once the paid period actually ends —
-        // until then the purchase legitimately stays PURCHASED, that part is correct.
-        // But this app only re-verified against Play's live purchase state on cold start,
-        // so a user whose period *had* already ended kept local Premium access for as
-        // long as the process stayed alive. Re-checking on every foreground return closes
-        // that staleness window down to "since last backgrounded" instead of "since last
-        // full app restart" — matches Google's own recommended practice of re-querying
-        // purchases in onResume.
+        // Observe verified premium state from repository
+        coroutineScope.launch {
+            premiumRepository.isPremium.collect { isPremium ->
+                if (isPremium) {
+                    val plan = premiumRepository.premiumPlan.first() ?: PremiumPlan.MONTHLY
+                    _subscriptionState.value = SubscriptionState.Premium(plan)
+                } else if (_subscriptionState.value !is SubscriptionState.Loading) {
+                    _subscriptionState.value = SubscriptionState.Free
+                }
+            }
+        }
+
         ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
             override fun onStart(owner: LifecycleOwner) {
                 coroutineScope.launch { queryExistingPurchases() }
@@ -97,9 +88,6 @@ class BillingManager(
     }
 
     override fun startConnection() {
-        // Restore cached premium state immediately so the UI never flashes Free on cold start
-        coroutineScope.launch { loadCachedPremiumState() }
-
         if (billingClient.isReady) return
 
         billingClient.startConnection(object : BillingClientStateListener {
@@ -112,10 +100,6 @@ class BillingManager(
                     }
                 } else {
                     Log.e("Billing", "Setup failed: ${result.debugMessage}")
-                    // Don't downgrade a known-premium user on a transient billing setup failure
-                    if (_subscriptionState.value !is SubscriptionState.Premium) {
-                        _subscriptionState.value = SubscriptionState.Free
-                    }
                 }
             }
 
@@ -213,47 +197,37 @@ class BillingManager(
 
         val allPurchases = subs.purchasesList + inApps.purchasesList
 
-        val activePurchase = allPurchases.firstOrNull { purchase ->
-            purchase.purchaseState == PurchaseState.PURCHASED &&
-                    (
-                            purchase.products.contains(PRODUCT_MONTHLY) ||
-                                    purchase.products.contains(PRODUCT_MONTHLY_LEGACY) ||
-                                    purchase.products.contains(PRODUCT_YEARLY) ||
-                                    purchase.products.contains(PRODUCT_YEARLY_LEGACY) ||
-                                    purchase.products.contains(PRODUCT_LIFETIME)
-                            )
+        if (allPurchases.isEmpty()) {
+            if (subsOk && inAppsOk) {
+                premiumRepository.clearPremium()
+            }
+            return
         }
 
-        if (activePurchase != null) {
-            // Acknowledge purchases that survived a crash/kill before acknowledgment.
-            // Google Play refunds unacknowledged purchases within 3 days.
-            if (!activePurchase.isAcknowledged) {
-                acknowledgePurchase(activePurchase)
-            }
-            val plan = when {
-                activePurchase.products.contains(PRODUCT_LIFETIME) ->
-                    PremiumPlan.LIFETIME
+        allPurchases.forEach { purchase ->
+            if (purchase.purchaseState == PurchaseState.PURCHASED) {
+                if (!purchase.isAcknowledged) {
+                    acknowledgePurchase(purchase)
+                }
 
-                activePurchase.products.contains(PRODUCT_YEARLY) ||
-                        activePurchase.products.contains(PRODUCT_YEARLY_LEGACY) ->
-                    PremiumPlan.YEARLY
+                val productId = purchase.products.firstOrNull() ?: return@forEach
+                val isSubscription = productId != PRODUCT_LIFETIME
 
-                else ->
-                    PremiumPlan.MONTHLY
+                coroutineScope.launch {
+                    premiumRepository.verifyPurchase(
+                        purchaseToken = purchase.purchaseToken,
+                        productId = productId,
+                        isSubscription = isSubscription
+                    )
+                }
             }
-            _subscriptionState.value = SubscriptionState.Premium(plan)
-            cachePremium(plan)
-        } else if (subsOk && inAppsOk) {
-            // Both queries returned OK with zero purchases — this is a definitive non-premium result
-            _subscriptionState.value = SubscriptionState.Free
-            clearPremiumCache()
         }
-        // If either query failed (e.g. Play Services unavailable), preserve current state
     }
 
     override suspend fun restorePurchases(): Boolean {
         queryExistingPurchases()
-        return _subscriptionState.value is SubscriptionState.Premium
+        delay(1000)
+        return premiumRepository.isPremium.first()
     }
 
     override fun launchPurchaseFlow(activity: Activity, plan: PremiumPlan) {
@@ -287,87 +261,47 @@ class BillingManager(
         result: BillingResult,
         purchases: List<Purchase>?
     ) {
-
         when (result.responseCode) {
-
             BillingResponseCode.OK -> {
-
                 purchases?.forEach { purchase ->
-
                     when (purchase.purchaseState) {
-
                         PurchaseState.PURCHASED -> {
                             coroutineScope.launch {
-
                                 Log.d("Billing", "Purchase token: ${purchase.purchaseToken}")
-
                                 acknowledgePurchase(purchase)
 
-                                val plan = when {
-                                    purchase.products.contains(PRODUCT_LIFETIME) -> PremiumPlan.LIFETIME
-                                    purchase.products.contains(PRODUCT_YEARLY) ||
-                                            purchase.products.contains(PRODUCT_YEARLY_LEGACY) -> PremiumPlan.YEARLY
-                                    else -> PremiumPlan.MONTHLY
-                                }
+                                val productId = purchase.products.firstOrNull() ?: return@launch
+                                val isSubscription = productId != PRODUCT_LIFETIME
 
-                                _subscriptionState.value = SubscriptionState.Premium(plan)
-                                cachePremium(plan)
+                                premiumRepository.verifyPurchase(
+                                    purchaseToken = purchase.purchaseToken,
+                                    productId = productId,
+                                    isSubscription = isSubscription
+                                )
                             }
                         }
-
                         PurchaseState.PENDING -> {
                             _subscriptionState.value = SubscriptionState.Pending
                         }
-
                         else -> Unit
                     }
                 }
             }
-
             BillingResponseCode.USER_CANCELED -> {
                 Log.d("Billing", "User cancelled purchase")
             }
-
             else -> {
-                _billingError.value =
-                    "Purchase failed: ${result.debugMessage}"
+                _billingError.value = "Purchase failed: ${result.debugMessage}"
             }
-        }
-    }
-
-    private suspend fun loadCachedPremiumState() {
-        val prefs = context.billingDataStore.data.first()
-        if (prefs[KEY_IS_PREMIUM] == true) {
-            val planName = prefs[KEY_PREMIUM_PLAN] ?: PremiumPlan.MONTHLY.name
-            val plan = runCatching { PremiumPlan.valueOf(planName) }.getOrDefault(PremiumPlan.MONTHLY)
-            _subscriptionState.value = SubscriptionState.Premium(plan)
-        }
-    }
-
-    private suspend fun cachePremium(plan: PremiumPlan) {
-        context.billingDataStore.edit { prefs ->
-            prefs[KEY_IS_PREMIUM] = true
-            prefs[KEY_PREMIUM_PLAN] = plan.name
-        }
-    }
-
-    private suspend fun clearPremiumCache() {
-        context.billingDataStore.edit { prefs ->
-            prefs[KEY_IS_PREMIUM] = false
         }
     }
 
     private fun acknowledgePurchase(purchase: Purchase) {
-
         if (purchase.isAcknowledged) return
-
-        val params =
-            AcknowledgePurchaseParams.newBuilder()
-                .setPurchaseToken(purchase.purchaseToken)
-                .build()
-
+        val params = AcknowledgePurchaseParams.newBuilder()
+            .setPurchaseToken(purchase.purchaseToken)
+            .build()
         billingClient.acknowledgePurchase(params) { result ->
-
             if (result.responseCode != BillingResponseCode.OK) {
                 Log.e("Billing", "Acknowledge failed: ${result.debugMessage}")
             } else {

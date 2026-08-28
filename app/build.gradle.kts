@@ -18,8 +18,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 87
-        versionName = "1.9.9"
+        versionCode = 88
+        versionName = "2.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -214,6 +214,7 @@ dependencies {
 
     add("playImplementation", libs.firebase.auth)
     add("playImplementation", libs.firebase.database)
+    add("playImplementation", libs.firebase.functions)
     add("playImplementation", libs.firebase.storage)
 
     add("playImplementation", libs.play.services.auth)

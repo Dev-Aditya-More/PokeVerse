@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.facematch.domain
 
+import kotlin.math.abs
 import kotlin.random.Random
 
 /**
@@ -10,9 +11,10 @@ import kotlin.random.Random
  */
 object FaceMatcher {
 
-    // Shape mismatch costs less than a very close color match ever would (max possible color
-    // distance is 3.0 — three maxed-out 0..1 channel differences), so color always dominates.
-    private const val SHAPE_MISMATCH_PENALTY = 0.15f
+    // Traits (smiling, eyes) are weighted so they can influence the result but not
+    // totally override color unless the color match is very close.
+    private const val SHAPE_MISMATCH_PENALTY = 0.12f
+    private const val TRAIT_WEIGHT = 0.08f
 
     private fun colorDistanceSquared(a: RgbColor, b: RgbColor): Float {
         val dr = a.r - b.r
@@ -24,13 +26,20 @@ object FaceMatcher {
     fun rankMatches(
         skinColor: RgbColor,
         faceShape: FaceShape,
+        smilingProb: Float,
+        eyeOpenProb: Float,
         pool: List<PokemonLookalike> = PokemonLookalikeData.all
     ): List<PokemonLookalike> {
         require(pool.isNotEmpty()) { "Lookalike pool must not be empty" }
         return pool.sortedBy { candidate ->
             val colorScore = colorDistanceSquared(skinColor, candidate.representativeColor)
             val shapePenalty = if (candidate.shape == faceShape) 0f else SHAPE_MISMATCH_PENALTY
-            colorScore + shapePenalty
+            
+            val smileDiff = abs(smilingProb - candidate.typicalSmiling)
+            val eyeDiff = abs(eyeOpenProb - candidate.typicalEyeOpen)
+            val traitPenalty = (smileDiff + eyeDiff) * TRAIT_WEIGHT
+
+            colorScore + shapePenalty + traitPenalty
         }
     }
 
@@ -39,11 +48,13 @@ object FaceMatcher {
     fun pickMatch(
         skinColor: RgbColor,
         faceShape: FaceShape,
+        smilingProb: Float,
+        eyeOpenProb: Float,
         pool: List<PokemonLookalike> = PokemonLookalikeData.all
     ): PokemonLookalike {
-        val ranked = rankMatches(skinColor, faceShape, pool)
+        val ranked = rankMatches(skinColor, faceShape, smilingProb, eyeOpenProb, pool)
         val topCandidates = ranked.take(3)
-        val weights = listOf(0.6f, 0.25f, 0.15f).take(topCandidates.size)
+        val weights = listOf(0.5f, 0.3f, 0.2f).take(topCandidates.size)
         val totalWeight = weights.sum()
         var roll = Random.nextFloat() * totalWeight
         for (i in topCandidates.indices) {

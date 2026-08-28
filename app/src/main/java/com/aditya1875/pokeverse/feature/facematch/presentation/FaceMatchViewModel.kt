@@ -30,6 +30,7 @@ class FaceMatchViewModel : ViewModel() {
         FaceDetection.getClient(
             FaceDetectorOptions.Builder()
                 .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
                 .build()
         )
     }
@@ -59,7 +60,9 @@ class FaceMatchViewModel : ViewModel() {
                     runCatching {
                         val skinColor = FaceAnalyzer.sampleSkinColor(bitmap, face.boundingBox)
                         val shape = FaceAnalyzer.classifyShape(face.boundingBox)
-                        FaceMatcher.pickMatch(skinColor, shape)
+                        val smilingProb = face.smilingProbability ?: 0.5f
+                        val eyeOpenProb = ((face.leftEyeOpenProbability ?: 0.8f) + (face.rightEyeOpenProbability ?: 0.8f)) / 2f
+                        FaceMatcher.pickMatch(skinColor, shape, smilingProb, eyeOpenProb)
                     }.onSuccess { match ->
                         _state.value = FaceMatchState.Result(match, bitmap)
                     }.onFailure {
