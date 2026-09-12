@@ -2,22 +2,30 @@ package com.aditya1875.pokeverse.feature.facematch.presentation
 
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.facematch.domain.FaceAnalyzer
 import com.aditya1875.pokeverse.feature.facematch.domain.FaceMatcher
 import com.aditya1875.pokeverse.feature.facematch.domain.PokemonLookalike
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.face.FaceDetection
 import com.google.mlkit.vision.face.FaceDetectorOptions
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 sealed class FaceMatchState {
     data object Idle : FaceMatchState()
-    data object Analyzing : FaceMatchState()
+    data class Analyzing(val photo: Bitmap) : FaceMatchState()
     data class Result(val match: PokemonLookalike, val photo: Bitmap) : FaceMatchState()
     data class Error(val message: String) : FaceMatchState()
 }
+
+/** On-device face detection typically resolves in well under this, but a bare instant flash of
+ * the "analyzing" state reads as broken rather than as the app doing real work — this floor
+ * gives the scan animation room to land before the result appears. */
+private const val MIN_ANALYZING_MS = 1400L
 
 class FaceMatchViewModel : ViewModel() {
 
@@ -43,17 +51,29 @@ class FaceMatchViewModel : ViewModel() {
             return
         }
 
-        _state.value = FaceMatchState.Analyzing
+        _state.value = FaceMatchState.Analyzing(bitmap)
+        val startedAt = System.currentTimeMillis()
 
         val genericErrorMessage = "Something went wrong analyzing that photo. Try again?"
+
+        fun finish(result: FaceMatchState) {
+            viewModelScope.launch {
+                val elapsed = System.currentTimeMillis() - startedAt
+                if (elapsed < MIN_ANALYZING_MS) delay(MIN_ANALYZING_MS - elapsed)
+                _state.value = result
+            }
+        }
+
         runCatching {
             val image = InputImage.fromBitmap(bitmap, 0)
             detector.process(image)
                 .addOnSuccessListener { faces ->
                     val face = faces.maxByOrNull { it.boundingBox.width().toLong() * it.boundingBox.height() }
                     if (face == null) {
-                        _state.value = FaceMatchState.Error(
-                            "No face detected — try again with your whole face in frame and good lighting."
+                        finish(
+                            FaceMatchState.Error(
+                                "No face detected — try again with your whole face in frame and good lighting."
+                            )
                         )
                         return@addOnSuccessListener
                     }
@@ -64,16 +84,16 @@ class FaceMatchViewModel : ViewModel() {
                         val eyeOpenProb = ((face.leftEyeOpenProbability ?: 0.8f) + (face.rightEyeOpenProbability ?: 0.8f)) / 2f
                         FaceMatcher.pickMatch(skinColor, shape, smilingProb, eyeOpenProb)
                     }.onSuccess { match ->
-                        _state.value = FaceMatchState.Result(match, bitmap)
+                        finish(FaceMatchState.Result(match, bitmap))
                     }.onFailure {
-                        _state.value = FaceMatchState.Error(genericErrorMessage)
+                        finish(FaceMatchState.Error(genericErrorMessage))
                     }
                 }
                 .addOnFailureListener {
-                    _state.value = FaceMatchState.Error(genericErrorMessage)
+                    finish(FaceMatchState.Error(genericErrorMessage))
                 }
         }.onFailure {
-            _state.value = FaceMatchState.Error(genericErrorMessage)
+            finish(FaceMatchState.Error(genericErrorMessage))
         }
     }
 

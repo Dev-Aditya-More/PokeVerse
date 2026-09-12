@@ -2,6 +2,7 @@ package com.aditya1875.pokeverse.utils
 
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.media.SoundPool
 import androidx.annotation.RawRes
 import com.aditya1875.pokeverse.R
@@ -11,12 +12,11 @@ class SoundManager(private val context: Context) {
     private var soundPool: SoundPool? = null
     private val soundMap = mutableMapOf<Sound, Int>()
     private var isEnabled = true
+    private var musicPlayer: MediaPlayer? = null
 
     enum class Sound {
         // UI Sounds
         BUTTON_CLICK,
-
-        // Game Sounds
         CARD_FLIP,
         MATCH_FOUND,
         GAME_WIN,
@@ -92,10 +92,40 @@ class SoundManager(private val context: Context) {
         isEnabled = enabled
     }
 
+    /**
+     * Plays the app's startup jingle as music (MediaPlayer, not SoundPool — it's too long
+     * for a pooled SFX clip). Returns the track's duration in ms, or -1 if it couldn't load.
+     */
+    fun playIntroMusic(): Int {
+        stopIntroMusic()
+        if (!isEnabled) return -1
+
+        return try {
+            val mp = MediaPlayer.create(context, R.raw.intro)
+            musicPlayer = mp
+            mp?.start()
+            mp?.duration ?: -1
+        } catch (_: Exception) {
+            -1
+        }
+    }
+
+    fun stopIntroMusic() {
+        musicPlayer?.apply {
+            try {
+                if (isPlaying) stop()
+            } catch (_: Exception) {
+            }
+            release()
+        }
+        musicPlayer = null
+    }
+
     fun release() {
         soundPool?.release()
         soundPool = null
         soundMap.clear()
+        stopIntroMusic()
     }
 }
 

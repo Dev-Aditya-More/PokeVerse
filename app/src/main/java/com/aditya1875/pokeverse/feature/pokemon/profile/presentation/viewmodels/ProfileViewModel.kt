@@ -123,6 +123,15 @@ class ProfileViewModel(
         }
     }
 
+    // Unlike username, a blank bio is valid — it's how a user clears it.
+    fun updateBio(newBio: String) {
+        viewModelScope.launch {
+            val updated = userProfile.value.copy(bio = newBio.trim().take(60))
+            repository.saveProfile(updated)
+            if (!updated.isGuest) repository.syncToFirestore(updated)
+        }
+    }
+
     fun updateBestScore(game: String, score: Int) {
         viewModelScope.launch { repository.updateBestScore(game, score) }
     }

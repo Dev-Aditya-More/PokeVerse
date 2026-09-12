@@ -51,8 +51,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Search
@@ -67,6 +69,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -407,6 +410,13 @@ fun SharedTransitionScope.HomeScreen(
                                 expanded = showMenu,
                                 onDismissRequest = { showMenu = false }
                             ) {
+                                Text(
+                                    text = "POKÉDEX",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                )
                                 DropdownMenuItem(
                                     text = { Text("Pokémons") },
                                     trailingIcon = {
@@ -471,16 +481,50 @@ fun SharedTransitionScope.HomeScreen(
                                         showMenu = false
                                     }
                                 )
+
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
+
+                                Text(
+                                    text = "OTHER TOOLS",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("What Pokémon do you look like?") },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Cameraswitch, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        navController.navigate(Route.FaceMatch.route)
+                                        showMenu = false
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Compare Pokémon") },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.CompareArrows, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        navController.navigate(Route.ComparePokemon.route)
+                                        showMenu = false
+                                    }
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text("Stat Calculator") },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Calculate, contentDescription = null)
+                                    },
+                                    onClick = {
+                                        navController.navigate(Route.StatCalculator.route)
+                                        showMenu = false
+                                    }
+                                )
                             }
-                        }
-                    },
-                    actions = {
-                        IconButton(onClick = { navController.navigate(Route.FaceMatch.route) }) {
-                            Icon(
-                                Icons.Default.Cameraswitch,
-                                contentDescription = "Which Pokémon do you look like?",
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(

@@ -27,6 +27,7 @@ class UserProfileRepository(private val context: Context) {
     private object K {
         val UID = stringPreferencesKey("uid")
         val USERNAME = stringPreferencesKey("username")
+        val BIO = stringPreferencesKey("bio")
         val TOTAL_XP = intPreferencesKey("total_xp")
 
         val WEEKLY_XP = intPreferencesKey("weekly_xp")
@@ -40,6 +41,7 @@ class UserProfileRepository(private val context: Context) {
         val BEST_TYPERUSH = intPreferencesKey("best_typerush")
         val BEST_DUEL = intPreferencesKey("best_duel")
         val BEST_WILDCATCH = intPreferencesKey("best_wildcatch")
+        val BEST_SURVIVOR = intPreferencesKey("best_survivor")
         val IS_GUEST = booleanPreferencesKey("is_guest")
         val LAST_DAILY_DATE = stringPreferencesKey("last_daily_date")
         val DAILY_STREAK = intPreferencesKey("daily_streak")
@@ -66,6 +68,7 @@ class UserProfileRepository(private val context: Context) {
         UserProfile(
             uid = p[K.UID] ?: "guest",
             username = p[K.USERNAME] ?: "Trainer",
+            bio = p[K.BIO] ?: "",
             totalXp = totalXp,
             // Weekly XP from before the Monday 00:00 IST boundary belongs to last week
             weeklyXp = if (WeeklyReset.isStale(lastWeeklyReset)) 0 else (p[K.WEEKLY_XP] ?: 0),
@@ -81,6 +84,7 @@ class UserProfileRepository(private val context: Context) {
             bestTypeRushScore = p[K.BEST_TYPERUSH] ?: 0,
             bestDuelScore = p[K.BEST_DUEL] ?: 0,
             bestWildCatchScore = p[K.BEST_WILDCATCH] ?: 0,
+            bestSurvivorScore = p[K.BEST_SURVIVOR] ?: 0,
             isGuest = p[K.IS_GUEST] ?: true,
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
             lastFirstGameXpDate = p[K.LAST_FIRST_GAME_DATE] ?: "",
@@ -102,6 +106,7 @@ class UserProfileRepository(private val context: Context) {
         ds.edit { p ->
             p[K.UID] = profile.uid
             p[K.USERNAME] = profile.username
+            p[K.BIO] = profile.bio
             p[K.TOTAL_XP] = profile.totalXp
             p[K.WEEKLY_XP] = profile.weeklyXp
             p[K.LAST_WEEKLY_RESET] = profile.lastWeeklyReset
@@ -112,6 +117,7 @@ class UserProfileRepository(private val context: Context) {
             p[K.BEST_TYPERUSH] = profile.bestTypeRushScore
             p[K.BEST_DUEL] = profile.bestDuelScore
             p[K.BEST_WILDCATCH] = profile.bestWildCatchScore
+            p[K.BEST_SURVIVOR] = profile.bestSurvivorScore
             p[K.IS_GUEST] = profile.isGuest
             p[K.LAST_EXPLORATION_DATE] = profile.lastExplorationXpDate
             p[K.LAST_FIRST_GAME_DATE] = profile.lastFirstGameXpDate
@@ -146,6 +152,7 @@ class UserProfileRepository(private val context: Context) {
             UserProfile(
                 uid = uid,
                 username = doc.getString("username") ?: "Trainer",
+                bio = doc.getString("bio") ?: "",
                 totalXp = totalXp,
                 weeklyXp = if (WeeklyReset.isStale(lastWeeklyReset)) 0
                            else (doc.getLong("weeklyXp") ?: 0L).toInt(),
@@ -160,6 +167,7 @@ class UserProfileRepository(private val context: Context) {
                 bestTypeRushScore = (doc.getLong("bestTypeRushScore") ?: 0L).toInt(),
                 bestDuelScore = (doc.getLong("bestDuelScore") ?: 0L).toInt(),
                 bestWildCatchScore = (doc.getLong("bestWildCatchScore") ?: 0L).toInt(),
+                bestSurvivorScore = (doc.getLong("bestSurvivorScore") ?: 0L).toInt(),
                 isGuest = false,
                 lastDailyXpDate = doc.getString("lastDailyXpDate") ?: "",
                 lastExplorationXpDate = doc.getString("lastExplorationXpDate") ?: "",
@@ -193,6 +201,7 @@ class UserProfileRepository(private val context: Context) {
                 mapOf(
                     "uid" to uid,
                     "username" to p.username,
+                    "bio" to p.bio.take(60),
                     "photoUrl" to p.photoUrl,
                     "email" to p.email,
                     "totalXp" to p.totalXp,
@@ -206,6 +215,7 @@ class UserProfileRepository(private val context: Context) {
                     "bestTypeRushScore" to p.bestTypeRushScore,
                     "bestDuelScore" to p.bestDuelScore,
                     "bestWildCatchScore" to p.bestWildCatchScore,
+                    "bestSurvivorScore" to p.bestSurvivorScore,
                     "dailyStreak" to p.dailyStreak,
                     "lastDailyXpDate" to p.lastDailyXpDate,
                     "lastExplorationXpDate" to p.lastExplorationXpDate,
@@ -228,6 +238,7 @@ class UserProfileRepository(private val context: Context) {
                     "displayName" to p.username,
                     // lowercase copy for case-insensitive friend search (prefix queries)
                     "displayNameLower" to p.username.lowercase(),
+                    "bio" to p.bio.take(60),
                     "photoUrl" to p.photoUrl,
                     "totalXp" to p.totalXp,
                     "weeklyXp" to p.weeklyXp,
@@ -254,6 +265,7 @@ class UserProfileRepository(private val context: Context) {
                 "typerush" -> K.BEST_TYPERUSH
                 "duel" -> K.BEST_DUEL
                 "wildcatch" -> K.BEST_WILDCATCH
+                "survivor" -> K.BEST_SURVIVOR
                 else -> return@edit
             }
             if (score > (p[key] ?: 0)) {
@@ -272,6 +284,7 @@ class UserProfileRepository(private val context: Context) {
             "typerush" -> "bestTypeRushScore"
             "duel" -> "bestDuelScore"
             "wildcatch" -> "bestWildCatchScore"
+            "survivor" -> "bestSurvivorScore"
             else -> return
         }
         try {

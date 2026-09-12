@@ -5,6 +5,7 @@ import com.aditya1875.pokeverse.feature.game.pokematch.domain.engine.MatchGameEn
 import com.aditya1875.pokeverse.feature.game.pokequiz.data.DynamicQuizRepository
 import com.aditya1875.pokeverse.feature.game.poketype.data.generator.TypeRushQuestionGenerator
 import com.aditya1875.pokeverse.feature.game.poketype.domain.engine.TypeRushEngine
+import com.aditya1875.pokeverse.feature.game.survivor.domain.engine.SurvivorRoundGenerator
 import org.koin.dsl.module
 
 val gameModule = module {
@@ -13,4 +14,5 @@ val gameModule = module {
     single { MatchGameEngine() }
     single { DuelGameEngine() }
     single { DynamicQuizRepository(get()) }
+    single { SurvivorRoundGenerator(get()) }
 }

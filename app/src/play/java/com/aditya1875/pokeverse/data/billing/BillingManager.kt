@@ -68,14 +68,21 @@ class BillingManager(
     override val billingError: StateFlow<String?> = _billingError
 
     init {
-        // Observe verified premium state from repository
+        // Observe verified premium state from repository. This is the only place
+        // that ever resolves Loading -> Free — it used to skip that transition
+        // whenever the state was still Loading, which meant every non-premium
+        // user got stuck on Loading forever (isPremium's first emission for a
+        // free user is `false`, and `false` was only ever applied once the state
+        // had *already* left Loading by some other path, which never happened).
+        // That silently hid every UI gated on `SubscriptionState.Free`, including
+        // the Game Hub's premium banner.
         coroutineScope.launch {
             premiumRepository.isPremium.collect { isPremium ->
-                if (isPremium) {
+                _subscriptionState.value = if (isPremium) {
                     val plan = premiumRepository.premiumPlan.first() ?: PremiumPlan.MONTHLY
-                    _subscriptionState.value = SubscriptionState.Premium(plan)
-                } else if (_subscriptionState.value !is SubscriptionState.Loading) {
-                    _subscriptionState.value = SubscriptionState.Free
+                    SubscriptionState.Premium(plan)
+                } else {
+                    SubscriptionState.Free
                 }
             }
         }

@@ -14,6 +14,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
@@ -65,10 +66,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -85,6 +89,7 @@ import com.aditya1875.pokeverse.feature.inbox.presentation.screens.InboxSheet
 import com.aditya1875.pokeverse.feature.inbox.presentation.viewmodels.InboxViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.data.remote.model.LeaderboardEntry
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardState
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.BioSpeechBubble
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.GuestLeaderboardLocked
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.RankCelebrationDialog
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardType
@@ -122,6 +127,10 @@ fun LeaderboardScreen(
     val lastWeekLoading by viewModel.lastWeekLoading.collectAsStateWithLifecycle()
     val unreadCount by inboxViewModel.unreadCount.collectAsStateWithLifecycle()
     var showInbox by remember { mutableStateOf(false) }
+    var bioBubble by remember { mutableStateOf<Pair<LeaderboardEntry, Rect>?>(null) }
+    val onBioTap: (LeaderboardEntry, Rect) -> Unit = { entry, rect ->
+        bioBubble = if (bioBubble?.first?.uid == entry.uid) null else entry to rect
+    }
 
     if (authState !is AuthState.Authenticated) {
         GuestLeaderboardLocked()
@@ -132,6 +141,10 @@ fun LeaderboardScreen(
         InboxSheet(onDismiss = { showInbox = false })
     }
 
+    // Wraps Scaffold so the bio bubble below can be positioned in the same
+    // coordinate space `boundsInRoot()` reports for a tapped row — nesting it
+    // inside Scaffold's own padded content box would double-count that inset.
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -156,7 +169,8 @@ fun LeaderboardScreen(
                         type = type,
                         onTypeChange = { viewModel.switchType(it) },
                         unreadCount = unreadCount,
-                        onBellClick = { showInbox = true }
+                        onBellClick = { showInbox = true },
+                        onBioTap = onBioTap
                     )
                 }
             } else when (val s = state) {
@@ -233,7 +247,8 @@ fun LeaderboardScreen(
                             canLoadMore = s.canLoadMore,
                             onLoadMore = { viewModel.loadNextPage() },
                             unreadCount = unreadCount,
-                            onBellClick = { showInbox = true }
+                            onBellClick = { showInbox = true },
+                            onBioTap = onBioTap
                         )
                     }
 
@@ -251,6 +266,15 @@ fun LeaderboardScreen(
             }
         }
     }
+
+    bioBubble?.let { (entry, anchor) ->
+        BioSpeechBubble(
+            entry = entry,
+            anchor = anchor,
+            onDismiss = { bioBubble = null }
+        )
+    }
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -263,7 +287,8 @@ private fun LeaderboardList(
     canLoadMore: Boolean,
     onLoadMore: () -> Unit,
     unreadCount: Int,
-    onBellClick: () -> Unit
+    onBellClick: () -> Unit,
+    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
 ) {
     val listState = rememberLazyListState()
 
@@ -304,7 +329,8 @@ private fun LeaderboardList(
                     type = type,
                     first = entries[0],
                     second = entries[1],
-                    third = entries[2]
+                    third = entries[2],
+                    onBioTap = onBioTap
                 )
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -322,7 +348,8 @@ private fun LeaderboardList(
                 type = type,
                 entry = entry,
                 isUser = isUser,
-                maxXp = entries[0].totalXp
+                maxXp = entries[0].totalXp,
+                onBioTap = onBioTap
             )
         }
 
@@ -469,7 +496,8 @@ private fun PodiumSection(
     type: LeaderboardType,
     first: LeaderboardEntry,
     second: LeaderboardEntry,
-    third: LeaderboardEntry
+    third: LeaderboardEntry,
+    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
 ) {
     val gold = Color(0xFFFFD700)
     val silver = Color(0xFFC0C0C0)
@@ -484,15 +512,15 @@ private fun PodiumSection(
     ) {
         PodiumColumn(
             type = type, entry = second, rank = 2, level = second.level,
-            color = silver, avatarSize = 64.dp, podiumHeight = 70.dp
+            color = silver, avatarSize = 64.dp, podiumHeight = 70.dp, onBioTap = onBioTap
         )
         PodiumColumn(
             type = type, entry = first, rank = 1, level = first.level,
-            color = gold, avatarSize = 80.dp, podiumHeight = 96.dp
+            color = gold, avatarSize = 80.dp, podiumHeight = 96.dp, onBioTap = onBioTap
         )
         PodiumColumn(
             type = type, entry = third, rank = 3, level = third.level,
-            color = bronze, avatarSize = 56.dp, podiumHeight = 52.dp
+            color = bronze, avatarSize = 56.dp, podiumHeight = 52.dp, onBioTap = onBioTap
         )
     }
 }
@@ -505,9 +533,17 @@ private fun PodiumColumn(
     level: Int,
     color: Color,
     avatarSize: Dp,
-    podiumHeight: Dp
+    podiumHeight: Dp,
+    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
 ) {
+    var bounds by remember { mutableStateOf(Rect.Zero) }
     Column(
+        modifier = Modifier
+            .onGloballyPositioned { bounds = it.boundsInRoot() }
+            .then(
+                if (entry.bio.isNotBlank()) Modifier.clickable { onBioTap(entry, bounds) }
+                else Modifier
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
@@ -575,7 +611,8 @@ private fun LeaderboardRow(
     type: LeaderboardType,
     entry: LeaderboardEntry,
     isUser: Boolean,
-    maxXp: Int
+    maxXp: Int,
+    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
 ) {
     val bgColor = if (isUser)
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -589,9 +626,15 @@ private fun LeaderboardRow(
         animatedProgress.animateTo(progress, tween(600, easing = FastOutSlowInEasing))
     }
 
+    var bounds by remember { mutableStateOf(Rect.Zero) }
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .onGloballyPositioned { bounds = it.boundsInRoot() }
+            .then(
+                if (entry.bio.isNotBlank()) Modifier.clickable { onBioTap(entry, bounds) }
+                else Modifier
+            )
             .background(bgColor)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -831,7 +874,8 @@ private fun LastWeekList(
     type: LeaderboardType,
     onTypeChange: (LeaderboardType) -> Unit,
     unreadCount: Int,
-    onBellClick: () -> Unit
+    onBellClick: () -> Unit,
+    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
 ) {
     val currentUid = remember { FirebaseAuth.getInstance().currentUser?.uid }
 
@@ -881,7 +925,8 @@ private fun LastWeekList(
                     LastWeekPodiumSection(
                         first = entries[0],
                         second = entries[1],
-                        third = entries[2]
+                        third = entries[2],
+                        onBioTap = onBioTap
                     )
                     Spacer(Modifier.height(8.dp))
                     HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -899,7 +944,8 @@ private fun LastWeekList(
                     entry = entry,
                     index = idx,
                     isUser = entry.uid == currentUid,
-                    maxXp = entries[0].weeklyXp
+                    maxXp = entries[0].weeklyXp,
+                    onBioTap = onBioTap
                 )
             }
         }
@@ -965,7 +1011,8 @@ private fun LastWeekHeroHeader(weekOf: Long) {
 private fun LastWeekPodiumSection(
     first: LeaderboardEntry,
     second: LeaderboardEntry,
-    third: LeaderboardEntry
+    third: LeaderboardEntry,
+    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
 ) {
     val gold = Color(0xFFFFD700)
     val silver = Color(0xFFC0C0C0)
@@ -980,16 +1027,16 @@ private fun LastWeekPodiumSection(
     ) {
         LastWeekPodiumColumn(
             entry = second, rank = 2, color = silver,
-            avatarSize = 64.dp, podiumHeight = 70.dp, entranceDelay = 150L
+            avatarSize = 64.dp, podiumHeight = 70.dp, entranceDelay = 150L, onBioTap = onBioTap
         )
         LastWeekPodiumColumn(
             entry = first, rank = 1, color = gold,
             avatarSize = 80.dp, podiumHeight = 96.dp, entranceDelay = 0L,
-            isChampion = true
+            isChampion = true, onBioTap = onBioTap
         )
         LastWeekPodiumColumn(
             entry = third, rank = 3, color = bronze,
-            avatarSize = 56.dp, podiumHeight = 52.dp, entranceDelay = 300L
+            avatarSize = 56.dp, podiumHeight = 52.dp, entranceDelay = 300L, onBioTap = onBioTap
         )
     }
 }
@@ -1002,7 +1049,8 @@ private fun LastWeekPodiumColumn(
     avatarSize: Dp,
     podiumHeight: Dp,
     entranceDelay: Long,
-    isChampion: Boolean = false
+    isChampion: Boolean = false,
+    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
 ) {
     val entranceScale = remember { Animatable(0.5f) }
     val entranceAlpha = remember { Animatable(0f) }
@@ -1035,12 +1083,19 @@ private fun LastWeekPodiumColumn(
         label = "sparkle"
     )
 
+    var bounds by remember { mutableStateOf(Rect.Zero) }
     Column(
-        modifier = Modifier.graphicsLayer {
-            scaleX = entranceScale.value
-            scaleY = entranceScale.value
-            alpha = entranceAlpha.value
-        },
+        modifier = Modifier
+            .onGloballyPositioned { bounds = it.boundsInRoot() }
+            .then(
+                if (entry.bio.isNotBlank()) Modifier.clickable { onBioTap(entry, bounds) }
+                else Modifier
+            )
+            .graphicsLayer {
+                scaleX = entranceScale.value
+                scaleY = entranceScale.value
+                alpha = entranceAlpha.value
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
@@ -1133,7 +1188,8 @@ private fun AnimatedLastWeekRow(
     entry: LeaderboardEntry,
     index: Int,
     isUser: Boolean,
-    maxXp: Int
+    maxXp: Int,
+    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
 ) {
     val offsetX = remember { Animatable(80f) }
     val rowAlpha = remember { Animatable(0f) }
@@ -1154,7 +1210,8 @@ private fun AnimatedLastWeekRow(
             type = LeaderboardType.LAST_WEEK,
             entry = entry,
             isUser = isUser,
-            maxXp = maxXp
+            maxXp = maxXp,
+            onBioTap = onBioTap
         )
     }
 }

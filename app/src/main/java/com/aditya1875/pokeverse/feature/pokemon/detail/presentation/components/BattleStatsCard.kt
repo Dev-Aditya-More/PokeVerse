@@ -206,6 +206,7 @@ fun StatCalculatorCard(pokemon: PokemonResponse, accentColor: Color) {
         Text(
             "${stringResource(R.string.stat_calc_level)}: $level",
             style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.SemiBold
         )
         Slider(
@@ -241,7 +242,8 @@ fun StatCalculatorCard(pokemon: PokemonResponse, accentColor: Color) {
                         Text(
                             nature.displayName,
                             style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Text(
@@ -467,7 +469,8 @@ fun GoBattlePowerCard(
         Text(
             "${stringResource(R.string.go_cp_level)}: ${formatGoLevel(level)}",
             style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Slider(
             value = levelIndex.toFloat(),
@@ -533,7 +536,7 @@ fun GoBattlePowerCard(
 @Composable
 private fun GoIvSlider(label: String, value: Int, accentColor: Color, onValueChange: (Int) -> Unit) {
     Spacer(Modifier.height(8.dp))
-    Text("$label: $value", style = MaterialTheme.typography.labelMedium)
+    Text("$label: $value", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
     Slider(
         value = value.toFloat(),
         onValueChange = { onValueChange(it.roundToInt()) },

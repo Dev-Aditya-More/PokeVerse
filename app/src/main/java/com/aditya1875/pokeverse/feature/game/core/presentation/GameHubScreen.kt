@@ -52,10 +52,10 @@ fun GameHubScreen(
     val subscriptionState by viewModel.subscriptionState.collectAsStateWithLifecycle()
     var showPremiumSheet by remember { mutableStateOf(false) }
 
-    // Stagger: each card becomes visible 80 ms after the previous one (6 cards = 400 ms total)
+    // Stagger: each card becomes visible 80 ms after the previous one
     var visibleCardCount by remember { mutableStateOf(0) }
     LaunchedEffect(Unit) {
-        repeat(6) { i ->
+        repeat(7) { i ->
             if (i > 0) delay(80L)
             visibleCardCount = i + 1
         }
@@ -168,6 +168,15 @@ fun GameHubScreen(
             accentColor = Color(0xFF9C27B0),
             tag = "Guess",
             stats = "Classic anime style"
+        ),
+        GameEntry(
+            id = "survivor",
+            title = stringResource(R.string.game_name_survivor_title),
+            description = stringResource(R.string.game_name_survivor_desc),
+            icon = Icons.Default.Bolt,
+            accentColor = Color(0xFFFFC107),
+            tag = "Endless",
+            stats = "3 Lives"
         )
     )
 

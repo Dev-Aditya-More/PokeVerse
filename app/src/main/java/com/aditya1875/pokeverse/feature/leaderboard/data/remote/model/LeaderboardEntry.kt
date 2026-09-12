@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.feature.leaderboard.data.remote.model
 data class LeaderboardEntry(
     val uid: String = "",
     val displayName: String = "",
+    val bio: String = "",
     val email: String = "",
     val photoUrl: String = "",
     val totalXp: Int = 0,

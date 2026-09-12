@@ -272,6 +272,7 @@ class LeaderboardRepository {
     private fun DocumentSnapshot.toLeaderboardEntry(rank: Int) = LeaderboardEntry(
         uid = getString("uid") ?: id,
         displayName = getString("displayName") ?: "Trainer",
+        bio = getString("bio") ?: "",
         email = getString("email") ?: "trainer@dexverse",
         photoUrl = getString("photoUrl") ?: "",
         totalXp = (getLong("totalXp") ?: 0L).toInt(),
@@ -329,6 +330,9 @@ class LeaderboardRepository {
                 LeaderboardEntry(
                     uid = m["uid"] as? String ?: "",
                     displayName = m["displayName"] as? String ?: "Trainer",
+                    // Not yet written by the last-week-snapshot Cloud Function —
+                    // defaults empty until that function is updated to include it.
+                    bio = m["bio"] as? String ?: "",
                     photoUrl = m["photoUrl"] as? String ?: "",
                     weeklyXp = when (val v = m["weeklyXp"]) {
                         is Long -> v.toInt()

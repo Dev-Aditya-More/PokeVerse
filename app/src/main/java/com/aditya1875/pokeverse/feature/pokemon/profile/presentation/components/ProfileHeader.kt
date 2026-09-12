@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -69,6 +70,7 @@ fun ProfileHeader(
 
     var showNameDialog by remember { mutableStateOf(false) }
     var nameInput by remember { mutableStateOf(profile.username) }
+    var bioInput by remember { mutableStateOf(profile.bio) }
 
     LaunchedEffect(profile.level) {
         if (profile.level != prevLevel) {
@@ -82,24 +84,42 @@ fun ProfileHeader(
             onDismissRequest = { showNameDialog = false },
             title = { Text(stringResource(R.string.profile_edit_display_name)) },
             text = {
-                OutlinedTextField(
-                    value = nameInput,
-                    onValueChange = { nameInput = it },
-                    label = { Text(stringResource(R.string.profile_name_label)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words,
-                        imeAction = ImeAction.Done
+                Column {
+                    OutlinedTextField(
+                        value = nameInput,
+                        onValueChange = { nameInput = it },
+                        label = { Text(stringResource(R.string.profile_name_label)) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            imeAction = ImeAction.Done
+                        )
                     )
-                )
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = bioInput,
+                        onValueChange = { bioInput = it.take(60) },
+                        label = { Text(stringResource(R.string.profile_bio_label)) },
+                        placeholder = { Text(stringResource(R.string.profile_bio_placeholder)) },
+                        maxLines = 2,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = "${bioInput.length}/60",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                        modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                    )
+                }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
                         if (nameInput.isNotBlank()) {
                             viewModel.updateUsername(nameInput.trim())
-                            showNameDialog = false
                         }
+                        viewModel.updateBio(bioInput)
+                        showNameDialog = false
                     }
                 ) { Text(stringResource(R.string.action_save)) }
             },
@@ -192,6 +212,7 @@ fun ProfileHeader(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.clickable {
                     nameInput = profile.username
+                    bioInput = profile.bio
                     showNameDialog = true
                 }
             ) {
@@ -211,6 +232,18 @@ fun ProfileHeader(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            Text(
+                text = profile.bio.ifBlank { stringResource(R.string.profile_bio_empty_hint) },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (profile.bio.isBlank()) 0.5f else 0.85f),
+                maxLines = 2,
+                modifier = Modifier.clickable {
+                    nameInput = profile.username
+                    bioInput = profile.bio
+                    showNameDialog = true
+                }
+            )
 
             if(!profile.isGuest) {
                 Surface(

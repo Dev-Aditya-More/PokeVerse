@@ -66,6 +66,8 @@ sealed class Route(val route: String) {
 
     object WildCatchPlay : Route("wildcatch/play")
 
+    object SurvivorPlay : Route("survivor/play")
+
     // Other screens
     object Analysis : Route("analysis?teamId={teamId}") {
         fun createRoute(teamId: String) = "analysis?teamId=$teamId"
@@ -74,6 +76,10 @@ sealed class Route(val route: String) {
     object ThemeSelector : Route("theme_selector")
 
     object FaceMatch : Route("face_match")
+
+    object ComparePokemon : Route("compare_pokemon")
+
+    object StatCalculator : Route("stat_calculator")
 
     object Details : Route("pokemon_detail/{pokemonName}") {
         fun createDetails(pokemonName: String): String = "pokemon_detail/$pokemonName"

@@ -36,6 +36,10 @@ sealed class XPEvent {
     data class WildCatchCaught(val streak: Int) : XPEvent()
     object WildCatchComplete : XPEvent()
 
+    // Pokémon Survivor
+    data class SurvivorCorrect(val streak: Int) : XPEvent()
+    object SurvivorComplete : XPEvent()
+
     // Easter Egg
     object EasterEggClaim : XPEvent()
 }
@@ -77,6 +81,11 @@ object XPValues {
     const val CATCH_STREAK_3 = 15
     const val CATCH_STREAK_6 = 30
     const val CATCH_COMPLETE = 25
+
+    const val SURVIVOR_CORRECT = 5
+    const val SURVIVOR_STREAK_5 = 10
+    const val SURVIVOR_STREAK_10 = 25
+    const val SURVIVOR_COMPLETE = 20
 
     const val EASTER_EGG_CLAIM = 25
 }

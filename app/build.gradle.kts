@@ -93,22 +93,13 @@ android {
     productFlavors {
         create("play") {
             dimension = "distribution"
+            isDefault = true
             applicationIdSuffix = ".play"
             versionNameSuffix = "-play"
             buildConfigField("boolean", "USE_FIREBASE", "true")
             buildConfigField("Boolean", "ENABLE_BILLING", "true")
             buildConfigField("Boolean", "ENABLE_PREMIUM_GAMES", "true")
             buildConfigField("Boolean", "ENABLE_ADS", "true")
-        }
-        create("foss") {
-            dimension = "distribution"
-//            applicationIdSuffix = ".foss"
-//            versionNameSuffix = "-foss"
-            isDefault = true
-            buildConfigField("boolean", "USE_FIREBASE", "false")
-            buildConfigField("Boolean", "ENABLE_BILLING", "false")
-            buildConfigField("Boolean", "ENABLE_PREMIUM_GAMES", "false")
-            buildConfigField("Boolean", "ENABLE_ADS", "false")
         }
     }
 
@@ -117,11 +108,6 @@ android {
             java.srcDir("src/play/java")
             res.srcDir("src/play/res")
             manifest.srcFile("src/play/AndroidManifest.xml")
-        }
-        getByName("foss") {
-            java.srcDir("src/foss/java")
-            res.srcDir("src/foss/res")
-            manifest.srcFile("src/foss/AndroidManifest.xml")
         }
     }
 }

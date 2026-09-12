@@ -43,6 +43,7 @@ import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.screen.CardClashScreen
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.screens.DuelGameScreen
+import com.aditya1875.pokeverse.feature.game.survivor.presentation.screens.SurvivorScreen
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.screens.WildCatchScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessDifficultyScreen
@@ -63,6 +64,8 @@ import com.aditya1875.pokeverse.feature.item.presentation.screens.ItemDetailScre
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.screens.LeaderboardScreen
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens.PokemonDetailScreen
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens.HomeScreen
+import com.aditya1875.pokeverse.feature.battlestats.presentation.screens.StandaloneStatCalculatorScreen
+import com.aditya1875.pokeverse.feature.compare.presentation.screens.ComparePokemonScreen
 import com.aditya1875.pokeverse.feature.facematch.presentation.FaceMatchScreen
 import com.aditya1875.pokeverse.feature.pokemon.onboarding.IntroScreen
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.EditProfileDialog
@@ -134,6 +137,9 @@ fun AppNavGraph(
 
     val themePreferences = koinInject<ThemePreferences>()
 
+    // Set by SplashScreen once its reveal animation + intro music hold have played out.
+    var splashFinished by remember { mutableStateOf(false) }
+
     LaunchedEffect(currentRoute) {
         selectedRoute = when (currentRoute) {
             Route.BottomBar.Home.route -> Route.BottomBar.Home
@@ -145,7 +151,9 @@ fun AppNavGraph(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(splashFinished) {
+        if (!splashFinished) return@LaunchedEffect
+
         val introSeen = ScreenStateManager.isIntroSeen(context)
         val lastRoute = ScreenStateManager.getLastRoute(context)
 
@@ -190,7 +198,7 @@ fun AppNavGraph(
             startDestination = Route.Splash.route,
         ) {
             composable(Route.Splash.route) {
-                SplashScreen()
+                SplashScreen(onFinish = { splashFinished = true })
             }
 
             composable(Route.Onboarding.route) {
@@ -265,6 +273,7 @@ fun AppNavGraph(
                                 "pokequiz" -> navController.navigate(Route.QuizDifficulty.route)
                                 "pokeguess" -> navController.navigate(Route.GuessDifficulty.route)
                                 "wildcatch" -> navController.navigate(Route.WildCatchPlay.route)
+                                "survivor" -> navController.navigate(Route.SurvivorPlay.route)
                             }
                         },
                     )
@@ -472,6 +481,12 @@ fun AppNavGraph(
                 )
             }
 
+            composable(Route.SurvivorPlay.route) {
+                SurvivorScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
             composable(
                 route = Route.Analysis.route,
                 arguments = listOf(
@@ -520,6 +535,18 @@ fun AppNavGraph(
 
             composable(Route.FaceMatch.route) {
                 FaceMatchScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Route.ComparePokemon.route) {
+                ComparePokemonScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Route.StatCalculator.route) {
+                StandaloneStatCalculatorScreen(
                     onBack = { navController.popBackStack() }
                 )
             }

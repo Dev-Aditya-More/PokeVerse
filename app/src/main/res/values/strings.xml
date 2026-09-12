@@ -147,6 +147,8 @@
     <string name="game_name_pokeguess_desc">Guess the monsters from its silhouette!</string>
     <string name="game_name_wildcatch_title">Wild Catch</string>
     <string name="game_name_wildcatch_desc">Tap at the right moment to catch wild Pokémon. Pure timing — no knowledge needed!</string>
+    <string name="game_name_survivor_title">Pokémon Survivor</string>
+    <string name="game_name_survivor_desc">A wild Pokémon appears — pick the type that beats it before time runs out!</string>
     <string name="label_premium">Premium</string>
 
     <!-- Rewarded ads -->
@@ -572,8 +574,11 @@
     <!-- Profile Edit -->
     <string name="profile_edit_trainer_name">Edit Trainer Name</string>
     <string name="profile_trainer_name_label">Trainer Name</string>
-    <string name="profile_edit_display_name">Edit Display Name</string>
+    <string name="profile_edit_display_name">Edit Profile</string>
     <string name="profile_name_label">Name</string>
+    <string name="profile_bio_label">Bio</string>
+    <string name="profile_bio_placeholder">Write your entry that people\'ll see</string>
+    <string name="profile_bio_empty_hint">Tap to write a bio</string>
     <string name="action_save">Save</string>
 
     <!-- Team -->

@@ -132,6 +132,18 @@ class XPManager(
             }
             is XPEvent.WildCatchComplete ->
                 XPValues.CATCH_COMPLETE to "Wild Catch Complete +${XPValues.CATCH_COMPLETE} XP"
+            is XPEvent.SurvivorCorrect -> {
+                val streakBonus = when {
+                    event.streak >= 10 -> XPValues.SURVIVOR_STREAK_10
+                    event.streak >= 5 -> XPValues.SURVIVOR_STREAK_5
+                    else -> 0
+                }
+                val total = XPValues.SURVIVOR_CORRECT + streakBonus
+                val lbl = if (streakBonus > 0) "Survived! +$total XP 🔥 x${event.streak}" else "Survived! +$total XP"
+                total to lbl
+            }
+            is XPEvent.SurvivorComplete ->
+                XPValues.SURVIVOR_COMPLETE to "Survivor Run Complete +${XPValues.SURVIVOR_COMPLETE} XP"
             is XPEvent.EasterEggClaim -> {
                 if (profile.lastEasterEggXpDate == today) return noOpResult(profile)
                 XPValues.EASTER_EGG_CLAIM to "You found it! +${XPValues.EASTER_EGG_CLAIM} XP ✨"

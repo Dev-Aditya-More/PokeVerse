@@ -3,6 +3,7 @@ package com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.mode
 data class UserProfile(
     val uid: String = "",
     val username: String = "Trainer",
+    val bio: String = "",
     val level: Int = 1,
     val totalXp: Int = 0,
     val currentXp: Int = 0,
@@ -16,6 +17,7 @@ data class UserProfile(
     val bestGuessScore: Int = 0,
     val bestDuelScore: Int = 0,
     val bestWildCatchScore: Int = 0,
+    val bestSurvivorScore: Int = 0,
     val isGuest: Boolean = true,
 
     // XP tracking
