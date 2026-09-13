@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.PokemonResponse
@@ -117,7 +118,9 @@ fun ComparePickerField(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Black,
                         color = Color.White,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -125,7 +128,7 @@ fun ComparePickerField(
             OutlinedTextField(
                 value = query,
                 onValueChange = onQueryChange,
-                label = { Text(label) },
+                label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 singleLine = true,
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = accent) },
                 trailingIcon = {

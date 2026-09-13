@@ -47,6 +47,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.core.ui.components.NewBadge
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -233,17 +234,25 @@ fun ProfileHeader(
                 )
             }
 
-            Text(
-                text = profile.bio.ifBlank { stringResource(R.string.profile_bio_empty_hint) },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (profile.bio.isBlank()) 0.5f else 0.85f),
-                maxLines = 2,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.clickable {
                     nameInput = profile.username
                     bioInput = profile.bio
                     showNameDialog = true
                 }
-            )
+            ) {
+                Text(
+                    text = profile.bio.ifBlank { stringResource(R.string.profile_bio_empty_hint) },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (profile.bio.isBlank()) 0.5f else 0.85f),
+                    maxLines = 2
+                )
+                if (profile.bio.isBlank()) {
+                    NewBadge()
+                }
+            }
 
             if(!profile.isGuest) {
                 Surface(

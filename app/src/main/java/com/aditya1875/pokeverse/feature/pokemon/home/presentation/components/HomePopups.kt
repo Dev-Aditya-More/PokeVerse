@@ -174,13 +174,14 @@ fun HomePopupOrchestrator(
 @Composable
 fun UpdateAvailableDialog(
     latestVersionName: String,
-    packageName: String,
-    onDismiss: () -> Unit
+    packageName: String
 ) {
     val context = LocalContext.current
 
+    // Compulsory — no dismiss button, and back/outside-tap are no-ops. New
+    // versions always carry improvements, so there's no "maybe later" here.
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {},
         shape = RoundedCornerShape(24.dp),
         icon = { Icon(Icons.Default.NewReleases, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp)) },
         title = {
@@ -192,7 +193,7 @@ fun UpdateAvailableDialog(
         },
         text = {
             Text(
-                "Version $latestVersionName is here with new features and improvements. Update now to stay in the game!",
+                "Version $latestVersionName is here with new features and improvements. Update now to continue.",
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -213,11 +214,6 @@ fun UpdateAvailableDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Update Now", fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
-                Text("Maybe Later", color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )

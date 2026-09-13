@@ -48,10 +48,14 @@ fun DailyHoppingPokemon(
     val screenWidth = config.screenWidthDp.dp
     val screenHeight = config.screenHeightDp.dp
 
-    // Positioned exactly above the bottom bar.
-    // Assuming standard BottomAppBar height (~80dp) + some buffer.
-    val fixedY = remember { (config.screenHeightDp - 140).dp }
-    
+    // Was pinned just above the bottom bar, which put it in a thin strip that's
+    // easy to miss (and easy to confuse with real bottom-bar chrome). Crossing
+    // through the middle of the screen — where the eye is actually looking —
+    // makes it far more likely to actually get noticed. A fresh random band
+    // each pass (instead of one fixed height) also keeps it from always
+    // cutting the same path.
+    var currentY by remember { mutableStateOf((config.screenHeightDp * 0.45f).dp) }
+
     val xAnim = remember { Animatable(-100f) }
     
     // Jump animation
@@ -96,6 +100,9 @@ fun DailyHoppingPokemon(
             if (hasBeenClicked) break
 
             xAnim.snapTo(-100f)
+            // Random band roughly through the middle third of the screen so
+            // consecutive passes don't all trace the exact same line.
+            currentY = (config.screenHeightDp * Random.nextFloat().coerceIn(0.35f, 0.55f)).dp
             isVisible = true
 
             // Animate across the screen
@@ -116,7 +123,7 @@ fun DailyHoppingPokemon(
             // y-offset lands the sprite where fixedY actually says.
             modifier = Modifier
                 .fillMaxWidth()
-                .offset(x = xAnim.value.dp, y = fixedY + hopY.dp),
+                .offset(x = xAnim.value.dp, y = currentY + hopY.dp),
             contentAlignment = Alignment.Center
         ) {
             // Glow sits behind the sprite and pulses independently of the hop,
@@ -124,7 +131,7 @@ fun DailyHoppingPokemon(
             // out of the corner of your eye.
             Box(
                 modifier = Modifier
-                    .size(110.dp)
+                    .size(130.dp)
                     .scale(glowScale)
                     .background(
                         brush = Brush.radialGradient(
@@ -141,7 +148,7 @@ fun DailyHoppingPokemon(
                 model = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png",
                 contentDescription = "Surprise Pokemon",
                 modifier = Modifier
-                    .size(80.dp)
+                    .size(92.dp)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null

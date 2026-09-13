@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -85,6 +86,12 @@ fun StatsSection(profile: UserProfile) {
 @Composable
 fun GameStatsSection(profile: UserProfile) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        GameStatRow(
+            icon = Icons.Default.Bolt,
+            title = "Pokémon Survivor",
+            bestScore = profile.bestSurvivorScore,
+            accentColor = Color(0xFFFFC107)
+        )
         GameStatRow(
             icon = Icons.Default.RadioButtonUnchecked,
             title = "Wild Catch",

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,6 +38,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.feature.team.data.local.entity.TeamMemberEntity
 
+private const val MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE = 3
+
 @Composable
 fun TeamContent(
     onAnalyze: () -> Unit,
@@ -49,6 +52,7 @@ fun TeamContent(
     analysisUsesLeft: Int? = null
 ) {
     val progressColor = accentColor ?: MaterialTheme.colorScheme.primary
+    val meetsMinimumForAnalysisOrShare = team.size >= MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (team.isEmpty()) {
@@ -97,6 +101,8 @@ fun TeamContent(
 
                     Text(
                         text = when {
+                            !meetsMinimumForAnalysisOrShare ->
+                                "Add ${MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE - team.size} more to unlock Analyze & Share"
                             team.size < 6 -> "Add ${6 - team.size} more Pokémon to complete your team"
                             else -> "Team complete! Ready for battle"
                         },
@@ -124,6 +130,7 @@ fun TeamContent(
             ) {
                 Button(
                     onClick = onAnalyze,
+                    enabled = meetsMinimumForAnalysisOrShare,
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -134,12 +141,14 @@ fun TeamContent(
                         contentColor = if (analysisUsesLeft == 0)
                             MaterialTheme.colorScheme.onError
                         else
-                            MaterialTheme.colorScheme.onTertiary
+                            MaterialTheme.colorScheme.onTertiary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     ),
                     contentPadding = PaddingValues(vertical = 14.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Info,
+                        imageVector = if (meetsMinimumForAnalysisOrShare) Icons.Default.Info else Icons.Default.Lock,
                         contentDescription = "Analyze Team",
                         modifier = Modifier.size(18.dp)
                     )
@@ -150,7 +159,13 @@ fun TeamContent(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
-                        if (analysisUsesLeft != null && analysisUsesLeft >= 0) {
+                        if (!meetsMinimumForAnalysisOrShare) {
+                            Text(
+                                text = "Need ${MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE - team.size} more",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Normal
+                            )
+                        } else if (analysisUsesLeft != null && analysisUsesLeft >= 0) {
                             Text(
                                 text = if (analysisUsesLeft == 0) "Go Premium" else "$analysisUsesLeft left",
                                 style = MaterialTheme.typography.labelSmall,
@@ -162,16 +177,19 @@ fun TeamContent(
                 if (onShare != null) {
                     Button(
                         onClick = onShare,
+                        enabled = meetsMinimumForAnalysisOrShare,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary
+                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                            disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         ),
                         contentPadding = PaddingValues(vertical = 14.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.IosShare,
+                            imageVector = if (meetsMinimumForAnalysisOrShare) Icons.Default.IosShare else Icons.Default.Lock,
                             contentDescription = "Share Team",
                             modifier = Modifier.size(18.dp)
                         )
@@ -182,6 +200,26 @@ fun TeamContent(
                             fontWeight = FontWeight.SemiBold
                         )
                     }
+                }
+            }
+
+            if (!meetsMinimumForAnalysisOrShare) {
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = "Add at least $MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE Pokémon to your team before you can analyze or share it.",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
 

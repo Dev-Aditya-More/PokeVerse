@@ -109,6 +109,7 @@ import androidx.navigation.NavHostController
 
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
+import com.aditya1875.pokeverse.feature.core.ui.components.NewBadge
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.badges.domain.GymBadge
@@ -508,6 +509,7 @@ fun SharedTransitionScope.HomeScreen(
                                     leadingIcon = {
                                         Icon(Icons.Default.CompareArrows, contentDescription = null)
                                     },
+                                    trailingIcon = { NewBadge() },
                                     onClick = {
                                         navController.navigate(Route.ComparePokemon.route)
                                         showMenu = false
@@ -519,6 +521,7 @@ fun SharedTransitionScope.HomeScreen(
                                     leadingIcon = {
                                         Icon(Icons.Default.Calculate, contentDescription = null)
                                     },
+                                    trailingIcon = { NewBadge() },
                                     onClick = {
                                         navController.navigate(Route.StatCalculator.route)
                                         showMenu = false

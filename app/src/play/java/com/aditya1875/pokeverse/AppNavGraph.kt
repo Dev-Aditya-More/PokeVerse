@@ -577,12 +577,11 @@ fun AppNavGraph(
         modifier = Modifier.align(Alignment.TopCenter)
     )
 
-    // Soft nudge — dismissible dialog for non-breaking updates
+    // Compulsory update prompt — no dismiss, since a new version is always better.
     if (showSoftUpdate) {
         UpdateAvailableDialog(
             latestVersionName = latestVersionName,
-            packageName = context.packageName,
-            onDismiss = { showSoftUpdate = false }
+            packageName = context.packageName
         )
     }
 

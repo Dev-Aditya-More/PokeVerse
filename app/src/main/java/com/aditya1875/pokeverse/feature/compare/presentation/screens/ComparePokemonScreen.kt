@@ -90,6 +90,7 @@ import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components.s
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import com.aditya1875.pokeverse.utils.SearchUiState
 import com.aditya1875.pokeverse.utils.SoundManager
+import com.aditya1875.pokeverse.utils.rememberIsWideScreen
 import com.aditya1875.pokeverse.utils.pokemonTypeColor
 import com.aditya1875.pokeverse.utils.pokemonTypeEffectiveness
 import com.aditya1875.pokeverse.utils.typeEffectivenessMultiplier
@@ -306,10 +307,49 @@ private fun CompareContent(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
-                Row(
+            val isWideScreen = rememberIsWideScreen()
+            val showVs = leftPokemon != null && rightPokemon != null
+
+            if (isWideScreen) {
+                // Plenty of room — side by side with the VS badge floating between them.
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(28.dp)
+                    ) {
+                        ComparePickerField(
+                            label = "Pokémon 1",
+                            accent = LeftAccent,
+                            query = queryLeft,
+                            searchState = leftSearch,
+                            selected = leftPokemon,
+                            isLoading = leftLoading,
+                            onQueryChange = { onQueryChange(Side.LEFT, it) },
+                            onSelect = { onSelect(Side.LEFT, it) },
+                            onClear = { onClear(Side.LEFT) },
+                            modifier = Modifier.weight(1f)
+                        )
+                        ComparePickerField(
+                            label = "Pokémon 2",
+                            accent = RightAccent,
+                            query = queryRight,
+                            searchState = rightSearch,
+                            selected = rightPokemon,
+                            isLoading = rightLoading,
+                            onQueryChange = { onQueryChange(Side.RIGHT, it) },
+                            onSelect = { onSelect(Side.RIGHT, it) },
+                            onClear = { onClear(Side.RIGHT) },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    if (showVs) VsBadge()
+                }
+            } else {
+                // Phone-width — side-by-side text fields don't leave room for the
+                // labels (they end up wrapping letter-by-letter), so stack instead.
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(28.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     ComparePickerField(
                         label = "First Pokémon",
@@ -321,8 +361,15 @@ private fun CompareContent(
                         onQueryChange = { onQueryChange(Side.LEFT, it) },
                         onSelect = { onSelect(Side.LEFT, it) },
                         onClear = { onClear(Side.LEFT) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.fillMaxWidth()
                     )
+                    if (showVs) {
+                        Spacer(Modifier.height(10.dp))
+                        VsBadge()
+                        Spacer(Modifier.height(10.dp))
+                    } else {
+                        Spacer(Modifier.height(12.dp))
+                    }
                     ComparePickerField(
                         label = "Second Pokémon",
                         accent = RightAccent,
@@ -333,11 +380,8 @@ private fun CompareContent(
                         onQueryChange = { onQueryChange(Side.RIGHT, it) },
                         onSelect = { onSelect(Side.RIGHT, it) },
                         onClear = { onClear(Side.RIGHT) },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.fillMaxWidth()
                     )
-                }
-                if (leftPokemon != null && rightPokemon != null) {
-                    VsBadge()
                 }
             }
 

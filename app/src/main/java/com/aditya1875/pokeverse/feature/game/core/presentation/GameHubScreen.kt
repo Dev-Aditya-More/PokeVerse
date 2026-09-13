@@ -32,6 +32,7 @@ import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.core.ui.components.NewBadge
 import com.aditya1875.pokeverse.feature.game.premium.screens.PremiumWelcomeDialog
 import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBanner
 import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
@@ -70,10 +71,6 @@ fun GameHubScreen(
 
     val context = LocalContext.current
 
-    // Warm the rewarded ad as soon as the hub is shown — by the time the player
-    // picks a game, works through the difficulty screen, and hits their first
-    // skip/revive perk, the ad has had much more lead time to finish loading
-    // instead of only starting once they're already mid-game.
     val rewardedAdManager: IRewardedAdManager = koinInject()
     val adState by rewardedAdManager.adState.collectAsStateWithLifecycle()
     val connectivityObserver: ConnectivityObserver = koinInject()
@@ -111,10 +108,21 @@ fun GameHubScreen(
         val icon: ImageVector,
         val accentColor: Color,
         val tag: String,
-        val stats: String = ""
+        val stats: String = "",
+        val isNew: Boolean = false
     )
 
     val games = listOf(
+        GameEntry(
+            id = "survivor",
+            title = stringResource(R.string.game_name_survivor_title),
+            description = stringResource(R.string.game_name_survivor_desc),
+            icon = Icons.Default.Bolt,
+            accentColor = Color(0xFFFFC107),
+            tag = "Endless",
+            stats = "3 Lives",
+            isNew = true
+        ),
         GameEntry(
             id = "wildcatch",
             title = stringResource(R.string.game_name_wildcatch_title),
@@ -168,15 +176,6 @@ fun GameHubScreen(
             accentColor = Color(0xFF9C27B0),
             tag = "Guess",
             stats = "Classic anime style"
-        ),
-        GameEntry(
-            id = "survivor",
-            title = stringResource(R.string.game_name_survivor_title),
-            description = stringResource(R.string.game_name_survivor_desc),
-            icon = Icons.Default.Bolt,
-            accentColor = Color(0xFFFFC107),
-            tag = "Endless",
-            stats = "3 Lives"
         )
     )
 
@@ -271,6 +270,7 @@ if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
                         accentColor = game.accentColor,
                         tag = game.tag,
                         stats = game.stats,
+                        isNew = game.isNew,
                         onClick = { onGameSelected(game.id) }
                     )
                 }
@@ -324,6 +324,7 @@ fun FeaturedGameCard(
     accentColor: Color,
     tag: String,
     stats: String,
+    isNew: Boolean = false,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -392,20 +393,28 @@ fun FeaturedGameCard(
                         )
                     }
 
-                    // Free tag
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(accentColor.copy(alpha = 0.15f))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = stringResource(R.string.game_hub_tag_free),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = accentColor,
-                            letterSpacing = 1.sp
-                        )
+                        if (isNew) {
+                            NewBadge()
+                        }
+                        // Free tag
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(accentColor.copy(alpha = 0.15f))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.game_hub_tag_free),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = accentColor,
+                                letterSpacing = 1.sp
+                            )
+                        }
                     }
                 }
 
