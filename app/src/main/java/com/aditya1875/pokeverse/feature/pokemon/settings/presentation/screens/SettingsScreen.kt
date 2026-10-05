@@ -73,6 +73,7 @@ import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components.zigZagBackground
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components.SubscriptionCustomerCenter
 import com.aditya1875.pokeverse.utils.EffectCapabilities
@@ -106,6 +107,10 @@ fun SettingsScreen(
 
     val selectedLanguage by settingsViewModel.selectedLanguage.collectAsStateWithLifecycle()
     var showLanguageDialog by remember { mutableStateOf(false) }
+
+    val shinyDexEnabled by settingsViewModel.shinyDexEnabled.collectAsStateWithLifecycle()
+    var showPremiumSheet by remember { mutableStateOf(false) }
+    if (showPremiumSheet) PremiumBottomSheet(onDismiss = { showPremiumSheet = false })
 
     val context = LocalContext.current
     val activity = context as? Activity
@@ -355,6 +360,38 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                         style = MaterialTheme.typography.bodyMedium
                     )
+                }
+
+                // Shiny Dex (premium) — non-premium users get the upsell instead of the switch flipping
+                val isPremium = subscriptionState is SubscriptionState.Premium
+                SettingsCard(
+                    title = stringResource(R.string.settings_shiny_dex),
+                    icon = Icons.Default.AutoAwesome,
+                    iconTint = Color(0xFFFFD700),
+                    expanded = true,
+                    onExpandToggle = { },
+                    trailing = {
+                        ResponsiveMetaballSwitch(
+                            checked = shinyDexEnabled && isPremium,
+                            onCheckedChange = { checked ->
+                                if (isPremium) settingsViewModel.setShinyDexEnabled(checked)
+                                else showPremiumSheet = true
+                            }
+                        )
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.settings_shiny_dex_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                    if (!isPremium) {
+                        Text(
+                            stringResource(R.string.settings_premium_only),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color(0xFFFFD700)
+                        )
+                    }
                 }
 
                 // Theme

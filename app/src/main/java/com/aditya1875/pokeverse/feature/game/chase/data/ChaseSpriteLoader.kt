@@ -10,6 +10,7 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import coil.request.SuccessResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -56,7 +57,16 @@ class ChaseSpriteLoader(
     private suspend fun loadOne(sprite: ChaseSprite): Drawable? =
         fetch(sprite.url) ?: sprite.fallbackUrl?.let { fetch(it) }
 
-    private suspend fun fetch(url: String): Drawable? {
+    private suspend fun fetch(url: String): Drawable? = try {
+        decode(url)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        // Coil normally reports failures as ErrorResult; this catches anything that escapes it.
+        null
+    }
+
+    private suspend fun decode(url: String): Drawable? {
         val request = ImageRequest.Builder(context)
             .data(url)
             .apply {

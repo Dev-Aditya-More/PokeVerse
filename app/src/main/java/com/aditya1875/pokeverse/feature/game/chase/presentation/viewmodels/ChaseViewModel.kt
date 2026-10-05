@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.chase.presentation.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.game.chase.data.ChaseSpriteLoader
@@ -19,6 +20,7 @@ import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -72,7 +74,7 @@ class ChaseViewModel(
         _gameState.value = ChaseGameState.Loading
         viewModelScope.launch {
             if (_sprites.value == null) _sprites.value = spriteLoader.load()
-            bestScore = userRepository.profileFlow.first().bestChaseScore
+            bestScore = safely("read best score") { userRepository.profileFlow.first().bestChaseScore } ?: 0
             _world.value = engine.newWorld()
             _gameState.value = ChaseGameState.Ready(bestScore)
         }
@@ -88,12 +90,36 @@ class ChaseViewModel(
         if (isRunning) apply(engine.step(_world.value, frameMs))
     }
 
-    fun moveLane(direction: Int) {
-        if (isRunning) _world.value = engine.moveLane(_world.value, direction)
+    fun steerTo(lane: Int) {
+        if (isRunning) _world.value = engine.steerTo(_world.value, lane)
+    }
+
+    /** Every tap counts toward breaking out of a net; a no-op when Pikachu isn't snared. */
+    fun struggle() {
+        if (isRunning) apply(engine.struggle(_world.value))
     }
 
     fun thunderbolt() {
         if (isRunning) apply(engine.thunderbolt(_world.value))
+    }
+
+    fun useAgility() {
+        if (isRunning) apply(engine.useAgility(_world.value))
+    }
+
+    /** True while this run can still earn an extra Agility (ad or premium). */
+    fun canEarnAgility(): Boolean = engine.canEarnAgility(_world.value)
+
+    /** An ad reward or premium perk: adds a charge and fires it. */
+    private var activateAgilityOnResume = false
+
+    fun earnAgility() {
+        val granted = engine.grantAgility(_world.value)
+        if (granted == _world.value) return
+        _world.value = granted
+        // The ad reward lands while the game is paused behind the ad — fire it on resume
+        // instead, so the 10 seconds aren't spent while the player can't see them.
+        if (isRunning) useAgility() else activateAgilityOnResume = true
     }
 
     fun pause() {
@@ -107,13 +133,18 @@ class ChaseViewModel(
         if (!playing.isPaused) return
         _gameState.value = ChaseGameState.Playing(isPaused = false)
         _sprites.value?.setAnimating(true)
+        if (activateAgilityOnResume) {
+            activateAgilityOnResume = false
+            useAgility()
+        }
     }
 
     fun revive() {
         if (_gameState.value !is ChaseGameState.Caught || !engine.canRevive(_world.value)) return
         _world.value = engine.revive(_world.value)
-        _gameState.value = ChaseGameState.Playing()
-        _sprites.value?.setAnimating(true)
+        // Resumes paused: the reward callback can fire while the ad is still on screen,
+        // and the player deserves a beat to get ready before obstacles move again.
+        _gameState.value = ChaseGameState.Playing(isPaused = true)
     }
 
     /** Ends the run from the "caught" screen and records the result. */
@@ -132,6 +163,7 @@ class ChaseViewModel(
     }
 
     fun playAgain() {
+        activateAgilityOnResume = false
         _world.value = engine.newWorld()
         _gameState.value = ChaseGameState.Ready(bestScore)
     }
@@ -147,26 +179,44 @@ class ChaseViewModel(
 
     private fun recordRun(run: ChaseWorld) {
         val finished = _gameState.value as? ChaseGameState.Finished ?: return
+        // Each write is guarded on its own, so e.g. a Firestore failure can't skip the local score.
         viewModelScope.launch {
-            val xp = xpManager.awardGameXP(XPEvent.ChaseComplete(meters = finished.meters))
-            if (xp.xpGained > 0) _xpResult.emit(xp)
-
-            userRepository.updateBestScore("chase", run.score)
-            userRepository.incrementGamesPlayed()
-            gameScoreDao.insertScore(
-                GameScoreEntity(
-                    gameType = "chase",
-                    difficulty = "ENDLESS",
-                    score = run.score,
-                    moves = run.berries,
-                    timeSeconds = (run.elapsedMs / 1000).toInt(),
-                    stars = finished.stars
+            safely("award XP") {
+                val xp = xpManager.awardGameXP(XPEvent.ChaseComplete(meters = finished.meters))
+                if (xp.xpGained > 0) _xpResult.emit(xp)
+            }
+            safely("update best score") { userRepository.updateBestScore("chase", run.score) }
+            safely("count game played") { userRepository.incrementGamesPlayed() }
+            safely("save score") {
+                gameScoreDao.insertScore(
+                    GameScoreEntity(
+                        gameType = "chase",
+                        difficulty = "ENDLESS",
+                        score = run.score,
+                        moves = run.berries,
+                        timeSeconds = (run.elapsedMs / 1000).toInt(),
+                        stars = finished.stars
+                    )
                 )
-            )
+            }
         }
+    }
+
+    /** Runs a side effect that must never crash the game; cancellation still propagates. */
+    private suspend fun <T> safely(what: String, block: suspend () -> T): T? = try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Log.w(TAG, "Couldn't $what", e)
+        null
     }
 
     override fun onCleared() {
         _sprites.value?.setAnimating(false)
+    }
+
+    private companion object {
+        const val TAG = "ChaseViewModel"
     }
 }

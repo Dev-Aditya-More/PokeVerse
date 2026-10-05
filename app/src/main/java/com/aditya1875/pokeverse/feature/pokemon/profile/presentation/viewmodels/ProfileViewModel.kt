@@ -86,6 +86,17 @@ class ProfileViewModel(
         }
     }
 
+    private var publishedPremium: Pair<String, Boolean>? = null
+
+    /** Mirrors premium status to the leaderboard for the flair; writes only when (user, status) changes. */
+    fun publishPremiumStatus(isPremium: Boolean) {
+        val uid = authManager.currentUser.value?.uid ?: return
+        val key = uid to isPremium
+        if (publishedPremium == key) return
+        publishedPremium = key
+        viewModelScope.launch { repository.publishPremiumFlag(isPremium) }
+    }
+
     private fun String.isCustomUsername() =
         isNotBlank() && this != "Trainer" && this != "Guest Trainer"
 

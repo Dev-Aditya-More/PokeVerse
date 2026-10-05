@@ -43,12 +43,20 @@ class ChaseEngineTest {
     }
 
     @Test
-    fun `moving lanes is clamped to the track`() {
-        var world = engine.newWorld()
-        repeat(5) { world = engine.moveLane(world, -1) }
-        assertEquals(0, world.targetLane)
-        repeat(5) { world = engine.moveLane(world, +1) }
-        assertEquals(2, world.targetLane)
+    fun `steering is clamped to the track`() {
+        val world = engine.newWorld()
+        assertEquals(0, engine.steerTo(world, -4).targetLane)
+        assertEquals(2, engine.steerTo(world, 9).targetLane)
+    }
+
+    @Test
+    fun `lane slide eases in and is speed-capped, never teleporting`() {
+        var world = engine.steerTo(engine.newWorld().copy(targetLane = 0, playerX = 0f), 2)
+        world = engine.step(world, 16).world
+        assertTrue("moved", world.playerX > 0f)
+        assertTrue("capped by laneSwitchSpeed", world.playerX <= quietConfig.laneSwitchSpeed * 0.016f + 0.0001f)
+        repeat(60) { world = engine.step(world, 16).world }
+        assertEquals(2f, world.playerX)
     }
 
     @Test
@@ -92,8 +100,10 @@ class ChaseEngineTest {
         assertFalse(engine.canRevive(world))
     }
 
+    // ── Thunderbolt ─────────────────────────────────────────────────────────
+
     @Test
-    fun `berries charge thunderbolt, which clears obstacles and resets the charge`() {
+    fun `berries charge thunderbolt, which clears attackers and resets the meter`() {
         var world = engine.newWorld()
         repeat(5) { i ->
             val berry = ChaseEntity(10L + i, EntityKind.ORAN_BERRY, 1, quietConfig.playerY)
@@ -110,7 +120,14 @@ class ChaseEngineTest {
     }
 
     @Test
-    fun `thunderbolt does nothing without a full charge`() {
+    fun `a thunder stone fills the meter outright`() {
+        val stone = ChaseEntity(11, EntityKind.THUNDER_STONE, 1, quietConfig.playerY)
+        val world = engine.step(engine.newWorld().copy(entities = listOf(stone)), 16).world
+        assertTrue(world.canThunderbolt)
+    }
+
+    @Test
+    fun `thunderbolt does nothing without a full meter`() {
         val world = engine.newWorld().copy(charge = 0.6f, entities = listOf(obstacleAt(lane = 0)))
         val step = engine.thunderbolt(world)
         assertEquals(world, step.world)
@@ -118,15 +135,139 @@ class ChaseEngineTest {
     }
 
     @Test
-    fun `a landing net hits pikachu only if it's still in that lane`() {
-        val incoming = NetWarning(lane = 1, remainingMs = 10, totalMs = 900)
-        val stayed = engine.step(engine.newWorld().copy(warnings = listOf(incoming)), 16)
-        assertEquals(2, stayed.world.lives)
+    fun `runs start with no shield, so pikachu is hittable straight away`() {
+        val step = ChaseEngine(quietConfig, Random(1)).let { it.step(it.newWorld().copy(entities = listOf(obstacleAt(lane = 1))), 16) }
+        assertEquals(2, step.world.lives)
+    }
 
-        val moved = engine.newWorld().copy(playerX = 2f, targetLane = 2, warnings = listOf(incoming))
-        val dodged = engine.step(moved, 16)
-        assertEquals(3, dodged.world.lives)
-        assertTrue(dodged.events.contains(ChaseEvent.NetDodged))
+    // ── Agility ─────────────────────────────────────────────────────────────
+
+    @Test
+    fun `agility is a single free lifeline per run`() {
+        val world = engine.newWorld()
+        assertEquals(1, world.agilityCharges)
+        val used = engine.useAgility(world)
+        assertTrue(used.world.isAgile)
+        assertEquals(0, used.world.agilityCharges)
+        assertTrue(used.events.contains(ChaseEvent.AgilityStarted))
+        // Can't stack a second dash, and no charges left anyway.
+        assertEquals(used.world, engine.useAgility(used.world).world)
+    }
+
+    @Test
+    fun `agility zaps attackers one at a time, nearest first`() {
+        val near = ChaseEntity(1, EntityKind.EKANS, 0, 0.6f)
+        val far = ChaseEntity(2, EntityKind.KOFFING, 2, 0.2f)
+        var world = engine.useAgility(engine.newWorld().copy(entities = listOf(near, far))).world
+
+        val first = engine.step(world, 16)
+        assertEquals(listOf(far.id), first.world.entities.map { it.id })
+        assertEquals(1, first.events.count { it is ChaseEvent.Zapped })
+
+        world = first.world
+        repeat((quietConfig.agilityStrikeIntervalMs / 16 + 1).toInt()) { world = engine.step(world, 16).world }
+        assertTrue(world.entities.none { it.kind.isObstacle })
+    }
+
+    @Test
+    fun `agility pulls in pickups from every lane`() {
+        val sideBerry = ChaseEntity(5, EntityKind.ORAN_BERRY, 2, quietConfig.playerY - 0.08f)
+        val world = engine.useAgility(engine.newWorld().copy(entities = listOf(sideBerry))).world
+        val step = engine.step(world, 16)
+        assertEquals(1, step.world.berries)
+    }
+
+    @Test
+    fun `agility ends after ten seconds with a short grace blink`() {
+        var world = engine.useAgility(engine.newWorld()).world
+        val events = mutableListOf<ChaseEvent>()
+        repeat((quietConfig.agilityMs / 50 + 1).toInt()) { val step = engine.step(world, 50); world = step.world; events += step.events }
+        assertFalse(world.isAgile)
+        assertTrue(world.invulnerableMs > 0)
+        assertTrue(events.contains(ChaseEvent.AgilityEnded))
+    }
+
+    @Test
+    fun `extra agility can be earned only up to the cap`() {
+        var world = engine.useAgility(engine.newWorld()).world
+        repeat(quietConfig.agilityMaxExtra) {
+            assertTrue(engine.canEarnAgility(world))
+            world = engine.grantAgility(world)
+        }
+        assertEquals(quietConfig.agilityMaxExtra, world.agilityCharges)
+        assertFalse(engine.canEarnAgility(world))
+        assertEquals(world, engine.grantAgility(world))
+    }
+
+    private val incomingNet = NetWarning(lane = 1, remainingMs = 10, totalMs = 900)
+
+    private fun snaredWorld(): ChaseWorld =
+        engine.step(engine.newWorld().copy(warnings = listOf(incomingNet)), 16).world
+
+    @Test
+    fun `a net landing on pikachu snares it instead of costing a life`() {
+        val step = engine.step(engine.newWorld().copy(warnings = listOf(incomingNet)), 16)
+        assertTrue(step.world.isSnared)
+        assertEquals(3, step.world.lives)
+        assertTrue(step.events.contains(ChaseEvent.Snared))
+    }
+
+    @Test
+    fun `a net is dodged by leaving its lane`() {
+        val moved = engine.newWorld().copy(playerX = 2f, targetLane = 2, warnings = listOf(incomingNet))
+        val step = engine.step(moved, 16)
+        assertFalse(step.world.isSnared)
+        assertTrue(step.events.contains(ChaseEvent.NetDodged))
+    }
+
+    @Test
+    fun `snared pikachu can't steer or slide`() {
+        val snared = snaredWorld()
+        val steered = engine.steerTo(snared, 0)
+        assertEquals(snared.targetLane, steered.targetLane)
+        assertEquals(snared.playerX, engine.step(steered, 16).world.playerX)
+    }
+
+    @Test
+    fun `enough struggles break free with lives intact`() {
+        var world = snaredWorld()
+        val events = mutableListOf<ChaseEvent>()
+        repeat(quietConfig.snareStruggles) {
+            val step = engine.struggle(world)
+            world = step.world
+            events += step.events
+        }
+        assertFalse(world.isSnared)
+        assertEquals(3, world.lives)
+        assertEquals(ChaseEvent.BrokeFree, events.last())
+    }
+
+    @Test
+    fun `running out the snare timer costs a life and frees pikachu`() {
+        var world = snaredWorld()
+        repeat((quietConfig.snareMs / 50 + 2).toInt()) { world = engine.step(world, 50).world }
+        assertFalse(world.isSnared)
+        assertEquals(2, world.lives)
+    }
+
+    @Test
+    fun `thunderbolt also breaks pikachu out of a net`() {
+        val step = engine.thunderbolt(snaredWorld().copy(charge = 1f))
+        assertFalse(step.world.isSnared)
+        assertTrue(step.events.contains(ChaseEvent.BrokeFree))
+    }
+
+    @Test
+    fun `agility breaks pikachu out of a net`() {
+        val step = engine.useAgility(snaredWorld())
+        assertFalse(step.world.isSnared)
+        assertTrue(step.events.contains(ChaseEvent.BrokeFree))
+    }
+
+    @Test
+    fun `struggling does nothing when not snared`() {
+        val world = engine.newWorld()
+        assertEquals(world, engine.struggle(world).world)
     }
 
     @Test

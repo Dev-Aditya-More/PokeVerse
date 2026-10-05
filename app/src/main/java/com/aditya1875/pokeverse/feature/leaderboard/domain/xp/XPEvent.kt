@@ -45,56 +45,66 @@ sealed class XPEvent {
 
     // Easter Egg
     object EasterEggClaim : XPEvent()
+
+    /** Once-a-day rewards for showing up — paid in full, outside [XPEconomy]'s tiers and rested pool. */
+    val isRetentionBonus: Boolean
+        get() = this is DailyLogin || this is FirstGameOfDay || this is FirstExplorationOfDay || this is EasterEggClaim
 }
 
+/**
+ * Raw XP per event (before [XPEconomy]'s daily tiers and rested bonus).
+ *
+ * Balanced so a typical session of any game is worth roughly 40–70 raw XP.
+ * Per-answer values stay small on purpose: endless modes used to pay 20–50 XP
+ * per answer, which let one long session outrun weeks of regular play.
+ */
 object XPValues {
+    // Retention bonuses — paid in full, never tiered.
     const val DAILY_LOGIN = 25
     const val DAILY_STREAK_BONUS = 10
+    const val FIRST_GAME_OF_DAY = 40
+    const val FIRST_EXPLORATION_OF_DAY = 20
+    const val EASTER_EGG_CLAIM = 25
 
-    const val QUIZ_CORRECT = 5
-    const val QUIZ_COMPLETE = 20
-    const val QUIZ_PERFECT = 30
+    const val QUIZ_CORRECT = 3
+    const val QUIZ_COMPLETE = 15
+    const val QUIZ_PERFECT = 15
 
     const val MATCH_COMPLETE = 30
-    const val MATCH_UNDER_PAR = 20
+    const val MATCH_UNDER_PAR = 15
 
-    const val GUESS_CORRECT = 15
-    const val GUESS_STREAK_2 = 10
-    const val GUESS_STREAK_5 = 25
-    const val GUESS_COMPLETE = 20
+    const val GUESS_CORRECT = 4
+    const val GUESS_STREAK_2 = 1
+    const val GUESS_STREAK_5 = 3
+    const val GUESS_COMPLETE = 10
 
     // PokéDuel — same baseline as PokéGuess since the streak mechanic is identical
-    const val DUEL_CORRECT = 15
-    const val DUEL_COMPLETE = 20
+    const val DUEL_CORRECT = 4
+    const val DUEL_COMPLETE = 10
 
-    // TypeRush — same baseline as PokéQuiz since it's rapid-fire answers
-    const val RUSH_CORRECT = 5
-    const val RUSH_COMPLETE = 20
-    const val RUSH_PERFECT = 30
+    // TypeRush — rapid-fire, so the smallest per-answer value
+    const val RUSH_CORRECT = 2
+    const val RUSH_COMPLETE = 15
+    const val RUSH_PERFECT = 15
 
-    const val FIRST_GAME_OF_DAY = 50
-    const val FIRST_EXPLORATION_OF_DAY = 20
-
-    const val CLASH_WIN = 60
-    const val CLASH_ROUND_WIN = 8
-    const val CLASH_PERFECT = 40
+    const val CLASH_WIN = 40
+    const val CLASH_ROUND_WIN = 5
+    const val CLASH_PERFECT = 20
     const val CLASH_DRAW = 15        // played a full match, earned something
 
-    const val CATCH_CAUGHT = 20
-    const val CATCH_STREAK_3 = 15
-    const val CATCH_STREAK_6 = 30
-    const val CATCH_COMPLETE = 25
+    const val CATCH_CAUGHT = 4
+    const val CATCH_STREAK_3 = 2
+    const val CATCH_STREAK_6 = 4
+    const val CATCH_COMPLETE = 10
 
-    const val SURVIVOR_CORRECT = 5
-    const val SURVIVOR_STREAK_5 = 10
-    const val SURVIVOR_STREAK_10 = 25
-    const val SURVIVOR_COMPLETE = 20
+    const val SURVIVOR_CORRECT = 3
+    const val SURVIVOR_STREAK_5 = 1
+    const val SURVIVOR_STREAK_10 = 3
+    const val SURVIVOR_COMPLETE = 10
 
-    const val CHASE_COMPLETE = 15
+    const val CHASE_COMPLETE = 10
     const val CHASE_PER_100M = 2
-    const val CHASE_DISTANCE_CAP = 45
-
-    const val EASTER_EGG_CLAIM = 25
+    const val CHASE_DISTANCE_CAP = 40
 }
 
 // ─── Result returned after awarding XP ───────────────────────────────────────

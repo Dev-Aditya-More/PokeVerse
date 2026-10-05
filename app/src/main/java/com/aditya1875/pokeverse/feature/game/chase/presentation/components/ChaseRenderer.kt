@@ -52,28 +52,20 @@ fun ChaseTrack(
 ) {
     // Canvas doesn't clip by default — without this the balloon spills under the system nav bar.
     Canvas(modifier = modifier.clipToBounds()) {
-        val w = world.value
         val track = TrackGeometry(size, config)
+        if (!track.isUsable) return@Canvas
+        val w = world.value
 
         drawGround(track, w, config)
         w.entities.forEach { drawEntity(track, it, w.elapsedMs, sprites) }
         w.warnings.forEach { drawNetWarning(track, it) }
+        drawSpeedLines(track, w)
         drawPikachu(track, w, sprites)
         drawRocketBalloon(track, w, sprites)
         drawHitVignette(w, config)
+        drawStrikes(track, w, config)
         drawThunder(track, w, config)
     }
-}
-
-/** Maps world units (lanes, screen fractions) to pixels. */
-private class TrackGeometry(val size: Size, val config: ChaseConfig) {
-    val pathLeft = size.width * 0.07f
-    val pathWidth = size.width - pathLeft * 2
-    val laneWidth = pathWidth / config.laneCount
-    val spriteSize = laneWidth * 0.78f
-
-    fun laneX(lane: Float) = pathLeft + (lane + 0.5f) * laneWidth
-    fun y(fraction: Float) = fraction * size.height
 }
 
 // ── Ground ──────────────────────────────────────────────────────────────────
@@ -125,14 +117,14 @@ private fun DrawScope.drawEntity(track: TrackGeometry, entity: ChaseEntity, elap
             val bob = sin(elapsedMs / 180f + entity.id) * track.spriteSize * 0.05f
             val center = Offset(x, y + bob)
             drawCircle(Color.White.copy(alpha = 0.35f), radius = track.spriteSize * 0.32f, center = center)
-            drawSpriteOr(sprites?.get(entity.kind.sprite()), center, track.spriteSize * 0.5f, fallback = entity.kind.fallbackColor())
+            drawSpriteOr(entity.kind.sprite()?.let { sprites?.get(it) }, center, track.spriteSize * 0.5f, fallback = entity.kind.fallbackColor())
         }
         else -> {
             if (entity.kind == EntityKind.KOFFING) {
                 x += sin(elapsedMs / 300f + entity.id) * track.laneWidth * 0.06f
             }
             drawShadow(Offset(x, y + track.spriteSize * 0.36f), track.spriteSize * 0.32f)
-            drawSpriteOr(sprites?.get(entity.kind.sprite()), Offset(x, y), track.spriteSize, fallback = entity.kind.fallbackColor())
+            drawSpriteOr(entity.kind.sprite()?.let { sprites?.get(it) }, Offset(x, y), track.spriteSize, fallback = entity.kind.fallbackColor())
         }
     }
 }
@@ -161,16 +153,50 @@ private fun DrawScope.drawNetWarning(track: TrackGeometry, warning: NetWarning) 
 
 private fun DrawScope.drawPikachu(track: TrackGeometry, world: ChaseWorld, sprites: ChaseSprites?) {
     val blinkHidden = world.invulnerableMs > 0 && (world.invulnerableMs / 90) % 2 == 0L
-    val x = track.laneX(world.playerX)
+    val snare = world.snare
+    // Snared Pikachu stops running and thrashes side to side instead.
+    val struggle = if (snare != null) sin(world.elapsedMs / 35f) * track.laneWidth * 0.05f else 0f
+    val x = track.laneX(world.playerX) + struggle
     val y = track.y(track.config.playerY)
-    val bob = sin(world.elapsedMs / 70f) * track.spriteSize * 0.04f
+    val bob = if (snare != null) 0f else sin(world.elapsedMs / 70f) * track.spriteSize * 0.04f
 
     drawShadow(Offset(x, y + track.spriteSize * 0.4f), track.spriteSize * 0.3f)
     if (blinkHidden) return
+
+    // Agility: a crackling electric aura behind Pikachu.
+    if (world.isAgile) {
+        val flicker = 0.75f + 0.25f * sin(world.elapsedMs / 45f)
+        drawCircle(
+            Brush.radialGradient(
+                colors = listOf(ThunderYellow.copy(alpha = 0.55f * flicker), Color.Transparent),
+                center = Offset(x, y),
+                radius = track.spriteSize * 0.85f
+            ),
+            radius = track.spriteSize * 0.85f,
+            center = Offset(x, y)
+        )
+    }
+
     // Lean into lane switches.
     val lean = (world.targetLane - world.playerX) * 14f
     rotate(lean, pivot = Offset(x, y)) {
         drawSpriteOr(sprites?.get(ChaseSprite.PIKACHU_BACK), Offset(x, y + bob), track.spriteSize * 1.05f, fallback = ThunderYellow)
+    }
+
+
+    if (snare != null) {
+        val netRadius = track.spriteSize * 0.55f
+        drawNet(Offset(x, y), netRadius, alpha = 0.95f)
+        // Time left before Team Rocket reels Pikachu in.
+        drawArc(
+            color = RocketRed,
+            startAngle = -90f,
+            sweepAngle = 360f * (1f - snare.progress),
+            useCenter = false,
+            topLeft = Offset(x - netRadius * 1.25f, y - netRadius * 1.25f),
+            size = Size(netRadius * 2.5f, netRadius * 2.5f),
+            style = Stroke(width = netRadius * 0.1f, cap = StrokeCap.Round)
+        )
     }
 }
 
@@ -186,6 +212,12 @@ private fun DrawScope.drawRocketBalloon(track: TrackGeometry, world: ChaseWorld,
     val y = restY + (closeY - restY) * world.rocketCloseness + sin(world.elapsedMs / 400f) * radius * 0.05f
     val followX = track.laneX(world.playerX) * 0.6f + size.width / 2 * 0.4f
     val center = Offset(followX, y)
+
+    // While snared, a rope runs from the balloon to the net — Team Rocket reeling Pikachu in.
+    if (world.isSnared) {
+        val pikachu = Offset(track.laneX(world.playerX), track.y(track.config.playerY))
+        drawLine(Color(0xFF5D4037), Offset(center.x, center.y - radius), pikachu, strokeWidth = radius * 0.04f)
+    }
 
     drawCircle(Color(0xFFF5E6C8), radius = radius, center = center)
     drawCircle(Color(0xFFBFA77A), radius = radius, center = center, style = Stroke(width = radius * 0.05f))
@@ -223,6 +255,27 @@ private fun DrawScope.drawHitVignette(world: ChaseWorld, config: ChaseConfig) {
     )
 }
 
+/** Agility dash: streaking speed lines down the track, faster as the dash peaks. */
+private fun DrawScope.drawSpeedLines(track: TrackGeometry, world: ChaseWorld) {
+    if (!world.isAgile) return
+    val lineCount = 14
+    val travel = (world.elapsedMs % 400) / 400f
+    for (i in 0 until lineCount) {
+        // Deterministic pseudo-random layout per line, so they don't flicker frame to frame.
+        val seed = (i * 7919) % 101 / 101f
+        val x = track.pathLeft + seed * track.pathWidth
+        val length = size.height * (0.08f + 0.06f * ((i * 31) % 7) / 7f)
+        val y = ((travel + i / lineCount.toFloat()) % 1f) * (size.height + length) - length
+        drawLine(
+            Color.White.copy(alpha = 0.18f + 0.12f * seed),
+            Offset(x, y), Offset(x, y + length),
+            strokeWidth = track.laneWidth * 0.015f,
+            cap = StrokeCap.Round
+        )
+    }
+}
+
+/** Thunderbolt: a screen-wide flash with a bolt down every lane. */
 private fun DrawScope.drawThunder(track: TrackGeometry, world: ChaseWorld, config: ChaseConfig) {
     if (world.thunderFlashMs == 0L) return
     val strength = world.thunderFlashMs / config.thunderFlashMs.toFloat()
@@ -241,6 +294,30 @@ private fun DrawScope.drawThunder(track: TrackGeometry, world: ChaseWorld, confi
         }
         drawPath(bolt, ThunderYellow.copy(alpha = strength), style = Stroke(width = track.laneWidth * 0.07f, cap = StrokeCap.Round))
         drawPath(bolt, Color.White.copy(alpha = strength), style = Stroke(width = track.laneWidth * 0.025f, cap = StrokeCap.Round))
+    }
+}
+
+/** Each zap is a jagged bolt from Pikachu to the attacker it just knocked out. */
+private fun DrawScope.drawStrikes(track: TrackGeometry, world: ChaseWorld, config: ChaseConfig) {
+    if (world.strikes.isEmpty()) return
+    val from = Offset(track.laneX(world.playerX), track.y(config.playerY) - track.spriteSize * 0.35f)
+    world.strikes.forEach { strike ->
+        val strength = strike.remainingMs / config.strikeFlashMs.toFloat()
+        val to = Offset(track.laneX(strike.lane.toFloat()), track.y(strike.y))
+        val segments = 6
+        val bolt = Path().apply {
+            moveTo(from.x, from.y)
+            for (i in 1 until segments) {
+                val t = i / segments.toFloat()
+                val jitter = (if (i % 2 == 0) 1f else -1f) * track.laneWidth * 0.12f
+                lineTo(from.x + (to.x - from.x) * t + jitter, from.y + (to.y - from.y) * t)
+            }
+            lineTo(to.x, to.y)
+        }
+        drawPath(bolt, ThunderYellow.copy(alpha = strength), style = Stroke(width = track.laneWidth * 0.06f, cap = StrokeCap.Round))
+        drawPath(bolt, Color.White.copy(alpha = strength), style = Stroke(width = track.laneWidth * 0.02f, cap = StrokeCap.Round))
+        // Impact burst where the attacker was.
+        drawCircle(ThunderYellow.copy(alpha = 0.5f * strength), radius = track.spriteSize * 0.45f * (1.4f - strength * 0.4f), center = to)
     }
 }
 
@@ -282,16 +359,18 @@ private fun DrawScope.drawSpriteOr(drawable: Drawable?, center: Offset, boxSize:
         (center.x - halfW).toInt(), (center.y - halfH).toInt(),
         (center.x + halfW).toInt(), (center.y + halfH).toInt()
     )
-    drawIntoCanvas { drawable.draw(it.nativeCanvas) }
+    // A decoder/bitmap failure inside a third-party drawable must never take the game down.
+    val drawn = runCatching { drawIntoCanvas { drawable.draw(it.nativeCanvas) } }.isSuccess
+    if (!drawn) drawCircle(fallback, radius = boxSize * 0.32f, center = center)
 }
 
-private fun EntityKind.sprite(): ChaseSprite = when (this) {
+private fun EntityKind.sprite(): ChaseSprite? = when (this) {
     EntityKind.KOFFING -> ChaseSprite.KOFFING
     EntityKind.EKANS -> ChaseSprite.EKANS
     EntityKind.WOBBUFFET -> ChaseSprite.WOBBUFFET
     EntityKind.ORAN_BERRY -> ChaseSprite.ORAN_BERRY
     EntityKind.THUNDER_STONE -> ChaseSprite.THUNDER_STONE
-    EntityKind.LANDED_NET -> error("Nets are drawn, not sprited")
+    EntityKind.LANDED_NET -> null // drawn as a shape
 }
 
 private fun EntityKind.fallbackColor(): Color = when (this) {

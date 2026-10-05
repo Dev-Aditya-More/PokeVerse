@@ -1,6 +1,5 @@
 package com.aditya1875.pokeverse.feature.game.chase.presentation.components
 
-import android.app.Activity
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -37,8 +36,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -47,16 +44,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.aditya1875.pokeverse.R
-import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
-import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
-import com.aditya1875.pokeverse.feature.game.core.presentation.requestRewardedAd
-import org.koin.compose.koinInject
 
 val ChaseAccent = Color(0xFFFFD54F)
 private val CardColor = Color(0xFF1B1F2B)
@@ -210,26 +202,17 @@ fun ChasePausedOverlay(onResume: () -> Unit) {
 
 /**
  * Team Rocket got Pikachu. Offers the run's single revive (free for premium,
- * rewarded ad otherwise) or ends the run.
+ * rewarded ad otherwise) or ends the run. The ad itself is handled by the
+ * caller's PausingRewardedAd, which shows a loader if it isn't ready yet.
  */
 @Composable
 fun ChaseCaughtOverlay(
     canRevive: Boolean,
     isPremium: Boolean,
-    isOnline: Boolean,
     onRevive: () -> Unit,
+    onReviveWithAd: () -> Unit,
     onGiveUp: () -> Unit
 ) {
-    val adManager: IRewardedAdManager = koinInject()
-    val adState by adManager.adState.collectAsState()
-    val context = LocalContext.current
-    val activity = context as? Activity
-
-    LaunchedEffect(adState, isOnline, isPremium, canRevive) {
-        if (canRevive && !isPremium && isOnline && adState is RewardedAdState.Idle) {
-            adManager.loadAd(context)
-        }
-    }
 
     Scrim {
         OverlayCard {
@@ -252,10 +235,7 @@ fun ChaseCaughtOverlay(
             Spacer(Modifier.height(22.dp))
             if (canRevive) {
                 OutlinedButton(
-                    onClick = {
-                        if (isPremium) onRevive()
-                        else requestRewardedAd(context, activity, adManager, adState) { onRevive() }
-                    },
+                    onClick = { if (isPremium) onRevive() else onReviveWithAd() },
                     modifier = Modifier.fillMaxWidth().height(52.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = ChaseAccent),

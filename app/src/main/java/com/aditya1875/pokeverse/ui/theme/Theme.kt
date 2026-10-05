@@ -426,20 +426,181 @@ private val SylveonDark = darkColorScheme(
     outlineVariant = Color(0xFF35192E),
 )
 
+// LUGIA THEME (Psychic/Flying — deep-sea guardian)
+
+private val LugiaDark = darkColorScheme(
+    primary = Color(0xFFB8CCEB),           // Silver-white plumage
+    onPrimary = Color(0xFF0A1830),
+    primaryContainer = Color(0xFF2C4470),
+    onPrimaryContainer = Color(0xFFDCE6F7),
+
+    secondary = Color(0xFF5B7FD1),         // Deep-sea back plates
+    onSecondary = Color(0xFF041232),
+    secondaryContainer = Color(0xFF1E3366),
+    onSecondaryContainer = Color(0xFFD5E0FF),
+
+    tertiary = Color(0xFF4DD0E1),          // Aeroblast storm teal
+    onTertiary = Color(0xFF002A30),
+    tertiaryContainer = Color(0xFF004A54),
+    onTertiaryContainer = Color(0xFFB8F2FA),
+
+    background = Color(0xFF050D1A),        // Whirl Islands at midnight
+    onBackground = Color(0xFFE8EFFA),
+    surface = Color(0xFF0C1828),
+    onSurface = Color(0xFFE8EFFA),
+    surfaceVariant = Color(0xFF16263D),
+    onSurfaceVariant = Color(0xFFC2D0E6),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+    outline = Color(0xFF2F4566),
+    outlineVariant = Color(0xFF16263D),
+)
+
+// LUCARIO THEME (Fighting/Steel — aura)
+
+private val LucarioDark = darkColorScheme(
+    primary = Color(0xFF42A5F5),           // Aura blue
+    onPrimary = Color(0xFF001D36),
+    primaryContainer = Color(0xFF0D3F6E),
+    onPrimaryContainer = Color(0xFFCFE6FF),
+
+    secondary = Color(0xFFFFE0A3),         // Cream chest fur
+    onSecondary = Color(0xFF2E2000),
+    secondaryContainer = Color(0xFF4A3A12),
+    onSecondaryContainer = Color(0xFFFFEFC9),
+
+    tertiary = Color(0xFF80DEEA),          // Aura sphere glow
+    onTertiary = Color(0xFF00292E),
+    tertiaryContainer = Color(0xFF003C44),
+    onTertiaryContainer = Color(0xFFC9F5FA),
+
+    background = Color(0xFF080B12),        // Steel-black mask
+    onBackground = Color(0xFFE6EEF8),
+    surface = Color(0xFF10151F),
+    onSurface = Color(0xFFE6EEF8),
+    surfaceVariant = Color(0xFF1B2433),
+    onSurfaceVariant = Color(0xFFBCCADD),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+    outline = Color(0xFF2E3D54),
+    outlineVariant = Color(0xFF1B2433),
+)
+
+// GRENINJA THEME (Water/Dark — shinobi)
+
+private val GreninjaDark = darkColorScheme(
+    primary = Color(0xFF4F7FE0),           // Ninja-frog blue
+    onPrimary = Color(0xFF00184A),
+    primaryContainer = Color(0xFF1B3A80),
+    onPrimaryContainer = Color(0xFFD7E2FF),
+
+    secondary = Color(0xFFFF6F91),         // Tongue scarf pink
+    onSecondary = Color(0xFF3B0016),
+    secondaryContainer = Color(0xFF5E1129),
+    onSecondaryContainer = Color(0xFFFFD9E1),
+
+    tertiary = Color(0xFFE3ECFF),          // Water-shuriken white
+    onTertiary = Color(0xFF13203B),
+    tertiaryContainer = Color(0xFF2C3A57),
+    onTertiaryContainer = Color(0xFFF2F6FF),
+
+    background = Color(0xFF060A16),        // Night mist
+    onBackground = Color(0xFFE5EAF7),
+    surface = Color(0xFF0D1426),
+    onSurface = Color(0xFFE5EAF7),
+    surfaceVariant = Color(0xFF172139),
+    onSurfaceVariant = Color(0xFFC0CAE3),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+    outline = Color(0xFF2D3B5E),
+    outlineVariant = Color(0xFF172139),
+)
+
+// MIMIKYU THEME (Ghost/Fairy — the disguise)
+
+private val MimikyuDark = darkColorScheme(
+    primary = Color(0xFFF2D45C),           // Homemade Pikachu costume
+    onPrimary = Color(0xFF231A00),
+    primaryContainer = Color(0xFF4A3D0A),
+    onPrimaryContainer = Color(0xFFFFEDA8),
+
+    secondary = Color(0xFFFF8A80),         // Scribbled cheeks
+    onSecondary = Color(0xFF3A0905),
+    secondaryContainer = Color(0xFF5C1E19),
+    onSecondaryContainer = Color(0xFFFFDAD5),
+
+    tertiary = Color(0xFFA1887F),          // Stick tail, rag cloth
+    onTertiary = Color(0xFF1F120D),
+    tertiaryContainer = Color(0xFF3E2C25),
+    onTertiaryContainer = Color(0xFFEBDDD7),
+
+    background = Color(0xFF0C0A07),        // What hides beneath
+    onBackground = Color(0xFFF5EFE0),
+    surface = Color(0xFF16130D),
+    onSurface = Color(0xFFF5EFE0),
+    surfaceVariant = Color(0xFF241F15),
+    onSurfaceVariant = Color(0xFFDCD0B4),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+    outline = Color(0xFF453B28),
+    outlineVariant = Color(0xFF241F15),
+)
+
+// HO-OH THEME (Fire/Flying — rainbow phoenix)
+
+private val HoOhDark = darkColorScheme(
+    primary = Color(0xFFFFB300),           // Sacred-fire gold
+    onPrimary = Color(0xFF2A1700),
+    primaryContainer = Color(0xFF5A3300),
+    onPrimaryContainer = Color(0xFFFFDDA6),
+
+    secondary = Color(0xFFEF5350),         // Crimson plumage
+    onSecondary = Color(0xFF3B0606),
+    secondaryContainer = Color(0xFF611414),
+    onSecondaryContainer = Color(0xFFFFDAD6),
+
+    tertiary = Color(0xFF4CAF50),          // Emerald tail feathers
+    onTertiary = Color(0xFF00210B),
+    tertiaryContainer = Color(0xFF1B4D20),
+    onTertiaryContainer = Color(0xFFC8F2C9),
+
+    background = Color(0xFF140905),        // Ember sky at dusk
+    onBackground = Color(0xFFFFEEDD),
+    surface = Color(0xFF20110A),
+    onSurface = Color(0xFFFFEEDD),
+    surfaceVariant = Color(0xFF331C10),
+    onSurfaceVariant = Color(0xFFF0CDB0),
+
+    error = Color(0xFFCF6679),
+    onError = Color.White,
+    outline = Color(0xFF5A3620),
+    outlineVariant = Color(0xFF331C10),
+)
+
 // THEME ENUM
 
-enum class AppTheme {
-    DEXVERSE,
-    PIKACHU,
-    DARKRAI,
-    MEWTWO,
-    UMBREON,
-    CHARIZARD,
-    VENUSAUR,
-    BLASTOISE,
-    GENGAR,
-    RAYQUAZA,
-    SYLVEON
+/** Every selectable theme. [isPremium] is the single source of truth for gating — selector and app shell both read it. */
+enum class AppTheme(val isPremium: Boolean) {
+    DEXVERSE(isPremium = false),
+    PIKACHU(isPremium = true),
+    DARKRAI(isPremium = true),
+    MEWTWO(isPremium = true),
+    UMBREON(isPremium = true),
+    CHARIZARD(isPremium = false),
+    VENUSAUR(isPremium = false),
+    BLASTOISE(isPremium = false),
+    GENGAR(isPremium = true),
+    RAYQUAZA(isPremium = true),
+    SYLVEON(isPremium = true),
+    LUGIA(isPremium = true),
+    LUCARIO(isPremium = true),
+    GRENINJA(isPremium = true),
+    MIMIKYU(isPremium = true),
+    HO_OH(isPremium = true)
 }
 
 // MAIN THEME COMPOSABLE
@@ -461,6 +622,11 @@ fun PokeverseTheme(
         AppTheme.GENGAR -> GengarDark
         AppTheme.RAYQUAZA -> RayquazaDark
         AppTheme.SYLVEON -> SylveonDark
+        AppTheme.LUGIA -> LugiaDark
+        AppTheme.LUCARIO -> LucarioDark
+        AppTheme.GRENINJA -> GreninjaDark
+        AppTheme.MIMIKYU -> MimikyuDark
+        AppTheme.HO_OH -> HoOhDark
     }
 
     // Every color cross-fades to the new palette instead of hard-swapping

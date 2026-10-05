@@ -286,7 +286,9 @@ class LeaderboardRepository {
             is Long -> raw
             is Timestamp -> raw.toDate().time
             else -> null
-        }
+        },
+        // `as?` rather than getBoolean(), which throws if the field ever holds another type.
+        isPremium = get("isPremium") as? Boolean == true
     )
 
     fun invalidateCache(type: LeaderboardType = LeaderboardType.GLOBAL) {
@@ -334,6 +336,7 @@ class LeaderboardRepository {
                     // defaults empty until that function is updated to include it.
                     bio = m["bio"] as? String ?: "",
                     photoUrl = m["photoUrl"] as? String ?: "",
+                    isPremium = m["isPremium"] as? Boolean == true,
                     weeklyXp = when (val v = m["weeklyXp"]) {
                         is Long -> v.toInt()
                         is Int -> v

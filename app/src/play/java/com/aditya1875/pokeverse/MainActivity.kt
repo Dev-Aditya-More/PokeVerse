@@ -38,6 +38,7 @@ import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.core.navigation.components.WithBottomBar
 import com.aditya1875.pokeverse.feature.core.ui.components.PokemonNotFoundScreen
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessDifficultyScreen
@@ -72,6 +73,8 @@ import com.aditya1875.pokeverse.ui.theme.PokeverseTheme
 import com.aditya1875.pokeverse.utils.LocaleHelper
 import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
+import androidx.compose.runtime.CompositionLocalProvider
+import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.launch
@@ -129,18 +132,43 @@ class MainActivity : ComponentActivity() {
                 currentTheme = selectedTheme
             }
 
+            // A lapsed subscription drops back to the default look everywhere, not just
+            // once the theme screen is reopened. Only a confirmed Free state downgrades —
+            // Loading/Pending keep the chosen theme so premium users never see a flash.
+            val subscriptionState by billingManager.subscriptionState.collectAsState()
+            val appliedTheme = if (currentTheme.isPremium && subscriptionState is SubscriptionState.Free) {
+                AppTheme.DEXVERSE
+            } else currentTheme
+
+            // Leaderboard flair follows the subscription (and re-publishes after a sign-in).
+            val authState by profileViewModel.authState.collectAsState()
+            LaunchedEffect(subscriptionState, authState) {
+                when (subscriptionState) {
+                    is SubscriptionState.Premium -> profileViewModel.publishPremiumStatus(true)
+                    SubscriptionState.Free -> profileViewModel.publishPremiumStatus(false)
+                    else -> Unit // still resolving — don't publish a guess
+                }
+            }
+
             val context = LocalContext.current
             val navController = rememberNavController()
+
+            // Shiny Dex is resolved once here (setting AND premium) for every screen below.
+            val shinyDexSetting by remember { ScreenStateManager.shinyDexEnabledFlow(context) }
+                .collectAsState(initial = false)
+            val shinyDex = shinyDexSetting && subscriptionState is SubscriptionState.Premium
 
             XPOverlay(
                 result = shownXpResult,
                 onDismiss = { shownXpResult = null }
             ) {
-                PokeverseTheme(selectedTheme = currentTheme) {
-                    AppNavGraph(
-                        navController,
-                        context
-                    )
+                PokeverseTheme(selectedTheme = appliedTheme) {
+                    CompositionLocalProvider(LocalShinyDex provides shinyDex) {
+                        AppNavGraph(
+                            navController,
+                            context
+                        )
+                    }
                 }
             }
         }

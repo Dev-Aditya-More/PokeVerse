@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
+import com.aditya1875.pokeverse.feature.pokemon.shiny.PokemonSprites
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -54,9 +56,8 @@ fun SuggestionRow(
             ?.toIntOrNull()
     }
 
-    val spriteUrl = pokemonId?.let {
-        "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$it.png"
-    }
+    val shiny = LocalShinyDex.current
+    val spriteUrl = pokemonId?.let { PokemonSprites.pixel(it, shiny) }
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()

@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
+import com.aditya1875.pokeverse.feature.pokemon.shiny.PokemonSprites
 import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -81,7 +83,7 @@ fun ImprovedPokemonCard(
             ?.toIntOrNull() ?: 0
     }
 
-    val spriteUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$pokemonId.png"
+    val spriteUrl = PokemonSprites.pixel(pokemonId, shiny = LocalShinyDex.current)
 
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(

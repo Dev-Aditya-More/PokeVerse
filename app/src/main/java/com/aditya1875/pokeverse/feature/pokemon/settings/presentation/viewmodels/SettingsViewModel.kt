@@ -138,6 +138,15 @@ class SettingsViewModel(
         }
     }
 
+    // ── Shiny Dex (premium) ───────────────────────────────────────────────────
+    // The stored choice only; MainActivity combines it with premium status.
+    val shinyDexEnabled: StateFlow<Boolean> = ScreenStateManager.shinyDexEnabledFlow(context)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    fun setShinyDexEnabled(enabled: Boolean) {
+        viewModelScope.launch { ScreenStateManager.setShinyDexEnabled(context, enabled) }
+    }
+
     // ── Language preference ───────────────────────────────────────────────────
     private val _selectedLanguage = MutableStateFlow(LocaleHelper.getSelectedLanguage(context))
     val selectedLanguage: StateFlow<String> = _selectedLanguage.asStateFlow()

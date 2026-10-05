@@ -44,6 +44,18 @@ class ChaseSpawner(
         return row to spawn.copy(lastFreeLanes = freeLanes, nextEntityId = nextId)
     }
 
+    /** Agility's reward: a row of berries (sometimes a Thunder Stone) and no obstacles. */
+    fun spawnPickupRain(spawn: SpawnState): Pair<List<ChaseEntity>, SpawnState> {
+        val lanes = (0 until config.laneCount).shuffled(random).take(config.agilityPickupsPerRow)
+        var nextId = spawn.nextEntityId
+        val row = lanes.map { lane ->
+            val kind = if (random.nextFloat() < config.agilityThunderStoneChance) EntityKind.THUNDER_STONE else EntityKind.ORAN_BERRY
+            ChaseEntity(nextId++, kind, lane, config.spawnY)
+        }
+        // Every lane is open, so the next obstacle row is free to put its gap anywhere.
+        return row to spawn.copy(lastFreeLanes = (0 until config.laneCount).toSet(), nextEntityId = nextId)
+    }
+
     private fun pickReachableGap(previousGaps: Set<Int>): Int {
         val lanes = 0 until config.laneCount
         if (previousGaps.isEmpty()) return lanes.random(random)

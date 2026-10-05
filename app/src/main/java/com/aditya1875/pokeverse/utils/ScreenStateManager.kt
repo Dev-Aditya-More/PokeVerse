@@ -18,6 +18,7 @@ object ScreenStateManager {
 
     val SURVIVOR_GUIDE_SEEN = booleanPreferencesKey("survivor_guide_seen")
     val CHASE_GUIDE_SEEN = booleanPreferencesKey("chase_guide_seen")
+    val SHINY_DEX_ENABLED = booleanPreferencesKey("shiny_dex_enabled")
 
     val ASSETS_SHOWN = booleanPreferencesKey("assets_shown")
     val RATING_SHOWN = booleanPreferencesKey("rating_shown")
@@ -119,6 +120,14 @@ object ScreenStateManager {
 
     suspend fun markChaseGuideSeen(context: Context) {
         context.dataStore.edit { it[CHASE_GUIDE_SEEN] = true }
+    }
+
+    /** The user's Shiny Dex choice. Only takes effect while premium — see LocalShinyDex. */
+    fun shinyDexEnabledFlow(context: Context): Flow<Boolean> =
+        context.dataStore.data.map { it[SHINY_DEX_ENABLED] ?: false }
+
+    suspend fun setShinyDexEnabled(context: Context, enabled: Boolean) {
+        context.dataStore.edit { it[SHINY_DEX_ENABLED] = enabled }
     }
 
     suspend fun getLastPopupShownAtMinutes(context: Context): Long {

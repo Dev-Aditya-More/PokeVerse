@@ -6,38 +6,50 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.feature.game.chase.domain.model.ChaseConfig
 import kotlin.math.abs
-import kotlin.math.sign
+import kotlin.math.roundToInt
 
 /**
- * Lane steering: a horizontal swipe moves one lane as soon as it passes the
- * threshold (a long swipe can move two), and a plain tap steers toward the
- * tapped half of the screen. [onMove] receives -1 (left) or +1 (right).
+ * How far past the halfway line between two lanes the finger must travel before
+ * Pikachu commits to the next lane. Stops jitter when a finger rests near a boundary.
+ */
+private const val LANE_HYSTERESIS = 0.18f
+
+/**
+ * Direct steering: Pikachu heads for the lane under the finger, and follows it as
+ * the finger drags. Every new touch also reports [onPress] (used to struggle out
+ * of a net). [onSteer] gets a lane index.
  */
 @Composable
-fun Modifier.laneSteering(onMove: (Int) -> Unit): Modifier {
-    val currentOnMove by rememberUpdatedState(onMove)
-    return pointerInput(Unit) {
-        val threshold = 28.dp.toPx()
+fun Modifier.laneSteering(
+    config: ChaseConfig,
+    onPress: () -> Unit,
+    onSteer: (Int) -> Unit
+): Modifier {
+    val currentOnPress by rememberUpdatedState(onPress)
+    val currentOnSteer by rememberUpdatedState(onSteer)
+    return pointerInput(config) {
         awaitEachGesture {
             val down = awaitFirstDown()
-            var dragX = 0f
-            var swiped = false
-            do {
-                val event = awaitPointerEvent()
-                val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                dragX += change.positionChange().x
-                if (abs(dragX) > threshold) {
-                    currentOnMove(sign(dragX).toInt())
-                    dragX = 0f
-                    swiped = true
-                    change.consume()
+            currentOnPress()
+            val track = TrackGeometry(Size(size.width.toFloat(), size.height.toFloat()), config)
+            if (!track.isUsable) return@awaitEachGesture
+
+            var lane = track.laneAt(down.position.x).roundToInt()
+            currentOnSteer(lane)
+            while (true) {
+                val change = awaitPointerEvent().changes.firstOrNull { it.id == down.id } ?: break
+                if (!change.pressed) break
+                val fingerLane = track.laneAt(change.position.x)
+                if (abs(fingerLane - lane) > 0.5f + LANE_HYSTERESIS) {
+                    lane = fingerLane.roundToInt()
+                    currentOnSteer(lane)
                 }
-            } while (change.pressed)
-            if (!swiped) currentOnMove(if (down.position.x < size.width / 2f) -1 else 1)
+                change.consume()
+            }
         }
     }
 }

@@ -30,6 +30,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
@@ -200,6 +202,21 @@ fun PremiumBottomSheet(
                         Icons.Default.Palette,
                         stringResource(R.string.premium_feature_themes_title),
                         stringResource(R.string.premium_feature_themes_subtitle)
+                    )
+                    BenefitRow(
+                        Icons.Default.Block,
+                        stringResource(R.string.premium_feature_ad_free_title),
+                        stringResource(R.string.premium_feature_ad_free_subtitle)
+                    )
+                    BenefitRow(
+                        Icons.Default.AutoAwesome,
+                        stringResource(R.string.premium_feature_shiny_title),
+                        stringResource(R.string.premium_feature_shiny_subtitle)
+                    )
+                    BenefitRow(
+                        Icons.Default.WorkspacePremium,
+                        stringResource(R.string.premium_feature_flair_title),
+                        stringResource(R.string.premium_feature_flair_subtitle)
                     )
                 }
             }

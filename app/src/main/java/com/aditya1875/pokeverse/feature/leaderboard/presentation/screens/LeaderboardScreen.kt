@@ -38,6 +38,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Button
@@ -555,6 +556,7 @@ private fun PodiumColumn(
             displayName = entry.displayName,
             size = avatarSize,
             borderColor = color,
+            isPremium = entry.isPremium,
             modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
         )
 
@@ -651,6 +653,7 @@ private fun LeaderboardRow(
             photoUrl = entry.photoUrl,
             displayName = entry.displayName,
             size = 40.dp,
+            isPremium = entry.isPremium,
             modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
         )
 
@@ -750,33 +753,67 @@ private fun TrainerAvatar(
     displayName: String,
     size: Dp,
     borderColor: Color = Color.Transparent,
+    isPremium: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    Box(modifier = modifier.size(size)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(CircleShape)
+                .then(
+                    // Premium: a gold gradient ring — unless the podium's rank colour already owns the border.
+                    if (isPremium && borderColor == Color.Transparent) Modifier.border(2.5.dp, PremiumRing, CircleShape)
+                    else Modifier.border(2.dp, borderColor, CircleShape)
+                )
+                .background(MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            if (photoUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = photoUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Text(
+                    text = displayName.firstOrNull()?.uppercase() ?: "?",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        if (isPremium) PremiumBadge(Modifier.align(Alignment.BottomEnd).size(size * 0.38f))
+    }
+}
+
+private val PremiumGold = Color(0xFFFFD54F)
+private val PremiumRing = Brush.sweepGradient(
+    listOf(Color(0xFFFFE082), Color(0xFFFFB300), Color(0xFFFFF8E1), Color(0xFFFFB300), Color(0xFFFFE082))
+)
+
+/** Small gold crest on a premium trainer's avatar. Cosmetic only. */
+@Composable
+private fun PremiumBadge(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
-            .size(size)
             .clip(CircleShape)
-            .border(2.dp, borderColor, CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant),
+            .background(MaterialTheme.colorScheme.background)
+            .padding(1.5.dp)
+            .clip(CircleShape)
+            .background(PremiumGold),
         contentAlignment = Alignment.Center
     ) {
-        if (photoUrl.isNotEmpty()) {
-            AsyncImage(
-                model = photoUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            Text(
-                text = displayName.firstOrNull()?.uppercase() ?: "?",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Icon(
+            Icons.Default.WorkspacePremium,
+            contentDescription = stringResource(R.string.label_premium),
+            tint = Color(0xFF3E2A00),
+            modifier = Modifier.fillMaxSize(0.7f)
+        )
     }
 }
 
@@ -1139,6 +1176,7 @@ private fun LastWeekPodiumColumn(
                 displayName = entry.displayName,
                 size = avatarSize,
                 borderColor = color.copy(alpha = glowAlpha),
+                isPremium = entry.isPremium,
                 modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
             )
         }

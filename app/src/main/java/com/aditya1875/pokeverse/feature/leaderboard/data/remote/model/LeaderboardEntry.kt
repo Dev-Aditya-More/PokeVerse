@@ -11,5 +11,7 @@ data class LeaderboardEntry(
     val level: Int = 1,
     val rank: Int = 0,
     val previousRank: Int = 0,
-    val lastWeeklyReset: Long? = null
+    val lastWeeklyReset: Long? = null,
+    /** Cosmetic only — gold ring + badge. Never affects ranking. */
+    val isPremium: Boolean = false
 )

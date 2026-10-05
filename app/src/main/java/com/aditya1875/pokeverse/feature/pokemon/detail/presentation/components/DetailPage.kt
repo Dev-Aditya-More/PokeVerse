@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
+import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
 import android.media.MediaPlayer
 import android.os.Build
 import android.util.Log
@@ -270,7 +271,9 @@ fun PokemonDetailPage(
         }
     }
 
-    var isShinyEnabled by rememberSaveable { mutableStateOf(false) }
+    // Premium Shiny Dex makes shiny the default; the toggle itself stays free.
+    val shinyByDefault = LocalShinyDex.current
+    var isShinyEnabled by rememberSaveable { mutableStateOf(shinyByDefault) }
     var currentSpriteSource by rememberSaveable { mutableStateOf("official-artwork") }
     var currentSpriteUrl by rememberSaveable {
         mutableStateOf(
@@ -310,14 +313,16 @@ fun PokemonDetailPage(
     }
 
     LaunchedEffect(pokemon) {
-        currentSpriteUrl = pokemon?.sprites?.other?.officialArtwork?.frontDefault
-            ?: pokemon?.sprites?.other?.home?.frontDefault
         currentSpriteSource = when {
             pokemon?.sprites?.other?.officialArtwork?.frontDefault != null -> "official-artwork"
             pokemon?.sprites?.other?.home?.frontDefault != null -> "home"
             else -> "official-artwork"
         }
-        isShinyEnabled = false
+        isShinyEnabled = shinyByDefault
+        // Resolved here too: if isShinyEnabled didn't change, the effect below won't re-run.
+        currentSpriteUrl = getSpriteUrl(currentSpriteSource, shinyByDefault)
+            ?: pokemon?.sprites?.other?.officialArtwork?.frontDefault
+            ?: pokemon?.sprites?.other?.home?.frontDefault
     }
 
     LaunchedEffect(isShinyEnabled) {

@@ -49,6 +49,9 @@ class UserProfileRepository(private val context: Context) {
         val LAST_EXPLORATION_DATE = stringPreferencesKey("last_exploration_date")
         val LAST_FIRST_GAME_DATE = stringPreferencesKey("last_first_game_date")
         val LAST_EASTER_EGG_DATE = stringPreferencesKey("last_easter_egg_date")
+        val DAILY_GAME_XP = intPreferencesKey("daily_game_xp")
+        val DAILY_GAME_XP_DATE = stringPreferencesKey("daily_game_xp_date")
+        val RESTED_XP = intPreferencesKey("rested_xp")
         val LAST_ACTIVE_MS = longPreferencesKey("last_active_ms")
         val PHOTO_URL = stringPreferencesKey("photo_url")
 
@@ -91,6 +94,9 @@ class UserProfileRepository(private val context: Context) {
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
             lastFirstGameXpDate = p[K.LAST_FIRST_GAME_DATE] ?: "",
             lastEasterEggXpDate = p[K.LAST_EASTER_EGG_DATE] ?: "",
+            dailyGameXp = p[K.DAILY_GAME_XP] ?: 0,
+            dailyGameXpDate = p[K.DAILY_GAME_XP_DATE] ?: "",
+            restedXp = p[K.RESTED_XP] ?: 0,
             dailyStreak = p[K.DAILY_STREAK] ?: 0,
             lastActiveDateMillis = p[K.LAST_ACTIVE_MS] ?: 0L,
             photoUrl = p[K.PHOTO_URL] ?: "",
@@ -125,6 +131,9 @@ class UserProfileRepository(private val context: Context) {
             p[K.LAST_EXPLORATION_DATE] = profile.lastExplorationXpDate
             p[K.LAST_FIRST_GAME_DATE] = profile.lastFirstGameXpDate
             p[K.LAST_EASTER_EGG_DATE] = profile.lastEasterEggXpDate
+            p[K.DAILY_GAME_XP] = profile.dailyGameXp
+            p[K.DAILY_GAME_XP_DATE] = profile.dailyGameXpDate
+            p[K.RESTED_XP] = profile.restedXp
             p[K.LAST_DAILY_DATE] = profile.lastDailyXpDate
             p[K.DAILY_STREAK] = profile.dailyStreak
             p[K.LAST_ACTIVE_MS] = profile.lastActiveDateMillis
@@ -177,6 +186,9 @@ class UserProfileRepository(private val context: Context) {
                 lastExplorationXpDate = doc.getString("lastExplorationXpDate") ?: "",
                 lastFirstGameXpDate = doc.getString("lastFirstGameXpDate") ?: "",
                 lastEasterEggXpDate = doc.getString("lastEasterEggXpDate") ?: "",
+                dailyGameXp = (doc.getLong("dailyGameXp") ?: 0L).toInt(),
+                dailyGameXpDate = doc.getString("dailyGameXpDate") ?: "",
+                restedXp = (doc.getLong("restedXp") ?: 0L).toInt(),
                 dailyStreak = (doc.getLong("dailyStreak") ?: 0L).toInt(),
                 lastActiveDateMillis = doc.getLong("lastActiveDateMs") ?: 0L,
                 photoUrl = doc.getString("photoUrl") ?: "",
@@ -226,6 +238,9 @@ class UserProfileRepository(private val context: Context) {
                     "lastExplorationXpDate" to p.lastExplorationXpDate,
                     "lastFirstGameXpDate" to p.lastFirstGameXpDate,
                     "lastEasterEggXpDate" to p.lastEasterEggXpDate,
+                    "dailyGameXp" to p.dailyGameXp,
+                    "dailyGameXpDate" to p.dailyGameXpDate,
+                    "restedXp" to p.restedXp,
                     "lastActiveDateMs" to p.lastActiveDateMillis,
                     "duelPoints" to p.duelPoints,
                     "duelWins" to p.duelWins,
@@ -254,6 +269,19 @@ class UserProfileRepository(private val context: Context) {
                 ),
                 SetOptions.merge()
             ).await()
+        } catch (_: Exception) {
+        }
+    }
+
+    /**
+     * Publishes the signed-in user's premium status for the leaderboard flair.
+     * Purely cosmetic — ranking never reads it. One merge write of a single field.
+     */
+    suspend fun publishPremiumFlag(isPremium: Boolean) {
+        val uid = auth.currentUser?.uid ?: return
+        try {
+            firestore.collection("leaderboard").document(uid)
+                .set(mapOf("isPremium" to isPremium), SetOptions.merge()).await()
         } catch (_: Exception) {
         }
     }

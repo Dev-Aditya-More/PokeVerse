@@ -6,168 +6,182 @@ import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model
 import com.aditya1875.pokeverse.utils.WeeklyReset
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
+/**
+ * Single entry point for every XP change.
+ *
+ * - **Serialized**: awards run one at a time under [awardLock]. Each award is a
+ *   read-modify-write of the profile, and two overlapping ones used to overwrite
+ *   each other's XP.
+ * - **Cheap**: every award saves locally right away, but Firestore only receives
+ *   the latest profile once things go quiet ([SYNC_DEBOUNCE_MS]). A 30-answer
+ *   session is now one or two cloud writes instead of ~60, and an older snapshot
+ *   can never land after a newer one. If the app dies before the sync fires, the
+ *   next launch's cloud reconcile pushes the newer local total.
+ * - **Balanced**: game XP goes through [XPEconomy]; retention bonuses don't.
+ */
 class XPManager(
     private val repository: UserProfileRepository
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val syncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val awardLock = Mutex()
+    private var pendingSync: Job? = null
 
-    suspend fun awardDailyXP(): XPResult? {
+    suspend fun awardDailyXP(): XPResult? = awardLock.withLock {
         val profile = repository.profileFlow.first()
-        val today = dateFormat.format(Date())
+        val today = today()
+        if (profile.lastDailyXpDate == today) return@withLock null
 
-        if (profile.lastDailyXpDate == today) return null
-
-        val yesterday = dateFormat.format(Date(System.currentTimeMillis() - 86_400_000L))
-        val newStreak = if (profile.lastDailyXpDate == yesterday) profile.dailyStreak + 1 else 1
+        val daysAway = daysBetween(profile.lastDailyXpDate, today)
+        val newStreak = if (daysAway == 1) profile.dailyStreak + 1 else 1
         val streakBonus = minOf((newStreak - 1) * XPValues.DAILY_STREAK_BONUS, 50)
         val totalGained = XPValues.DAILY_LOGIN + streakBonus
+        val restedGain = XPEconomy.restedGain(daysAway, profile.restedXp)
 
-        val label = if (streakBonus > 0)
-            "Daily Showup +${XPValues.DAILY_LOGIN} XP  🔥 Streak Bonus +$streakBonus XP"
-        else
-            "Daily Showup +${XPValues.DAILY_LOGIN} XP"
+        val label = buildString {
+            append("Daily Showup +${XPValues.DAILY_LOGIN} XP")
+            if (streakBonus > 0) append("  🔥 Streak Bonus +$streakBonus XP")
+            if (restedGain > 0) append("  💤 Welcome back! Your next ${profile.restedXp + restedGain} game XP is doubled")
+        }
 
-        return applyXP(profile, totalGained, label) { updated ->
+        applyXP(profile, totalGained, label) { updated ->
             updated.copy(
                 lastDailyXpDate = today,
                 dailyStreak = newStreak,
-                lastActiveDateMillis = System.currentTimeMillis()
+                lastActiveDateMillis = System.currentTimeMillis(),
+                restedXp = profile.restedXp + restedGain
             )
         }
     }
 
-    suspend fun awardGameXP(event: XPEvent): XPResult {
+    suspend fun awardGameXP(event: XPEvent): XPResult = awardLock.withLock {
         val profile = repository.profileFlow.first()
-        val today = dateFormat.format(Date())
+        if (profile.isGuest) return@withLock noOpResult(profile)
 
-        if (profile.isGuest) return noOpResult(profile)
+        val today = today()
+        val raw = rawXp(event, profile, today) ?: return@withLock noOpResult(profile)
+        if (raw.amount <= 0) return@withLock noOpResult(profile)
 
-        val (gained, label) = when (event) {
-            is XPEvent.QuizAnswer -> {
-                if (event.correct) XPValues.QUIZ_CORRECT to "Correct Answer +${XPValues.QUIZ_CORRECT} XP"
-                else 0 to ""
-            }
-            is XPEvent.QuizComplete -> {
-                val perfect = event.score == event.total && event.total > 0
-                val bonus = if (perfect) XPValues.QUIZ_PERFECT else 0
-                val total = XPValues.QUIZ_COMPLETE + bonus
-                val lbl = if (perfect) "Quiz Complete +$total XP ⭐ Perfect!" else "Quiz Complete +$total XP"
-                total to lbl
-            }
-            is XPEvent.MatchComplete -> {
-                val underPar = event.moves <= event.par
-                val bonus = if (underPar) XPValues.MATCH_UNDER_PAR else 0
-                val total = XPValues.MATCH_COMPLETE + bonus
-                val lbl = if (underPar) "Match Complete +$total XP 🏆 Under Par!" else "Match Complete +$total XP"
-                total to lbl
-            }
-            is XPEvent.GuessCorrect -> {
-                val streakBonus = when {
-                    event.streak >= 5 -> XPValues.GUESS_STREAK_5
-                    event.streak >= 2 -> XPValues.GUESS_STREAK_2
-                    else -> 0
+        if (event.isRetentionBonus) {
+            return@withLock applyXP(profile, raw.amount, "${raw.title} +${raw.amount} XP${raw.flair}") { updated ->
+                when (event) {
+                    is XPEvent.FirstGameOfDay -> updated.copy(lastFirstGameXpDate = today)
+                    is XPEvent.FirstExplorationOfDay -> updated.copy(lastExplorationXpDate = today)
+                    is XPEvent.EasterEggClaim -> updated.copy(lastEasterEggXpDate = today)
+                    else -> updated
                 }
-                val total = XPValues.GUESS_CORRECT + streakBonus
-                val lbl = if (streakBonus > 0) "Correct Guess +$total XP 🔥 x${event.streak}" else "Correct Guess +$total XP"
-                total to lbl
-            }
-            is XPEvent.GuessComplete ->
-                XPValues.GUESS_COMPLETE to "PokéGuess Complete +${XPValues.GUESS_COMPLETE} XP"
-            is XPEvent.DuelCorrect -> {
-                val streakBonus = when {
-                    event.streak >= 5 -> XPValues.GUESS_STREAK_5
-                    event.streak >= 2 -> XPValues.GUESS_STREAK_2
-                    else -> 0
-                }
-                val total = XPValues.DUEL_CORRECT + streakBonus
-                val lbl = if (streakBonus > 0) "Right Call! +$total XP 🔥 x${event.streak}" else "Right Call! +$total XP"
-                total to lbl
-            }
-            is XPEvent.DuelComplete ->
-                XPValues.DUEL_COMPLETE to "PokéDuel Complete +${XPValues.DUEL_COMPLETE} XP"
-            is XPEvent.RushCorrect ->
-                XPValues.RUSH_CORRECT to "Rush Hit! +${XPValues.RUSH_CORRECT} XP"
-            is XPEvent.RushComplete -> {
-                val perfect = event.score == event.total && event.total > 0
-                val bonus = if (perfect) XPValues.RUSH_PERFECT else 0
-                val total = XPValues.RUSH_COMPLETE + bonus
-                val lbl = if (perfect) "TypeRush Complete +$total XP ⭐ Perfect!" else "TypeRush Complete +$total XP"
-                total to lbl
-            }
-            is XPEvent.FirstGameOfDay -> {
-                // Deduplicate per calendar day in the profile — same pattern as FirstExplorationOfDay
-                if (profile.lastFirstGameXpDate == today) return noOpResult(profile)
-                XPValues.FIRST_GAME_OF_DAY to "First Game Today! +${XPValues.FIRST_GAME_OF_DAY} XP 🎮"
-            }
-            is XPEvent.DailyLogin ->
-                XPValues.DAILY_LOGIN to "Daily Showup +${XPValues.DAILY_LOGIN} XP"
-            is XPEvent.FirstExplorationOfDay -> {
-                if (profile.lastExplorationXpDate == today) return noOpResult(profile)
-                XPValues.FIRST_EXPLORATION_OF_DAY to "First Exploration Today! +${XPValues.FIRST_EXPLORATION_OF_DAY} XP 🔍"
-            }
-            is XPEvent.CardClashWin ->
-                XPValues.CLASH_WIN to "Clash Victory! +${XPValues.CLASH_WIN} XP"
-            is XPEvent.CardClashRoundWin ->
-                XPValues.CLASH_ROUND_WIN to "Round Won +${XPValues.CLASH_ROUND_WIN} XP"
-            is XPEvent.CardClashPerfect ->
-                XPValues.CLASH_PERFECT to "Perfect Sweep! +${XPValues.CLASH_PERFECT} XP"
-            is XPEvent.CardClashDraw ->
-                XPValues.CLASH_DRAW to "Clash Draw +${XPValues.CLASH_DRAW} XP"
-            is XPEvent.WildCatchCaught -> {
-                val streakBonus = when {
-                    event.streak >= 6 -> XPValues.CATCH_STREAK_6
-                    event.streak >= 3 -> XPValues.CATCH_STREAK_3
-                    else -> 0
-                }
-                val total = XPValues.CATCH_CAUGHT + streakBonus
-                val lbl = if (streakBonus > 0) "Caught! +$total XP 🎣 x${event.streak}" else "Caught! +$total XP"
-                total to lbl
-            }
-            is XPEvent.WildCatchComplete ->
-                XPValues.CATCH_COMPLETE to "Wild Catch Complete +${XPValues.CATCH_COMPLETE} XP"
-            is XPEvent.SurvivorCorrect -> {
-                val streakBonus = when {
-                    event.streak >= 10 -> XPValues.SURVIVOR_STREAK_10
-                    event.streak >= 5 -> XPValues.SURVIVOR_STREAK_5
-                    else -> 0
-                }
-                val total = XPValues.SURVIVOR_CORRECT + streakBonus
-                val lbl = if (streakBonus > 0) "Survived! +$total XP 🔥 x${event.streak}" else "Survived! +$total XP"
-                total to lbl
-            }
-            is XPEvent.SurvivorComplete ->
-                XPValues.SURVIVOR_COMPLETE to "Survivor Run Complete +${XPValues.SURVIVOR_COMPLETE} XP"
-            is XPEvent.ChaseComplete -> {
-                val distanceBonus = (event.meters / 100 * XPValues.CHASE_PER_100M).coerceAtMost(XPValues.CHASE_DISTANCE_CAP)
-                val total = XPValues.CHASE_COMPLETE + distanceBonus
-                total to "Escaped ${event.meters} m! +$total XP ⚡"
-            }
-            is XPEvent.EasterEggClaim -> {
-                if (profile.lastEasterEggXpDate == today) return noOpResult(profile)
-                XPValues.EASTER_EGG_CLAIM to "You found it! +${XPValues.EASTER_EGG_CLAIM} XP ✨"
             }
         }
 
-        if (gained == 0) return noOpResult(profile)
-
-        // Each once-per-day event stamps only its own dedup field — stamping both
-        // on every award would let any game event suppress the exploration bonus
-        // (and vice versa) for the rest of the day.
-        return applyXP(profile, gained, label) { updated ->
-            when (event) {
-                is XPEvent.FirstGameOfDay -> updated.copy(lastFirstGameXpDate = today)
-                is XPEvent.FirstExplorationOfDay -> updated.copy(lastExplorationXpDate = today)
-                is XPEvent.EasterEggClaim -> updated.copy(lastEasterEggXpDate = today)
-                else -> updated
-            }
+        val earnedToday = if (profile.dailyGameXpDate == today) profile.dailyGameXp else 0
+        val award = XPEconomy.award(raw.amount, earnedToday, profile.restedXp)
+        applyXP(profile, award.total, gameLabel(raw, award)) { updated ->
+            updated.copy(
+                dailyGameXp = earnedToday + raw.amount,
+                dailyGameXpDate = today,
+                restedXp = profile.restedXp - award.restedBonus
+            )
         }
+    }
+
+    private class RawXp(val amount: Int, val title: String, val flair: String = "")
+
+    /** Raw XP for [event], or null when a once-a-day reward was already claimed today. */
+    private fun rawXp(event: XPEvent, profile: UserProfile, today: String): RawXp? = when (event) {
+        is XPEvent.QuizAnswer ->
+            RawXp(if (event.correct) XPValues.QUIZ_CORRECT else 0, "Correct Answer")
+        is XPEvent.QuizComplete -> {
+            val perfect = event.score == event.total && event.total > 0
+            RawXp(
+                XPValues.QUIZ_COMPLETE + if (perfect) XPValues.QUIZ_PERFECT else 0,
+                "Quiz Complete", if (perfect) " ⭐ Perfect!" else ""
+            )
+        }
+        is XPEvent.MatchComplete -> {
+            val underPar = event.moves <= event.par
+            RawXp(
+                XPValues.MATCH_COMPLETE + if (underPar) XPValues.MATCH_UNDER_PAR else 0,
+                "Match Complete", if (underPar) " 🏆 Under Par!" else ""
+            )
+        }
+        is XPEvent.GuessCorrect -> streakAward(XPValues.GUESS_CORRECT, guessStreakBonus(event.streak), event.streak, "Correct Guess")
+        is XPEvent.GuessComplete -> RawXp(XPValues.GUESS_COMPLETE, "PokéGuess Complete")
+        is XPEvent.DuelCorrect -> streakAward(XPValues.DUEL_CORRECT, guessStreakBonus(event.streak), event.streak, "Right Call!")
+        is XPEvent.DuelComplete -> RawXp(XPValues.DUEL_COMPLETE, "PokéDuel Complete")
+        is XPEvent.RushCorrect -> RawXp(XPValues.RUSH_CORRECT, "Rush Hit!")
+        is XPEvent.RushComplete -> {
+            val perfect = event.score == event.total && event.total > 0
+            RawXp(
+                XPValues.RUSH_COMPLETE + if (perfect) XPValues.RUSH_PERFECT else 0,
+                "TypeRush Complete", if (perfect) " ⭐ Perfect!" else ""
+            )
+        }
+        is XPEvent.CardClashWin -> RawXp(XPValues.CLASH_WIN, "Clash Victory!")
+        is XPEvent.CardClashRoundWin -> RawXp(XPValues.CLASH_ROUND_WIN, "Round Won")
+        is XPEvent.CardClashPerfect -> RawXp(XPValues.CLASH_PERFECT, "Perfect Sweep!")
+        is XPEvent.CardClashDraw -> RawXp(XPValues.CLASH_DRAW, "Clash Draw")
+        is XPEvent.WildCatchCaught -> {
+            val bonus = when {
+                event.streak >= 6 -> XPValues.CATCH_STREAK_6
+                event.streak >= 3 -> XPValues.CATCH_STREAK_3
+                else -> 0
+            }
+            RawXp(XPValues.CATCH_CAUGHT + bonus, "Caught!", if (bonus > 0) " 🎣 x${event.streak}" else "")
+        }
+        is XPEvent.WildCatchComplete -> RawXp(XPValues.CATCH_COMPLETE, "Wild Catch Complete")
+        is XPEvent.SurvivorCorrect -> {
+            val bonus = when {
+                event.streak >= 10 -> XPValues.SURVIVOR_STREAK_10
+                event.streak >= 5 -> XPValues.SURVIVOR_STREAK_5
+                else -> 0
+            }
+            streakAward(XPValues.SURVIVOR_CORRECT, bonus, event.streak, "Survived!")
+        }
+        is XPEvent.SurvivorComplete -> RawXp(XPValues.SURVIVOR_COMPLETE, "Survivor Run Complete")
+        is XPEvent.ChaseComplete -> {
+            val distanceBonus = (event.meters / 100 * XPValues.CHASE_PER_100M).coerceAtMost(XPValues.CHASE_DISTANCE_CAP)
+            RawXp(XPValues.CHASE_COMPLETE + distanceBonus, "Escaped ${event.meters} m!", " ⚡")
+        }
+
+        // Retention bonuses, deduplicated per calendar day.
+        is XPEvent.DailyLogin -> RawXp(XPValues.DAILY_LOGIN, "Daily Showup")
+        is XPEvent.FirstGameOfDay ->
+            if (profile.lastFirstGameXpDate == today) null
+            else RawXp(XPValues.FIRST_GAME_OF_DAY, "First Game Today!", " 🎮")
+        is XPEvent.FirstExplorationOfDay ->
+            if (profile.lastExplorationXpDate == today) null
+            else RawXp(XPValues.FIRST_EXPLORATION_OF_DAY, "First Exploration Today!", " 🔍")
+        is XPEvent.EasterEggClaim ->
+            if (profile.lastEasterEggXpDate == today) null
+            else RawXp(XPValues.EASTER_EGG_CLAIM, "You found it!", " ✨")
+    }
+
+    private fun guessStreakBonus(streak: Int) = when {
+        streak >= 5 -> XPValues.GUESS_STREAK_5
+        streak >= 2 -> XPValues.GUESS_STREAK_2
+        else -> 0
+    }
+
+    private fun streakAward(base: Int, bonus: Int, streak: Int, title: String) =
+        RawXp(base + bonus, title, if (bonus > 0) " 🔥 x$streak" else "")
+
+    /** Says plainly why a number is bigger or smaller than usual — no hidden math. */
+    private fun gameLabel(raw: RawXp, award: XPEconomy.Award): String = buildString {
+        append("${raw.title} +${award.total} XP${raw.flair}")
+        if (award.restedBonus > 0) append("  💤 Rested ×2")
+        if (award.rate < 1f) append("  · daily rate ${(award.rate * 100).roundToInt()}%")
     }
 
     private suspend fun applyXP(
@@ -180,26 +194,24 @@ class XPManager(
         val (newLevel, newCurrent, newNext) = LevelConfig.computeLevel(newTotal)
         val leveledUp = newLevel > profile.level
 
-        val now = System.currentTimeMillis()
         // Same boundary as the resetWeeklyXp Cloud Function (Monday 00:00 IST) —
         // a rolling window here would let a stale local weeklyXp overwrite the
         // server reset on the next sync.
-        val weekStart = WeeklyReset.startOfCurrentWeekMillis(now)
+        val weekStart = WeeklyReset.startOfCurrentWeekMillis(System.currentTimeMillis())
         val shouldReset = profile.lastWeeklyReset < weekStart
-
         val baseWeeklyXp = if (shouldReset) 0 else profile.weeklyXp
         val newWeeklyResetTime = if (shouldReset) weekStart else profile.lastWeeklyReset
 
         val updated = extraUpdate(
-            profile.copy(totalXp = newTotal, currentXp = newCurrent,
+            profile.copy(
+                totalXp = newTotal, currentXp = newCurrent,
                 nextLevelXp = newNext, level = newLevel, weeklyXp = baseWeeklyXp + gained,
-                lastWeeklyReset = newWeeklyResetTime,)
+                lastWeeklyReset = newWeeklyResetTime
+            )
         )
 
         repository.saveProfile(updated)
-        if (!updated.isGuest) {
-            scope.launch { repository.syncToFirestore(updated) }
-        }
+        scheduleCloudSync(updated)
 
         return XPResult(
             xpGained = gained, newTotalXp = newTotal, newLevel = newLevel,
@@ -208,9 +220,39 @@ class XPManager(
         )
     }
 
+    /** Called under [awardLock]: replaces any not-yet-sent sync with this newer profile. */
+    private fun scheduleCloudSync(profile: UserProfile) {
+        if (profile.isGuest) return
+        pendingSync?.cancel()
+        pendingSync = syncScope.launch {
+            delay(SYNC_DEBOUNCE_MS)
+            repository.syncToFirestore(profile)
+        }
+    }
+
     private fun noOpResult(profile: UserProfile) = XPResult(
         xpGained = 0, newTotalXp = profile.totalXp, newLevel = profile.level,
         newCurrentXp = profile.currentXp, newNextLevelXp = profile.nextLevelXp,
         leveledUp = false, label = ""
     )
+
+    // SimpleDateFormat isn't thread-safe, so each call gets its own.
+    private fun dateFormat() = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+
+    private fun today(): String = dateFormat().format(Date())
+
+    /** Whole calendar days from [from] to [to] (yyyy-MM-dd); 0 when [from] is blank or unparseable. */
+    private fun daysBetween(from: String, to: String): Int {
+        if (from.isBlank()) return 0
+        val format = dateFormat()
+        val start = runCatching { format.parse(from) }.getOrNull() ?: return 0
+        val end = runCatching { format.parse(to) }.getOrNull() ?: return 0
+        // Rounded, not truncated: across a DST change two midnights are 23 or 25 hours apart.
+        val dayMs = TimeUnit.DAYS.toMillis(1)
+        return ((end.time - start.time + dayMs / 2) / dayMs).toInt().coerceAtLeast(0)
+    }
+
+    private companion object {
+        const val SYNC_DEBOUNCE_MS = 3_000L
+    }
 }

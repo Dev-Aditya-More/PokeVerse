@@ -29,6 +29,11 @@ data class UserProfile(
     val lastFirstGameXpDate: String = "",   // deduplicates FirstGameOfDay per calendar day
     val lastEasterEggXpDate: String = "",
 
+    // XP economy — see XPEconomy
+    val dailyGameXp: Int = 0,          // raw game XP earned on dailyGameXpDate (drives the daily rate tiers)
+    val dailyGameXpDate: String = "",
+    val restedXp: Int = 0,             // comeback bonus pool
+
     // Leaderboard
     val rank: Int = 0,
     val photoUrl: String = "",

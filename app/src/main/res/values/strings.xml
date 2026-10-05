@@ -342,7 +342,16 @@
     <string name="premium_feature_items_title">Item Exploration</string>
     <string name="premium_feature_items_subtitle">Explore the held items in the game</string>
     <string name="premium_feature_themes_title">Exclusive themes</string>
-    <string name="premium_feature_themes_subtitle">Get all the themes and features</string>
+    <string name="premium_feature_themes_subtitle">All 16 themes, including Lugia, Lucario and Ho-Oh</string>
+    <string name="premium_feature_ad_free_title">Ad-free</string>
+    <string name="premium_feature_ad_free_subtitle">No banners anywhere, and every revive or skip without watching ads</string>
+    <string name="premium_feature_shiny_title">Shiny Dex</string>
+    <string name="premium_feature_shiny_subtitle">See every Pokémon in its shiny form across the Pokédex</string>
+    <string name="premium_feature_flair_title">Premium flair</string>
+    <string name="premium_feature_flair_subtitle">A gold ring and crest on your leaderboard profile</string>
+    <string name="settings_shiny_dex">Shiny Dex</string>
+    <string name="settings_shiny_dex_desc">Show shiny forms across the Pokédex. You can still flip any single Pokémon back on its page.</string>
+    <string name="settings_premium_only">Premium</string>
     <string name="premium_plan_monthly">Monthly</string>
     <string name="premium_plan_yearly">Yearly · Save 33%</string>
     <string name="premium_plan_yearly_best">BEST</string>
@@ -596,11 +605,18 @@
     <string name="chase_title">Rocket Chase</string>
     <string name="chase_loading">Team Rocket is inflating the balloon…</string>
     <string name="chase_tap_to_run">Tap to run!</string>
-    <string name="chase_controls_hint">Swipe, or tap left / right, to switch lanes</string>
+    <string name="chase_controls_hint">Touch a lane to run there — drag to steer</string>
+    <string name="chase_thunderbolt">Thunder</string>
+    <string name="chase_agility_ad_loading">Getting Agility ready…</string>
+    <string name="chase_revive_ad_loading">Getting your revive ready…</string>
+    <string name="ad_loading_paused">Your run is paused — nothing can hit Pikachu while you wait.</string>
+    <string name="ad_unavailable">No ad available right now. Try again in a bit!</string>
+    <string name="ad_unavailable_ok">Got it</string>
+    <string name="chase_agility">Agility</string>
+    <string name="chase_snare_prompt">Tangled! Tap ×%1$d to break free</string>
     <string name="chase_best">Best: %1$d</string>
     <string name="chase_meters">%1$d m</string>
     <string name="chase_points">%1$d pts</string>
-    <string name="chase_thunderbolt">Thunderbolt</string>
     <string name="chase_paused">Paused</string>
     <string name="chase_resume">Resume</string>
     <string name="chase_caught_title">Caught by Team Rocket!</string>
@@ -614,13 +630,43 @@
     <string name="chase_stat_distance">Distance</string>
     <string name="chase_stat_berries">Berries</string>
     <string name="chase_guide_title">How to Escape</string>
-    <string name="chase_guide_lanes">Swipe or tap left / right to dodge Koffing, Ekans and Wobbuffet.</string>
-    <string name="chase_guide_nets">A red target means Team Rocket fired a net — get out of that lane!</string>
-    <string name="chase_guide_berries">Oran Berries charge your Thunderbolt. A Thunder Stone charges it instantly — then tap ⚡ to clear the track.</string>
+    <string name="chase_guide_lanes">Touch a lane and Pikachu runs to it — drag to steer around Koffing, Ekans and Wobbuffet.</string>
+    <string name="chase_guide_nets">A red target means Team Rocket fired a net. Get out of that lane! If it lands on you, Pikachu is stuck — tap fast to break free before they reel you in.</string>
+    <string name="chase_guide_berries">Oran Berries charge 🌩️ Thunderbolt (a Thunder Stone fills it) — tap to clear the screen. ⚡ Agility is your free lifeline once per run: a 10-second dash that zaps attackers one by one and rains berries. Watch an ad for more.</string>
     <string name="chase_guide_lives">3 hits and you’re caught. Run 400 m without a hit to shake them off and win a heart back.</string>
     <string name="chase_guide_go">Let’s go!</string>
     <string name="chase_leave_title">Leave the chase?</string>
     <string name="chase_leave_message">Your run will be lost if you exit now.</string>
     <string name="chase_leave">Leave</string>
     <string name="chase_keep_running">Keep running</string>
+
+    <!-- Streak widget -->
+    <string name="widget_streak_name">Dexverse Streak</string>
+    <string name="widget_streak_description">Pikachu keeps your daily streak alive — and dresses up as it grows</string>
+    <string name="widget_streak_title">DAILY STREAK</string>
+    <plurals name="widget_streak_days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <string name="widget_streak_safe">✓ Safe for today</string>
+    <string name="widget_streak_at_risk">Open today to keep it</string>
+    <string name="widget_streak_hours_left">⏳ %1$dh left to save it</string>
+    <string name="widget_streak_start">Start a streak today</string>
+    <string name="widget_streak_rested">💤 2× XP waiting for you</string>
+    <string name="widget_pika_happy">Pika pi! ⚡</string>
+    <string name="widget_pika_waiting">Pika…? Play today!</string>
+    <string name="widget_pika_panic">PIKA!! %1$dh left!</string>
+    <string name="widget_pika_sleepy">zzz… wake me up</string>
+    <plurals name="widget_next_look">
+        <item quantity="one">%2$s outfit in %1$d day</item>
+        <item quantity="other">%2$s outfit in %1$d days</item>
+    </plurals>
+    <string name="widget_all_looks">👑 Every outfit unlocked!</string>
+    <string name="widget_look_classic">Pikachu</string>
+    <string name="widget_look_cap">Ash’s Cap</string>
+    <string name="widget_look_popstar">Pop Star</string>
+    <string name="widget_look_libre">Libre</string>
+    <string name="widget_look_phd">Ph.D.</string>
+    <string name="widget_look_rockstar">Rock Star</string>
+    <string name="widget_look_belle">Belle</string>
 </resources>

@@ -1,6 +1,10 @@
 package com.aditya1875.pokeverse.feature.game.chase.presentation.screens
 
 import androidx.activity.compose.BackHandler
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdRequestOverlay
+import com.aditya1875.pokeverse.feature.game.core.presentation.AdRequestPhase
+import com.aditya1875.pokeverse.feature.game.core.presentation.PreloadRewardedAd
+import com.aditya1875.pokeverse.feature.game.core.presentation.rememberPausingRewardedAd
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -108,6 +112,23 @@ fun ChaseScreen(
     LaunchedEffect(isOnline, guideChecked, showGuide) {
         if (isOnline && guideChecked && !showGuide) viewModel.prepare()
     }
+
+    // ── Agility lifeline: free once per run, then a rewarded ad (premium skips the ad) ──
+    val isPremium = subscriptionState is SubscriptionState.Premium
+    // Pauses the instant it's requested and shows a loader, so a slow ad can't cost the run.
+    val agilityAd = rememberPausingRewardedAd(onPause = viewModel::pause, onRewarded = viewModel::earnAgility)
+    // The run is already stopped on the Caught screen, so there's nothing to pause.
+    val reviveAd = rememberPausingRewardedAd(onPause = {}, onRewarded = viewModel::revive)
+    // Keep an ad warm for the whole run, so most taps play instantly.
+    PreloadRewardedAd(enabled = inRun && !isPremium && isOnline)
+    val onAgility: () -> Unit = {
+        when {
+            world.value.agilityCharges > 0 -> viewModel.useAgility()
+            !viewModel.canEarnAgility() -> Unit
+            isPremium -> viewModel.earnAgility()
+            else -> agilityAd.request()
+        }
+    }
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { viewModel.pause() }
     BackHandler(enabled = inRun) { requestExit() }
 
@@ -156,25 +177,40 @@ fun ChaseScreen(
                             world = world,
                             sprites = sprites,
                             config = viewModel.config,
-                            modifier = Modifier.fillMaxSize().laneSteering(viewModel::moveLane)
+                            modifier = Modifier.fillMaxSize().laneSteering(
+                                config = viewModel.config,
+                                onPress = viewModel::struggle,
+                                onSteer = viewModel::steerTo
+                            )
                         )
                         if (state is ChaseGameState.Playing || state is ChaseGameState.Caught) {
-                            ChaseHud(world = world, onPause = viewModel::pause, onThunderbolt = viewModel::thunderbolt)
+                            ChaseHud(
+                                world = world,
+                                agilityMaxExtra = viewModel.config.agilityMaxExtra,
+                                isPremium = isPremium,
+                                onPause = viewModel::pause,
+                                onThunderbolt = viewModel::thunderbolt,
+                                onAgility = onAgility
+                            )
                         }
                         when (state) {
                             is ChaseGameState.Ready -> ChaseReadyOverlay(state.bestScore, onStart = viewModel::start)
-                            is ChaseGameState.Playing -> if (state.isPaused && !showGuide && !showExitDialog) {
+                            is ChaseGameState.Playing -> if (
+                                state.isPaused && !showGuide && !showExitDialog && agilityAd.phase == AdRequestPhase.Idle
+                            ) {
                                 ChasePausedOverlay(onResume = viewModel::resume)
                             }
                             is ChaseGameState.Caught -> ChaseCaughtOverlay(
                                 canRevive = state.canRevive,
-                                isPremium = subscriptionState is SubscriptionState.Premium,
-                                isOnline = isOnline,
+                                isPremium = isPremium,
                                 onRevive = viewModel::revive,
+                                onReviveWithAd = reviveAd::request,
                                 onGiveUp = viewModel::finish
                             )
                             else -> Unit
                         }
+                        AdRequestOverlay(agilityAd, loadingText = stringResource(R.string.chase_agility_ad_loading))
+                        AdRequestOverlay(reviveAd, loadingText = stringResource(R.string.chase_revive_ad_loading))
                     }
                 }
             }
@@ -257,12 +293,29 @@ private fun playFeedback(event: ChaseEvent, sound: SoundManager, haptics: Haptic
             sound.play(SoundManager.Sound.WRONG_ANSWER)
         }
         is ChaseEvent.Collected -> sound.play(SoundManager.Sound.RUSH_CLICK, volume = 0.6f)
+        ChaseEvent.AgilityStarted -> {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            sound.play(SoundManager.Sound.PIKACHU_CRY)
+        }
+        is ChaseEvent.Zapped -> {
+            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            sound.play(SoundManager.Sound.RUSH_CLICK, volume = 0.4f)
+        }
         is ChaseEvent.ThunderUsed -> {
             haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-            sound.play(SoundManager.Sound.LEVEL_UP)
+            sound.play(SoundManager.Sound.PIKACHU_CRY)
         }
+        ChaseEvent.AgilityEnded -> sound.play(SoundManager.Sound.TIMER_UP, volume = 0.35f)
         ChaseEvent.NetIncoming -> sound.play(SoundManager.Sound.TIMER_UP, volume = 0.5f)
-        ChaseEvent.ShookOffRocket -> sound.play(SoundManager.Sound.CORRECT_ANSWER)
+        ChaseEvent.Snared -> {
+            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+            sound.play(SoundManager.Sound.WRONG_ANSWER, volume = 0.7f)
+        }
+        is ChaseEvent.Struggled -> {
+            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            sound.play(SoundManager.Sound.RUSH_CLICK, volume = 0.5f)
+        }
+        ChaseEvent.BrokeFree, ChaseEvent.ShookOffRocket -> sound.play(SoundManager.Sound.CORRECT_ANSWER)
         ChaseEvent.Caught -> sound.play(SoundManager.Sound.GAME_LOSE)
         ChaseEvent.NetDodged -> Unit
     }

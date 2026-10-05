@@ -53,14 +53,12 @@ fun ThemeSelectorScreen(
 
     val themes = remember { getStarterThemes() }
 
-    val safeTheme = resolveTheme(currentTheme, isPremium, themes)
+    // What's actually applied (mirrors MainActivity). Display-only: the saved choice is never
+    // overwritten, so a premium user whose billing is still loading can't lose their theme.
+    val safeTheme = if (currentTheme.isPremium && subscriptionState is SubscriptionState.Free) {
+        AppTheme.DEXVERSE
+    } else currentTheme
     var showPremiumSheet by remember { mutableStateOf(false) }
-
-    LaunchedEffect(safeTheme) {
-        if (safeTheme != currentTheme) {
-            themePreferences.setTheme(safeTheme)
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -181,9 +179,10 @@ data class StarterTheme(
     val type: String,
     val emoji: String,
     val description: String,
-    val colors: List<Color>,
-    val premium: Boolean = false
-)
+    val colors: List<Color>
+) {
+    val premium: Boolean get() = theme.isPremium
+}
 
 fun getStarterThemes(): List<StarterTheme> = listOf(
     StarterTheme(
@@ -211,8 +210,7 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
             Color(0xFFFFD600), // Pikachu Yellow
             Color(0xFFFFEA00), // Bright Yellow
             Color(0xFF212121)
-        ),
-        premium = true
+        )
     ),
 
     StarterTheme(
@@ -222,8 +220,7 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
         type = "Dark",
         emoji = "🖤",
         description = "For those who prefer the dark side",
-        colors = listOf(Color(0xFF9B59B6), Color(0xFF050508), Color(0xFFE53935)),
-        premium = true
+        colors = listOf(Color(0xFF9B59B6), Color(0xFF050508), Color(0xFFE53935))
     ),
 
     StarterTheme(
@@ -237,8 +234,7 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
             Color(0xFFCE93D8), // Psychic lavender
             Color(0xFF080010), // Void black
             Color(0xFF80DEEA)  // Lab teal
-        ),
-        premium = true
+        )
     ),
 
     StarterTheme(
@@ -252,8 +248,7 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
             Color(0xFFF5C518), // Gold rings
             Color(0xFF060606), // Night black
             Color(0xFF82B1FF)  // Blue rings
-        ),
-        premium = true
+        )
     ),
 
     StarterTheme(
@@ -307,8 +302,7 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
             Color(0xFF9C27B0), // Gengar Purple
             Color(0xFF0A0612), // Shadow Black
             Color(0xFFC6FF00)  // Acid Green
-        ),
-        premium = true
+        )
     ),
 
     StarterTheme(
@@ -322,8 +316,7 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
             Color(0xFF00C853), // Emerald Scales
             Color(0xFF061A0F), // Upper Atmosphere
             Color(0xFFFFD600)  // Gold Markings
-        ),
-        premium = true
+        )
     ),
 
     StarterTheme(
@@ -337,8 +330,77 @@ fun getStarterThemes(): List<StarterTheme> = listOf(
             Color(0xFFFF8FB1), // Ribbon Pink
             Color(0xFF1A0E16), // Warm Plum
             Color(0xFF9FE0FF)  // Baby Blue
-        ),
-        premium = true
+        )
+    ),
+
+    StarterTheme(
+        theme = AppTheme.LUGIA,
+        pokemonName = "Lugia",
+        pokemonNumber = "#249",
+        type = "Psychic • Flying",
+        emoji = "🌊",
+        description = "Guardian of the seas — silver plumage over midnight ocean blue",
+        colors = listOf(
+            Color(0xFFB8CCEB), // Silver Plumage
+            Color(0xFF050D1A), // Midnight Ocean
+            Color(0xFF4DD0E1)  // Storm Teal
+        )
+    ),
+
+    StarterTheme(
+        theme = AppTheme.LUCARIO,
+        pokemonName = "Lucario",
+        pokemonNumber = "#448",
+        type = "Fighting • Steel",
+        emoji = "🔵",
+        description = "Master of aura — glowing blue against steel black",
+        colors = listOf(
+            Color(0xFF42A5F5), // Aura Blue
+            Color(0xFF080B12), // Steel Black
+            Color(0xFFFFE0A3)  // Cream Fur
+        )
+    ),
+
+    StarterTheme(
+        theme = AppTheme.GRENINJA,
+        pokemonName = "Greninja",
+        pokemonNumber = "#658",
+        type = "Water • Dark",
+        emoji = "🥷",
+        description = "Silent shinobi — deep blue night with a flash of scarf pink",
+        colors = listOf(
+            Color(0xFF4F7FE0), // Ninja Blue
+            Color(0xFF060A16), // Night Mist
+            Color(0xFFFF6F91)  // Scarf Pink
+        )
+    ),
+
+    StarterTheme(
+        theme = AppTheme.MIMIKYU,
+        pokemonName = "Mimikyu",
+        pokemonNumber = "#778",
+        type = "Ghost • Fairy",
+        emoji = "🎭",
+        description = "Just wants to be loved — a homemade yellow disguise over something darker",
+        colors = listOf(
+            Color(0xFFF2D45C), // Costume Yellow
+            Color(0xFF0C0A07), // What Hides Beneath
+            Color(0xFFFF8A80)  // Scribbled Cheeks
+        )
+    ),
+
+    StarterTheme(
+        theme = AppTheme.HO_OH,
+        pokemonName = "Ho-Oh",
+        pokemonNumber = "#250",
+        type = "Fire • Flying",
+        emoji = "🔥",
+        description = "Rainbow phoenix — sacred gold fire with crimson and emerald wings",
+        colors = listOf(
+            Color(0xFFFFB300), // Sacred Fire
+            Color(0xFF140905), // Ember Sky
+            Color(0xFFEF5350)  // Crimson Plumage
+        )
     )
 )
 
@@ -539,20 +601,5 @@ fun StarterThemeCard(
                 }
             }
         }
-    }
-}
-
-fun resolveTheme(
-    currentTheme: AppTheme,
-    isPremium: Boolean,
-    themes: List<StarterTheme>
-): AppTheme {
-    val theme = getStarterThemes()
-        .firstOrNull { it.theme == currentTheme }
-
-    return if (theme?.premium == true && !isPremium) {
-        AppTheme.DEXVERSE
-    } else {
-        currentTheme
     }
 }

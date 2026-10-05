@@ -337,7 +337,16 @@
     <string name="premium_feature_items_title">Exploração de Itens</string>
     <string name="premium_feature_items_subtitle">Explore os itens segurados no jogo</string>
     <string name="premium_feature_themes_title">Temas exclusivos</string>
-    <string name="premium_feature_themes_subtitle">Tenha acesso a todos os temas e recursos</string>
+    <string name="premium_feature_themes_subtitle">Todos os 16 temas, incluindo Lugia, Lucario e Ho-Oh</string>
+    <string name="premium_feature_ad_free_title">Sem anúncios</string>
+    <string name="premium_feature_ad_free_subtitle">Nenhum banner, e reviver ou pular sem assistir anúncios</string>
+    <string name="premium_feature_shiny_title">Pokédex Shiny</string>
+    <string name="premium_feature_shiny_subtitle">Veja todos os Pokémon na forma shiny em toda a Pokédex</string>
+    <string name="premium_feature_flair_title">Destaque Premium</string>
+    <string name="premium_feature_flair_subtitle">Um anel dourado e um brasão no seu perfil do ranking</string>
+    <string name="settings_shiny_dex">Pokédex Shiny</string>
+    <string name="settings_shiny_dex_desc">Mostra as formas shiny em toda a Pokédex. Você ainda pode voltar ao normal em cada Pokémon.</string>
+    <string name="settings_premium_only">Premium</string>
     <string name="premium_plan_monthly">Mensal</string>
     <string name="premium_plan_yearly">Anual · Economize 33%</string>
     <string name="premium_plan_yearly_best">MELHOR</string>
@@ -587,11 +596,18 @@
     <string name="chase_title">Fuga da Equipe Rocket</string>
     <string name="chase_loading">A Equipe Rocket está enchendo o balão…</string>
     <string name="chase_tap_to_run">Toque para correr!</string>
-    <string name="chase_controls_hint">Deslize, ou toque à esquerda / direita, para trocar de pista</string>
+    <string name="chase_controls_hint">Toque numa pista para correr até ela — arraste para guiar</string>
+    <string name="chase_thunderbolt">Trovão</string>
+    <string name="chase_agility_ad_loading">Preparando a Agilidade…</string>
+    <string name="chase_revive_ad_loading">Preparando seu retorno…</string>
+    <string name="ad_loading_paused">Sua corrida está pausada — nada atinge o Pikachu enquanto você espera.</string>
+    <string name="ad_unavailable">Nenhum anúncio disponível agora. Tente de novo daqui a pouco!</string>
+    <string name="ad_unavailable_ok">Entendi</string>
+    <string name="chase_agility">Agilidade</string>
+    <string name="chase_snare_prompt">Preso! Toque ×%1$d para se soltar</string>
     <string name="chase_best">Recorde: %1$d</string>
     <string name="chase_meters">%1$d m</string>
     <string name="chase_points">%1$d pts</string>
-    <string name="chase_thunderbolt">Choque do Trovão</string>
     <string name="chase_paused">Pausado</string>
     <string name="chase_resume">Continuar</string>
     <string name="chase_caught_title">Capturado pela Equipe Rocket!</string>
@@ -605,13 +621,43 @@
     <string name="chase_stat_distance">Distância</string>
     <string name="chase_stat_berries">Frutas</string>
     <string name="chase_guide_title">Como Escapar</string>
-    <string name="chase_guide_lanes">Deslize ou toque à esquerda / direita para desviar de Koffing, Ekans e Wobbuffet.</string>
-    <string name="chase_guide_nets">Um alvo vermelho significa que a Equipe Rocket lançou uma rede — saia dessa pista!</string>
-    <string name="chase_guide_berries">Frutas Oran carregam seu Choque do Trovão. Uma Pedra do Trovão carrega na hora — depois toque em ⚡ para limpar a pista.</string>
+    <string name="chase_guide_lanes">Toque numa pista e o Pikachu corre até ela — arraste para desviar de Koffing, Ekans e Wobbuffet.</string>
+    <string name="chase_guide_nets">Um alvo vermelho significa que a Equipe Rocket lançou uma rede. Saia dessa pista! Se ela cair em você, o Pikachu fica preso — toque rápido para se soltar antes que eles o puxem.</string>
+    <string name="chase_guide_berries">Frutas Oran carregam o 🌩️ Trovão (uma Pedra do Trovão enche na hora) — toque para limpar a tela. ⚡ Agilidade é sua salvação grátis uma vez por corrida: um sprint de 10 segundos que derruba os atacantes um a um e faz chover frutas. Assista a um anúncio para mais.</string>
     <string name="chase_guide_lives">3 acertos e você é capturado. Corra 400 m sem ser atingido para despistá-los e recuperar um coração.</string>
     <string name="chase_guide_go">Vamos lá!</string>
     <string name="chase_leave_title">Sair da fuga?</string>
     <string name="chase_leave_message">Sua corrida será perdida se você sair agora.</string>
     <string name="chase_leave">Sair</string>
     <string name="chase_keep_running">Continuar correndo</string>
+
+    <!-- Streak widget -->
+    <string name="widget_streak_name">Sequência Dexverse</string>
+    <string name="widget_streak_description">O Pikachu mantém sua sequência viva — e troca de roupa conforme ela cresce</string>
+    <string name="widget_streak_title">SEQUÊNCIA DIÁRIA</string>
+    <plurals name="widget_streak_days">
+        <item quantity="one">dia</item>
+        <item quantity="other">dias</item>
+    </plurals>
+    <string name="widget_streak_safe">✓ Garantida hoje</string>
+    <string name="widget_streak_at_risk">Abra hoje para manter</string>
+    <string name="widget_streak_hours_left">⏳ %1$dh para salvá-la</string>
+    <string name="widget_streak_start">Comece uma sequência hoje</string>
+    <string name="widget_streak_rested">💤 XP em dobro esperando por você</string>
+    <string name="widget_pika_happy">Pika pi! ⚡</string>
+    <string name="widget_pika_waiting">Pika…? Jogue hoje!</string>
+    <string name="widget_pika_panic">PIKA!! Faltam %1$dh!</string>
+    <string name="widget_pika_sleepy">zzz… me acorda</string>
+    <plurals name="widget_next_look">
+        <item quantity="one">Roupa %2$s em %1$d dia</item>
+        <item quantity="other">Roupa %2$s em %1$d dias</item>
+    </plurals>
+    <string name="widget_all_looks">👑 Todas as roupas desbloqueadas!</string>
+    <string name="widget_look_classic">Pikachu</string>
+    <string name="widget_look_cap">Boné do Ash</string>
+    <string name="widget_look_popstar">Pop Star</string>
+    <string name="widget_look_libre">Libre</string>
+    <string name="widget_look_phd">Ph.D.</string>
+    <string name="widget_look_rockstar">Rock Star</string>
+    <string name="widget_look_belle">Belle</string>
 </resources>
