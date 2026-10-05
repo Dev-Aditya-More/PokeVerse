@@ -68,6 +68,8 @@ sealed class Route(val route: String) {
 
     object SurvivorPlay : Route("survivor/play")
 
+    object ChasePlay : Route("chase/play")
+
     // Other screens
     object Analysis : Route("analysis?teamId={teamId}") {
         fun createRoute(teamId: String) = "analysis?teamId=$teamId"

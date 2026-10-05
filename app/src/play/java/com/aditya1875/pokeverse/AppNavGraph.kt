@@ -44,6 +44,7 @@ import com.aditya1875.pokeverse.feature.game.core.presentation.GameHubScreen
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.screen.CardClashScreen
 import com.aditya1875.pokeverse.feature.game.pokeduel.presentation.screens.DuelGameScreen
 import com.aditya1875.pokeverse.feature.game.survivor.presentation.screens.SurvivorScreen
+import com.aditya1875.pokeverse.feature.game.chase.presentation.screens.ChaseScreen
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.screens.WildCatchScreen
 import com.aditya1875.pokeverse.feature.game.pokeguess.domain.model.GuessDifficulty
 import com.aditya1875.pokeverse.feature.game.pokeguess.presentation.components.PokeGuessDifficultyScreen
@@ -274,6 +275,7 @@ fun AppNavGraph(
                                 "pokeguess" -> navController.navigate(Route.GuessDifficulty.route)
                                 "wildcatch" -> navController.navigate(Route.WildCatchPlay.route)
                                 "survivor" -> navController.navigate(Route.SurvivorPlay.route)
+                                "chase" -> navController.navigate(Route.ChasePlay.route)
                             }
                         },
                     )
@@ -483,6 +485,12 @@ fun AppNavGraph(
 
             composable(Route.SurvivorPlay.route) {
                 SurvivorScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Route.ChasePlay.route) {
+                ChaseScreen(
                     onBack = { navController.popBackStack() }
                 )
             }

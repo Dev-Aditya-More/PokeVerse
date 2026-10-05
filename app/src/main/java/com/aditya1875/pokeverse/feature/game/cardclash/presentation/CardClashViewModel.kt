@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -51,8 +52,24 @@ class CardClashViewModel(
     // Cache of fetched Pokémon: id → ClashPokemon
     private val pokemonCache = mutableMapOf<Int, ClashPokemon>()
 
-    // Prevents processing the same round reveal more than once
-    private var lastProcessedRound = 0
+    // How many entries of the match's persisted completedRounds have been applied to the UI.
+    // Real-match round state (history, used cards, scores, opponent's remaining cards) is rebuilt
+    // ONLY from that persisted history — never from the transient roundRevealed/roundXCardId
+    // fields, which the resolver resets immediately and a slow listener can miss entirely. That
+    // miss was what left one player with 3 cards and the other with 2.
+    private var appliedRounds = 0
+
+    // Latest Firestore snapshot; fed to the reconcile worker (conflated — each snapshot carries
+    // the full history, so skipping intermediate ones is safe).
+    private var latestState: ClashMatchState? = null
+    private val roundSync = MutableStateFlow<ClashMatchState?>(null)
+    private var syncJob: Job? = null
+
+    // Round for which this client has already written its card to Firestore
+    private var revealWrittenRound = 0
+
+    // Outcome delivered by Firestore "finished"; shown once the final reveal has been watched
+    private var pendingOutcome: MatchOutcome? = null
 
     private var observeJob: Job? = null
     private var timerJob: Job? = null
@@ -65,6 +82,7 @@ class CardClashViewModel(
     private var botUsedIds: Set<Int> = emptySet()
 
     companion object {
+        private const val TOTAL_ROUNDS = 6
         private const val ROUND_TIMER_SECONDS = 60
         private const val HEARTBEAT_INTERVAL_MS = 20_000L
         private const val DISCONNECT_THRESHOLD_MS = 60_000L
@@ -178,6 +196,8 @@ class CardClashViewModel(
         // so cancelling it would abort this function before the hands can be fetched.
         observeJob?.cancel()
         observeJob = null
+        syncJob?.cancel()
+        syncJob = null
 
         isBotMatchActive = true
         _uiState.update {
@@ -236,8 +256,18 @@ class CardClashViewModel(
 
     private fun startObserving(matchId: String) {
         observeJob?.cancel()
+        syncJob?.cancel()
+        roundSync.value = null
+        latestState = null
         observeJob = viewModelScope.launch {
-            repository.observeMatch(matchId).collect { onMatchStateUpdate(it) }
+            repository.observeMatch(matchId).collect { state ->
+                latestState = state
+                onMatchStateUpdate(state)
+                roundSync.value = state
+            }
+        }
+        syncJob = viewModelScope.launch {
+            roundSync.filterNotNull().collect { reconcileRounds(it) }
         }
     }
 
@@ -283,15 +313,24 @@ class CardClashViewModel(
                 val opponentDisconnected = oppHeartbeatMs > 0L &&
                     System.currentTimeMillis() - oppHeartbeatMs > DISCONNECT_THRESHOLD_MS
 
-                _uiState.update {
-                    it.copy(
-                        currentRound = state.currentRound,
-                        myScore = if (isPlayer1) state.p1Score.toFloat() else state.p2Score.toFloat(),
-                        opponentScore = if (isPlayer1) state.p2Score.toFloat() else state.p1Score.toFloat(),
-                        myLocked = myLocked,
-                        opponentLocked = opponentLocked,
-                        opponentDisconnected = opponentDisconnected
-                    )
+                // Round number and scores are deliberately NOT taken from the raw snapshot —
+                // they're derived from applied history in reconcileRounds so they can never
+                // run ahead of (or disagree with) the reveal the player is looking at.
+                // Lock flags are only meaningful for the round currently open for selection.
+                val roundOpen = state.currentRound == appliedRounds + 1
+                // When the doc is already a round ahead of what's been applied, a resolve just
+                // landed and reconcileRounds is about to show its reveal — leave lock flags alone
+                // so the UI doesn't flicker back to an unlocked state in between.
+                if (current.phase != ClashPhase.REVEALING && roundOpen) {
+                    _uiState.update {
+                        it.copy(
+                            myLocked = myLocked,
+                            opponentLocked = opponentLocked,
+                            opponentDisconnected = opponentDisconnected
+                        )
+                    }
+                } else {
+                    _uiState.update { it.copy(opponentDisconnected = opponentDisconnected) }
                 }
 
                 // Transition into SELECTING phase once we have our hand.
@@ -309,94 +348,156 @@ class CardClashViewModel(
                 }
 
                 // Both locked but cards not yet revealed — write my card
-                if (myLocked && opponentLocked && !state.roundRevealed) {
+                if (myLocked && opponentLocked && !state.roundRevealed
+                    && revealWrittenRound != state.currentRound
+                ) {
                     pendingCard?.let { card ->
+                        val round = state.currentRound
+                        revealWrittenRound = round
                         viewModelScope.launch {
-                            runCatching { repository.revealMyCard(matchId, isPlayer1, card.id) }
+                            var written = false
+                            repeat(3) {
+                                if (!written) {
+                                    written = runCatching {
+                                        repository.revealMyCard(matchId, isPlayer1, card.id, round)
+                                    }.isSuccess
+                                    if (!written) delay(1000L)
+                                }
+                            }
+                            // Allow a later snapshot to retry if every attempt failed
+                            if (!written && revealWrittenRound == round) revealWrittenRound = 0
                         }
                     }
                 }
 
-                // Cards revealed and not yet processed for this round
-                if (state.roundRevealed
-                    && state.roundP1CardId != -1
-                    && state.roundP2CardId != -1
-                    && state.currentRound > lastProcessedRound
-                ) {
-                    lastProcessedRound = state.currentRound
-                    processReveal(state)
-                }
+                // Resolving the round and showing its reveal is handled by reconcileRounds,
+                // driven off the persisted round history rather than this transient snapshot.
             }
 
             "finished" -> {
                 // Stop timer and heartbeat — no point continuing them after the match ends
                 timerJob?.cancel(); timerJob = null
                 heartbeatJob?.cancel(); heartbeatJob = null
-
-                if (current.phase != ClashPhase.MATCH_FINISHED) {
-                    val myFinal = if (isPlayer1) state.p1Score.toFloat() else state.p2Score.toFloat()
-                    val oppFinal = if (isPlayer1) state.p2Score.toFloat() else state.p1Score.toFloat()
-                    val outcome = when (state.winner) {
-                        "player1" -> if (isPlayer1) MatchOutcome.WIN else MatchOutcome.LOSE
-                        "player2" -> if (!isPlayer1) MatchOutcome.WIN else MatchOutcome.LOSE
-                        else -> MatchOutcome.DRAW
-                    }
-                    _uiState.update {
-                        it.copy(
-                            phase = ClashPhase.MATCH_FINISHED,
-                            myScore = myFinal,
-                            opponentScore = oppFinal,
-                            matchOutcome = outcome
-                        )
-                    }
-                    awardXp(outcome, current.roundHistory.count { it.winner == RoundWinner.ME })
-                }
+                // The final reveal + result screen are sequenced by reconcileRounds.
             }
         }
     }
 
-    // ─── Round reveal logic ───────────────────────────────────────────────────
+    // ─── Round sync (real matches) ────────────────────────────────────────────
 
-    private fun processReveal(state: ClashMatchState) {
-        val myCardId = if (isPlayer1) state.roundP1CardId else state.roundP2CardId
-        val oppCardId = if (isPlayer1) state.roundP2CardId else state.roundP1CardId
-        val matchId = state.matchId
+    private fun ClashMatchState.roundEntries(): List<RoundEntry> =
+        completedRounds.mapNotNull { m ->
+            val round = (m["round"] as? Number)?.toInt() ?: return@mapNotNull null
+            RoundEntry(
+                round = round,
+                p1CardId = (m["p1CardId"] as? Number)?.toInt() ?: return@mapNotNull null,
+                p2CardId = (m["p2CardId"] as? Number)?.toInt() ?: return@mapNotNull null,
+                winner = m["winner"] as? String ?: "draw",
+                p1Total = (m["p1Total"] as? Number)?.toDouble(),
+                p2Total = (m["p2Total"] as? Number)?.toDouble()
+            )
+        }.sortedBy { it.round }
 
-        viewModelScope.launch {
-            // Resolve my card: prefer cache, then pendingCard, then fetch from API as last resort
-            val myCard = pokemonCache[myCardId]
-                ?: pendingCard?.takeIf { it.id == myCardId }
-                ?: repository.fetchPokemonById(myCardId)
-                ?: run {
-                    _uiState.update { it.copy(error = "Card data missing — please reconnect.") }
-                    return@launch
-                }
-            pokemonCache[myCardId] = myCard
+    private data class RoundEntry(
+        val round: Int,
+        val p1CardId: Int,
+        val p2CardId: Int,
+        val winner: String,
+        val p1Total: Double?,
+        val p2Total: Double?
+    )
 
-            val oppCard = pokemonCache.getOrPut(oppCardId) {
-                repository.fetchPokemonById(oppCardId) ?: run {
-                    _uiState.update { it.copy(error = "Opponent card data missing.") }
-                    return@launch
-                }
+    /**
+     * Single-writer-at-a-time worker (fed by a conflated flow) that brings the UI in line with
+     * the match document: (1) resolves the open round if both cards are in, (2) applies every
+     * persisted round the UI hasn't shown yet, (3) sequences the result screen.
+     */
+    private suspend fun reconcileRounds(state: ClashMatchState) {
+        if (isBotMatchActive) return
+
+        if (state.status == "active"
+            && state.roundRevealed
+            && state.roundP1CardId != -1
+            && state.roundP2CardId != -1
+            && state.roundEntries().none { it.round == state.currentRound }
+        ) {
+            resolveOpenRound(state)
+        }
+
+        applyPersistedRounds(state)
+
+        if (state.status == "finished") handleFinished(state)
+    }
+
+    private suspend fun resolveCard(id: Int): ClashPokemon? {
+        pokemonCache[id]?.let { return it }
+        val card = pendingCard?.takeIf { it.id == id } ?: repository.fetchPokemonById(id)
+        if (card != null) pokemonCache[id] = card
+        return card
+    }
+
+    /**
+     * Both players run this; the repository transaction makes whichever lands second a no-op,
+     * so there's no dependence on player 1 being online/fast and no double-counting.
+     */
+    private suspend fun resolveOpenRound(state: ClashMatchState) {
+        val p1Card = resolveCard(state.roundP1CardId) ?: return
+        val p2Card = resolveCard(state.roundP2CardId) ?: return
+
+        val p1Eff = p1Card.bst * duelEngine.computeAdvantage(p1Card.toDuel(), p2Card.toDuel())
+        val p2Eff = p2Card.bst * duelEngine.computeAdvantage(p2Card.toDuel(), p1Card.toDuel())
+        val winner = when {
+            p1Eff > p2Eff -> "player1"
+            p2Eff > p1Eff -> "player2"
+            else -> "draw"
+        }
+
+        repeat(3) { attempt ->
+            val ok = runCatching {
+                repository.resolveRound(
+                    matchId = state.matchId,
+                    roundNumber = state.currentRound,
+                    p1CardId = state.roundP1CardId,
+                    p2CardId = state.roundP2CardId,
+                    roundWinner = winner,
+                    isFinalRound = state.currentRound >= TOTAL_ROUNDS
+                )
+            }.isSuccess
+            if (ok) return
+            if (attempt < 2) delay(1000L)
+        }
+    }
+
+    private suspend fun applyPersistedRounds(state: ClashMatchState) {
+        val fresh = state.roundEntries().filter { it.round > appliedRounds }
+        if (fresh.isEmpty()) return
+
+        var lastRound: ClashRound? = null
+        for (entry in fresh) {
+            // Rounds must be applied strictly in order; a gap means we can't trust the tally.
+            if (entry.round != appliedRounds + 1) break
+
+            val myId = if (isPlayer1) entry.p1CardId else entry.p2CardId
+            val oppId = if (isPlayer1) entry.p2CardId else entry.p1CardId
+            val myCard = resolveCard(myId) ?: run {
+                _uiState.update { it.copy(error = "Card data missing — please reconnect.") }
+                break
+            }
+            val oppCard = resolveCard(oppId) ?: run {
+                _uiState.update { it.copy(error = "Opponent card data missing.") }
+                break
             }
 
             val myEff = myCard.bst * duelEngine.computeAdvantage(myCard.toDuel(), oppCard.toDuel())
             val oppEff = oppCard.bst * duelEngine.computeAdvantage(oppCard.toDuel(), myCard.toDuel())
-
-            val winner = when {
-                myEff > oppEff -> RoundWinner.ME
-                oppEff > myEff -> RoundWinner.OPPONENT
+            val winner = when (entry.winner) {
+                "player1" -> if (isPlayer1) RoundWinner.ME else RoundWinner.OPPONENT
+                "player2" -> if (isPlayer1) RoundWinner.OPPONENT else RoundWinner.ME
                 else -> RoundWinner.DRAW
             }
 
-            val (myDelta, oppDelta) = when (winner) {
-                RoundWinner.ME -> 1f to 0f
-                RoundWinner.OPPONENT -> 0f to 1f
-                RoundWinner.DRAW -> 0.5f to 0.5f
-            }
-
             val clashRound = ClashRound(
-                roundNumber = state.currentRound,
+                roundNumber = entry.round,
                 myCard = myCard,
                 opponentCard = oppCard,
                 myScore = myEff,
@@ -404,55 +505,79 @@ class CardClashViewModel(
                 winner = winner
             )
 
+            appliedRounds = entry.round
             _uiState.update { s ->
+                val p1Total = entry.p1Total
+                val p2Total = entry.p2Total
                 s.copy(
-                    phase = ClashPhase.REVEALING,
-                    revealMyCard = myCard,
-                    revealOpponentCard = oppCard,
-                    revealRound = clashRound,
-                    myScore = s.myScore + myDelta,
-                    opponentScore = s.opponentScore + oppDelta,
-                    myUsedIds = s.myUsedIds + myCardId,
+                    roundHistory = s.roundHistory + clashRound,
+                    myUsedIds = s.myUsedIds + myId,
                     opponentRevealedCards = s.opponentRevealedCards + oppCard,
-                    roundHistory = s.roundHistory + clashRound
+                    currentRound = minOf(entry.round + 1, TOTAL_ROUNDS),
+                    myScore = (if (isPlayer1) p1Total else p2Total)?.toFloat() ?: s.myScore,
+                    opponentScore = (if (isPlayer1) p2Total else p1Total)?.toFloat() ?: s.opponentScore
                 )
             }
+            lastRound = clashRound
+        }
 
-            // Only player1 writes round result to avoid duplicate writes
-            if (isPlayer1) {
-                val updatedState = _uiState.value
-                val totalP1 = if (isPlayer1) updatedState.myScore.toDouble() else updatedState.opponentScore.toDouble()
-                val totalP2 = if (isPlayer1) updatedState.opponentScore.toDouble() else updatedState.myScore.toDouble()
-                val winnerStr = when (winner) {
-                    RoundWinner.ME -> "player1"
-                    RoundWinner.OPPONENT -> "player2"
-                    RoundWinner.DRAW -> "draw"
-                }
-
-                runCatching {
-                    if (state.currentRound >= 6) {
-                        val matchWinner = when {
-                            totalP1 > totalP2 -> "player1"
-                            totalP2 > totalP1 -> "player2"
-                            else -> "draw"
-                        }
-                        repository.finishMatch(matchId, matchWinner, totalP1, totalP2)
-                    } else {
-                        repository.saveRoundResult(
-                            matchId = matchId,
-                            roundNumber = state.currentRound,
-                            p1CardId = state.roundP1CardId,
-                            p2CardId = state.roundP2CardId,
-                            roundWinner = winnerStr,
-                            roundP1Score = if (isPlayer1) myDelta.toDouble() else oppDelta.toDouble(),
-                            roundP2Score = if (isPlayer1) oppDelta.toDouble() else myDelta.toDouble(),
-                            newP1Score = totalP1,
-                            newP2Score = totalP2
-                        )
-                    }
-                }
+        // Show the reveal for the newest round only — if several were missed (e.g. after a
+        // network blip) they're already in history and don't need replaying one by one.
+        lastRound?.let { round ->
+            timerJob?.cancel(); timerJob = null
+            _uiState.update {
+                it.copy(
+                    phase = ClashPhase.REVEALING,
+                    revealRound = round,
+                    revealMyCard = round.myCard,
+                    revealOpponentCard = round.opponentCard,
+                    myLocked = true,
+                    opponentLocked = true
+                )
             }
         }
+    }
+
+    private fun handleFinished(state: ClashMatchState) {
+        val phase = _uiState.value.phase
+        if (phase == ClashPhase.MATCH_FINISHED) return
+        // A "finished" doc is only a real result once a game is under way; ignore it while we're
+        // still in the lobby/waiting/dealing phases (e.g. the bot-fallback cancel of an empty room).
+        if (phase != ClashPhase.SELECTING && phase != ClashPhase.REVEALING) return
+        // Everything the doc knows about must be on screen before we conclude.
+        if (state.roundEntries().size > appliedRounds) return
+
+        pendingOutcome = when (state.winner) {
+            "player1" -> if (isPlayer1) MatchOutcome.WIN else MatchOutcome.LOSE
+            "player2" -> if (!isPlayer1) MatchOutcome.WIN else MatchOutcome.LOSE
+            else -> MatchOutcome.DRAW
+        }
+        // If the player is watching the final reveal, let them finish it (acknowledgeReveal
+        // concludes the match); otherwise conclude right away (e.g. opponent forfeited).
+        if (phase != ClashPhase.REVEALING) finalizeMatch()
+    }
+
+    private fun finalizeMatch() {
+        val outcome = pendingOutcome ?: return
+        if (_uiState.value.phase == ClashPhase.MATCH_FINISHED) return
+        pendingOutcome = null
+
+        timerJob?.cancel(); timerJob = null
+        heartbeatJob?.cancel(); heartbeatJob = null
+
+        val doc = latestState
+        _uiState.update {
+            it.copy(
+                phase = ClashPhase.MATCH_FINISHED,
+                revealMyCard = null,
+                revealOpponentCard = null,
+                revealRound = null,
+                myScore = doc?.let { d -> (if (isPlayer1) d.p1Score else d.p2Score).toFloat() } ?: it.myScore,
+                opponentScore = doc?.let { d -> (if (isPlayer1) d.p2Score else d.p1Score).toFloat() } ?: it.opponentScore,
+                matchOutcome = outcome
+            )
+        }
+        awardXp(outcome, _uiState.value.roundHistory.count { it.winner == RoundWinner.ME })
     }
 
     // ─── Bot round reveal (fully local, no Firestore) ─────────────────────────
@@ -560,6 +685,11 @@ class CardClashViewModel(
     fun acknowledgeReveal() {
         val state = _uiState.value
 
+        if (!state.isBotMatch) {
+            acknowledgeRealMatchReveal()
+            return
+        }
+
         // Guard: if all 6 rounds have been played (or hand is exhausted), end the match.
         val roundsPlayed = state.roundHistory.size
         val handEmpty = state.myUsedIds.size >= state.myHand.size && state.myHand.isNotEmpty()
@@ -604,6 +734,42 @@ class CardClashViewModel(
                 selectedCardId = null,
                 myLocked = false,
                 opponentLocked = false,
+                revealMyCard = null,
+                revealOpponentCard = null,
+                revealRound = null,
+                timerSeconds = ROUND_TIMER_SECONDS,
+                opponentDisconnected = false
+            )
+        }
+        startRoundTimer()
+    }
+
+    private fun acknowledgeRealMatchReveal() {
+        // Match already concluded (final round, or opponent forfeited while we watched)
+        if (pendingOutcome != null) {
+            finalizeMatch()
+            return
+        }
+        // Last round watched but the doc hasn't flipped to "finished" yet — resolveRound writes
+        // both in one transaction so this is only a transient gap; handleFinished will conclude.
+        if (appliedRounds >= TOTAL_ROUNDS) {
+            _uiState.update { it.copy(revealMyCard = null, revealOpponentCard = null, revealRound = null) }
+            return
+        }
+
+        pendingCard = null
+        // The opponent may already have locked their next card while we were on the reveal
+        // screen; seed the flag from the latest snapshot so it isn't wrongly shown as "choosing".
+        val doc = latestState
+        val roundOpen = doc != null && doc.status == "active" && doc.currentRound == appliedRounds + 1
+        val oppLockedAlready = roundOpen && (if (isPlayer1) doc!!.roundP2Locked else doc!!.roundP1Locked)
+
+        _uiState.update {
+            it.copy(
+                phase = ClashPhase.SELECTING,
+                selectedCardId = null,
+                myLocked = false,
+                opponentLocked = oppLockedAlready,
                 revealMyCard = null,
                 revealOpponentCard = null,
                 revealRound = null,
@@ -680,16 +846,22 @@ class CardClashViewModel(
 
     fun reset() {
         observeJob?.cancel()
+        syncJob?.cancel()
         timerJob?.cancel()
         heartbeatJob?.cancel()
         matchmakingTimerJob?.cancel()
         observeJob = null
+        syncJob = null
         timerJob = null
         heartbeatJob = null
         matchmakingTimerJob = null
         pendingCard = null
         pokemonCache.clear()
-        lastProcessedRound = 0
+        appliedRounds = 0
+        latestState = null
+        roundSync.value = null
+        revealWrittenRound = 0
+        pendingOutcome = null
         isBotMatchActive = false
         botHand = emptyList()
         botUsedIds = emptySet()
@@ -699,6 +871,7 @@ class CardClashViewModel(
     override fun onCleared() {
         super.onCleared()
         observeJob?.cancel()
+        syncJob?.cancel()
         timerJob?.cancel()
         heartbeatJob?.cancel()
         matchmakingTimerJob?.cancel()

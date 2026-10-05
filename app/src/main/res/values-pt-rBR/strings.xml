@@ -580,4 +580,38 @@
     <string name="team_name_label">Nome do Time</string>
     <string name="action_create">Criar</string>
     <string name="action_share">Compartilhar</string>
+
+    <!-- Rocket Chase -->
+    <string name="game_name_chase_title">Fuga da Equipe Rocket</string>
+    <string name="game_name_chase_desc">A Equipe Rocket está atrás do Pikachu! Desvie das armadilhas, pegue frutas e use o Choque do Trovão para escapar.</string>
+    <string name="chase_title">Fuga da Equipe Rocket</string>
+    <string name="chase_loading">A Equipe Rocket está enchendo o balão…</string>
+    <string name="chase_tap_to_run">Toque para correr!</string>
+    <string name="chase_controls_hint">Deslize, ou toque à esquerda / direita, para trocar de pista</string>
+    <string name="chase_best">Recorde: %1$d</string>
+    <string name="chase_meters">%1$d m</string>
+    <string name="chase_points">%1$d pts</string>
+    <string name="chase_thunderbolt">Choque do Trovão</string>
+    <string name="chase_paused">Pausado</string>
+    <string name="chase_resume">Continuar</string>
+    <string name="chase_caught_title">Capturado pela Equipe Rocket!</string>
+    <string name="chase_caught_subtitle">Parece que a Equipe Rocket venceu desta vez…</string>
+    <string name="chase_revive">Libertar-se ⚡</string>
+    <string name="chase_revive_ad">📺  Assista a um anúncio para se libertar ⚡</string>
+    <string name="chase_give_up">Encerrar corrida</string>
+    <string name="chase_result_title">Fim da corrida!</string>
+    <string name="chase_result_subtitle">Pikachu correu %1$d m antes de ser capturado</string>
+    <string name="chase_score_label">pontos</string>
+    <string name="chase_stat_distance">Distância</string>
+    <string name="chase_stat_berries">Frutas</string>
+    <string name="chase_guide_title">Como Escapar</string>
+    <string name="chase_guide_lanes">Deslize ou toque à esquerda / direita para desviar de Koffing, Ekans e Wobbuffet.</string>
+    <string name="chase_guide_nets">Um alvo vermelho significa que a Equipe Rocket lançou uma rede — saia dessa pista!</string>
+    <string name="chase_guide_berries">Frutas Oran carregam seu Choque do Trovão. Uma Pedra do Trovão carrega na hora — depois toque em ⚡ para limpar a pista.</string>
+    <string name="chase_guide_lives">3 acertos e você é capturado. Corra 400 m sem ser atingido para despistá-los e recuperar um coração.</string>
+    <string name="chase_guide_go">Vamos lá!</string>
+    <string name="chase_leave_title">Sair da fuga?</string>
+    <string name="chase_leave_message">Sua corrida será perdida se você sair agora.</string>
+    <string name="chase_leave">Sair</string>
+    <string name="chase_keep_running">Continuar correndo</string>
 </resources>

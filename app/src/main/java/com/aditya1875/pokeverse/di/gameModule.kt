@@ -6,6 +6,8 @@ import com.aditya1875.pokeverse.feature.game.pokequiz.data.DynamicQuizRepository
 import com.aditya1875.pokeverse.feature.game.poketype.data.generator.TypeRushQuestionGenerator
 import com.aditya1875.pokeverse.feature.game.poketype.domain.engine.TypeRushEngine
 import com.aditya1875.pokeverse.feature.game.survivor.domain.engine.SurvivorRoundGenerator
+import com.aditya1875.pokeverse.feature.game.chase.data.ChaseSpriteLoader
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 val gameModule = module {
@@ -15,4 +17,5 @@ val gameModule = module {
     single { DuelGameEngine() }
     single { DynamicQuizRepository(get()) }
     single { SurvivorRoundGenerator(get()) }
+    single { ChaseSpriteLoader(androidContext(), get()) }
 }

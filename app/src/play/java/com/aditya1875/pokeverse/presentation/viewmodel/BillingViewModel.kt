@@ -7,6 +7,7 @@ import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.PremiumPlan
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class BillingViewModel(
     private val billingManager: IBillingManager
@@ -17,6 +18,7 @@ class BillingViewModel(
     val yearlyPrice = billingManager.yearlyPrice
     val lifetimePrice = billingManager.lifetimePrice
     val billingError = billingManager.billingError
+    val purchaseInProgress = billingManager.purchaseInProgress
 
     init {
         billingManager.startConnection()
@@ -36,6 +38,14 @@ class BillingViewModel(
 
     suspend fun restorePurchases(): Boolean {
         return billingManager.restorePurchases()
+    }
+
+    /** (Re)loads plans/prices if they're missing; cheap no-op otherwise. */
+    fun retryLoadPlans() = billingManager.startConnection()
+
+    /** Re-reads the entitlement from RevenueCat (e.g. right after the paywall completes a purchase). */
+    fun refreshEntitlement() {
+        viewModelScope.launch { billingManager.queryExistingPurchases() }
     }
 
     fun clearError() {

@@ -42,6 +42,7 @@ class UserProfileRepository(private val context: Context) {
         val BEST_DUEL = intPreferencesKey("best_duel")
         val BEST_WILDCATCH = intPreferencesKey("best_wildcatch")
         val BEST_SURVIVOR = intPreferencesKey("best_survivor")
+        val BEST_CHASE = intPreferencesKey("best_chase")
         val IS_GUEST = booleanPreferencesKey("is_guest")
         val LAST_DAILY_DATE = stringPreferencesKey("last_daily_date")
         val DAILY_STREAK = intPreferencesKey("daily_streak")
@@ -85,6 +86,7 @@ class UserProfileRepository(private val context: Context) {
             bestDuelScore = p[K.BEST_DUEL] ?: 0,
             bestWildCatchScore = p[K.BEST_WILDCATCH] ?: 0,
             bestSurvivorScore = p[K.BEST_SURVIVOR] ?: 0,
+            bestChaseScore = p[K.BEST_CHASE] ?: 0,
             isGuest = p[K.IS_GUEST] ?: true,
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
             lastFirstGameXpDate = p[K.LAST_FIRST_GAME_DATE] ?: "",
@@ -118,6 +120,7 @@ class UserProfileRepository(private val context: Context) {
             p[K.BEST_DUEL] = profile.bestDuelScore
             p[K.BEST_WILDCATCH] = profile.bestWildCatchScore
             p[K.BEST_SURVIVOR] = profile.bestSurvivorScore
+            p[K.BEST_CHASE] = profile.bestChaseScore
             p[K.IS_GUEST] = profile.isGuest
             p[K.LAST_EXPLORATION_DATE] = profile.lastExplorationXpDate
             p[K.LAST_FIRST_GAME_DATE] = profile.lastFirstGameXpDate
@@ -168,6 +171,7 @@ class UserProfileRepository(private val context: Context) {
                 bestDuelScore = (doc.getLong("bestDuelScore") ?: 0L).toInt(),
                 bestWildCatchScore = (doc.getLong("bestWildCatchScore") ?: 0L).toInt(),
                 bestSurvivorScore = (doc.getLong("bestSurvivorScore") ?: 0L).toInt(),
+                bestChaseScore = (doc.getLong("bestChaseScore") ?: 0L).toInt(),
                 isGuest = false,
                 lastDailyXpDate = doc.getString("lastDailyXpDate") ?: "",
                 lastExplorationXpDate = doc.getString("lastExplorationXpDate") ?: "",
@@ -216,6 +220,7 @@ class UserProfileRepository(private val context: Context) {
                     "bestDuelScore" to p.bestDuelScore,
                     "bestWildCatchScore" to p.bestWildCatchScore,
                     "bestSurvivorScore" to p.bestSurvivorScore,
+                    "bestChaseScore" to p.bestChaseScore,
                     "dailyStreak" to p.dailyStreak,
                     "lastDailyXpDate" to p.lastDailyXpDate,
                     "lastExplorationXpDate" to p.lastExplorationXpDate,
@@ -266,6 +271,7 @@ class UserProfileRepository(private val context: Context) {
                 "duel" -> K.BEST_DUEL
                 "wildcatch" -> K.BEST_WILDCATCH
                 "survivor" -> K.BEST_SURVIVOR
+                "chase" -> K.BEST_CHASE
                 else -> return@edit
             }
             if (score > (p[key] ?: 0)) {
@@ -285,6 +291,7 @@ class UserProfileRepository(private val context: Context) {
             "duel" -> "bestDuelScore"
             "wildcatch" -> "bestWildCatchScore"
             "survivor" -> "bestSurvivorScore"
+            "chase" -> "bestChaseScore"
             else -> return
         }
         try {

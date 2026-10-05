@@ -144,6 +144,11 @@ class XPManager(
             }
             is XPEvent.SurvivorComplete ->
                 XPValues.SURVIVOR_COMPLETE to "Survivor Run Complete +${XPValues.SURVIVOR_COMPLETE} XP"
+            is XPEvent.ChaseComplete -> {
+                val distanceBonus = (event.meters / 100 * XPValues.CHASE_PER_100M).coerceAtMost(XPValues.CHASE_DISTANCE_CAP)
+                val total = XPValues.CHASE_COMPLETE + distanceBonus
+                total to "Escaped ${event.meters} m! +$total XP ⚡"
+            }
             is XPEvent.EasterEggClaim -> {
                 if (profile.lastEasterEggXpDate == today) return noOpResult(profile)
                 XPValues.EASTER_EGG_CLAIM to "You found it! +${XPValues.EASTER_EGG_CLAIM} XP ✨"

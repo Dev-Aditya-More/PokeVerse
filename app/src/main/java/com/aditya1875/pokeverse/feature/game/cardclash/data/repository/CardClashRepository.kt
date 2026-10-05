@@ -31,20 +31,22 @@ interface CardClashRepository {
      * Called when BOTH players are locked — each player writes their own card ID independently.
      * Firestore merges the two concurrent writes. Sets roundRevealed = true.
      */
-    suspend fun revealMyCard(matchId: String, isPlayer1: Boolean, cardId: Int)
+    suspend fun revealMyCard(matchId: String, isPlayer1: Boolean, cardId: Int, roundNumber: Int)
 
-    /** Appends the round result to completedRounds, resets round state, increments currentRound. */
-    suspend fun saveRoundResult(
+    /**
+     * Idempotent, transactional round resolution — safe for BOTH players to call. Appends the
+     * round (with both card IDs and running totals) to completedRounds, resets the per-round
+     * fields and advances currentRound; on the final round it also sets status = finished and
+     * the winner in the same write. Returns false if the round was already resolved.
+     */
+    suspend fun resolveRound(
         matchId: String,
         roundNumber: Int,
         p1CardId: Int,
         p2CardId: Int,
         roundWinner: String,
-        roundP1Score: Double,
-        roundP2Score: Double,
-        newP1Score: Double,
-        newP2Score: Double
-    )
+        isFinalRound: Boolean
+    ): Boolean
 
     /** Sets status = finished and winner field on the match document. */
     suspend fun finishMatch(matchId: String, winner: String, p1Score: Double, p2Score: Double)

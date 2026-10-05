@@ -179,7 +179,7 @@ class CardClashRepositoryImpl(
         ).await()
     }
 
-    override suspend fun revealMyCard(matchId: String, isPlayer1: Boolean, cardId: Int) {
+    override suspend fun revealMyCard(matchId: String, isPlayer1: Boolean, cardId: Int, roundNumber: Int) {
         val myField = if (isPlayer1) "roundP1CardId" else "roundP2CardId"
         val otherField = if (isPlayer1) "roundP2CardId" else "roundP1CardId"
         val docRef = matches.document(matchId)
@@ -187,9 +187,19 @@ class CardClashRepositoryImpl(
         // Atomic transaction: write our card ID, and only set roundRevealed once
         // BOTH cards are present. This prevents the race where the first writer's
         // roundRevealed=true causes the second writer to skip their write entirely.
+        // The round check stops a delayed/duplicate call from a previous round writing a
+        // stale card into the freshly reset next round.
         firestore.runTransaction { tx ->
             val snap = tx.get(docRef)
-            val otherCardId = snap.getLong(otherField)?.toInt() ?: -1
+            val docRound = (snap.get("currentRound") as? Number)?.toInt() ?: 1
+            if (docRound != roundNumber || snap.getString("status") != "active") {
+                return@runTransaction false
+            }
+            val myExisting = (snap.get(myField) as? Number)?.toInt() ?: -1
+            val otherCardId = (snap.get(otherField) as? Number)?.toInt() ?: -1
+            if (myExisting == cardId && (otherCardId == -1 || snap.getBoolean("roundRevealed") == true)) {
+                return@runTransaction false
+            }
             val updates = mutableMapOf<String, Any>(
                 myField to cardId.toLong(),
                 "lastUpdated" to Timestamp.now()
@@ -198,48 +208,62 @@ class CardClashRepositoryImpl(
                 updates["roundRevealed"] = true
             }
             tx.update(docRef, updates)
+            true
         }.await()
     }
 
-    override suspend fun saveRoundResult(
+    override suspend fun resolveRound(
         matchId: String,
         roundNumber: Int,
         p1CardId: Int,
         p2CardId: Int,
         roundWinner: String,
-        roundP1Score: Double,
-        roundP2Score: Double,
-        newP1Score: Double,
-        newP2Score: Double
-    ) {
-        val roundEntry = mapOf(
-            "round" to roundNumber,
-            "p1CardId" to p1CardId,
-            "p2CardId" to p2CardId,
-            "winner" to roundWinner,
-            "p1Score" to roundP1Score,
-            "p2Score" to roundP2Score
-        )
-
-        // Firestore doesn't support arrayUnion in set(), so we read then write.
-        // For 6 rounds max this is fine; no pagination needed.
+        isFinalRound: Boolean
+    ): Boolean {
         val docRef = matches.document(matchId)
-        val existing = docRef.get().await()
-        @Suppress("UNCHECKED_CAST")
-        val history = (existing.get("completedRounds") as? List<Map<String, Any>>
-            ?: emptyList()).toMutableList()
-        history.add(roundEntry)
+        // Everything (history entry, running totals, round reset, and — on the last round —
+        // the finish) happens in ONE transaction, and the totals are derived from the stored
+        // document rather than a client's local tally. Either player may call this; whoever
+        // lands second sees the round already in completedRounds and becomes a no-op. The
+        // history entry carries both card IDs, so a client that never observed the transient
+        // "roundRevealed" snapshot can still rebuild the round from completedRounds.
+        return firestore.runTransaction { tx ->
+            val snap = tx.get(docRef)
+            if (snap.getString("status") != "active") return@runTransaction false
 
-        docRef.update(
-            mapOf(
-                "completedRounds" to history,
-                "currentRound" to roundNumber + 1,
-                "p1Score" to newP1Score,
-                "p2Score" to newP2Score,
+            @Suppress("UNCHECKED_CAST")
+            val history = (snap.get("completedRounds") as? List<Map<String, Any>>
+                ?: emptyList())
+            if (history.any { (it["round"] as? Number)?.toInt() == roundNumber }) {
+                return@runTransaction false
+            }
+
+            val (d1, d2) = when (roundWinner) {
+                "player1" -> 1.0 to 0.0
+                "player2" -> 0.0 to 1.0
+                else -> 0.5 to 0.5
+            }
+            val p1Total = ((snap.get("p1Score") as? Number)?.toDouble() ?: 0.0) + d1
+            val p2Total = ((snap.get("p2Score") as? Number)?.toDouble() ?: 0.0) + d2
+
+            val entry = mapOf(
+                "round" to roundNumber,
+                "p1CardId" to p1CardId,
+                "p2CardId" to p2CardId,
+                "winner" to roundWinner,
+                "p1Score" to d1,
+                "p2Score" to d2,
+                "p1Total" to p1Total,
+                "p2Total" to p2Total
+            )
+
+            val updates = mutableMapOf<String, Any?>(
+                "completedRounds" to history + entry,
+                "p1Score" to p1Total,
+                "p2Score" to p2Total,
                 "roundWinner" to roundWinner,
-                "roundP1Score" to roundP1Score,
-                "roundP2Score" to roundP2Score,
-                // Reset round state for next round
+                "roundP1Score" to d1,
+                "roundP2Score" to d2,
                 "roundP1Locked" to false,
                 "roundP2Locked" to false,
                 "roundP1CardId" to -1,
@@ -247,7 +271,19 @@ class CardClashRepositoryImpl(
                 "roundRevealed" to false,
                 "lastUpdated" to Timestamp.now()
             )
-        ).await()
+            if (isFinalRound) {
+                updates["status"] = "finished"
+                updates["winner"] = when {
+                    p1Total > p2Total -> "player1"
+                    p2Total > p1Total -> "player2"
+                    else -> "draw"
+                }
+            } else {
+                updates["currentRound"] = roundNumber + 1
+            }
+            tx.update(docRef, updates)
+            true
+        }.await()
     }
 
     override suspend fun finishMatch(matchId: String, winner: String, p1Score: Double, p2Score: Double) {
@@ -303,23 +339,23 @@ class CardClashRepositoryImpl(
                 player2Name = data["player2Name"] as? String ?: "",
                 status = data["status"] as? String ?: "waiting",
                 roomCode = data["roomCode"] as? String ?: "",
-                currentRound = (data["currentRound"] as? Long)?.toInt() ?: 1,
-                p1Score = data["p1Score"] as? Double ?: 0.0,
-                p2Score = data["p2Score"] as? Double ?: 0.0,
+                currentRound = (data["currentRound"] as? Number)?.toInt() ?: 1,
+                p1Score = (data["p1Score"] as? Number)?.toDouble() ?: 0.0,
+                p2Score = (data["p2Score"] as? Number)?.toDouble() ?: 0.0,
                 winner = data["winner"] as? String,
                 player1Ready = data["player1Ready"] as? Boolean ?: false,
                 player2Ready = data["player2Ready"] as? Boolean ?: false,
                 roundP1Locked = data["roundP1Locked"] as? Boolean ?: false,
                 roundP2Locked = data["roundP2Locked"] as? Boolean ?: false,
-                roundP1CardId = (data["roundP1CardId"] as? Long)?.toInt() ?: -1,
-                roundP2CardId = (data["roundP2CardId"] as? Long)?.toInt() ?: -1,
+                roundP1CardId = (data["roundP1CardId"] as? Number)?.toInt() ?: -1,
+                roundP2CardId = (data["roundP2CardId"] as? Number)?.toInt() ?: -1,
                 roundRevealed = data["roundRevealed"] as? Boolean ?: false,
                 roundWinner = data["roundWinner"] as? String,
-                roundP1Score = data["roundP1Score"] as? Double ?: 0.0,
-                roundP2Score = data["roundP2Score"] as? Double ?: 0.0,
+                roundP1Score = (data["roundP1Score"] as? Number)?.toDouble() ?: 0.0,
+                roundP2Score = (data["roundP2Score"] as? Number)?.toDouble() ?: 0.0,
                 completedRounds = data["completedRounds"] as? List<Map<String, Any>> ?: emptyList(),
-                heartbeatP1Ms = data["heartbeatP1Ms"] as? Long ?: 0L,
-                heartbeatP2Ms = data["heartbeatP2Ms"] as? Long ?: 0L
+                heartbeatP1Ms = (data["heartbeatP1Ms"] as? Number)?.toLong() ?: 0L,
+                heartbeatP2Ms = (data["heartbeatP2Ms"] as? Number)?.toLong() ?: 0L
             )
             trySend(state)
         }

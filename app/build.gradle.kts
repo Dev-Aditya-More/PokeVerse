@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -8,6 +10,16 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
 }
+
+// RevenueCat public SDK key for Google Play (starts with "goog_"), from RevenueCat dashboard →
+// Project settings → API keys. Set REVENUECAT_GOOGLE_API_KEY in the (gitignored) gradle.properties,
+// as an env var, or in local.properties. Only release builds need it.
+val revenueCatGoogleKey: String = (System.getenv("REVENUECAT_GOOGLE_API_KEY")
+    ?: project.findProperty("REVENUECAT_GOOGLE_API_KEY") as String?
+    ?: Properties().also { props ->
+        rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use(props::load)
+    }.getProperty("REVENUECAT_GOOGLE_API_KEY")
+    ?: "").trim()
 
 android {
     namespace = "com.aditya1875.pokeverse"
@@ -49,8 +61,15 @@ android {
     buildTypes {
         debug {
             isMinifyEnabled = false
+            // Uses your real Google Play key when REVENUECAT_GOOGLE_API_KEY is set (real Play
+            // products/prices); otherwise falls back to RevenueCat's fake "Test Store" key
+            // (placeholder products only; the SDK refuses that key in release builds).
+            val debugKey = if (revenueCatGoogleKey.startsWith("goog_")) revenueCatGoogleKey
+            else "test_BtsPOGSyXDWFZuxwkMDACnWYLam"
+            buildConfigField("String", "REVENUECAT_API_KEY", "\"$debugKey\"")
         }
         release {
+            buildConfigField("String", "REVENUECAT_API_KEY", "\"$revenueCatGoogleKey\"")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -118,6 +137,19 @@ android {
 //        apply(plugin = "com.google.firebase.crashlytics")
 //    }
 //}
+
+gradle.taskGraph.whenReady {
+    val buildingRelease = allTasks.any {
+        it.project == project && (it.name.startsWith("assemble") || it.name.startsWith("bundle") ||
+            it.name.startsWith("package")) && it.name.contains("Release")
+    }
+    if (buildingRelease && !revenueCatGoogleKey.startsWith("goog_")) {
+        throw GradleException(
+            "Release builds need a RevenueCat Google Play SDK key (goog_...). " +
+                "Set REVENUECAT_GOOGLE_API_KEY in gradle.properties, local.properties or the environment."
+        )
+    }
+}
 
 tasks.whenTaskAdded {
     if (name.contains("ArtProfile")) {
@@ -206,11 +238,10 @@ dependencies {
     add("playImplementation", libs.play.services.auth)
     add("playImplementation", libs.play.services.ads)
     add("playImplementation", libs.play.review.ktx)
-    // RevenueCat detached for now (production prices weren't loading and it was costing
-    // subscribers) — back on direct Play Billing until that's sorted out. Re-add
-    // libs.revenuecat.purchases / .purchases.ui (still declared in the version catalog)
-    // when it's time to try again.
-    add("playImplementation", libs.billing.ktx)
+    // RevenueCat wraps Google Play Billing (brings billing-ktx in transitively), handles
+    // receipts/entitlements server-side, and ships the Paywall + Customer Center UI.
+    add("playImplementation", libs.revenuecat.purchases)
+    add("playImplementation", libs.revenuecat.purchases.ui)
 
     // Glance Widget
     implementation (libs.androidx.glance.appwidget)

@@ -66,12 +66,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -89,6 +87,8 @@ import com.aditya1875.pokeverse.feature.inbox.presentation.screens.InboxSheet
 import com.aditya1875.pokeverse.feature.inbox.presentation.viewmodels.InboxViewModel
 import com.aditya1875.pokeverse.feature.leaderboard.data.remote.model.LeaderboardEntry
 import com.aditya1875.pokeverse.feature.leaderboard.data.repository.LeaderboardState
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.BioAnchor
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.BioAnchorHandles
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.BioSpeechBubble
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.GuestLeaderboardLocked
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.RankCelebrationDialog
@@ -127,9 +127,9 @@ fun LeaderboardScreen(
     val lastWeekLoading by viewModel.lastWeekLoading.collectAsStateWithLifecycle()
     val unreadCount by inboxViewModel.unreadCount.collectAsStateWithLifecycle()
     var showInbox by remember { mutableStateOf(false) }
-    var bioBubble by remember { mutableStateOf<Pair<LeaderboardEntry, Rect>?>(null) }
-    val onBioTap: (LeaderboardEntry, Rect) -> Unit = { entry, rect ->
-        bioBubble = if (bioBubble?.first?.uid == entry.uid) null else entry to rect
+    var bioBubble by remember { mutableStateOf<Pair<LeaderboardEntry, BioAnchor>?>(null) }
+    val onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { entry, anchor ->
+        bioBubble = entry to anchor
     }
 
     if (authState !is AuthState.Authenticated) {
@@ -141,9 +141,8 @@ fun LeaderboardScreen(
         InboxSheet(onDismiss = { showInbox = false })
     }
 
-    // Wraps Scaffold so the bio bubble below can be positioned in the same
-    // coordinate space `boundsInRoot()` reports for a tapped row — nesting it
-    // inside Scaffold's own padded content box would double-count that inset.
+    // Wraps Scaffold so the bio overlay (spotlight + bubble) covers the whole
+    // screen; it converts the tapped row's window rect into its own space.
     Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -288,7 +287,7 @@ private fun LeaderboardList(
     onLoadMore: () -> Unit,
     unreadCount: Int,
     onBellClick: () -> Unit,
-    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
 ) {
     val listState = rememberLazyListState()
 
@@ -497,7 +496,7 @@ private fun PodiumSection(
     first: LeaderboardEntry,
     second: LeaderboardEntry,
     third: LeaderboardEntry,
-    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
 ) {
     val gold = Color(0xFFFFD700)
     val silver = Color(0xFFC0C0C0)
@@ -534,14 +533,14 @@ private fun PodiumColumn(
     color: Color,
     avatarSize: Dp,
     podiumHeight: Dp,
-    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
 ) {
-    var bounds by remember { mutableStateOf(Rect.Zero) }
+    val bioAnchor = remember { BioAnchorHandles() }
     Column(
         modifier = Modifier
-            .onGloballyPositioned { bounds = it.boundsInRoot() }
+            .onGloballyPositioned { bioAnchor.target = it }
             .then(
-                if (entry.bio.isNotBlank()) Modifier.clickable { onBioTap(entry, bounds) }
+                if (entry.bio.isNotBlank()) Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry, it) } }
                 else Modifier
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -555,7 +554,8 @@ private fun PodiumColumn(
             photoUrl = entry.photoUrl,
             displayName = entry.displayName,
             size = avatarSize,
-            borderColor = color
+            borderColor = color,
+            modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
         )
 
         Spacer(Modifier.height(6.dp))
@@ -612,7 +612,7 @@ private fun LeaderboardRow(
     entry: LeaderboardEntry,
     isUser: Boolean,
     maxXp: Int,
-    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
 ) {
     val bgColor = if (isUser)
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -626,13 +626,13 @@ private fun LeaderboardRow(
         animatedProgress.animateTo(progress, tween(600, easing = FastOutSlowInEasing))
     }
 
-    var bounds by remember { mutableStateOf(Rect.Zero) }
+    val bioAnchor = remember { BioAnchorHandles() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .onGloballyPositioned { bounds = it.boundsInRoot() }
+            .onGloballyPositioned { bioAnchor.target = it }
             .then(
-                if (entry.bio.isNotBlank()) Modifier.clickable { onBioTap(entry, bounds) }
+                if (entry.bio.isNotBlank()) Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry, it) } }
                 else Modifier
             )
             .background(bgColor)
@@ -647,7 +647,12 @@ private fun LeaderboardRow(
             modifier = Modifier.width(42.dp)
         )
 
-        TrainerAvatar(photoUrl = entry.photoUrl, displayName = entry.displayName, size = 40.dp)
+        TrainerAvatar(
+            photoUrl = entry.photoUrl,
+            displayName = entry.displayName,
+            size = 40.dp,
+            modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
+        )
 
         Spacer(Modifier.width(12.dp))
 
@@ -744,10 +749,11 @@ private fun TrainerAvatar(
     photoUrl: String,
     displayName: String,
     size: Dp,
-    borderColor: Color = Color.Transparent
+    borderColor: Color = Color.Transparent,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(size)
             .clip(CircleShape)
             .border(2.dp, borderColor, CircleShape)
@@ -875,7 +881,7 @@ private fun LastWeekList(
     onTypeChange: (LeaderboardType) -> Unit,
     unreadCount: Int,
     onBellClick: () -> Unit,
-    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
 ) {
     val currentUid = remember { FirebaseAuth.getInstance().currentUser?.uid }
 
@@ -1012,7 +1018,7 @@ private fun LastWeekPodiumSection(
     first: LeaderboardEntry,
     second: LeaderboardEntry,
     third: LeaderboardEntry,
-    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
 ) {
     val gold = Color(0xFFFFD700)
     val silver = Color(0xFFC0C0C0)
@@ -1050,7 +1056,7 @@ private fun LastWeekPodiumColumn(
     podiumHeight: Dp,
     entranceDelay: Long,
     isChampion: Boolean = false,
-    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
 ) {
     val entranceScale = remember { Animatable(0.5f) }
     val entranceAlpha = remember { Animatable(0f) }
@@ -1083,12 +1089,12 @@ private fun LastWeekPodiumColumn(
         label = "sparkle"
     )
 
-    var bounds by remember { mutableStateOf(Rect.Zero) }
+    val bioAnchor = remember { BioAnchorHandles() }
     Column(
         modifier = Modifier
-            .onGloballyPositioned { bounds = it.boundsInRoot() }
+            .onGloballyPositioned { bioAnchor.target = it }
             .then(
-                if (entry.bio.isNotBlank()) Modifier.clickable { onBioTap(entry, bounds) }
+                if (entry.bio.isNotBlank()) Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry, it) } }
                 else Modifier
             )
             .graphicsLayer {
@@ -1132,7 +1138,8 @@ private fun LastWeekPodiumColumn(
                 photoUrl = entry.photoUrl,
                 displayName = entry.displayName,
                 size = avatarSize,
-                borderColor = color.copy(alpha = glowAlpha)
+                borderColor = color.copy(alpha = glowAlpha),
+                modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
             )
         }
 
@@ -1189,7 +1196,7 @@ private fun AnimatedLastWeekRow(
     index: Int,
     isUser: Boolean,
     maxXp: Int,
-    onBioTap: (LeaderboardEntry, Rect) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
 ) {
     val offsetX = remember { Animatable(80f) }
     val rowAlpha = remember { Animatable(0f) }

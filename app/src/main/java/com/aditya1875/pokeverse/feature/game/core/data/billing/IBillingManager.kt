@@ -16,6 +16,9 @@ interface IBillingManager {
 
     val billingError: StateFlow<String?>
 
+    /** True while a purchase/restore is being processed by the store. */
+    val purchaseInProgress: StateFlow<Boolean>
+
     fun startConnection()
 
     suspend fun queryExistingPurchases()

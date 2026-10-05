@@ -4,6 +4,7 @@ import com.aditya1875.pokeverse.feature.battlestats.presentation.viewmodels.Stat
 import com.aditya1875.pokeverse.feature.compare.presentation.viewmodels.CompareViewModel
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.CardClashViewModel
 import com.aditya1875.pokeverse.feature.game.survivor.presentation.viewmodels.SurvivorViewModel
+import com.aditya1875.pokeverse.feature.game.chase.presentation.viewmodels.ChaseViewModel
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.viewmodels.WildCatchViewModel
 import com.aditya1875.pokeverse.feature.badges.presentation.viewmodels.BadgesViewModel
 import com.aditya1875.pokeverse.feature.characters.presentation.viewmodels.CharactersViewModel
@@ -53,6 +54,7 @@ val viewModelModule = module {
     viewModelOf(::InboxViewModel)
     viewModelOf(::WildCatchViewModel)
     viewModelOf(::SurvivorViewModel)
+    viewModelOf(::ChaseViewModel)
     viewModelOf(::CompareViewModel)
     viewModelOf(::StatCalculatorViewModel)
     // TODO(friends): re-add when the feature ships

@@ -19,3 +19,6 @@ google-services.json
 decoded.json
 google-services.base64.txt
 gradle.properties
+*.jks
+*.keystore
+

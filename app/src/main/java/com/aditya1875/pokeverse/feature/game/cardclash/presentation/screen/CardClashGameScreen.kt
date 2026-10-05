@@ -490,7 +490,9 @@ private fun RevealScreen(state: ClashUiState, onContinue: () -> Unit) {
 
                 Spacer(Modifier.weight(1f))
 
-                if (state.currentRound < 6) {
+                // Keyed off the round being revealed, not the live counter, which can already
+                // have moved on (or lag) relative to the reveal for real matches.
+                if (round.roundNumber < 6) {
                     Button(
                         onClick = onContinue,
                         modifier = Modifier.fillMaxWidth(),

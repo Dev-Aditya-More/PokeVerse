@@ -40,6 +40,9 @@ sealed class XPEvent {
     data class SurvivorCorrect(val streak: Int) : XPEvent()
     object SurvivorComplete : XPEvent()
 
+    // Rocket Chase — awarded once per run, scaled by distance
+    data class ChaseComplete(val meters: Int) : XPEvent()
+
     // Easter Egg
     object EasterEggClaim : XPEvent()
 }
@@ -86,6 +89,10 @@ object XPValues {
     const val SURVIVOR_STREAK_5 = 10
     const val SURVIVOR_STREAK_10 = 25
     const val SURVIVOR_COMPLETE = 20
+
+    const val CHASE_COMPLETE = 15
+    const val CHASE_PER_100M = 2
+    const val CHASE_DISTANCE_CAP = 45
 
     const val EASTER_EGG_CLAIM = 25
 }

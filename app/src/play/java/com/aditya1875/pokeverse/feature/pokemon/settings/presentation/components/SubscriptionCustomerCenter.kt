@@ -1,22 +1,33 @@
 package com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components
 
-import android.content.Intent
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.net.toUri
+import androidx.compose.ui.Modifier
+import com.revenuecat.purchases.ui.revenuecatui.customercenter.CustomerCenter
 
 /**
- * Opens Google Play's native subscription-management page. Used to show RevenueCat's
- * Customer Center here; that's detached along with the rest of RevenueCat for now (see
- * BillingManager), so this falls back to the standard pre-RevenueCat approach — Play's own
- * subscriptions screen handles cancel/change-plan/refund without needing any in-app UI.
+ * RevenueCat Customer Center: lets subscribers manage/cancel/change plan, restore purchases and
+ * request refunds, all configured from the RevenueCat dashboard (Tools → Customer Center).
+ * Works for the anonymous RevenueCat user the app uses, so no sign-in is involved.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SubscriptionCustomerCenter(visible: Boolean, onDismiss: () -> Unit) {
     if (!visible) return
 
-    val context = LocalContext.current
-    val uri = "https://play.google.com/store/account/subscriptions?package=${context.packageName}".toUri()
-    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
-    onDismiss()
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
+        CustomerCenter(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            onDismiss = onDismiss
+        )
+    }
 }

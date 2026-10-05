@@ -18,6 +18,7 @@ data class UserProfile(
     val bestDuelScore: Int = 0,
     val bestWildCatchScore: Int = 0,
     val bestSurvivorScore: Int = 0,
+    val bestChaseScore: Int = 0,
     val isGuest: Boolean = true,
 
     // XP tracking

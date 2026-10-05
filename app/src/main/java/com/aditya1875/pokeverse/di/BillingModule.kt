@@ -22,7 +22,7 @@ val Context.billingDataStore by preferencesDataStore("billing_prefs")
 
 val billingModule = module {
 
-    single { AuthManager(get(), get()) }
+    single { AuthManager(get()) }
 
     single { UserProfileRepository(androidContext()) }
 
@@ -30,7 +30,7 @@ val billingModule = module {
 
     single { androidContext().billingDataStore }
 
-    single { PremiumRepository(androidContext(), get()) }
+    single { PremiumRepository(get()) }
 
     single<IBillingManager> {
         BillingManager(get(), get(), get())

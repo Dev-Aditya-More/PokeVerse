@@ -73,7 +73,6 @@
 -keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
 
 ############################
-# RevenueCat — detached for now (see BillingManager.kt); re-add this -keep rule
-# when the dependency comes back, otherwise R8 warns about the missing classes.
+# RevenueCat (see BillingManager.kt)
 ############################
-#-keep class com.revenuecat.purchases.** { *; }
+-keep class com.revenuecat.purchases.** { *; }

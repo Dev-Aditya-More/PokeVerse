@@ -17,6 +17,7 @@ object ScreenStateManager {
     val SPECIAL_EFFECTS_ENABLED = booleanPreferencesKey("special_effects_enabled")
 
     val SURVIVOR_GUIDE_SEEN = booleanPreferencesKey("survivor_guide_seen")
+    val CHASE_GUIDE_SEEN = booleanPreferencesKey("chase_guide_seen")
 
     val ASSETS_SHOWN = booleanPreferencesKey("assets_shown")
     val RATING_SHOWN = booleanPreferencesKey("rating_shown")
@@ -110,6 +111,14 @@ object ScreenStateManager {
 
     suspend fun markSurvivorGuideSeen(context: Context) {
         context.dataStore.edit { it[SURVIVOR_GUIDE_SEEN] = true }
+    }
+
+    suspend fun isChaseGuideSeen(context: Context): Boolean {
+        return context.dataStore.data.first()[CHASE_GUIDE_SEEN] ?: false
+    }
+
+    suspend fun markChaseGuideSeen(context: Context) {
+        context.dataStore.edit { it[CHASE_GUIDE_SEEN] = true }
     }
 
     suspend fun getLastPopupShownAtMinutes(context: Context): Long {

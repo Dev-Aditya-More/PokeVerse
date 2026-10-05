@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -55,12 +56,6 @@ fun GameHubScreen(
 
     // Stagger: each card becomes visible 80 ms after the previous one
     var visibleCardCount by remember { mutableStateOf(0) }
-    LaunchedEffect(Unit) {
-        repeat(7) { i ->
-            if (i > 0) delay(80L)
-            visibleCardCount = i + 1
-        }
-    }
 
     val billingViewModel: BillingViewModel = koinViewModel()
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
@@ -113,6 +108,16 @@ fun GameHubScreen(
     )
 
     val games = listOf(
+        GameEntry(
+            id = "chase",
+            title = stringResource(R.string.game_name_chase_title),
+            description = stringResource(R.string.game_name_chase_desc),
+            icon = Icons.AutoMirrored.Filled.DirectionsRun,
+            accentColor = Color(0xFFFFD54F),
+            tag = "Arcade",
+            stats = "Endless runner",
+            isNew = true
+        ),
         GameEntry(
             id = "survivor",
             title = stringResource(R.string.game_name_survivor_title),
@@ -178,6 +183,13 @@ fun GameHubScreen(
             stats = "Classic anime style"
         )
     )
+
+    LaunchedEffect(games.size) {
+        repeat(games.size) { i ->
+            if (i > 0) delay(80L)
+            visibleCardCount = i + 1
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,

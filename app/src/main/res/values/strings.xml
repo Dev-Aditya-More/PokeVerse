@@ -348,6 +348,9 @@
     <string name="premium_plan_yearly_best">BEST</string>
     <string name="premium_plan_lifetime">Lifetime</string>
     <string name="premium_price_loading">Loading...</string>
+    <string name="premium_best_value">BEST VALUE</string>
+    <string name="premium_prices_unavailable">Plans could not be loaded. Check your connection and retry.</string>
+    <string name="premium_retry">Retry</string>
     <string name="premium_suffix_month">/ month</string>
     <string name="premium_suffix_year">/ year</string>
     <string name="premium_suffix_onetime">one-time</string>
@@ -586,4 +589,38 @@
     <string name="team_name_label">Team Name</string>
     <string name="action_create">Create</string>
     <string name="action_share">Share</string>
+
+    <!-- Rocket Chase -->
+    <string name="game_name_chase_title">Rocket Chase</string>
+    <string name="game_name_chase_desc">Team Rocket is after Pikachu! Dodge their traps, grab berries and Thunderbolt your way to freedom.</string>
+    <string name="chase_title">Rocket Chase</string>
+    <string name="chase_loading">Team Rocket is inflating the balloon…</string>
+    <string name="chase_tap_to_run">Tap to run!</string>
+    <string name="chase_controls_hint">Swipe, or tap left / right, to switch lanes</string>
+    <string name="chase_best">Best: %1$d</string>
+    <string name="chase_meters">%1$d m</string>
+    <string name="chase_points">%1$d pts</string>
+    <string name="chase_thunderbolt">Thunderbolt</string>
+    <string name="chase_paused">Paused</string>
+    <string name="chase_resume">Resume</string>
+    <string name="chase_caught_title">Caught by Team Rocket!</string>
+    <string name="chase_caught_subtitle">Looks like Team Rocket’s winning this time…</string>
+    <string name="chase_revive">Break free ⚡</string>
+    <string name="chase_revive_ad">📺  Watch ad to break free ⚡</string>
+    <string name="chase_give_up">End run</string>
+    <string name="chase_result_title">Run Over!</string>
+    <string name="chase_result_subtitle">Pikachu ran %1$d m before getting caught</string>
+    <string name="chase_score_label">points</string>
+    <string name="chase_stat_distance">Distance</string>
+    <string name="chase_stat_berries">Berries</string>
+    <string name="chase_guide_title">How to Escape</string>
+    <string name="chase_guide_lanes">Swipe or tap left / right to dodge Koffing, Ekans and Wobbuffet.</string>
+    <string name="chase_guide_nets">A red target means Team Rocket fired a net — get out of that lane!</string>
+    <string name="chase_guide_berries">Oran Berries charge your Thunderbolt. A Thunder Stone charges it instantly — then tap ⚡ to clear the track.</string>
+    <string name="chase_guide_lives">3 hits and you’re caught. Run 400 m without a hit to shake them off and win a heart back.</string>
+    <string name="chase_guide_go">Let’s go!</string>
+    <string name="chase_leave_title">Leave the chase?</string>
+    <string name="chase_leave_message">Your run will be lost if you exit now.</string>
+    <string name="chase_leave">Leave</string>
+    <string name="chase_keep_running">Keep running</string>
 </resources>
