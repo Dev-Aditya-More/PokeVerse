@@ -30,6 +30,12 @@ import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.StarRate
+import androidx.compose.material.icons.filled.Widgets
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.aditya1875.pokeverse.feature.widget.streak.StreakWidgetManualStepsDialog
+import com.aditya1875.pokeverse.feature.widget.streak.StreakWidgetPinning
+import kotlinx.coroutines.launch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -109,6 +115,16 @@ fun SettingsScreen(
     var showLanguageDialog by remember { mutableStateOf(false) }
 
     val shinyDexEnabled by settingsViewModel.shinyDexEnabled.collectAsStateWithLifecycle()
+
+    val widgetScope = rememberCoroutineScope()
+    var showWidgetSteps by remember { mutableStateOf(false) }
+    var widgetOnHomeScreen by remember { mutableStateOf(false) }
+    // Re-checked whenever Settings resumes, so it flips to "added" after the user places it.
+    val widgetContext = LocalContext.current
+    LifecycleResumeEffect(Unit) {
+        val job = widgetScope.launch { widgetOnHomeScreen = StreakWidgetPinning.isOnHomeScreen(widgetContext) }
+        onPauseOrDispose { job.cancel() }
+    }
     var showPremiumSheet by remember { mutableStateOf(false) }
     if (showPremiumSheet) PremiumBottomSheet(onDismiss = { showPremiumSheet = false })
 
@@ -163,17 +179,17 @@ fun SettingsScreen(
 
                 // Subscription Management
                 SettingsCard(
-                    title = "Subscription",
+                    title = stringResource(R.string.settings_subscription),
                     icon = Icons.Default.StarRate,
                     iconTint = Color(0xFFFFD700),
                     expanded = true,
                     onExpandToggle = { }
                 ) {
                     val statusText = when (subscriptionState) {
-                        is SubscriptionState.Premium -> "Dexverse Premium Active"
-                        is SubscriptionState.Free -> "Free Plan"
-                        is SubscriptionState.Pending -> "Purchase Pending"
-                        is SubscriptionState.Loading -> "Loading..."
+                        is SubscriptionState.Premium -> stringResource(R.string.settings_premium_active)
+                        is SubscriptionState.Free -> stringResource(R.string.settings_free_plan)
+                        is SubscriptionState.Pending -> stringResource(R.string.settings_purchase_pending)
+                        is SubscriptionState.Loading -> stringResource(R.string.premium_price_loading)
                     }
                     Text(
                         statusText,
@@ -186,7 +202,7 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Manage Subscription")
+                        Text(stringResource(R.string.settings_manage_subscription))
                     }
                 }
 
@@ -361,6 +377,41 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
+
+                // Home-screen streak widget — always reachable here, even for people who said "not now"
+                SettingsCard(
+                    title = stringResource(R.string.settings_widget),
+                    icon = Icons.Default.Widgets,
+                    iconTint = Color(0xFFFF8A2B),
+                    expanded = true,
+                    onExpandToggle = { },
+                    trailing = {
+                        if (widgetOnHomeScreen) {
+                            Text(
+                                stringResource(R.string.settings_widget_added),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            TextButton(onClick = {
+                                widgetScope.launch {
+                                    val pinned = StreakWidgetPinning.isPinSupported(context) &&
+                                        StreakWidgetPinning.requestPin(context)
+                                    if (!pinned) showWidgetSteps = true
+                                }
+                            }) {
+                                Text(stringResource(R.string.widget_prompt_add), style = MaterialTheme.typography.labelLarge)
+                            }
+                        }
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.settings_widget_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+                if (showWidgetSteps) StreakWidgetManualStepsDialog(onDismiss = { showWidgetSteps = false })
 
                 // Shiny Dex (premium) — non-premium users get the upsell instead of the switch flipping
                 val isPremium = subscriptionState is SubscriptionState.Premium

@@ -45,6 +45,8 @@ class SurvivorViewModel(
 
     companion object {
         private const val REVEAL_DELAY_MS = 800L
+        /** Length of the encounter reveal on screen — must match SurvivorScreen's EncounterStage timings. */
+        const val INTRO_MS = 900L
     }
 
     val subscriptionState: StateFlow<SubscriptionState> = billingManager.subscriptionState
@@ -81,6 +83,7 @@ class SurvivorViewModel(
 
     fun submitAnswer(type: String) {
         val playing = _gameState.value as? SurvivorGameState.Playing ?: return
+        if (playing.isIntro) return
         timerJob?.cancel()
         resolveAnswer(playing, selectedType = type)
     }
@@ -148,9 +151,18 @@ class SurvivorViewModel(
                     streak = loopState.streak,
                     score = score,
                     timeRemainingMs = round.timeBudgetMs,
-                    bestScore = sessionBestScore
+                    bestScore = sessionBestScore,
+                    isIntro = true
                 )
-                startTimer(round.timeBudgetMs)
+                // The clock only starts once the encounter reveal has finished, so the
+                // reveal gives the player time to read the types instead of eating into it.
+                timerJob = viewModelScope.launch {
+                    delay(INTRO_MS)
+                    val playing = _gameState.value as? SurvivorGameState.Playing ?: return@launch
+                    if (playing.round !== round) return@launch
+                    _gameState.value = playing.copy(isIntro = false)
+                    startTimer(round.timeBudgetMs)
+                }
                 // Fetch the round-after-next's Pokémon (and warm its sprite into
                 // Coil's cache) while the player is still looking at this one —
                 // without this, every round shows a brief loading flash while its

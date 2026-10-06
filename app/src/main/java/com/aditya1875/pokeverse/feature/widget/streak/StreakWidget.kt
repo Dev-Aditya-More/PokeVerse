@@ -386,7 +386,9 @@ private fun StreakCount(snapshot: StreakSnapshot, numberSize: Float, scale: Floa
         )
         Spacer(GlanceModifier.width(4.dp))
         Text(
-            text = context.resources.getQuantityString(R.plurals.widget_streak_days, snapshot.days),
+            // The number is drawn separately, so the plural carries no %d. Zero must read as plural
+            // ("0 dias", "0 jours"), but pt/fr/hi put 0 in the "one" category — so ask for "other".
+            text = context.resources.getQuantityString(R.plurals.widget_streak_days, if (snapshot.days == 0) 2 else snapshot.days),
             style = TextStyle(color = color(WidgetColors.Muted), fontSize = 12f.sp(scale))
         )
     }

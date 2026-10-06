@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.poketype.presentation.components
 
+import com.aditya1875.pokeverse.feature.game.poketype.domain.model.TypeRushDifficulty
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
@@ -68,7 +69,7 @@ fun TypeRushResultScreen(
             ResultStatChips(
                 stringResource(R.string.typerush_stat_correct)  to "${state.correctRounds}/${state.totalRounds}",
                 stringResource(R.string.typerush_stat_accuracy) to "${(pct * 100).toInt()}%",
-                stringResource(R.string.typerush_stat_mode)     to state.difficulty.label
+                stringResource(R.string.typerush_stat_mode)     to state.difficulty.localizedLabel()
             )
             Spacer(Modifier.height(16.dp))
             ResultStatRow(
@@ -79,10 +80,18 @@ fun TypeRushResultScreen(
             )
             ResultStatRow(
                 label = stringResource(R.string.label_difficulty),
-                value = state.difficulty.label,
+                value = state.difficulty.localizedLabel(),
                 icon = Icons.Default.Speed,
                 isLast = true
             )
         }
     )
 }
+@Composable
+private fun TypeRushDifficulty.localizedLabel(): String = stringResource(
+    when (this) {
+        TypeRushDifficulty.EASY -> R.string.difficulty_easy
+        TypeRushDifficulty.MEDIUM -> R.string.difficulty_medium
+        TypeRushDifficulty.HARD -> R.string.difficulty_hard
+    }
+)

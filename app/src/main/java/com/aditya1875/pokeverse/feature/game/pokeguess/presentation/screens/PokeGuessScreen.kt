@@ -53,6 +53,10 @@ import com.aditya1875.pokeverse.utils.SoundManager
 import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.BackdropPulse
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun PokeGuessGameScreen(
@@ -105,64 +109,64 @@ fun PokeGuessGameScreen(
     BackHandler { showExitDialog = true }
 
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
-        Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        0f to MaterialTheme.colorScheme.background,
-                        0.6f to MaterialTheme.colorScheme.background,
-                        1f to MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+        GameBackdrop(
+            scene = GameScene.Spotlight,
+            pulseKey = gameState as? GuessGameState.Revealing,
+            pulseColor = if ((gameState as? GuessGameState.Revealing)?.isCorrect == true) BackdropPulse.Correct else BackdropPulse.Wrong
+        ) {
+            Scaffold(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding(),
+                containerColor = Color.Transparent
+            ) { paddingValues ->
+                if (!isOnline && gameState is GuessGameState.Idle || !isOnline && gameState is GuessGameState.Loading) {
+                    NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
+                } else when (val state = gameState) {
+                    is GuessGameState.Idle -> {}
+                    is GuessGameState.Loading -> GameLoadingContent(
+                        text = stringResource(R.string.guess_loading)
                     )
-                )
-                .navigationBarsPadding()
-        ) { paddingValues ->
-            if (!isOnline && gameState is GuessGameState.Idle || !isOnline && gameState is GuessGameState.Loading) {
-                NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
-            } else when (val state = gameState) {
-                is GuessGameState.Idle -> {}
-                is GuessGameState.Loading -> GameLoadingContent(
-                    text = stringResource(R.string.guess_loading)
-                )
 
-                is GuessGameState.ShowingSilhouette -> SilhouetteScreen(
-                    state = state,
-                    difficulty = difficulty,
-                    onAnswerSelected = { answer ->
-                        if (state.timeRemaining > 0)
-                            viewModel.submitAnswer(answer, state.currentQuestionIndex, difficulty)
-                    },
-                    onBack = { showExitDialog = true },
-                    onSkip = {
-                        requestRewardedAd(
-                            context, activity, adManager, adState,
-                            onAdWillShow = { viewModel.pauseTimer() }
-                        ) { skipPending = true }
-                    },
-                    showSkip = subscriptionState !is SubscriptionState.Premium,
-                    modifier = Modifier.padding(paddingValues)
-                )
+                    is GuessGameState.ShowingSilhouette -> SilhouetteScreen(
+                        state = state,
+                        difficulty = difficulty,
+                        onAnswerSelected = { answer ->
+                            if (state.timeRemaining > 0)
+                                viewModel.submitAnswer(answer, state.currentQuestionIndex, difficulty)
+                        },
+                        onBack = { showExitDialog = true },
+                        onSkip = {
+                            requestRewardedAd(
+                                context, activity, adManager, adState,
+                                onAdWillShow = { viewModel.pauseTimer() }
+                            ) { skipPending = true }
+                        },
+                        showSkip = subscriptionState !is SubscriptionState.Premium,
+                        modifier = Modifier.padding(paddingValues)
+                    )
 
-                is GuessGameState.Revealing -> RevealScreen(
-                    state = state,
-                    onNext = { viewModel.nextQuestion(difficulty) }
-                )
+                    is GuessGameState.Revealing -> RevealScreen(
+                        state = state,
+                        onNext = { viewModel.nextQuestion(difficulty) }
+                    )
 
-                is GuessGameState.Finished -> PokeGuessResultScreen(
-                    score = state.score,
-                    correctAnswers = state.correctAnswers,
-                    totalQuestions = state.totalQuestions,
-                    difficulty = state.difficulty,
-                    isNewBest = state.isNewBest,
-                    onPlayAgain = {
-                        if (difficulty == GuessDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
-                            requestRewardedAd(context, activity, adManager, adState) {
-                                viewModel.startGame(difficulty)
-                            }
-                        } else viewModel.startGame(difficulty)
-                    },
-                    onBackToMenu = onBack
-                )
+                    is GuessGameState.Finished -> PokeGuessResultScreen(
+                        score = state.score,
+                        correctAnswers = state.correctAnswers,
+                        totalQuestions = state.totalQuestions,
+                        difficulty = state.difficulty,
+                        isNewBest = state.isNewBest,
+                        onPlayAgain = {
+                            if (difficulty == GuessDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                                requestRewardedAd(context, activity, adManager, adState) {
+                                    viewModel.startGame(difficulty)
+                                }
+                            } else viewModel.startGame(difficulty)
+                        },
+                        onBackToMenu = onBack
+                    )
+                }
             }
         }
     }
@@ -249,7 +253,6 @@ private fun SilhouetteScreen(
 
         Spacer(Modifier.height(10.dp))
 
-        // Timer bar + countdown
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -445,9 +448,7 @@ private fun RevealScreen(
     var showContent by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(200); showContent = true }
 
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(MaterialTheme.colorScheme.background)) {
+    Box(modifier = Modifier.fillMaxSize()) {
         // Colour sweep from top
         Box(
             modifier = Modifier

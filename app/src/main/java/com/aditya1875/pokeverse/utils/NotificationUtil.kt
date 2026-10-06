@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.utils
 
+import com.aditya1875.pokeverse.R
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -13,10 +14,10 @@ object NotificationUtils {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "PokéVerse Alerts",
+                context.getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifications about new Pokémon, raids, and events"
+                description = context.getString(R.string.notification_channel_desc)
             }
 
             val notificationManager =

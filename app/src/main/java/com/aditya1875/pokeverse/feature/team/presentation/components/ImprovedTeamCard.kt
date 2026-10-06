@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.team.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -166,7 +168,7 @@ fun ImprovedTeamCard(
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = "Team Member",
+                        text = stringResource(R.string.team_member_badge),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp
@@ -181,7 +183,7 @@ fun ImprovedTeamCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "Remove",
+                    contentDescription = stringResource(R.string.a11y_remove),
                     tint = MaterialTheme.colorScheme.error,
                     modifier = Modifier.size(24.dp)
                 )

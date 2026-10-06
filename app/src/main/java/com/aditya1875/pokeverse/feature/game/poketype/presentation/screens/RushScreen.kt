@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.poketype.presentation.screens
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.*
 import androidx.compose.animation.animateColorAsState
@@ -50,6 +51,10 @@ import com.aditya1875.pokeverse.feature.core.ui.components.NoInternetScreen
 import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.BackdropPulse
+import androidx.compose.ui.graphics.Color
 
 private val TYPE_COLORS = mapOf(
     "normal" to Color(0xFFAAA67F), "fire" to Color(0xFFF57D31),
@@ -100,45 +105,58 @@ fun TypeRushScreen(
     LaunchedEffect(difficulty) { viewModel.startGame(difficulty) }
     DisposableEffect(Unit) { onDispose { viewModel.resetGame() } }
 
+    val arenaType = when (val s = state) {
+        is TypeRushState.Playing -> s.question.correctTypes.firstOrNull()
+        is TypeRushState.RoundResult -> s.result.question.correctTypes.firstOrNull()
+        else -> null
+    }
+    val arenaColor = arenaType?.let { typeColor(it) } ?: MaterialTheme.colorScheme.primary
+
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
-        Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .navigationBarsPadding()
-        ) { paddingValues ->
-            if (!isOnline && (state is TypeRushState.Idle || state is TypeRushState.Loading)) {
-                NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
-            } else when (val s = state) {
-                is TypeRushState.Idle -> {}
-                is TypeRushState.Loading -> TypeRushLoadingContent()
-                is TypeRushState.Playing -> PlayingContent(
-                    state = s, difficulty = difficulty,
-                    onTypeTapped = { viewModel.onTypeTapped(it) },
-                    onBack = { showExitDialog = true },
-                    onSkip = {
-                        requestRewardedAd(
-                            context, activity, adManager, adState,
-                            onAdWillShow = { viewModel.pauseTimer() }
-                        ) { skipPending = true }
-                    },
-                    showSkip = subscriptionState !is SubscriptionState.Premium,
-                    modifier = Modifier.padding(paddingValues)
-                )
-                is TypeRushState.RoundResult -> RoundResultContent(
-                    state = s, onNext = { viewModel.nextRound() }
-                )
-                is TypeRushState.Finished -> TypeRushResultScreen(
-                    state = s,
-                    onPlayAgain = {
-                        if (difficulty == TypeRushDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
-                            requestRewardedAd(context, activity, adManager, adState) {
-                                viewModel.startGame(difficulty)
-                            }
-                        } else viewModel.startGame(difficulty)
-                    },
-                    onBack = onBack
-                )
+        GameBackdrop(
+            scene = GameScene.TypeArena(arenaColor),
+            pulseKey = state as? TypeRushState.RoundResult,
+            pulseColor = if ((state as? TypeRushState.RoundResult)?.result?.isFullyCorrect == true) BackdropPulse.Correct else BackdropPulse.Wrong
+        ) {
+            Scaffold(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding(),
+                containerColor = Color.Transparent
+            ) { paddingValues ->
+                if (!isOnline && (state is TypeRushState.Idle || state is TypeRushState.Loading)) {
+                    NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
+                } else when (val s = state) {
+                    is TypeRushState.Idle -> {}
+                    is TypeRushState.Loading -> TypeRushLoadingContent()
+                    is TypeRushState.Playing -> PlayingContent(
+                        state = s, difficulty = difficulty,
+                        onTypeTapped = { viewModel.onTypeTapped(it) },
+                        onBack = { showExitDialog = true },
+                        onSkip = {
+                            requestRewardedAd(
+                                context, activity, adManager, adState,
+                                onAdWillShow = { viewModel.pauseTimer() }
+                            ) { skipPending = true }
+                        },
+                        showSkip = subscriptionState !is SubscriptionState.Premium,
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                    is TypeRushState.RoundResult -> RoundResultContent(
+                        state = s, onNext = { viewModel.nextRound() }
+                    )
+                    is TypeRushState.Finished -> TypeRushResultScreen(
+                        state = s,
+                        onPlayAgain = {
+                            if (difficulty == TypeRushDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                                requestRewardedAd(context, activity, adManager, adState) {
+                                    viewModel.startGame(difficulty)
+                                }
+                            } else viewModel.startGame(difficulty)
+                        },
+                        onBack = onBack
+                    )
+                }
             }
         }
     }
@@ -398,7 +416,7 @@ private fun TypeBubbleGrid(
                             else if (isWrong)
                                 Icon(Icons.Default.Close, null, tint = Color.White.copy(0.7f), modifier = Modifier.size(13.dp))
                             Text(
-                                type.replaceFirstChar { it.uppercase() },
+                                localizedTypeName(type),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = if (bgAlpha > 0.35f) Color.White
@@ -428,7 +446,7 @@ private fun RoundResultContent(state: TypeRushState.RoundResult, onNext: () -> U
         entrance.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow))
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier.fillMaxWidth().fillMaxHeight(0.5f).align(Alignment.BottomCenter)
                 .background(Brush.verticalGradient(listOf(Color.Transparent, accentColor.copy(alpha = 0.08f))))
@@ -481,7 +499,7 @@ private fun RoundResultContent(state: TypeRushState.RoundResult, onNext: () -> U
                         border = BorderStroke(1.5.dp, tc.copy(alpha = 0.55f))
                     ) {
                         Text(
-                            type.replaceFirstChar { it.uppercase() },
+                            localizedTypeName(type),
                             modifier = Modifier.padding(horizontal = 20.dp, vertical = 9.dp),
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Black,

@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.pokeduel.presentation.components
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,7 +15,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun TypeBadge(type: String) {
     Text(
-        text = type.replaceFirstChar { it.uppercase() },
+        text = localizedTypeName(type),
         modifier = Modifier
             .background(typeColor(type), RoundedCornerShape(50))
             .padding(horizontal = 10.dp, vertical = 4.dp),

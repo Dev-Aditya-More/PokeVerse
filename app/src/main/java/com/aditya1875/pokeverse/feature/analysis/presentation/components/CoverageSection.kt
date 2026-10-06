@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
@@ -26,11 +29,11 @@ fun CoverageSection(coverage: Map<String, Int>, teamSize: Int) {
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text("⚔️  Offensive Coverage",
+            Text(stringResource(R.string.analysis_offensive_coverage_header),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold, color = Color.White)
             Text(
-                "How many of your Pokémon can hit each type super-effectively",
+                stringResource(R.string.analysis_offensive_coverage_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.45f)
             )
@@ -38,7 +41,7 @@ fun CoverageSection(coverage: Map<String, Int>, teamSize: Int) {
 
             // Legend
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                LegendDot(CARD2, "None")
+                LegendDot(CARD2, stringResource(R.string.analysis_legend_none))
                 LegendDot(AMBER.copy(alpha = 0.7f), "1")
                 LegendDot(BLUE.copy(alpha = 0.7f), "2+")
                 LegendDot(GREEN.copy(alpha = 0.8f), "3+")
@@ -91,7 +94,7 @@ private fun CoverageCell(modifier: Modifier, type: String, count: Int, teamSize:
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
             Text(
-                type.replaceFirstChar { it.uppercase() },
+                localizedTypeName(type),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White.copy(alpha = if (count == 0) 0.3f else 0.8f),

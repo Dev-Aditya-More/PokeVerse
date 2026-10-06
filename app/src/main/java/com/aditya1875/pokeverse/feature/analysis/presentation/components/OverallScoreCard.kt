@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -73,7 +75,7 @@ fun OverallScoreCard(score: Int) {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "TEAM RATING",
+                    text = stringResource(R.string.analysis_team_rating),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White.copy(alpha = 0.6f),
                     letterSpacing = 2.sp,
@@ -118,10 +120,10 @@ fun OverallScoreCard(score: Int) {
                         )
                         Text(
                             text = when {
-                                score >= 80 -> "EXCELLENT"
-                                score >= 60 -> "GOOD"
-                                score >= 40 -> "FAIR"
-                                else -> "POOR"
+                                score >= 80 -> stringResource(R.string.analysis_rating_excellent)
+                                score >= 60 -> stringResource(R.string.analysis_rating_good)
+                                score >= 40 -> stringResource(R.string.analysis_rating_fair)
+                                else -> stringResource(R.string.analysis_rating_poor)
                             },
                             style = MaterialTheme.typography.labelMedium,
                             color = scoreColor,
@@ -135,10 +137,10 @@ fun OverallScoreCard(score: Int) {
 
                 Text(
                     text = when {
-                        score >= 80 -> "🔥 Battle-ready team with exceptional balance"
-                        score >= 60 -> "💪 Strong foundation with minor improvements needed"
-                        score >= 40 -> "⚡ Solid core but requires optimization"
-                        else -> "🛠️ Team needs significant restructuring"
+                        score >= 80 -> stringResource(R.string.analysis_verdict_excellent)
+                        score >= 60 -> stringResource(R.string.analysis_verdict_good)
+                        score >= 40 -> stringResource(R.string.analysis_verdict_fair)
+                        else -> stringResource(R.string.analysis_verdict_poor)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.8f),

@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.leaderboard.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,7 +73,7 @@ fun GuestLeaderboardLocked() {
                 Spacer(Modifier.height(20.dp))
 
                 Text(
-                    text = "Compete with Trainers",
+                    text = stringResource(R.string.guest_leaderboard_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -79,7 +81,7 @@ fun GuestLeaderboardLocked() {
                 Spacer(Modifier.height(8.dp))
 
                 Text(
-                    text = "Sign in to appear on the global and weekly leaderboard.",
+                    text = stringResource(R.string.guest_leaderboard_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center

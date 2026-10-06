@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.game.premium.screens
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -56,11 +58,12 @@ private val GoldDark = Color(0xFFFF8C00)
 private val BgTop = Color(0xFF1A1035)
 private val BgBottom = Color(0xFF0D0D1A)
 
+// Kept in step with the real perk set (see PremiumSheet) — this used to promise leaderboard access, which is free.
 private val perks = listOf(
-    "Hard mode in all games",
-    "Full leaderboard access",
-    "Exclusive premium themes",
-    "Priority access to new features & games"
+    R.string.premium_welcome_perk_ad_free,
+    R.string.premium_welcome_perk_themes,
+    R.string.premium_welcome_perk_shiny,
+    R.string.premium_welcome_perk_hard_mode
 )
 
 @Preview(showBackground = true)
@@ -180,7 +183,7 @@ fun PremiumWelcomeDialog(onDismiss: () -> Unit = {}) {
                 Spacer(Modifier.height(10.dp))
 
                 Text(
-                    text = "You're in. Welcome aboard!",
+                    text = stringResource(R.string.premium_welcome_title),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
                     textAlign = TextAlign.Center,
@@ -190,7 +193,7 @@ fun PremiumWelcomeDialog(onDismiss: () -> Unit = {}) {
                 Spacer(Modifier.height(6.dp))
 
                 Text(
-                    text = "Thanks for supporting the app.",
+                    text = stringResource(R.string.premium_welcome_thanks),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.55f),
                     textAlign = TextAlign.Center
@@ -208,7 +211,7 @@ fun PremiumWelcomeDialog(onDismiss: () -> Unit = {}) {
                             visible = perkVisible.getOrElse(i) { false },
                             enter = fadeIn(tween(300)) + slideInHorizontally(tween(300)) { -50 }
                         ) {
-                            FancyPerkRow(perk)
+                            FancyPerkRow(stringResource(perk))
                         }
                     }
                 }
@@ -227,7 +230,7 @@ fun PremiumWelcomeDialog(onDismiss: () -> Unit = {}) {
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "Let's Go!  🚀",
+                        text = stringResource(R.string.premium_welcome_go),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
                         color = BgTop

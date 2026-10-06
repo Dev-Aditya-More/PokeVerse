@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.core.ui.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -108,7 +110,7 @@ fun LegendaryBadge(modifier: Modifier = Modifier) {
         ) {
             Icon(
                 Icons.Default.Star,
-                contentDescription = "Legendary",
+                contentDescription = stringResource(R.string.legendary),
                 tint = Color.White,
                 modifier = Modifier
                     .size(13.dp)
@@ -119,7 +121,7 @@ fun LegendaryBadge(modifier: Modifier = Modifier) {
                     }
             )
             Text(
-                "LEGENDARY",
+                stringResource(R.string.legendary_badge),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Black,
                 color = Color.White,

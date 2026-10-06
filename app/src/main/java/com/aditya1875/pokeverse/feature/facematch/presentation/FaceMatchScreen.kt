@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.facematch.presentation
 
+import androidx.compose.ui.res.stringResource
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -112,10 +113,10 @@ fun FaceMatchScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("What Pokémon Do I Look Like?") },
+                title = { Text(stringResource(R.string.face_match_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -230,7 +231,7 @@ private fun IdleContent(hasCamera: Boolean, onTakePhoto: () -> Unit) {
         Spacer(Modifier.height(28.dp))
 
         Text(
-            "Which Pokémon do you look like?",
+            stringResource(R.string.home_menu_face_match),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
@@ -239,7 +240,7 @@ private fun IdleContent(hasCamera: Boolean, onTakePhoto: () -> Unit) {
         Spacer(Modifier.height(8.dp))
 
         Text(
-            "Take a selfie and find out! Just for fun — your photo never leaves your device.",
+            stringResource(R.string.face_match_intro_body),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -256,11 +257,11 @@ private fun IdleContent(hasCamera: Boolean, onTakePhoto: () -> Unit) {
             ) {
                 Icon(Icons.Default.CameraAlt, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
-                Text("Take a Selfie", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.face_match_take_selfie), fontWeight = FontWeight.Bold)
             }
         } else {
             Text(
-                "No camera found on this device.",
+                stringResource(R.string.face_match_no_camera),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center
@@ -270,9 +271,9 @@ private fun IdleContent(hasCamera: Boolean, onTakePhoto: () -> Unit) {
 }
 
 private val analyzingPhrases = listOf(
-    "Reading your features...",
-    "Cross-referencing the Pokédex...",
-    "Almost there..."
+    R.string.face_match_phrase_reading,
+    R.string.face_match_phrase_pokedex,
+    R.string.face_match_phrase_almost
 )
 
 @Composable
@@ -346,7 +347,7 @@ private fun AnalyzingContent(photo: Bitmap) {
             label = "analyzing_phrase"
         ) { idx ->
             Text(
-                analyzingPhrases[idx],
+                stringResource(analyzingPhrases[idx]),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -376,7 +377,7 @@ private fun ErrorContent(message: String, onRetry: () -> Unit, onCancel: () -> U
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(14.dp)
         ) {
-            Text("Try Again", fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.action_try_again), fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(8.dp))
         OutlinedButton(
@@ -384,7 +385,7 @@ private fun ErrorContent(message: String, onRetry: () -> Unit, onCancel: () -> U
             modifier = Modifier.fillMaxWidth().height(52.dp),
             shape = RoundedCornerShape(14.dp)
         ) {
-            Text("Cancel")
+            Text(stringResource(R.string.cancel))
         }
     }
 }
@@ -454,7 +455,7 @@ private fun ResultContent(
             Spacer(Modifier.height(10.dp))
 
             Text(
-                "You look like...",
+                stringResource(R.string.face_match_you_look_like),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -516,7 +517,7 @@ private fun ResultContent(
                             type = "text/plain"
                             putExtra(
                                 Intent.EXTRA_TEXT,
-                                "I look like ${match.displayName} according to Dexverse! 🎉\n" +
+                                context.getString(R.string.face_match_share_text, match.displayName) + "\n" +
                                     "https://play.google.com/store/apps/details?id=${context.packageName}"
                             )
                         }
@@ -527,7 +528,7 @@ private fun ResultContent(
                 ) {
                     Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(6.dp))
-                    Text("Share")
+                    Text(stringResource(R.string.action_share))
                 }
                 Button(
                     onClick = onTryAgain,
@@ -535,7 +536,7 @@ private fun ResultContent(
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = FaceMatchGold, contentColor = Color.Black)
                 ) {
-                    Text("Try Again", fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.action_try_again), fontWeight = FontWeight.Bold)
                 }
             }
         }

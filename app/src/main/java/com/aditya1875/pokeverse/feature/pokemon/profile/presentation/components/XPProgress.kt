@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -89,12 +92,12 @@ fun XPProgress(profile: UserProfile) {
             ) {
                 Column {
                     Text(
-                        text = "Trainer Progress",
+                        text = stringResource(R.string.profile_trainer_progress),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Level ${profile.level}  →  ${profile.level + 1}",
+                        text = stringResource(R.string.profile_level_next, profile.level, profile.level + 1),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
@@ -106,7 +109,7 @@ fun XPProgress(profile: UserProfile) {
                     color = MaterialTheme.colorScheme.primary,
                 ) {
                     Text(
-                        text = "Lv. ${profile.level}",
+                        text = stringResource(R.string.level_short, profile.level),
                         modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Black,
@@ -137,7 +140,7 @@ fun XPProgress(profile: UserProfile) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "${profile.currentXp} / ${profile.nextLevelXp} XP",
+                    text = stringResource(R.string.xp_progress, profile.currentXp, profile.nextLevelXp),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
@@ -156,7 +159,7 @@ fun XPProgress(profile: UserProfile) {
                                 .scale(streakScale)
                         )
                         Text(
-                            text = "${profile.dailyStreak} day streak",
+                            text = pluralStringResource(R.plurals.profile_day_streak, profile.dailyStreak, profile.dailyStreak),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = Color(0xFFFF6D00)

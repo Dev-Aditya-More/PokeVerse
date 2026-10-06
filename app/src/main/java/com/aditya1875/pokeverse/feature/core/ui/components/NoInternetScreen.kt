@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.core.ui.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -43,12 +45,12 @@ fun NoInternetScreen(
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "No internet connection",
+                text = stringResource(R.string.error_no_internet_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
             Text(
-                text = "Connect to the internet to play",
+                text = stringResource(R.string.no_internet_play),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
@@ -56,7 +58,7 @@ fun NoInternetScreen(
             if (onRetry != null) {
                 Spacer(Modifier.height(8.dp))
                 Button(onClick = onRetry) {
-                    Text("Retry")
+                    Text(stringResource(R.string.action_retry))
                 }
             }
         }

@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.berry.presentation.screens
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,7 +82,7 @@ fun BerryDetailScreen(
 
         BerryDetailState.NotFound -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Berry not found", style = MaterialTheme.typography.titleMedium)
+                Text(stringResource(R.string.berry_not_found), style = MaterialTheme.typography.titleMedium)
             }
         }
     }
@@ -169,20 +172,20 @@ private fun BerryDetailContent(berry: BerryUiModel, onBack: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     StatPill(label = "Power", value = "${berry.naturalGiftPower}", color = typeColor, modifier = Modifier.weight(1f))
-                    StatPill(label = "Size", value = "${berry.size} mm", color = typeColor, modifier = Modifier.weight(1f))
-                    StatPill(label = "Growth", value = "${berry.growthTime}h", color = typeColor, modifier = Modifier.weight(1f))
+                    StatPill(label = stringResource(R.string.berry_size), value = stringResource(R.string.berry_size_value, berry.size.toString()), color = typeColor, modifier = Modifier.weight(1f))
+                    StatPill(label = stringResource(R.string.berry_growth), value = stringResource(R.string.berry_growth_short, berry.growthTime), color = typeColor, modifier = Modifier.weight(1f))
                 }
             }
 
             // ── PROPERTIES ──────────────────────────────────────────────────────
             item {
                 GlossyCard {
-                    InfoBlock(title = "Properties", accentColor = typeColor) {
-                        BerryInfoRow("Natural Gift Type", berry.naturalGiftType.replaceFirstChar { it.uppercase() })
-                        BerryInfoRow("Natural Gift Power", berry.naturalGiftPower.toString())
-                        BerryInfoRow("Firmness", berry.firmness.split("-").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } })
-                        BerryInfoRow("Size", "${berry.size} mm")
-                        BerryInfoRow("Growth Time", "${berry.growthTime} hours per stage")
+                    InfoBlock(title = stringResource(R.string.berry_properties), accentColor = typeColor) {
+                        BerryInfoRow(stringResource(R.string.berry_natural_gift_type), localizedTypeName(berry.naturalGiftType))
+                        BerryInfoRow(stringResource(R.string.berry_natural_gift_power), berry.naturalGiftPower.toString())
+                        BerryInfoRow(stringResource(R.string.berry_firmness), berry.firmness.split("-").joinToString(" ") { it.replaceFirstChar { c -> c.uppercase() } })
+                        BerryInfoRow(stringResource(R.string.berry_size), stringResource(R.string.berry_size_value, berry.size.toString()))
+                        BerryInfoRow(stringResource(R.string.berry_growth_time), stringResource(R.string.berry_growth_time_value, berry.growthTime))
                     }
                 }
             }
@@ -191,7 +194,7 @@ private fun BerryDetailContent(berry: BerryUiModel, onBack: () -> Unit) {
             if (berry.flavorPotencies.isNotEmpty()) {
                 item {
                     GlossyCard {
-                        InfoBlock(title = "Flavor Profile", accentColor = typeColor) {
+                        InfoBlock(title = stringResource(R.string.berry_flavor_profile), accentColor = typeColor) {
                             val flavorOrder = listOf("spicy", "dry", "sweet", "bitter", "sour")
                             val flavorEmoji = mapOf(
                                 "spicy" to "🌶", "dry" to "💧", "sweet" to "🍰",
@@ -263,7 +266,7 @@ private fun BerryDetailContent(berry: BerryUiModel, onBack: () -> Unit) {
             // ── BATTLE TIP ──────────────────────────────────────────────────────
             item {
                 GlossyCard {
-                    InfoBlock(title = "Battle Use", accentColor = typeColor) {
+                    InfoBlock(title = stringResource(R.string.berry_battle_use), accentColor = typeColor) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("💡", fontSize = 18.sp)
                             Spacer(Modifier.width(8.dp))
@@ -310,14 +313,15 @@ private fun BerryInfoRow(label: String, value: String) {
     }
 }
 
+@Composable
 private fun battleTip(berry: BerryUiModel): String {
     return when {
-        berry.naturalGiftPower >= 90 -> "High-power Natural Gift move (${berry.naturalGiftPower} base power). Use it when you need a reliable ${berry.naturalGiftType}-type hit."
-        berry.dominantFlavor == "spicy" -> "Lowers the Pokémon's Atk EVs. Also used in Pokéblocks for conditions."
-        berry.dominantFlavor == "dry" -> "Lowers the Pokémon's SpAtk EVs. Also used in Poffins and Pokéblocks."
-        berry.dominantFlavor == "sweet" -> "Lowers the Pokémon's Speed EVs. Raises friendship when held."
-        berry.dominantFlavor == "bitter" -> "Lowers the Pokémon's SpDef EVs. Also raises friendship."
-        berry.dominantFlavor == "sour" -> "Lowers the Pokémon's Def EVs. Useful for EV training."
-        else -> "Provides a ${berry.naturalGiftType}-type Natural Gift attack with ${berry.naturalGiftPower} base power."
+        berry.naturalGiftPower >= 90 -> stringResource(R.string.berry_tip_high_power, berry.naturalGiftPower, localizedTypeName(berry.naturalGiftType))
+        berry.dominantFlavor == "spicy" -> stringResource(R.string.berry_tip_spicy)
+        berry.dominantFlavor == "dry" -> stringResource(R.string.berry_tip_dry)
+        berry.dominantFlavor == "sweet" -> stringResource(R.string.berry_tip_sweet)
+        berry.dominantFlavor == "bitter" -> stringResource(R.string.berry_tip_bitter)
+        berry.dominantFlavor == "sour" -> stringResource(R.string.berry_tip_sour)
+        else -> stringResource(R.string.berry_tip_default, localizedTypeName(berry.naturalGiftType), berry.naturalGiftPower)
     }
 }

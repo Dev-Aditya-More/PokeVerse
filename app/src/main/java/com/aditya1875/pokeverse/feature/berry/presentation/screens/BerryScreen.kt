@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.berry.presentation.screens
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -155,8 +157,8 @@ fun BerryListError(message: String, onRetry: () -> Unit) {
     ) {
         Text("⚠️", fontSize = 40.sp)
         Spacer(Modifier.height(8.dp))
-        Text("Failed to load berries", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.berry_load_failed), style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(16.dp))
-        Button(onClick = onRetry) { Text("Retry") }
+        Button(onClick = onRetry) { Text(stringResource(R.string.action_retry)) }
     }
 }

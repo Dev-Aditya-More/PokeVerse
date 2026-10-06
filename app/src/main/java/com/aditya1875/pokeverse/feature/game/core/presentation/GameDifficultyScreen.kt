@@ -19,7 +19,11 @@ import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBanner
 import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import org.koin.androidx.compose.koinViewModel
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import androidx.compose.ui.graphics.Color
 
+@Suppress("MultipleContentEmitters")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameDifficultyLayout(
@@ -28,12 +32,13 @@ fun GameDifficultyLayout(
     difficultyHint: String,
     onBack: () -> Unit,
     subscriptionState: SubscriptionState,
+    modifier: Modifier = Modifier,
     content: LazyListScope.() -> Unit
 ) {
 
     var showPremiumSheet by remember { mutableStateOf(false) }
 
-    val billingViewModel: BillingViewModel = koinViewModel()
+    @Suppress("ExplicitDependencies") val billingViewModel: BillingViewModel = koinViewModel()
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
     val lifetime by billingViewModel.lifetimePrice.collectAsStateWithLifecycle()
@@ -45,70 +50,73 @@ fun GameDifficultyLayout(
 
     val isPremium = subscriptionState is SubscriptionState.Premium
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
+    GameBackdrop(scene = GameScene.Hub, modifier = modifier) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(gameTitle, fontWeight = FontWeight.Bold)
+                            Text(
+                                gameSubtitle,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    )
+                )
+            },
+            containerColor = Color.Transparent
+        ) { padding ->
+
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+
+                item(contentType = "contentType1") { Spacer(Modifier.height(8.dp)) }
+
+                item(contentType = "contentType2") {
                     Column {
-                        Text(gameTitle, fontWeight = FontWeight.Bold)
                         Text(
-                            gameSubtitle,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            "Select Difficulty",
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        Text(
+                            difficultyHint,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                         )
                     }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                }
+
+                content()
+
+                if (BuildConfig.ENABLE_BILLING && !isPremium) {
+                    item(contentType = "contentType3") {
+                        PremiumBanner(
+                            price = monthly,
+                            onSubscribe = { showPremiumSheet = true }
+                        )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-
-            item { Spacer(Modifier.height(8.dp)) }
-
-            item {
-                Column {
-                    Text(
-                        "Select Difficulty",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-
-                    Text(
-                        difficultyHint,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
                 }
+
+                item(contentType = "contentType4") { Spacer(Modifier.height(16.dp)) }
             }
-
-            content()
-
-            if (BuildConfig.ENABLE_BILLING && !isPremium) {
-                item {
-                    PremiumBanner(
-                        price = monthly,
-                        onSubscribe = { showPremiumSheet = true }
-                    )
-                }
-            }
-
-            item { Spacer(Modifier.height(16.dp)) }
         }
     }
 

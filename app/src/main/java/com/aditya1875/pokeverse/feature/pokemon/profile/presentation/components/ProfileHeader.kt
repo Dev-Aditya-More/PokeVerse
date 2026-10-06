@@ -106,7 +106,7 @@ fun ProfileHeader(
                         modifier = Modifier.fillMaxWidth()
                     )
                     Text(
-                        text = "${bioInput.length}/60",
+                        text = stringResource(R.string.profile_bio_count, bioInput.length),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                         modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
@@ -174,7 +174,7 @@ fun ProfileHeader(
             if (photo != null) {
                 AsyncImage(
                     model = photo,
-                    contentDescription = "Profile Photo",
+                    contentDescription = stringResource(R.string.a11y_profile_photo),
                     modifier = Modifier
                         .fillMaxSize()
                         .clip(CircleShape),
@@ -228,7 +228,7 @@ fun ProfileHeader(
 
                 Icon(
                     Icons.Default.Edit,
-                    contentDescription = "Edit name",
+                    contentDescription = stringResource(R.string.a11y_edit_name),
                     modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -261,7 +261,7 @@ fun ProfileHeader(
                     modifier = Modifier.scale(levelScale)
                 ) {
                     Text(
-                        text = "⚡ Level ${profile.level}",
+                        text = stringResource(R.string.profile_level_badge, profile.level),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,

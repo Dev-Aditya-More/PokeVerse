@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -77,7 +79,7 @@ fun StatsSection(profile: UserProfile) {
         AnimatedStatCard(
             modifier = Modifier.weight(1f),
             label = "Streak",
-            value = "${profile.dailyStreak}d",
+            value = stringResource(R.string.streak_days_short, profile.dailyStreak),
             icon = Icons.Default.LocalFireDepartment,
             iconTint = Color(0xFFFF6D00)
         )
@@ -89,52 +91,52 @@ fun GameStatsSection(profile: UserProfile) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         GameStatRow(
             icon = Icons.AutoMirrored.Filled.DirectionsRun,
-            title = "Rocket Chase",
+            title = stringResource(R.string.game_name_chase_title),
             bestScore = profile.bestChaseScore,
             accentColor = Color(0xFFFFD54F)
         )
         GameStatRow(
             icon = Icons.Default.Bolt,
-            title = "Pokémon Survivor",
+            title = stringResource(R.string.game_name_survivor_title),
             bestScore = profile.bestSurvivorScore,
             accentColor = Color(0xFFFFC107)
         )
         GameStatRow(
             icon = Icons.Default.RadioButtonUnchecked,
-            title = "Wild Catch",
+            title = stringResource(R.string.game_name_wildcatch_title),
             bestScore = profile.bestWildCatchScore,
             accentColor = Color(0xFFE53935)
         )
 
         GameStatRow(
             icon = Icons.Default.FlashOn,
-            title = "Who Wins?",
+            title = stringResource(R.string.game_name_pokeduel_title),
             bestScore = profile.bestDuelScore,
             accentColor = Color(0xFFFF9800)
         )
         GameStatRow(
             icon = Icons.Default.SportsEsports,
-            title = "Type Rush",
+            title = stringResource(R.string.typerush_game_title),
             bestScore = profile.bestTypeRushScore,
             accentColor = Color(0xFF3F51B5)
         )
         GameStatRow(
             icon = Icons.Default.Quiz,
-            title = "Do you know it?",
+            title = stringResource(R.string.game_name_pokequiz_title),
             bestScore = profile.bestQuizScore,
             accentColor = Color(0xFF2196F3)
         )
 
         GameStatRow(
             icon = Icons.Default.GridView,
-            title = "Match 'Em All",
+            title = stringResource(R.string.game_name_pokematch_title),
             bestScore = profile.bestMatchScore,
             accentColor = Color(0xFF4CAF50)
         )
 
         GameStatRow(
             icon = Icons.Default.Visibility,
-            title = "Who's That Monster?",
+            title = stringResource(R.string.game_name_pokeguess_title),
             bestScore = profile.bestGuessScore,
             accentColor = Color(0xFF9C27B0)
         )
@@ -192,7 +194,7 @@ fun GameStatRow(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Best Score",
+                    text = stringResource(R.string.profile_best_score),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

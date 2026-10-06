@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
@@ -148,7 +150,7 @@ fun HomeFabCluster(
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Explore",
+                    contentDescription = stringResource(R.string.home_explore),
                     tint = Color.White,
                     modifier = Modifier
                         .size(24.dp)
@@ -171,7 +173,7 @@ fun HomeFabCluster(
                 ) {
                     Icon(
                         Icons.Default.KeyboardArrowUp,
-                        contentDescription = "Scroll to top",
+                        contentDescription = stringResource(R.string.home_scroll_to_top),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }

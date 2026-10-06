@@ -157,7 +157,7 @@ fun TeamShareDialog(
                                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                                 }
                                 context.startActivity(
-                                    Intent.createChooser(shareIntent, "Share Team Card")
+                                    Intent.createChooser(shareIntent, context.getString(R.string.team_share_card_chooser))
                                 )
                                 onDismiss()
                             } finally {
@@ -255,7 +255,7 @@ fun TeamShareCard(
                         letterSpacing = 2.sp
                     )
                     Text(
-                        text = "Trainer Card",
+                        text = stringResource(R.string.team_trainer_card),
                         color = Color.White.copy(alpha = 0.45f),
                         fontSize = 10.sp
                     )
@@ -270,7 +270,7 @@ fun TeamShareCard(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = "Lv.$trainerLevel  •  $totalXp XP",
+                        text = stringResource(R.string.team_card_level_xp, trainerLevel, totalXp),
                         color = Color.White.copy(alpha = 0.55f),
                         fontSize = 11.sp
                     )

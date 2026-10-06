@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.leaderboard.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -256,7 +258,7 @@ private fun BubbleContent(entry: LeaderboardEntry) {
             if (entry.level > 0) {
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    text = "Lv. ${entry.level}",
+                    text = stringResource(R.string.level_short, entry.level),
                     style = MaterialTheme.typography.labelSmall,
                     color = onBubble.copy(alpha = 0.65f),
                     modifier = Modifier.padding(top = 2.dp)

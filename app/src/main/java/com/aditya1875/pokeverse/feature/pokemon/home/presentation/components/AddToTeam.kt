@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -75,7 +77,7 @@ fun AddToTeamBottomSheet(
                     .padding(bottom = 16.dp)
             ) {
                 Text(
-                    text = "Add to team",
+                    text = stringResource(R.string.team_add_to_team),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -156,7 +158,7 @@ fun AddToTeamBottomSheet(
                             )
 
                             Text(
-                                text = "Create new team",
+                                text = stringResource(R.string.team_create_new),
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.SemiBold
@@ -254,7 +256,7 @@ fun TeamSelectionItem(
                                 contentColor = MaterialTheme.colorScheme.primary
                             ) {
                                 Text(
-                                    text = "Default",
+                                    text = stringResource(R.string.team_is_default),
                                     style = MaterialTheme.typography.labelSmall,
                                     modifier = Modifier.padding(horizontal = 4.dp)
                                 )
@@ -269,7 +271,7 @@ fun TeamSelectionItem(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Text(
-                            text = "$memberCount/6 Pokémon",
+                            text = stringResource(R.string.team_member_count, memberCount),
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isDisabled)
                                 MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
@@ -279,7 +281,7 @@ fun TeamSelectionItem(
 
                         if (isFull) {
                             Text(
-                                text = "• Full",
+                                text = stringResource(R.string.team_full),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
                                 fontWeight = FontWeight.Medium
@@ -293,14 +295,14 @@ fun TeamSelectionItem(
             if (isSelected) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Selected",
+                    contentDescription = stringResource(R.string.a11y_selected),
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(24.dp)
                 )
             } else if (!isDisabled) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add",
+                    contentDescription = stringResource(R.string.a11y_add),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     modifier = Modifier.size(24.dp)
                 )

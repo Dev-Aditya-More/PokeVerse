@@ -19,6 +19,8 @@ object ScreenStateManager {
     val SURVIVOR_GUIDE_SEEN = booleanPreferencesKey("survivor_guide_seen")
     val CHASE_GUIDE_SEEN = booleanPreferencesKey("chase_guide_seen")
     val SHINY_DEX_ENABLED = booleanPreferencesKey("shiny_dex_enabled")
+    val WIDGET_PROMPT_COUNT = intPreferencesKey("widget_prompt_count")
+    val WIDGET_PROMPT_LAST_MS = longPreferencesKey("widget_prompt_last_ms")
 
     val ASSETS_SHOWN = booleanPreferencesKey("assets_shown")
     val RATING_SHOWN = booleanPreferencesKey("rating_shown")
@@ -128,6 +130,19 @@ object ScreenStateManager {
 
     suspend fun setShinyDexEnabled(context: Context, enabled: Boolean) {
         context.dataStore.edit { it[SHINY_DEX_ENABLED] = enabled }
+    }
+
+    /** How many times we've asked to add the streak widget, and when we last did. */
+    suspend fun widgetPromptHistory(context: Context): Pair<Int, Long> {
+        val prefs = context.dataStore.data.first()
+        return (prefs[WIDGET_PROMPT_COUNT] ?: 0) to (prefs[WIDGET_PROMPT_LAST_MS] ?: 0L)
+    }
+
+    suspend fun markWidgetPromptShown(context: Context) {
+        context.dataStore.edit {
+            it[WIDGET_PROMPT_COUNT] = (it[WIDGET_PROMPT_COUNT] ?: 0) + 1
+            it[WIDGET_PROMPT_LAST_MS] = System.currentTimeMillis()
+        }
     }
 
     suspend fun getLastPopupShownAtMinutes(context: Context): Long {

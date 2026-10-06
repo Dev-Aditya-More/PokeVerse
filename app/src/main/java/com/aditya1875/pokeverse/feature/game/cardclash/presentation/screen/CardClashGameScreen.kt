@@ -79,6 +79,8 @@ import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.RoundWinner
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.components.CardBack
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.components.ClashPokemonCard
 import kotlinx.coroutines.delay
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
 
 @Composable
 fun CardClashGameScreen(
@@ -113,75 +115,7 @@ fun CardClashGameScreen(
 
 @Composable
 private fun GameBackground(modifier: Modifier = Modifier) {
-    val pulse by rememberInfiniteTransition(label = "bg_pulse").animateFloat(
-        initialValue = 0.6f, targetValue = 1.0f,
-        animationSpec = infiniteRepeatable(tween(4500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "pulse"
-    )
-
-    Canvas(modifier = modifier.fillMaxSize()) {
-        val w = size.width
-        val h = size.height
-
-        // Deep base
-        drawRect(Color(0xFF07090F))
-
-        // Player-side glow — top portion, blue-tinted
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF1B3A9C).copy(alpha = 0.28f * pulse), Color.Transparent),
-                center = Offset(w * 0.2f, h * 0.18f),
-                radius = w * 0.7f
-            ),
-            radius = w * 0.7f,
-            center = Offset(w * 0.2f, h * 0.18f)
-        )
-
-        // Opponent-side glow — bottom portion, red-tinted
-        drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(Color(0xFF9C1B1B).copy(alpha = 0.22f * pulse), Color.Transparent),
-                center = Offset(w * 0.8f, h * 0.82f),
-                radius = w * 0.6f
-            ),
-            radius = w * 0.6f,
-            center = Offset(w * 0.8f, h * 0.82f)
-        )
-
-        // Faint horizontal arena divider at mid-screen
-        drawLine(
-            brush = Brush.horizontalGradient(
-                colorStops = arrayOf(
-                    0f to Color.Transparent,
-                    0.2f to Color.White.copy(alpha = 0.05f),
-                    0.8f to Color.White.copy(alpha = 0.05f),
-                    1f to Color.Transparent
-                )
-            ),
-            start = Offset(0f, h * 0.5f),
-            end = Offset(w, h * 0.5f),
-            strokeWidth = 1.dp.toPx()
-        )
-
-        // Faint corner accent arcs for the "arena" feel
-        val arcRadius = w * 0.12f
-        drawArc(
-            color = Color.White.copy(alpha = 0.04f),
-            startAngle = 0f, sweepAngle = 90f,
-            useCenter = false,
-            topLeft = Offset(0f, h * 0.5f - arcRadius),
-            size = androidx.compose.ui.geometry.Size(arcRadius * 2, arcRadius * 2),
-            style = Stroke(width = 1.dp.toPx())
-        )
-        drawArc(
-            color = Color.White.copy(alpha = 0.04f),
-            startAngle = 180f, sweepAngle = 90f,
-            useCenter = false,
-            topLeft = Offset(w - arcRadius * 2, h * 0.5f - arcRadius),
-            size = androidx.compose.ui.geometry.Size(arcRadius * 2, arcRadius * 2),
-            style = Stroke(width = 1.dp.toPx())
-        )
-    }
+    GameBackdrop(scene = GameScene.Stadium, modifier = modifier)
 }
 
 // ─── Selecting phase ──────────────────────────────────────────────────────────
@@ -577,71 +511,73 @@ private fun MatchResultScreen(state: ClashUiState, onPlayAgain: () -> Unit, onEx
         MatchOutcome.DRAW -> stringResource(R.string.clash_draw) to MaterialTheme.colorScheme.onSurfaceVariant
     }
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
+    GameBackdrop(scene = GameScene.Stadium) {
+        Scaffold(containerColor = Color.Transparent) { padding ->
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color.copy(alpha = 0.10f))
-                    .padding(vertical = 36.dp, horizontal = 24.dp),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(color.copy(alpha = 0.10f))
+                        .padding(vertical = 36.dp, horizontal = 24.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = headline, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = color)
-                    Text(
-                        text = "${formatScore(state.myScore)}  —  ${formatScore(state.opponentScore)}",
-                        style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(text = stringResource(R.string.clash_vs, state.opponentName), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(text = headline, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = color)
+                        Text(
+                            text = "${formatScore(state.myScore)}  —  ${formatScore(state.opponentScore)}",
+                            style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(text = stringResource(R.string.clash_vs, state.opponentName), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
-            }
 
-            Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(24.dp))
 
-            if (state.roundHistory.isNotEmpty()) {
-                Text(
-                    text = stringResource(R.string.clash_round_history), style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(Modifier.height(8.dp))
-                ElevatedCard(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
-                    shape = RoundedCornerShape(20.dp), elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
-                ) {
-                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                        state.roundHistory.forEachIndexed { i, round ->
-                            RoundSummaryRow(roundNumber = i + 1, round = round)
-                            if (i < state.roundHistory.lastIndex) {
-                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                if (state.roundHistory.isNotEmpty()) {
+                    Text(
+                        text = stringResource(R.string.clash_round_history), style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold, modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    ElevatedCard(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
+                        shape = RoundedCornerShape(20.dp), elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            state.roundHistory.forEachIndexed { i, round ->
+                                RoundSummaryRow(roundNumber = i + 1, round = round)
+                                if (i < state.roundHistory.lastIndex) {
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            Spacer(Modifier.height(32.dp))
+                Spacer(Modifier.height(32.dp))
 
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Button(onClick = onPlayAgain, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
-                    Text(stringResource(R.string.action_play_again), fontWeight = FontWeight.Bold)
+                Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Button(onClick = onPlayAgain, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                        Text(stringResource(R.string.action_play_again), fontWeight = FontWeight.Bold)
+                    }
+                    OutlinedButton(onClick = onExit, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
+                        Text(stringResource(R.string.clash_exit))
+                    }
                 }
-                OutlinedButton(onClick = onExit, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(12.dp)) {
-                    Text(stringResource(R.string.clash_exit))
-                }
-            }
 
-            Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 }

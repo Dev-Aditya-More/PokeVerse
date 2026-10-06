@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.compare.presentation.screens
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -146,10 +149,10 @@ fun ComparePokemonScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Compare Pokémon", color = Color.White, fontWeight = FontWeight.Black) },
+                title = { Text(stringResource(R.string.home_menu_compare), color = Color.White, fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1A1A1A))
@@ -183,7 +186,7 @@ fun ComparePokemonScreen(
             }
 
             if (showPremiumSheet) {
-                val purchaseError = "Unable to start purchase"
+                val purchaseError = stringResource(R.string.game_hub_purchase_error)
                 PremiumBottomSheet(
                     onDismiss = { showPremiumSheet = false },
                     onSubscribeMonthly = {
@@ -227,14 +230,14 @@ private fun CompareAdGate(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Unlock the Compare Tool",
+                stringResource(R.string.compare_unlock_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
-                "Watch a quick ad to compare Pokémon stats and types side by side this session.",
+                stringResource(R.string.compare_unlock_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
@@ -243,7 +246,7 @@ private fun CompareAdGate(
             when (adState) {
                 is RewardedAdState.Loading -> {
                     CircularProgressIndicator(color = Color(0xFF40C4FF), modifier = Modifier.size(40.dp))
-                    Text("Loading ad…", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.5f))
+                    Text(stringResource(R.string.analysis_ad_loading), style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.5f))
                 }
                 is RewardedAdState.Ready, is RewardedAdState.Idle -> {
                     Button(
@@ -254,7 +257,7 @@ private fun CompareAdGate(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            if (adState is RewardedAdState.Ready) "Watch Ad" else "Ad unavailable, try again shortly",
+                            if (adState is RewardedAdState.Ready) stringResource(R.string.action_watch_ad) else stringResource(R.string.ad_unavailable_short),
                             modifier = Modifier.padding(vertical = 4.dp)
                         )
                     }
@@ -269,7 +272,7 @@ private fun CompareAdGate(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.12f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Go Premium", color = Color.White, modifier = Modifier.padding(vertical = 4.dp))
+                Text(stringResource(R.string.go_premium), color = Color.White, modifier = Modifier.padding(vertical = 4.dp))
             }
         }
     }
@@ -405,7 +408,7 @@ private fun CompareContent(
             if (leftPokemon == null || rightPokemon == null) {
                 Spacer(Modifier.height(48.dp))
                 Text(
-                    "Pick two Pokémon to see how they compare — no winners here, just the facts.",
+                    stringResource(R.string.compare_empty_hint),
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White.copy(alpha = 0.6f),
                     textAlign = TextAlign.Center,
@@ -442,7 +445,7 @@ private fun VsBadge() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            "VS",
+            stringResource(R.string.compare_vs),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Black,
             color = Color.White
@@ -461,7 +464,7 @@ private fun StatComparisonSection(left: PokemonResponse, right: PokemonResponse)
     val rightStats = right.stats.associate { it.stat.name to it.base_stat }
 
     SectionCard {
-        Text("STATS", style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Black)
+        Text(stringResource(R.string.compare_stats_header), style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Black)
         Spacer(Modifier.height(12.dp))
 
         STAT_ORDER.forEachIndexed { index, statKey ->
@@ -536,8 +539,8 @@ private fun StatComparisonSection(left: PokemonResponse, right: PokemonResponse)
         HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
         Spacer(Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("BST $leftTotal", color = leftColor, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
-            Text("BST $rightTotal", color = rightColor, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.compare_bst, leftTotal), color = leftColor, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.compare_bst, rightTotal), color = rightColor, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -571,7 +574,7 @@ private fun MirroredStatBar(progress: Float, color: Color, modifier: Modifier = 
 @Composable
 private fun TypeComparisonSection(left: PokemonResponse, right: PokemonResponse) {
     SectionCard {
-        Text("TYPES", style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Black)
+        Text(stringResource(R.string.compare_types_header), style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Black)
         Spacer(Modifier.height(12.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             TypeColumn(left, modifier = Modifier.weight(1f))
@@ -606,7 +609,7 @@ private fun TypeColumn(pokemon: PokemonResponse, modifier: Modifier = Modifier) 
         if (weaknesses.isNotEmpty()) {
             Spacer(Modifier.height(10.dp))
             Text(
-                "Weak to",
+                stringResource(R.string.compare_weak_to),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.45f),
                 fontWeight = FontWeight.Bold
@@ -620,7 +623,7 @@ private fun TypeColumn(pokemon: PokemonResponse, modifier: Modifier = Modifier) 
         if (resistances.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
             Text(
-                "Resists",
+                stringResource(R.string.analysis_resists),
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(alpha = 0.45f),
                 fontWeight = FontWeight.Bold
@@ -643,7 +646,7 @@ private fun TypeChip(type: String) {
             .background(color.copy(alpha = 0.25f))
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
-        Text(type.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
+        Text(localizedTypeName(type), style = MaterialTheme.typography.labelSmall, color = color, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -662,7 +665,7 @@ private fun EdgeVerdictCard(left: PokemonResponse, right: PokemonResponse) {
     }
 
     SectionCard {
-        Text("THE EDGE", style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Black)
+        Text(stringResource(R.string.compare_edge_header), style = MaterialTheme.typography.labelLarge, color = Color.White.copy(alpha = 0.5f), fontWeight = FontWeight.Black)
         Spacer(Modifier.height(12.dp))
 
         Box(contentAlignment = Alignment.Center) {
@@ -679,7 +682,7 @@ private fun EdgeVerdictCard(left: PokemonResponse, right: PokemonResponse) {
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107)),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Reveal the Edge", fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.padding(vertical = 4.dp))
+                    Text(stringResource(R.string.compare_reveal_edge), fontWeight = FontWeight.Bold, color = Color.Black, modifier = Modifier.padding(vertical = 4.dp))
                 }
             } else {
                 val leanColor = when (verdict.leaningTo) {
@@ -701,7 +704,7 @@ private fun EdgeVerdictCard(left: PokemonResponse, right: PokemonResponse) {
         }
         Spacer(Modifier.height(6.dp))
         Text(
-            "Just for fun — type math + a curated fan-favorite list, not a battle predictor.",
+            stringResource(R.string.compare_edge_disclaimer),
             style = MaterialTheme.typography.labelSmall,
             color = Color.White.copy(alpha = 0.4f),
             textAlign = TextAlign.Center,

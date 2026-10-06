@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -553,7 +554,7 @@ private fun TypeChip(type: String) {
         border = BorderStroke(1.dp, c.copy(alpha = 0.5f))
     ) {
         Text(
-            type.replaceFirstChar { it.uppercase() },
+            localizedTypeName(type),
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,

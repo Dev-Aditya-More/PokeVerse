@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.core.ui.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -45,7 +47,7 @@ fun NoInternetBanner(isVisible: Boolean, modifier: Modifier = Modifier) {
                 modifier = Modifier.size(16.dp)
             )
             Text(
-                text = "No internet connection",
+                text = stringResource(R.string.error_no_internet_title),
                 color = Color.White,
                 style = MaterialTheme.typography.labelMedium
             )

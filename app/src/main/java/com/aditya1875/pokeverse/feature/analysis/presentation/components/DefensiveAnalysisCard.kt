@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -152,7 +153,7 @@ fun DefensiveTypeRow(
             modifier = Modifier.width(90.dp)
         ) {
             Text(
-                text = type.replaceFirstChar { it.uppercase() },
+                text = localizedTypeName(type),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 color = Color.White,
                 style = MaterialTheme.typography.labelLarge,
@@ -164,7 +165,7 @@ fun DefensiveTypeRow(
         Spacer(Modifier.width(16.dp))
 
         Text(
-            text = "$count/$total Pokémon",
+            text = stringResource(R.string.analysis_count_of_total_pokemon, count, total),
             color = if (isWeakness) Color(0xFFFF6B6B) else Color(0xFF00E676),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
@@ -245,7 +246,7 @@ private fun DefenseTypeBar(type: String, count: Int, total: Int, isWeakness: Boo
             modifier = Modifier.width(82.dp)
         ) {
             Text(
-                type.replaceFirstChar { it.uppercase() },
+                localizedTypeName(type),
                 Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold, color = Color.White,
@@ -262,7 +263,7 @@ private fun DefenseTypeBar(type: String, count: Int, total: Int, isWeakness: Boo
             )
         }
         Text(
-            "$count/$total",
+            stringResource(R.string.analysis_count_of_total, count, total),
             style = MaterialTheme.typography.labelMedium,
             color = barColor, fontWeight = FontWeight.Bold,
             modifier = Modifier.width(32.dp), textAlign = TextAlign.End

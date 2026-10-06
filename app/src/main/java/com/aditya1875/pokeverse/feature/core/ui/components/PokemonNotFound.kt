@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.core.ui.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -86,7 +88,7 @@ fun PokemonNotFoundScreen(
                 )
 
                 Text(
-                    text = "No Pokémon Found",
+                    text = stringResource(R.string.not_found_title),
                     style = MaterialTheme.typography.headlineSmall.copy(
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White,
@@ -96,7 +98,7 @@ fun PokemonNotFoundScreen(
                 )
 
                 Text(
-                    text = "We couldn’t find that Pokémon.\nPlease check the spelling or try again.",
+                    text = stringResource(R.string.not_found_body),
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = Color(0xFFB0B0B0),
                         lineHeight = 22.sp
@@ -118,12 +120,12 @@ fun PokemonNotFoundScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Refresh,
-                        contentDescription = "Retry",
+                        contentDescription = stringResource(R.string.action_retry),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        "Try Again",
+                        stringResource(R.string.action_try_again),
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = FontWeight.Medium,
                             letterSpacing = 0.3.sp

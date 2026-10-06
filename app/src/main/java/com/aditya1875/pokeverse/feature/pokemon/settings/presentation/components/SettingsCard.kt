@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -75,7 +77,7 @@ fun SettingsCard(
                     Spacer(modifier = Modifier.width(3.dp))
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = "Expand",
+                        contentDescription = stringResource(R.string.a11y_expand),
                         tint = MaterialTheme.colorScheme.onSurface
                     )
                 }

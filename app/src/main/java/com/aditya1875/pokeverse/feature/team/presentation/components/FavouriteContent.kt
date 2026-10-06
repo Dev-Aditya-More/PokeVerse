@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.team.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,8 +41,8 @@ fun FavoritesContent(
         if (favorites.isEmpty()) {
             EmptyStateCard(
                 icon = Icons.Default.Star,
-                title = "No Favorites",
-                subtitle = "Add Pokemon to your favorites from the home screen",
+                title = stringResource(R.string.favorites_empty_title),
+                subtitle = stringResource(R.string.favorites_empty_subtitle),
                 color = MaterialTheme.colorScheme.secondary
             )
         } else {
@@ -60,7 +62,7 @@ fun FavoritesContent(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Total Favorites",
+                        text = stringResource(R.string.favorites_total),
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold

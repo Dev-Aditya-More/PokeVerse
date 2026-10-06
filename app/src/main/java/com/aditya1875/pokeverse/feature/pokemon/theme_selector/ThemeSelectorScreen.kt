@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.pokemon.theme_selector
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -65,7 +68,7 @@ fun ThemeSelectorScreen(
             TopAppBar(
                 title = {
                     Text(
-                        "Choose Your Vibe",
+                        stringResource(R.string.theme_choose_your_vibe),
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 },
@@ -73,7 +76,7 @@ fun ThemeSelectorScreen(
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
@@ -120,7 +123,7 @@ fun ThemeSelectorScreen(
                                 color = Color.White
                             )
                             Text(
-                                text = "Active theme",
+                                text = stringResource(R.string.theme_active),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = Color.White.copy(alpha = 0.75f)
                             )
@@ -133,14 +136,14 @@ fun ThemeSelectorScreen(
 
             item {
                 Text(
-                    text = "Choose Your Vibe",
+                    text = stringResource(R.string.theme_choose_your_vibe),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Tap a theme to apply it instantly",
+                    text = stringResource(R.string.theme_tap_to_apply),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -462,7 +465,7 @@ fun StarterThemeCard(
 
                     if (starterTheme.theme == AppTheme.DEXVERSE) {
                         Text(
-                            text = "Classic",
+                            text = stringResource(R.string.theme_classic),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold
@@ -489,7 +492,7 @@ fun StarterThemeCard(
                             )
 
                             Text(
-                                text = starterTheme.pokemonNumber,
+                                text = if (starterTheme.theme == AppTheme.DEXVERSE) stringResource(R.string.theme_brand) else starterTheme.pokemonNumber,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
@@ -507,7 +510,7 @@ fun StarterThemeCard(
                     ) {
                         Icon(
                             Icons.Default.Lock,
-                            contentDescription = "Premium Theme",
+                            contentDescription = stringResource(R.string.theme_premium_a11y),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
@@ -533,7 +536,7 @@ fun StarterThemeCard(
 
                             Icon(
                                 Icons.Default.Check,
-                                contentDescription = "Selected",
+                                contentDescription = stringResource(R.string.filter_selected),
                                 tint = Color.White,
                                 modifier = Modifier.size(24.dp)
                             )
@@ -563,7 +566,7 @@ fun StarterThemeCard(
             ) {
 
                 Text(
-                    text = starterTheme.type,
+                    text = starterTheme.theme.localizedTypes(),
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.labelMedium,
                     color = starterTheme.colors[0],
@@ -574,7 +577,7 @@ fun StarterThemeCard(
             Spacer(Modifier.height(12.dp))
 
             Text(
-                text = starterTheme.description,
+                text = stringResource(starterTheme.theme.descriptionRes()),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
             )
@@ -602,4 +605,49 @@ fun StarterThemeCard(
             }
         }
     }
+}
+
+/** Type ids shown under each theme card ("Fire • Flying"), rendered with localized type names. */
+private fun AppTheme.typeIds(): List<String> = when (this) {
+    AppTheme.DEXVERSE -> emptyList()
+    AppTheme.PIKACHU -> listOf("electric")
+    AppTheme.DARKRAI -> listOf("dark")
+    AppTheme.MEWTWO -> listOf("psychic")
+    AppTheme.UMBREON -> listOf("dark")
+    AppTheme.CHARIZARD -> listOf("fire", "flying")
+    AppTheme.VENUSAUR -> listOf("grass", "poison")
+    AppTheme.BLASTOISE -> listOf("water")
+    AppTheme.GENGAR -> listOf("ghost", "poison")
+    AppTheme.RAYQUAZA -> listOf("dragon", "flying")
+    AppTheme.SYLVEON -> listOf("fairy")
+    AppTheme.LUGIA -> listOf("psychic", "flying")
+    AppTheme.LUCARIO -> listOf("fighting", "steel")
+    AppTheme.GRENINJA -> listOf("water", "dark")
+    AppTheme.MIMIKYU -> listOf("ghost", "fairy")
+    AppTheme.HO_OH -> listOf("fire", "flying")
+}
+
+@Composable
+private fun AppTheme.localizedTypes(): String =
+    typeIds().takeIf { it.isNotEmpty() }?.map { localizedTypeName(it) }?.joinToString(" • ")
+        ?: stringResource(R.string.theme_official)
+
+@androidx.annotation.StringRes
+private fun AppTheme.descriptionRes(): Int = when (this) {
+    AppTheme.DEXVERSE -> R.string.theme_desc_dexverse
+    AppTheme.PIKACHU -> R.string.theme_desc_pikachu
+    AppTheme.DARKRAI -> R.string.theme_desc_darkrai
+    AppTheme.MEWTWO -> R.string.theme_desc_mewtwo
+    AppTheme.UMBREON -> R.string.theme_desc_umbreon
+    AppTheme.CHARIZARD -> R.string.theme_desc_charizard
+    AppTheme.VENUSAUR -> R.string.theme_desc_venusaur
+    AppTheme.BLASTOISE -> R.string.theme_desc_blastoise
+    AppTheme.GENGAR -> R.string.theme_desc_gengar
+    AppTheme.RAYQUAZA -> R.string.theme_desc_rayquaza
+    AppTheme.SYLVEON -> R.string.theme_desc_sylveon
+    AppTheme.LUGIA -> R.string.theme_desc_lugia
+    AppTheme.LUCARIO -> R.string.theme_desc_lucario
+    AppTheme.GRENINJA -> R.string.theme_desc_greninja
+    AppTheme.MIMIKYU -> R.string.theme_desc_mimikyu
+    AppTheme.HO_OH -> R.string.theme_desc_hooh
 }

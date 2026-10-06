@@ -205,7 +205,7 @@ private fun GuessDifficultyCard(
                 }
 
                 Text(
-                    text = "$GUESS_MAX_LIVES Lives • ${difficulty.timePerQuestion}s • ${difficulty.optionCount} options",
+                    text = stringResource(R.string.guess_difficulty_summary, GUESS_MAX_LIVES, difficulty.timePerQuestion, difficulty.optionCount),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (!locked) 1f else 0.4f)
                 )

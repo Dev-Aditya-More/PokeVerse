@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.game.wildcatch.presentation.screens
 
+import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.ThrowAccuracy
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -110,16 +112,11 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 import kotlin.random.Random
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.BackdropPulse
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.WildBiome
 
-private val BattleSkyColor = Color(0xFF0D1B2A)
-private val BattleGradient = Brush.verticalGradient(
-    colors = listOf(
-        Color(0xFF0D1B2A),
-        Color(0xFF162033),
-        Color(0xFF1A2E1A),
-        Color(0xFF0D2010)
-    )
-)
 
 private data class StarParticle(
     val x: Float,
@@ -164,62 +161,71 @@ fun WildCatchScreen(
 
     BackHandler(enabled = hasActiveProgress) { showExitDialog = true }
 
+    // Biome follows the wild Pokémon's primary type; it holds through results/game over.
+    var biome by remember { mutableStateOf(WildBiome.FIELD) }
+    val encounter = (gameState as? WildCatchGameState.Throwing)?.pokemon
+        ?: (gameState as? WildCatchGameState.ShakeResult)?.pokemon
+    LaunchedEffect(encounter) { encounter?.let { biome = WildBiome.forTypes(it.types) } }
+    val shake = gameState as? WildCatchGameState.ShakeResult
+
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Wild Catch", color = Color.White) },
-                    navigationIcon = {
-                        IconButton(onClick = requestExit) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.White
+        GameBackdrop(
+            scene = GameScene.Wild(biome),
+            pulseKey = shake,
+            pulseColor = if (shake?.caught == true) BackdropPulse.Correct else BackdropPulse.Wrong
+        ) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(stringResource(R.string.game_name_wildcatch_title), color = Color.White) },
+                        navigationIcon = {
+                            IconButton(onClick = requestExit) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.back),
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    )
+                },
+                containerColor = Color.Transparent
+            ) { padding ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AnimatedContent(
+                        targetState = gameState,
+                        transitionSpec = {
+                            (fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.95f))
+                                .togetherWith(fadeOut(tween(200)))
+                        },
+                        label = "game_state"
+                    ) { state ->
+                        when (state) {
+                            is WildCatchGameState.Idle,
+                            is WildCatchGameState.Loading -> LoadingContent(
+                                modifier = Modifier.fillMaxSize().padding(padding)
+                            )
+                            is WildCatchGameState.Throwing -> ThrowingContent(
+                                state = state,
+                                modifier = Modifier.fillMaxSize().padding(padding),
+                                onThrow = { fraction -> viewModel.throwBall(fraction) }
+                            )
+                            is WildCatchGameState.ShakeResult -> ShakeResultContent(
+                                state = state,
+                                modifier = Modifier.fillMaxSize().padding(padding),
+                                onNext = { viewModel.nextRound() },
+                                onRevive = { viewModel.reviveGame() },
+                                isOnline = isOnline,
+                                isPremium = isPremium
+                            )
+                            is WildCatchGameState.Finished -> FinishedContent(
+                                state = state,
+                                modifier = Modifier.fillMaxSize().padding(padding),
+                                onPlayAgain = { viewModel.startGame() },
+                                onBack = onBack
                             )
                         }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = BattleSkyColor)
-                )
-            },
-            containerColor = BattleSkyColor
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(BattleGradient)
-            ) {
-                AnimatedContent(
-                    targetState = gameState,
-                    transitionSpec = {
-                        (fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.95f))
-                            .togetherWith(fadeOut(tween(200)))
-                    },
-                    label = "game_state"
-                ) { state ->
-                    when (state) {
-                        is WildCatchGameState.Idle,
-                        is WildCatchGameState.Loading -> LoadingContent(
-                            modifier = Modifier.fillMaxSize().padding(padding)
-                        )
-                        is WildCatchGameState.Throwing -> ThrowingContent(
-                            state = state,
-                            modifier = Modifier.fillMaxSize().padding(padding),
-                            onThrow = { fraction -> viewModel.throwBall(fraction) }
-                        )
-                        is WildCatchGameState.ShakeResult -> ShakeResultContent(
-                            state = state,
-                            modifier = Modifier.fillMaxSize().padding(padding),
-                            onNext = { viewModel.nextRound() },
-                            onRevive = { viewModel.reviveGame() },
-                            isOnline = isOnline,
-                            isPremium = isPremium
-                        )
-                        is WildCatchGameState.Finished -> FinishedContent(
-                            state = state,
-                            modifier = Modifier.fillMaxSize().padding(padding),
-                            onPlayAgain = { viewModel.startGame() },
-                            onBack = onBack
-                        )
                     }
                 }
             }
@@ -565,10 +571,10 @@ private fun ThrowingContent(
                 WildCatchDifficulty.ringThresholds(state.pokemonCount)
             }
             val hintText = when {
-                ringAnim.value <= thresholds.perfect -> "✨  Perfect!"
-                ringAnim.value <= thresholds.great -> "🎯  Great"
-                ringAnim.value <= thresholds.nice -> "👍  Nice"
-                else -> "Wait for the ring..."
+                ringAnim.value <= thresholds.perfect -> stringResource(R.string.wildcatch_hint_perfect)
+                ringAnim.value <= thresholds.great -> stringResource(R.string.wildcatch_hint_great)
+                ringAnim.value <= thresholds.nice -> stringResource(R.string.wildcatch_hint_nice)
+                else -> stringResource(R.string.wildcatch_hint_wait)
             }
             Box(
                 modifier = Modifier
@@ -639,7 +645,7 @@ private fun ThrowingContent(
         ) {
             if (!isDragging && !isThrown) {
                 Text(
-                    "Swipe up anywhere to throw!",
+                    stringResource(R.string.wildcatch_swipe_to_throw),
                     style = MaterialTheme.typography.labelMedium,
                     color = Color.White.copy(alpha = 0.6f)
                 )
@@ -699,9 +705,9 @@ private fun ShakeResultContent(
 
     val resultColor = if (state.caught) Color(0xFF43A047) else Color(0xFFE53935)
     val resultText = when {
-        state.lifeRecovered -> "Gotcha! ❤️ +1 Life!"
-        state.caught -> "Gotcha! 🎉"
-        else -> "Oh no! It fled!"
+        state.lifeRecovered -> stringResource(R.string.wildcatch_gotcha_life)
+        state.caught -> stringResource(R.string.wildcatch_gotcha)
+        else -> stringResource(R.string.wildcatch_fled)
     }
 
     Column(
@@ -717,7 +723,17 @@ private fun ShakeResultContent(
                 .background(Color.Black.copy(alpha = 0.45f))
                 .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
-            Text(state.accuracy.label, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = Color.White)
+            Text(
+                stringResource(
+                    when (state.accuracy) {
+                        ThrowAccuracy.PERFECT -> R.string.throw_perfect
+                        ThrowAccuracy.GREAT -> R.string.throw_great
+                        ThrowAccuracy.NICE -> R.string.throw_nice
+                        ThrowAccuracy.MISS -> R.string.throw_miss
+                    }
+                ),
+                style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = Color.White
+            )
         }
 
         Spacer(Modifier.height(20.dp))
@@ -802,7 +818,7 @@ private fun ShakeResultContent(
                 border = BorderStroke(1.5.dp, Color(0xFFFFD600).copy(alpha = 0.6f))
             ) {
                 Text(
-                    if (isPremium) "Revive  ❤️" else "📺  Watch Ad to Revive  ❤️",
+                    stringResource(if (isPremium) R.string.survivor_revive else R.string.survivor_revive_ad),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -818,7 +834,7 @@ private fun ShakeResultContent(
             colors = ButtonDefaults.buttonColors(containerColor = if (state.lives <= 0) Color(0xFF555555) else Color(0xFFE53935))
         ) {
             Text(
-                if (state.lives <= 0) "See Results" else "Next Pokémon →",
+                stringResource(if (state.lives <= 0) R.string.wildcatch_see_results else R.string.wildcatch_next_pokemon),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
@@ -857,7 +873,7 @@ private fun FinishedContent(
 
         Spacer(Modifier.height(20.dp))
 
-        Text("Wild Catch Over!", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.wildcatch_over), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.ExtraBold, color = Color.White, textAlign = TextAlign.Center)
         if (state.isNewBest) {
             Spacer(Modifier.height(6.dp))
             androidx.compose.material3.Surface(
@@ -866,7 +882,7 @@ private fun FinishedContent(
                 border = BorderStroke(1.dp, Color(0xFFFFD700).copy(alpha = 0.5f))
             ) {
                 Text(
-                    "🏆 NEW BEST!",
+                    stringResource(R.string.duel_new_best),
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Black,
@@ -894,7 +910,7 @@ private fun FinishedContent(
                 Text("points", style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.7f))
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Catch rate: ${(catchRate * 100).toInt()}%",
+                    stringResource(R.string.wildcatch_catch_rate, (catchRate * 100).toInt()),
                     style = MaterialTheme.typography.labelLarge,
                     color = Color.White.copy(alpha = 0.5f)
                 )
@@ -909,7 +925,7 @@ private fun FinishedContent(
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935))
         ) {
-            Text("Play Again", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
+            Text(stringResource(R.string.action_play_again), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.White)
         }
 
         Spacer(Modifier.height(12.dp))
@@ -920,7 +936,7 @@ private fun FinishedContent(
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.12f), contentColor = Color.White)
         ) {
-            Text("Back to Games", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.action_back_to_games), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -934,7 +950,7 @@ private fun TypeChip(type: String) {
             .background(color.copy(alpha = 0.25f))
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
-        Text(type.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelMedium, color = color, fontWeight = FontWeight.Bold)
+        Text(localizedTypeName(type), style = MaterialTheme.typography.labelMedium, color = color, fontWeight = FontWeight.Bold)
     }
 }
 

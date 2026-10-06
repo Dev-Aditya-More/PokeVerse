@@ -73,6 +73,9 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPhase
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashUiState
 import kotlinx.coroutines.delay
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import androidx.compose.ui.graphics.Color
 
 private const val PREFS_CLASH = "clash_prefs"
 private const val KEY_GUIDE_SEEN = "guide_seen"
@@ -105,68 +108,70 @@ fun CardClashLobbyScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(
-                        // Backing out while a waiting-room doc is live must go through
-                        // onCancelWait so it gets marked cancelled in Firestore — otherwise
-                        // it lingers as a zombie room a future player can match into.
-                        onClick = if (state.phase == ClashPhase.WAITING_FOR_OPPONENT) onCancelWait else onBack
-                    ) {
-                        Icon(Icons.Default.Close, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+    GameBackdrop(scene = GameScene.Hub) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {},
+                    navigationIcon = {
+                        IconButton(
+                            // Backing out while a waiting-room doc is live must go through
+                            // onCancelWait so it gets marked cancelled in Firestore — otherwise
+                            // it lingers as a zombie room a future player can match into.
+                            onClick = if (state.phase == ClashPhase.WAITING_FOR_OPPONENT) onCancelWait else onBack
+                        ) {
+                            Icon(Icons.Default.Close, contentDescription = "Back")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onBackground
+                    )
                 )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.Center
-        ) {
-            when {
-                state.isLoading || state.phase == ClashPhase.DEALING -> {
-                    val messages = if (state.isBotMatch) {
-                        listOf(
-                            stringResource(R.string.clash_loading_bot),
-                            stringResource(R.string.clash_loading_dealing),
-                            stringResource(R.string.clash_loading_gathering)
-                        )
-                    } else {
-                        listOf(
-                            stringResource(R.string.clash_loading_team),
-                            stringResource(R.string.clash_loading_dealing),
-                            stringResource(R.string.clash_loading_gathering)
-                        )
+            },
+            containerColor = Color.Transparent
+        ) { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                when {
+                    state.isLoading || state.phase == ClashPhase.DEALING -> {
+                        val messages = if (state.isBotMatch) {
+                            listOf(
+                                stringResource(R.string.clash_loading_bot),
+                                stringResource(R.string.clash_loading_dealing),
+                                stringResource(R.string.clash_loading_gathering)
+                            )
+                        } else {
+                            listOf(
+                                stringResource(R.string.clash_loading_team),
+                                stringResource(R.string.clash_loading_dealing),
+                                stringResource(R.string.clash_loading_gathering)
+                            )
+                        }
+                        LoadingView(messages)
                     }
-                    LoadingView(messages)
+
+                    state.phase == ClashPhase.WAITING_FOR_OPPONENT ->
+                        WaitingView(
+                            roomCode = if (state.isRandomWait) null else state.roomCode,
+                            isRandom = state.isRandomWait,
+                            matchmakingSecondsLeft = state.matchmakingSecondsLeft,
+                            onCancel = onCancelWait
+                        )
+
+                    else ->
+                        LobbyContent(
+                            state = state,
+                            onPlayRandom = onPlayRandom,
+                            onCreateFriendRoom = onCreateFriendRoom,
+                            onJoinByCode = onJoinByCode,
+                            onCodeChanged = onCodeChanged
+                        )
                 }
-
-                state.phase == ClashPhase.WAITING_FOR_OPPONENT ->
-                    WaitingView(
-                        roomCode = if (state.isRandomWait) null else state.roomCode,
-                        isRandom = state.isRandomWait,
-                        matchmakingSecondsLeft = state.matchmakingSecondsLeft,
-                        onCancel = onCancelWait
-                    )
-
-                else ->
-                    LobbyContent(
-                        state = state,
-                        onPlayRandom = onPlayRandom,
-                        onCreateFriendRoom = onCreateFriendRoom,
-                        onJoinByCode = onJoinByCode,
-                        onCodeChanged = onCodeChanged
-                    )
             }
         }
     }

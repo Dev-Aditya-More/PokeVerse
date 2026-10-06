@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
 import com.aditya1875.pokeverse.feature.pokemon.shiny.PokemonSprites
 import androidx.compose.foundation.BorderStroke
@@ -144,7 +146,7 @@ fun SuggestionRow(
 
         Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = "Navigate",
+            contentDescription = stringResource(R.string.a11y_navigate),
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
         )

@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,7 +57,7 @@ fun PokemonActionsMenu(
         IconButton(onClick = { expanded = true }) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = "More options",
+                contentDescription = stringResource(R.string.a11y_more_options),
                 tint = Color.White
             )
         }
@@ -87,14 +90,14 @@ fun PokemonActionsMenu(
                         Spacer(Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = if (isInAnyTeam) "Manage Teams" else "Add to Team",
+                                text = stringResource(if (isInAnyTeam) R.string.team_manage else R.string.team_add_to_team),
                                 color = Color.White,
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Medium
                             )
                             if (isInAnyTeam) {
                                 Text(
-                                    text = "In ${teamsContainingPokemon.size} team(s)",
+                                    text = pluralStringResource(R.plurals.team_in_count, teamsContainingPokemon.size, teamsContainingPokemon.size),
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontSize = 11.sp
@@ -138,10 +141,7 @@ fun PokemonActionsMenu(
                         )
                         Spacer(Modifier.width(12.dp))
                         Text(
-                            text = if (isInFavorites)
-                                "Remove from Favorites"
-                            else
-                                "Add to Favorites",
+                            text = stringResource(if (isInFavorites) R.string.favorites_remove else R.string.favorites_add),
                             color = Color.White,
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium

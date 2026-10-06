@@ -79,6 +79,8 @@ import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
 
 @Composable
 fun DuelGameScreen(
@@ -130,53 +132,55 @@ fun DuelGameScreen(
         result = pendingXp,
         onDismiss = { pendingXp = null }
     ) {
-        Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .navigationBarsPadding()
-        ) { innerPadding ->
-            if (!isOnline && (state is DuelGameState.Idle || state is DuelGameState.Loading)) {
-                NoInternetScreen()
-            } else when (val s = state) {
-                is DuelGameState.Idle -> DuelIdleScreen(
-                    onStart = {
-                        soundManager.play(SoundManager.Sound.BUTTON_CLICK)
-                        viewModel.startGame()
-                    },
-                    onBack = onBack,
-                    modifier = Modifier.padding(innerPadding)
-                )
+        GameBackdrop(scene = GameScene.DuelArena) {
+            Scaffold(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding(),
+                containerColor = Color.Transparent
+            ) { innerPadding ->
+                if (!isOnline && (state is DuelGameState.Idle || state is DuelGameState.Loading)) {
+                    NoInternetScreen()
+                } else when (val s = state) {
+                    is DuelGameState.Idle -> DuelIdleScreen(
+                        onStart = {
+                            soundManager.play(SoundManager.Sound.BUTTON_CLICK)
+                            viewModel.startGame()
+                        },
+                        onBack = onBack,
+                        modifier = Modifier.padding(innerPadding)
+                    )
 
-                is DuelGameState.Loading -> LoadingScreen(
-                    modifier = Modifier.padding(innerPadding)
-                )
+                    is DuelGameState.Loading -> LoadingScreen(
+                        modifier = Modifier.padding(innerPadding)
+                    )
 
-                is DuelGameState.Dueling -> DuelingScreen(
-                    state = s,
-                    onChoice = { choice ->
-                        soundManager.play(SoundManager.Sound.BUTTON_CLICK)
-                        viewModel.onChoice(choice)
-                    },
-                    onSkip = {
-                        requestRewardedAd(context, activity, adManager, adState) {
-                            viewModel.skipRound()
-                        }
-                    },
-                    onExit = { showExitDialog = true },
-                    showSkip = subscriptionState !is SubscriptionState.Premium,
-                    modifier = Modifier.padding(innerPadding)
-                )
+                    is DuelGameState.Dueling -> DuelingScreen(
+                        state = s,
+                        onChoice = { choice ->
+                            soundManager.play(SoundManager.Sound.BUTTON_CLICK)
+                            viewModel.onChoice(choice)
+                        },
+                        onSkip = {
+                            requestRewardedAd(context, activity, adManager, adState) {
+                                viewModel.skipRound()
+                            }
+                        },
+                        onExit = { showExitDialog = true },
+                        showSkip = subscriptionState !is SubscriptionState.Premium,
+                        modifier = Modifier.padding(innerPadding)
+                    )
 
-                is DuelGameState.GameOver -> DuelGameOverScreen(
-                    state = s,
-                    onPlayAgain = {
-                        soundManager.play(SoundManager.Sound.BUTTON_CLICK)
-                        viewModel.startGame()
-                    },
-                    onBack = onBack,
-                    modifier = Modifier.padding(innerPadding)
-                )
+                    is DuelGameState.GameOver -> DuelGameOverScreen(
+                        state = s,
+                        onPlayAgain = {
+                            soundManager.play(SoundManager.Sound.BUTTON_CLICK)
+                            viewModel.startGame()
+                        },
+                        onBack = onBack,
+                        modifier = Modifier.padding(innerPadding)
+                    )
+                }
             }
         }
     }

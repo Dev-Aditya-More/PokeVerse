@@ -44,6 +44,9 @@ import com.aditya1875.pokeverse.ui.BannerAdUnitIds
 import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -191,104 +194,106 @@ fun GameHubScreen(
         }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            if (BuildConfig.ENABLE_ADS) {
-                BannerAd(adUnitId = BannerAdUnitIds.GAME_HUB)
-            }
-        },
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.game_hub_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                        Text(
-                            text = stringResource(R.string.game_hub_subtitle),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                    }
-                },
-                actions = {
-                    if (subscriptionState is SubscriptionState.Premium) {
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 16.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(Color(0xFFFFD700).copy(alpha = 0.15f))
-                                .padding(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    imageVector = Icons.Default.WorkspacePremium,
-                                    contentDescription = null,
-                                    tint = Color(0xFFFFD700),
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(Modifier.width(4.dp))
-                                Text(
-                                    text = stringResource(R.string.label_premium),
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFFFFD700)
-                                )
+    GameBackdrop(scene = GameScene.Hub) {
+        Scaffold(
+            containerColor = Color.Transparent,
+            bottomBar = {
+                if (BuildConfig.ENABLE_ADS) {
+                    BannerAd(adUnitId = BannerAdUnitIds.GAME_HUB)
+                }
+            },
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.game_hub_title),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            Text(
+                                text = stringResource(R.string.game_hub_subtitle),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                        }
+                    },
+                    actions = {
+                        if (subscriptionState is SubscriptionState.Premium) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = 16.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(Color(0xFFFFD700).copy(alpha = 0.15f))
+                                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.WorkspacePremium,
+                                        contentDescription = null,
+                                        tint = Color(0xFFFFD700),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        text = stringResource(R.string.label_premium),
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFFFD700)
+                                    )
+                                }
                             }
                         }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent
+                    )
                 )
-            )
-        }
-    ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item { Spacer(Modifier.height(4.dp)) }
-
-if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
-                item {
-                    PremiumBanner(
-                        price = monthly,
-                        onSubscribe = { showPremiumSheet = true }
-                    )
-                }
             }
+        ) { padding ->
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item { Spacer(Modifier.height(4.dp)) }
 
-            item { Spacer(Modifier.height(6.dp)) }
-
-            itemsIndexed(games) { index, game ->
-                AnimatedVisibility(
-                    visible = index < visibleCardCount,
-                    enter = slideInVertically(
-                        initialOffsetY = { it / 2 },
-                        animationSpec = tween(320, easing = FastOutSlowInEasing)
-                    ) + fadeIn(tween(280, easing = FastOutSlowInEasing))
-                ) {
-                    FeaturedGameCard(
-                        title = game.title,
-                        description = game.description,
-                        icon = game.icon,
-                        accentColor = game.accentColor,
-                        tag = game.tag,
-                        stats = game.stats,
-                        isNew = game.isNew,
-                        onClick = { onGameSelected(game.id) }
-                    )
+    if (BuildConfig.ENABLE_BILLING && subscriptionState is SubscriptionState.Free) {
+                    item {
+                        PremiumBanner(
+                            price = monthly,
+                            onSubscribe = { showPremiumSheet = true }
+                        )
+                    }
                 }
-            }
 
-            item { Spacer(Modifier.height(10.dp)) }
+                item { Spacer(Modifier.height(6.dp)) }
+
+                itemsIndexed(games) { index, game ->
+                    AnimatedVisibility(
+                        visible = index < visibleCardCount,
+                        enter = slideInVertically(
+                            initialOffsetY = { it / 2 },
+                            animationSpec = tween(320, easing = FastOutSlowInEasing)
+                        ) + fadeIn(tween(280, easing = FastOutSlowInEasing))
+                    ) {
+                        FeaturedGameCard(
+                            title = game.title,
+                            description = game.description,
+                            icon = game.icon,
+                            accentColor = game.accentColor,
+                            tag = game.tag,
+                            stats = game.stats,
+                            isNew = game.isNew,
+                            onClick = { onGameSelected(game.id) }
+                        )
+                    }
+                }
+
+                item { Spacer(Modifier.height(10.dp)) }
+            }
         }
     }
 

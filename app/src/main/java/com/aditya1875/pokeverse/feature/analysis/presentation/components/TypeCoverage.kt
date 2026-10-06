@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,13 +64,13 @@ fun TypeCoverageCard(coverage: Map<String, Int>) {
                 Spacer(Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "Offensive Coverage",
+                        text = stringResource(R.string.analysis_offensive_coverage),
                         style = MaterialTheme.typography.titleLarge,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Super effective matchups",
+                        text = stringResource(R.string.analysis_super_effective_matchups),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White.copy(alpha = 0.5f)
                     )
@@ -98,7 +101,7 @@ fun TypeCoverageRow(type: String, count: Int) {
             modifier = Modifier.width(90.dp)
         ) {
             Text(
-                text = type.replaceFirstChar { it.uppercase() },
+                text = localizedTypeName(type),
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
                 color = Color.White,
                 style = MaterialTheme.typography.labelLarge,

@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.compare.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -94,7 +96,7 @@ fun ComparePickerField(
                 ) {
                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                         IconButton(onClick = onClear, modifier = Modifier.size(28.dp)) {
-                            Icon(Icons.Default.Close, contentDescription = "Change pick", tint = color)
+                            Icon(Icons.Default.Close, contentDescription = stringResource(R.string.compare_change_pick), tint = color)
                         }
                     }
                     Box(contentAlignment = Alignment.Center) {

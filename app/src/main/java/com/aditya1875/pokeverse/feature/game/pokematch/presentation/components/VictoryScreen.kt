@@ -117,9 +117,7 @@ fun TimeUpScreen(
     soundManager.play(SoundManager.Sound.TIMER_UP)
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(

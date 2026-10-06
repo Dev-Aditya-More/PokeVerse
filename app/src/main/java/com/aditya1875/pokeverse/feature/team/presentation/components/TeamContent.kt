@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.team.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -58,8 +60,8 @@ fun TeamContent(
         if (team.isEmpty()) {
             EmptyStateCard(
                 icon = Icons.Default.Star,
-                title = "No Team Members",
-                subtitle = "Add Pokemon to your team from the home screen",
+                title = stringResource(R.string.team_empty_title),
+                subtitle = stringResource(R.string.team_empty_subtitle),
                 color = MaterialTheme.colorScheme.secondary
             )
         } else {
@@ -83,14 +85,14 @@ fun TeamContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Team Progress",
+                            text = stringResource(R.string.team_progress),
                             color = MaterialTheme.colorScheme.onSurface,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold
                         )
 
                         Text(
-                            text = "${team.size}/6",
+                            text = stringResource(R.string.team_size_of_six, team.size),
                             color = progressColor,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
@@ -102,9 +104,9 @@ fun TeamContent(
                     Text(
                         text = when {
                             !meetsMinimumForAnalysisOrShare ->
-                                "Add ${MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE - team.size} more to unlock Analyze & Share"
-                            team.size < 6 -> "Add ${6 - team.size} more Pokémon to complete your team"
-                            else -> "Team complete! Ready for battle"
+                                stringResource(R.string.team_need_more_to_unlock, MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE - team.size)
+                            team.size < 6 -> stringResource(R.string.team_need_more_to_complete, 6 - team.size)
+                            else -> stringResource(R.string.team_complete)
                         },
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 14.sp,
@@ -149,25 +151,25 @@ fun TeamContent(
                 ) {
                     Icon(
                         imageVector = if (meetsMinimumForAnalysisOrShare) Icons.Default.Info else Icons.Default.Lock,
-                        contentDescription = "Analyze Team",
+                        contentDescription = stringResource(R.string.team_analyze_a11y),
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(6.dp))
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = "Analyze",
+                            text = stringResource(R.string.team_analyze),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
                         if (!meetsMinimumForAnalysisOrShare) {
                             Text(
-                                text = "Need ${MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE - team.size} more",
+                                text = stringResource(R.string.team_need_more, MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE - team.size),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Normal
                             )
                         } else if (analysisUsesLeft != null && analysisUsesLeft >= 0) {
                             Text(
-                                text = if (analysisUsesLeft == 0) "Go Premium" else "$analysisUsesLeft left",
+                                text = if (analysisUsesLeft == 0) stringResource(R.string.go_premium) else stringResource(R.string.team_uses_left, analysisUsesLeft),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Normal
                             )
@@ -190,12 +192,12 @@ fun TeamContent(
                     ) {
                         Icon(
                             imageVector = if (meetsMinimumForAnalysisOrShare) Icons.Default.IosShare else Icons.Default.Lock,
-                            contentDescription = "Share Team",
+                            contentDescription = stringResource(R.string.team_share_a11y),
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(Modifier.width(6.dp))
                         Text(
-                            text = "Share",
+                            text = stringResource(R.string.action_share),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -216,7 +218,7 @@ fun TeamContent(
                         modifier = Modifier.size(14.dp)
                     )
                     Text(
-                        text = "Add at least $MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE Pokémon to your team before you can analyze or share it.",
+                        text = stringResource(R.string.team_min_size_hint, MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

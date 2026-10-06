@@ -89,13 +89,29 @@ object PokemonTypeData {
     }
 }
 
+/**
+ * One generated insight about a team. Kept as data (type ids + counts) rather than an
+ * English sentence, so it's rendered in the user's language with localized type names.
+ */
+sealed interface AnalysisNote {
+    data object AddPokemon : AnalysisNote
+    data class WeakTo(val count: Int, val type: String) : AnalysisNote
+    data class NoCoverage(val types: List<String>) : AnalysisNote
+    data class TooMany(val type: String) : AnalysisNote
+    data class ConsiderAdding(val types: List<String>) : AnalysisNote
+    data object GreatBalance : AnalysisNote
+    data class StrongCoverage(val types: List<String>) : AnalysisNote
+    data class SolidResistance(val types: List<String>) : AnalysisNote
+    data object GoodVariety : AnalysisNote
+}
+
 data class TeamAnalysis(
     val coverageScore: Int, // 0-100
     val offensiveCoverage: Map<String, Int>, // Type -> number of team members that can hit it effectively
     val defensiveWeaknesses: Map<String, List<String>>, // Weakness type -> Pokemon names vulnerable
     val resistances: Map<String, List<String>>, // Resistance type -> Pokemon names that resist
-    val recommendations: List<String>,
-    val strengths: List<String>,
+    val recommendations: List<AnalysisNote>,
+    val strengths: List<AnalysisNote>,
     val typeDiversity: TypeDiversity
 )
 
@@ -141,7 +157,7 @@ object TeamAnalyzer {
         offensiveCoverage = emptyMap(),
         defensiveWeaknesses = emptyMap(),
         resistances = emptyMap(),
-        recommendations = listOf("Add Pokémon to your team to get analysis!"),
+        recommendations = listOf(AnalysisNote.AddPokemon),
         strengths = emptyList(),
         typeDiversity = TypeDiversity(0, emptyMap(), false, emptyList())
     )
@@ -236,58 +252,56 @@ object TeamAnalyzer {
         coverage: Map<String, Int>,
         weaknesses: Map<String, List<String>>,
         diversity: TypeDiversity
-    ): List<String> {
-        val recs = mutableListOf<String>()
+    ): List<AnalysisNote> {
+        val recs = mutableListOf<AnalysisNote>()
 
         // Worst weakness
         val worstWeak = weaknesses.maxByOrNull { it.value.size }
         if (worstWeak != null && worstWeak.value.size >= 2) {
-            recs.add("${worstWeak.value.size} of your Pokémon are weak to ${worstWeak.key.replaceFirstChar { it.uppercase() }}. Add a ${worstWeak.key}-resistant Pokémon.")
+            recs.add(AnalysisNote.WeakTo(worstWeak.value.size, worstWeak.key))
         }
 
         // Uncovered types (no super-effective move)
         val uncovered = coverage.filter { it.value == 0 }.keys.take(3)
         if (uncovered.isNotEmpty()) {
-            recs.add("No super-effective moves against: ${uncovered.joinToString(", ") { it.replaceFirstChar { c -> c.uppercase() } }}.")
+            recs.add(AnalysisNote.NoCoverage(uncovered.toList()))
         }
 
         // Duplicate types
         val heavyDuplicate = diversity.typeDistribution.filter { it.value >= 3 }.keys.firstOrNull()
         if (heavyDuplicate != null) {
-            recs.add("Too many ${heavyDuplicate.replaceFirstChar { it.uppercase() }}-types. Replace one for better variety.")
+            recs.add(AnalysisNote.TooMany(heavyDuplicate))
         }
 
         // Missing critical types (only when team has room)
         if (diversity.missingCriticalTypes.isNotEmpty() && team.size < 6) {
-            val missing = diversity.missingCriticalTypes.take(2)
-                .joinToString(" or ") { it.replaceFirstChar { c -> c.uppercase() } }
-            recs.add("Consider adding a $missing-type for broader coverage.")
+            recs.add(AnalysisNote.ConsiderAdding(diversity.missingCriticalTypes.take(2)))
         }
 
-        return recs.ifEmpty { listOf("Great balance! Your team is well-rounded.") }
+        return recs.ifEmpty { listOf(AnalysisNote.GreatBalance) }
     }
 
     private fun identifyStrengths(
         team: List<TeamMemberWithTypes>,
         coverage: Map<String, Int>,
         resistances: Map<String, List<String>>
-    ): List<String> {
-        val strengths = mutableListOf<String>()
+    ): List<AnalysisNote> {
+        val strengths = mutableListOf<AnalysisNote>()
 
         val excellentTypes = coverage.filter { it.value >= maxOf(2, team.size / 2) }.keys.take(4)
         if (excellentTypes.isNotEmpty()) {
-            strengths.add("Strong coverage against ${excellentTypes.joinToString(", ") { it.replaceFirstChar { c -> c.uppercase() } }}")
+            strengths.add(AnalysisNote.StrongCoverage(excellentTypes.toList()))
         }
 
         val teamResist =
             resistances.filter { it.value.size >= maxOf(2, team.size / 2) }.keys.take(3)
         if (teamResist.isNotEmpty()) {
-            strengths.add("Solid resistance to ${teamResist.joinToString(", ") { it.replaceFirstChar { c -> c.uppercase() } }}")
+            strengths.add(AnalysisNote.SolidResistance(teamResist.toList()))
         }
 
         val typeCount = team.flatMap { it.types }.toSet().size
         if (team.size in 3..typeCount) {
-            strengths.add("Good type variety. no major overlaps")
+            strengths.add(AnalysisNote.GoodVariety)
         }
 
         return strengths

@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
 import android.media.MediaPlayer
 import android.os.Build
@@ -190,16 +191,16 @@ fun PokemonDetailPage(
                         isPlayingCry = false
                     }
                     mediaPlayer.setOnErrorListener { _, what, extra ->
-                        Toast.makeText(context, "Could not play cry", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.detail_cry_error), Toast.LENGTH_SHORT).show()
                         isPlayingCry = false
                         true
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(context, "Cry not available", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, context.getString(R.string.detail_cry_unavailable), Toast.LENGTH_SHORT).show()
                     Log.e("PokemonDetail", "Error playing cry", e)
                 }
             } else {
-                Toast.makeText(context, "Cry not available for this Pokémon", Toast.LENGTH_SHORT)
+                Toast.makeText(context, context.getString(R.string.detail_cry_unavailable_for_pokemon), Toast.LENGTH_SHORT)
                     .show()
             }
         }
@@ -374,7 +375,7 @@ fun PokemonDetailPage(
                         }) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                contentDescription = stringResource(R.string.back),
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -415,22 +416,24 @@ fun PokemonDetailPage(
                             modifier = Modifier.pointerInput(Unit) {
                                 detectTapGestures(
                                     onLongPress = {
-                                        val label = when (currentSpriteSource) {
-                                            "official-artwork" -> "Official Art"
-                                            "home" -> "Home"
-                                            "dream-world" -> "Dream World"
-                                            "showdown" -> "Showdown"
-                                            "go" -> "GO Sprite"
-                                            else -> "Sprite"
-                                        }
-                                        Toast.makeText(context, "Style: $label • tap to switch", Toast.LENGTH_SHORT).show()
+                                        val label = context.getString(
+                                            when (currentSpriteSource) {
+                                                "official-artwork" -> R.string.sprite_style_official
+                                                "home" -> R.string.sprite_style_home
+                                                "dream-world" -> R.string.sprite_style_dream_world
+                                                "showdown" -> R.string.sprite_style_showdown
+                                                "go" -> R.string.sprite_style_go
+                                                else -> R.string.sprite_style_default
+                                            }
+                                        )
+                                        Toast.makeText(context, context.getString(R.string.sprite_style_toast, label), Toast.LENGTH_SHORT).show()
                                     }
                                 )
                             }
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Shuffle,
-                                contentDescription = "Switch Sprite Style",
+                                contentDescription = stringResource(R.string.detail_switch_sprite_style),
                                 tint = if (show3DModel) bgColor else MaterialTheme.colorScheme.onSurface
                             )
                         }
@@ -450,7 +453,7 @@ fun PokemonDetailPage(
                                     } else {
                                         Icons.AutoMirrored.Filled.VolumeUp
                                     },
-                                    contentDescription = "Audio options",
+                                    contentDescription = stringResource(R.string.detail_audio_options),
                                     tint = if (isSpeaking || isPlayingCry) {
                                         MaterialTheme.colorScheme.primary
                                     } else {
@@ -479,8 +482,8 @@ fun PokemonDetailPage(
                                                     MaterialTheme.colorScheme.onSurface
                                             )
                                             Text(
-                                                if (isSpeaking) "Stop Pokédex Entry"
-                                                else "Pokédex Entry",
+                                                if (isSpeaking) stringResource(R.string.detail_audio_stop_pokedex_entry)
+                                                else stringResource(R.string.detail_audio_pokedex_entry),
                                                 color = if (isSpeaking)
                                                     MaterialTheme.colorScheme.primary
                                                 else
@@ -500,7 +503,7 @@ fun PokemonDetailPage(
                                         } else {
                                             Toast.makeText(
                                                 context,
-                                                "Initializing...",
+                                                context.getString(R.string.detail_initializing),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
@@ -525,8 +528,8 @@ fun PokemonDetailPage(
                                                     MaterialTheme.colorScheme.onSurface
                                             )
                                             Text(
-                                                if (isPlayingCry) "Stop Cry"
-                                                else "Pokémon Cry",
+                                                if (isPlayingCry) stringResource(R.string.detail_audio_stop_cry)
+                                                else stringResource(R.string.detail_audio_cry),
                                                 color = if (isPlayingCry)
                                                     MaterialTheme.colorScheme.primary
                                                 else
@@ -578,7 +581,7 @@ fun PokemonDetailPage(
                                     )
                                     Toast.makeText(
                                         context,
-                                        "${pokemonData.name.replaceFirstChar { c -> c.uppercase() }} added to favorites ⭐",
+                                        context.getString(R.string.favorites_added, pokemonData.name.replaceFirstChar { c -> c.uppercase() }),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
@@ -588,7 +591,7 @@ fun PokemonDetailPage(
                                     favouritesViewModel.removeFromFavoritesByName(it.name)
                                     Toast.makeText(
                                         context,
-                                        "Removed from favorites",
+                                        context.getString(R.string.favorites_removed),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
@@ -612,9 +615,9 @@ fun PokemonDetailPage(
                                                 when (result) {
                                                     is TeamViewModel.TeamAdditionResult.Success -> {
                                                         val message = if (result.wasAdded)
-                                                            "Added to ${result.teamName}!"
+                                                            context.getString(R.string.team_added_to, result.teamName)
                                                         else
-                                                            "Removed from ${result.teamName}"
+                                                            context.getString(R.string.team_removed_from, result.teamName)
                                                         Toast.makeText(
                                                             context,
                                                             message,
@@ -625,7 +628,7 @@ fun PokemonDetailPage(
                                                     is TeamViewModel.TeamAdditionResult.TeamFull -> {
                                                         Toast.makeText(
                                                             context,
-                                                            "Team is full!",
+                                                            context.getString(R.string.team_is_full),
                                                             Toast.LENGTH_SHORT
                                                         ).show()
                                                     }
@@ -661,7 +664,7 @@ fun PokemonDetailPage(
                                             teamCreationError = null
                                             Toast.makeText(
                                                 context,
-                                                "Team \"$teamName\" created!",
+                                                context.getString(R.string.team_created, teamName),
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         },
@@ -761,17 +764,17 @@ fun PokemonDetailPage(
                                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
                                         Text(
-                                            "ID: #${pokemon.id.toString().padStart(4, '0')}",
+                                            stringResource(R.string.detail_id, pokemon.id.toString().padStart(4, '0')),
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
                                         if (LegendaryPokemon.isLegendary(pokemon.id)) LegendaryBadge()
                                     }
                                     Text(
-                                        "Height: ${pokemon.height / 10.0} m",
+                                        stringResource(R.string.detail_height, (pokemon.height / 10.0).toString()),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Text(
-                                        "Weight: ${pokemon.weight / 10.0} kg",
+                                        stringResource(R.string.detail_weight, (pokemon.weight / 10.0).toString()),
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -785,7 +788,7 @@ fun PokemonDetailPage(
                                 Column(modifier = Modifier.padding(16.dp)) {
 
                                     Text(
-                                        "Types",
+                                        stringResource(R.string.detail_types),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -806,7 +809,7 @@ fun PokemonDetailPage(
                                                         if (selectedType == typeName) null else typeName
                                                 },
                                                 label = {
-                                                    Text(typeName.uppercase())
+                                                    Text(localizedTypeName(typeName).uppercase())
                                                 },
                                                 colors = AssistChipDefaults.assistChipColors(
                                                     containerColor =
@@ -846,7 +849,7 @@ fun PokemonDetailPage(
                                     var selectedAbility by remember { mutableStateOf<String?>(null) }
 
                                     Text(
-                                        text = "Abilities",
+                                        text = stringResource(R.string.detail_abilities),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -907,7 +910,7 @@ fun PokemonDetailPage(
                                                 if (ability.is_hidden) {
                                                     AssistChip(
                                                         onClick = {},
-                                                        label = { Text("Hidden") }
+                                                        label = { Text(stringResource(R.string.detail_hidden)) }
                                                     )
                                                 }
                                             }
@@ -953,7 +956,7 @@ fun PokemonDetailPage(
                             item {
                                 GlossyCard {
                                     InfoBlock(
-                                        title = "Overview",
+                                        title = stringResource(R.string.detail_overview),
                                         accentColor = MaterialTheme.colorScheme.onSurface,
                                         content = {
                                             Text(
@@ -971,7 +974,7 @@ fun PokemonDetailPage(
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
-                                        "Base Stats",
+                                        stringResource(R.string.detail_base_stats),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface
@@ -1103,7 +1106,7 @@ fun PokemonDetailPage(
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Text(
-                                                text = "Total",
+                                                text = stringResource(R.string.detail_total),
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 fontWeight = FontWeight.Bold,
                                                 color = MaterialTheme.colorScheme.onSurface,
@@ -1189,7 +1192,7 @@ fun PokemonDetailPage(
                             GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                 Column(modifier = Modifier.padding(16.dp)) {
                                     Text(
-                                        text = "Moves",
+                                        text = stringResource(R.string.detail_moves),
                                         fontWeight = FontWeight.Bold,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         style = MaterialTheme.typography.titleMedium
@@ -1200,10 +1203,10 @@ fun PokemonDetailPage(
                                     movesByMethod.forEach { (method, moves) ->
 
                                         val displayName = when (method) {
-                                            "level-up" -> "Level Up"
-                                            "machine" -> "TM / HM"
-                                            "tutor" -> "Move Tutor"
-                                            "egg" -> "Egg Moves"
+                                            "level-up" -> stringResource(R.string.detail_method_level_up)
+                                            "machine" -> stringResource(R.string.detail_method_tm)
+                                            "tutor" -> stringResource(R.string.detail_method_tutor)
+                                            "egg" -> stringResource(R.string.detail_method_egg)
                                             else -> method.replaceFirstChar { it.uppercase() }
                                         }
 
@@ -1222,7 +1225,7 @@ fun PokemonDetailPage(
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                             verticalAlignment = Alignment.CenterVertically
                                         ) {
-                                            Text("$displayName (${moves.size})")
+                                            Text(stringResource(R.string.moves_group_count, displayName, moves.size))
                                             Icon(
                                                 imageVector = if (isExpanded)
                                                     Icons.Default.KeyboardArrowUp
@@ -1267,7 +1270,7 @@ fun PokemonDetailPage(
                                         // Toggle
                                         if (moves.size > 6) {
                                             Text(
-                                                text = if (isExpanded) "Show less" else "Show all",
+                                                text = stringResource(if (isExpanded) R.string.action_show_less else R.string.action_show_all),
                                                 modifier = Modifier
                                                     .align(Alignment.End)
                                                     .clickable {
@@ -1292,7 +1295,7 @@ fun PokemonDetailPage(
                                 GlossyCard(modifier = Modifier.fillMaxWidth()) {
                                     Column(modifier = Modifier.padding(16.dp)) {
                                         Text(
-                                            text = "Other Forms",
+                                            text = stringResource(R.string.detail_other_forms),
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.titleMedium
@@ -1355,13 +1358,13 @@ fun PokemonDetailPage(
                             verticalArrangement = Arrangement.spacedBy(14.dp)
                         ) {
                             Text(
-                                text = "No Pokémon found",
+                                text = stringResource(R.string.detail_not_found_title),
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.headlineSmall
                             )
 
                             Text(
-                                text = "\"$missingName\" doesn't exist.\nCheck spelling or try suggestions.",
+                                text = stringResource(R.string.detail_not_found_body, missingName),
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                                 textAlign = TextAlign.Center
                             )
@@ -1370,7 +1373,7 @@ fun PokemonDetailPage(
                                 Button(
                                     onClick = { navController.popBackStack() }
                                 ) {
-                                    Text("Go Back")
+                                    Text(stringResource(R.string.action_go_back))
                                 }
 
                                 Button(
@@ -1378,7 +1381,7 @@ fun PokemonDetailPage(
                                         viewModel.loadPokemon("pikachu")
                                     }
                                 ) {
-                                    Text("Try Pikachu")
+                                    Text(stringResource(R.string.detail_try_pikachu))
                                 }
                             }
                         }
@@ -1398,7 +1401,7 @@ fun PokemonDetailPage(
                                     IconButton(onClick = { navController.popBackStack() }) {
                                         Icon(
                                             Icons.AutoMirrored.Filled.ArrowBack,
-                                            contentDescription = "Back",
+                                            contentDescription = stringResource(R.string.back),
                                             tint = MaterialTheme.colorScheme.onSurface
                                         )
                                     }
@@ -1413,7 +1416,7 @@ fun PokemonDetailPage(
                                 .padding(innerPadding),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Failed to load Pokémon")
+                            Text(stringResource(R.string.detail_failed_to_load))
                         }
                     }
                 }
@@ -1495,102 +1498,69 @@ data class AbilityInfo(
     val short: String,
     val detailed: String
 )
+
+/** Hand-written blurbs for well-known abilities: (short, detailed) string resources. */
+private val abilityBlurbs: Map<String, Pair<Int, Int>> = mapOf(
+    "overgrow" to (R.string.ability_overgrow_short to R.string.ability_overgrow_detail),
+    "blaze" to (R.string.ability_blaze_short to R.string.ability_blaze_detail),
+    "torrent" to (R.string.ability_torrent_short to R.string.ability_torrent_detail),
+    "intimidate" to (R.string.ability_intimidate_short to R.string.ability_intimidate_detail),
+    "levitate" to (R.string.ability_levitate_short to R.string.ability_levitate_detail),
+    "pressure" to (R.string.ability_pressure_short to R.string.ability_pressure_detail),
+    "static" to (R.string.ability_static_short to R.string.ability_static_detail),
+    "swift-swim" to (R.string.ability_swift_swim_short to R.string.ability_swift_swim_detail),
+    "chlorophyll" to (R.string.ability_chlorophyll_short to R.string.ability_chlorophyll_detail),
+    "huge-power" to (R.string.ability_huge_power_short to R.string.ability_huge_power_detail),
+    "guts" to (R.string.ability_guts_short to R.string.ability_guts_detail),
+    "shed-skin" to (R.string.ability_shed_skin_short to R.string.ability_shed_skin_detail),
+    "soundproof" to (R.string.ability_soundproof_short to R.string.ability_soundproof_detail),
+    "adaptability" to (R.string.ability_adaptability_short to R.string.ability_adaptability_detail)
+)
+
+@Composable
 fun getAbilityInfo(name: String): AbilityInfo? {
-
-    val abilityMap = mapOf(
-        "overgrow" to AbilityInfo(
-            "Boosts Grass moves at low HP",
-            "When HP is below 1/3, Grass-type moves deal 50% more damage."
-        ),
-        "blaze" to AbilityInfo(
-            "Boosts Fire moves at low HP",
-            "Fire-type moves become significantly stronger when HP is low."
-        ),
-        "torrent" to AbilityInfo(
-            "Boosts Water moves at low HP",
-            "Water-type moves gain power when HP drops below 1/3."
-        ),
-        "intimidate" to AbilityInfo(
-            "Lowers opponent Attack",
-            "On entry, reduces the opponent's Attack stat."
-        ),
-        "levitate" to AbilityInfo(
-            "Immune to Ground moves",
-            "Avoids all Ground-type attacks and hazards."
-        ),
-        "pressure" to AbilityInfo(
-            "Drains opponent PP faster",
-            "Opponents use extra PP when attacking this Pokémon."
-        ),
-        "static" to AbilityInfo(
-            "May paralyze on contact",
-            "Physical contact has a chance to paralyze the attacker."
-        ),
-        "swift-swim" to AbilityInfo(
-            "Faster in rain",
-            "Speed doubles during rain."
-        ),
-        "chlorophyll" to AbilityInfo(
-            "Faster in sunlight",
-            "Speed doubles in sunny weather."
-        ),
-        "huge-power" to AbilityInfo(
-            "Doubles Attack stat",
-            "Greatly increases physical damage output."
-        ),
-        "guts" to AbilityInfo(
-            "Boosts Attack when statused",
-            "Attack increases if affected by burn, poison, etc."
-        ),
-        "shed-skin" to AbilityInfo(
-            "Heals status over time",
-            "Chance to cure status conditions each turn."
-        ),
-        "soundproof" to AbilityInfo(
-            "Immune to sound-based moves",
-            "Avoids sound-based attacks."
-        ),
-        "adaptability" to AbilityInfo(
-            "Boosts Attack",
-            "Increases Attack stat."
-        )
-    )
-
-    return abilityMap[name]
+    val (short, detailed) = abilityBlurbs[name] ?: return null
+    return AbilityInfo(stringResource(short), stringResource(detailed))
 }
 
+/** Type ids each type is strong / weak against (summary shown when a type chip is tapped). */
+private val typeMatchups: Map<String, Pair<List<String>, List<String>>> = mapOf(
+    "fire" to (listOf("grass", "bug", "ice") to listOf("water", "rock")),
+    "water" to (listOf("fire", "rock") to listOf("electric", "grass")),
+    "grass" to (listOf("water", "rock") to listOf("fire", "ice")),
+    "electric" to (listOf("water", "flying") to listOf("ground")),
+    "ice" to (listOf("dragon", "flying") to listOf("fire", "rock")),
+    "fighting" to (listOf("normal", "rock") to listOf("psychic", "fairy")),
+    "poison" to (listOf("grass", "fairy") to listOf("ground")),
+    "ground" to (listOf("fire", "electric") to listOf("water", "grass")),
+    "flying" to (listOf("grass", "fighting") to listOf("electric", "ice")),
+    "psychic" to (listOf("fighting", "poison") to listOf("dark")),
+    "bug" to (listOf("grass", "psychic") to listOf("fire")),
+    "rock" to (listOf("fire", "flying") to listOf("water", "grass")),
+    "ghost" to (listOf("psychic") to listOf("dark")),
+    "dragon" to (listOf("dragon") to listOf("ice", "fairy")),
+    "dark" to (listOf("psychic", "ghost") to listOf("fighting")),
+    "steel" to (listOf("ice", "rock") to listOf("fire")),
+    "fairy" to (listOf("dragon", "dark") to listOf("steel")),
+    "normal" to (emptyList<String>() to listOf("fighting"))
+)
+
+/** "Strong vs Grass, Bug | Weak vs Water", built from localized type names. */
+@Composable
 fun typeHint(type: String): String {
-    return when (type.lowercase()) {
-        "fire" -> "Strong vs Grass, Bug, Ice | Weak vs Water, Rock"
-        "water" -> "Strong vs Fire, Rock | Weak vs Electric, Grass"
-        "grass" -> "Strong vs Water, Rock | Weak vs Fire, Ice"
-        "electric" -> "Strong vs Water, Flying | Weak vs Ground"
-        "ice" -> "Strong vs Dragon, Flying | Weak vs Fire, Rock"
-        "fighting" -> "Strong vs Normal, Rock | Weak vs Psychic, Fairy"
-        "poison" -> "Strong vs Grass, Fairy | Weak vs Ground"
-        "ground" -> "Strong vs Fire, Electric | Weak vs Water, Grass"
-        "flying" -> "Strong vs Grass, Fighting | Weak vs Electric, Ice"
-        "psychic" -> "Strong vs Fighting, Poison | Weak vs Dark"
-        "bug" -> "Strong vs Grass, Psychic | Weak vs Fire"
-        "rock" -> "Strong vs Fire, Flying | Weak vs Water, Grass"
-        "ghost" -> "Strong vs Psychic | Weak vs Dark"
-        "dragon" -> "Strong vs Dragon | Weak vs Ice, Fairy"
-        "dark" -> "Strong vs Psychic, Ghost | Weak vs Fighting"
-        "steel" -> "Strong vs Ice, Rock | Weak vs Fire"
-        "fairy" -> "Strong vs Dragon, Dark | Weak vs Steel"
-        "normal" -> "No strengths | Weak vs Fighting"
-        else -> ""
-    }
+    val (strong, weak) = typeMatchups[type.lowercase()] ?: return ""
+    val weakNames = weak.map { localizedTypeName(it) }.joinToString(", ")
+    return if (strong.isEmpty()) stringResource(R.string.type_hint_no_strengths, weakNames)
+    else stringResource(R.string.type_hint, strong.map { localizedTypeName(it) }.joinToString(", "), weakNames)
 }
 
-fun statLabel(stat: String): String {
-    return when (stat) {
-        "hp" -> "Health"
-        "attack" -> "Attack"
-        "defense" -> "Defense"
-        "special-attack" -> "Sp. Attack"
-        "special-defense" -> "Sp. Defense"
-        "speed" -> "Speed"
-        else -> stat
-    }
+@Composable
+fun statLabel(stat: String): String = when (stat) {
+    "hp" -> stringResource(R.string.stat_hp)
+    "attack" -> stringResource(R.string.stat_attack)
+    "defense" -> stringResource(R.string.stat_defense)
+    "special-attack" -> stringResource(R.string.stat_sp_attack)
+    "special-defense" -> stringResource(R.string.stat_sp_defense)
+    "speed" -> stringResource(R.string.stat_speed)
+    else -> stat
 }

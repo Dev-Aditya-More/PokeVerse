@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeOut
@@ -146,7 +148,7 @@ fun DailyHoppingPokemon(
 
             AsyncImage(
                 model = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png",
-                contentDescription = "Surprise Pokemon",
+                contentDescription = stringResource(R.string.a11y_surprise_pokemon),
                 modifier = Modifier
                     .size(92.dp)
                     .clickable(

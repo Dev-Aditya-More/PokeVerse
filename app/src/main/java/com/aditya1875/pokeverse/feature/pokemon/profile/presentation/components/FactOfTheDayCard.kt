@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -38,6 +40,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.aditya1875.pokeverse.feature.pokemon.profile.domain.FactEngine
 import kotlinx.coroutines.delay
+
+/** Display name for a fact category (the JSON key stays English; only what's shown is translated). */
+@Composable
+private fun factCategoryLabel(category: String): String = when (category) {
+    "History" -> stringResource(R.string.fact_category_history)
+    "Lore" -> stringResource(R.string.fact_category_lore)
+    "Mechanics" -> stringResource(R.string.fact_category_mechanics)
+    "Trivia" -> stringResource(R.string.fact_category_trivia)
+    "Design" -> stringResource(R.string.fact_category_design)
+    else -> category
+}
 
 private val categoryColors: Map<String, Color> = mapOf(
     "History"   to Color(0xFF1565C0),
@@ -100,13 +113,13 @@ fun FactOfTheDayCard(modifier: Modifier = Modifier) {
                     }
                     Column {
                         Text(
-                            text = "Fact of the Day",
+                            text = stringResource(R.string.fact_of_the_day),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.ExtraBold,
                             color = accent
                         )
                         Text(
-                            text = "Refreshes tomorrow",
+                            text = stringResource(R.string.fact_refreshes_tomorrow),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
@@ -118,7 +131,7 @@ fun FactOfTheDayCard(modifier: Modifier = Modifier) {
                         border = BorderStroke(1.dp, accent.copy(alpha = 0.3f))
                     ) {
                         Text(
-                            text = fact.category,
+                            text = factCategoryLabel(fact.category),
                             modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,

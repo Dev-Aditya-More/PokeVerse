@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import android.os.Build
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.RepeatMode
@@ -129,7 +131,7 @@ fun Pokemon3DModelViewer(
 
         if (hasError) {
             Text(
-                text = "GO sprite unavailable",
+                text = stringResource(R.string.go_sprite_unavailable),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )

@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.team.presentation.components
 
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.EaseInOutSine
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -99,7 +100,7 @@ fun EmptyTeamView(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Your Team is Empty",
+                text = stringResource(R.string.team_empty_view_title),
                 fontWeight = FontWeight.Bold,
                 fontSize = 26.sp,
                 color = MaterialTheme.colorScheme.onSurface
@@ -108,7 +109,7 @@ fun EmptyTeamView(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "Build a balanced team.\nMix types for better coverage.",
+                text = stringResource(R.string.team_empty_view_body),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
@@ -152,7 +153,7 @@ fun EmptyTeamView(
                     Spacer(Modifier.width(8.dp))
 
                     Text(
-                        text = "Build Your Team",
+                        text = stringResource(R.string.team_build_your_team),
                         fontSize = 17.sp,
                         fontWeight = FontWeight.SemiBold
                     )

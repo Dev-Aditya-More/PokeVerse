@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPLabel
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPNote
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.utils.SoundManager
 import kotlinx.coroutines.delay
@@ -79,12 +81,32 @@ private fun XPToast(result: XPResult, onDismiss: () -> Unit) {
                 modifier = Modifier.size(18.dp)
             )
             Text(
-                text = result.label,
+                text = result.label?.let { xpLabelText(it) }.orEmpty(),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.inverseOnSurface,
                 fontWeight = FontWeight.SemiBold
             )
         }
+    }
+}
+
+/** "<title> +N XP<flair>" followed by any notes, all in the user's language. */
+@Composable
+fun xpLabelText(label: XPLabel): String {
+    val title = label.titleArg?.let { stringResource(label.title, it) } ?: stringResource(label.title)
+    val notes = label.notes.map { note ->
+        when (note) {
+            is XPNote.StreakBonus -> stringResource(R.string.xp_note_streak_bonus, note.xp)
+            is XPNote.RestedBanked -> stringResource(R.string.xp_note_rested_banked, note.xp)
+            XPNote.RestedDouble -> stringResource(R.string.xp_note_rested_double)
+            is XPNote.DailyRate -> stringResource(R.string.xp_note_daily_rate, note.percent)
+            XPNote.Perfect -> stringResource(R.string.xp_note_perfect)
+            XPNote.UnderPar -> stringResource(R.string.xp_note_under_par)
+        }
+    }
+    return buildString {
+        append(title).append(' ').append(stringResource(R.string.xp_amount, label.amount)).append(label.flair)
+        notes.forEach { append("  ").append(it) }
     }
 }
 
@@ -186,7 +208,7 @@ private fun LevelUpCelebration(result: XPResult, onDismiss: () -> Unit) {
                             verticalArrangement = Arrangement.Center
                         ) {
                             Text(
-                                text = "LVL",
+                                text = stringResource(R.string.xp_level_short_label),
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = Gold.copy(alpha = 0.8f),
@@ -211,7 +233,7 @@ private fun LevelUpCelebration(result: XPResult, onDismiss: () -> Unit) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = "Progress to next level",
+                                text = stringResource(R.string.xp_progress_next_level),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )

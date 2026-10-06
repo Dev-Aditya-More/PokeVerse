@@ -342,6 +342,7 @@ fun SharedTransitionScope.HomeScreen(
         totalSessionMinutes = totalSessionMinutes,
         isGuest = profile.isGuest,
         isPremium = isPremium,
+        dailyStreak = profile.dailyStreak,
         onEnableAssets = { settingsViewModel.toggleOriginalAssetsEnabled() },
         onRateNow = {
             activity?.let { reviewManager.requestReview(it) }
@@ -412,14 +413,14 @@ fun SharedTransitionScope.HomeScreen(
                                 onDismissRequest = { showMenu = false }
                             ) {
                                 Text(
-                                    text = "POKÉDEX",
+                                    text = stringResource(R.string.home_section_pokedex),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                                 )
                                 DropdownMenuItem(
-                                    text = { Text("Pokémons") },
+                                    text = { Text(stringResource(R.string.home_menu_pokemon)) },
                                     trailingIcon = {
                                         if (contentMode == HomeContentMode.POKEMON) {
                                             Icon(Icons.Default.Check, contentDescription = null)
@@ -432,7 +433,7 @@ fun SharedTransitionScope.HomeScreen(
                                 )
 
                                 DropdownMenuItem(
-                                    text = { Text("Items") },
+                                    text = { Text(stringResource(R.string.home_menu_items)) },
                                     trailingIcon = {
                                         if (contentMode == HomeContentMode.ITEMS) {
                                             Icon(Icons.Default.Check, contentDescription = null)
@@ -445,7 +446,7 @@ fun SharedTransitionScope.HomeScreen(
                                 )
 
                                 DropdownMenuItem(
-                                    text = { Text("Berries") },
+                                    text = { Text(stringResource(R.string.home_menu_berries)) },
                                     trailingIcon = {
                                         if (contentMode == HomeContentMode.BERRIES) {
                                             Icon(Icons.Default.Check, contentDescription = null)
@@ -458,7 +459,7 @@ fun SharedTransitionScope.HomeScreen(
                                 )
 
                                 DropdownMenuItem(
-                                    text = { Text("Badges") },
+                                    text = { Text(stringResource(R.string.home_menu_badges)) },
                                     trailingIcon = {
                                         if (contentMode == HomeContentMode.BADGES) {
                                             Icon(Icons.Default.Check, contentDescription = null)
@@ -471,7 +472,7 @@ fun SharedTransitionScope.HomeScreen(
                                 )
 
                                 DropdownMenuItem(
-                                    text = { Text("Characters") },
+                                    text = { Text(stringResource(R.string.home_menu_characters)) },
                                     trailingIcon = {
                                         if (contentMode == HomeContentMode.CHARACTERS) {
                                             Icon(Icons.Default.Check, contentDescription = null)
@@ -486,7 +487,7 @@ fun SharedTransitionScope.HomeScreen(
                                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
                                 Text(
-                                    text = "OTHER TOOLS",
+                                    text = stringResource(R.string.home_section_other_tools),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
@@ -494,7 +495,7 @@ fun SharedTransitionScope.HomeScreen(
                                 )
 
                                 DropdownMenuItem(
-                                    text = { Text("What Pokémon do you look like?") },
+                                    text = { Text(stringResource(R.string.home_menu_face_match)) },
                                     leadingIcon = {
                                         Icon(Icons.Default.Cameraswitch, contentDescription = null)
                                     },
@@ -505,7 +506,7 @@ fun SharedTransitionScope.HomeScreen(
                                 )
 
                                 DropdownMenuItem(
-                                    text = { Text("Compare Pokémon") },
+                                    text = { Text(stringResource(R.string.home_menu_compare)) },
                                     leadingIcon = {
                                         Icon(Icons.Default.CompareArrows, contentDescription = null)
                                     },
@@ -517,7 +518,7 @@ fun SharedTransitionScope.HomeScreen(
                                 )
 
                                 DropdownMenuItem(
-                                    text = { Text("Stat Calculator") },
+                                    text = { Text(stringResource(R.string.home_menu_stat_calculator)) },
                                     leadingIcon = {
                                         Icon(Icons.Default.Calculate, contentDescription = null)
                                     },
@@ -718,9 +719,9 @@ fun SharedTransitionScope.HomeScreen(
                             when (contentMode) {
                                 HomeContentMode.POKEMON -> Text(stringResource(R.string.home_search_pokemon))
                                 HomeContentMode.ITEMS -> Text(stringResource(R.string.home_search_item))
-                                HomeContentMode.BERRIES -> Text("Search berries...")
-                                HomeContentMode.BADGES -> Text("Search badges, leaders, types...")
-                                HomeContentMode.CHARACTERS -> Text("Search characters...")
+                                HomeContentMode.BERRIES -> Text(stringResource(R.string.home_search_berries))
+                                HomeContentMode.BADGES -> Text(stringResource(R.string.home_search_badges))
+                                HomeContentMode.CHARACTERS -> Text(stringResource(R.string.home_search_characters))
                             }
                         },
                         singleLine = true,

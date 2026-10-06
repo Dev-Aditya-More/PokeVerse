@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.game.poketype.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,9 +53,9 @@ fun TypeRushDifficultyCard(
     }
 
     val description = when (difficulty) {
-        TypeRushDifficulty.EASY -> "Slow pace • Beginner friendly"
-        TypeRushDifficulty.MEDIUM -> "Faster typing • More pressure"
-        TypeRushDifficulty.HARD -> "Extreme speed • Pro trainers only"
+        TypeRushDifficulty.EASY -> stringResource(R.string.rush_difficulty_easy_desc)
+        TypeRushDifficulty.MEDIUM -> stringResource(R.string.rush_difficulty_medium_desc)
+        TypeRushDifficulty.HARD -> stringResource(R.string.rush_difficulty_hard_desc)
     }
 
     Card(
@@ -153,7 +155,7 @@ fun TypeRushDifficultyCard(
                     Spacer(Modifier.height(4.dp))
 
                     Text(
-                        text = "Best: ${it.score}",
+                        text = stringResource(R.string.best_score_short, it.score),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFFFFD700),
                         fontWeight = FontWeight.SemiBold

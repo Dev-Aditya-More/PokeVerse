@@ -21,6 +21,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.net.toUri
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.widget.streak.StreakWidgetManualStepsDialog
+import com.aditya1875.pokeverse.feature.widget.streak.StreakWidgetPinning
+import com.aditya1875.pokeverse.feature.widget.streak.StreakWidgetPromptDialog
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import kotlinx.coroutines.launch
 
@@ -28,14 +31,21 @@ private const val RATING_MIN_MINUTES = 10L
 private const val PREMIUM_MIN_MINUTES = 40L
 private const val MIN_GAP_BETWEEN_POPUPS_MINUTES = 30L
 private const val SLOW_POPUP_STARTUP_DELAY_MS = 4_000L
+/** Ask about the streak widget once there's a streak worth protecting. */
+private const val WIDGET_MIN_STREAK = 2
+/** At most two asks, and the second only after this long. */
+private const val WIDGET_MAX_ASKS = 2
+private const val WIDGET_REASK_GAP_MS = 5L * 24 * 60 * 60 * 1000
 
-enum class HomePopup { None, Assets, Rating, Premium }
+enum class HomePopup { None, Assets, Widget, Rating, Premium }
 
 // Single dialog visible at a time. Priority:
 //   1. Assets  — first-ever launch only, shows after DataStore is ready
-//   2. Rating  — signed-in users only; asks "enjoying it?" after RATING_MIN_MINUTES,
+//   2. Widget  — streak ≥ 2 days and the widget isn't on the home screen yet; asked at
+//                most twice (5+ days apart). Android never surfaces widgets on its own.
+//   3. Rating  — signed-in users only; asks "enjoying it?" after RATING_MIN_MINUTES,
 //                only launching Play In-App Review if they say yes
-//   3. Premium — after PREMIUM_MIN_MINUTES, 30-min gap since last popup
+//   4. Premium — after PREMIUM_MIN_MINUTES, 30-min gap since last popup
 
 @Composable
 fun HomePopupOrchestrator(
@@ -43,6 +53,7 @@ fun HomePopupOrchestrator(
     totalSessionMinutes: Long,
     isGuest: Boolean,
     isPremium: Boolean,
+    dailyStreak: Int,
     onEnableAssets: () -> Unit,
     onRateNow: () -> Unit,
     onGoPremium: () -> Unit,
@@ -56,12 +67,22 @@ fun HomePopupOrchestrator(
     var lastPopupAtMinutes by remember { mutableLongStateOf(0L) }
     var isReady by remember { mutableStateOf(false) }
     var slowPopupsUnlocked by remember { mutableStateOf(false) }
+    var widgetAsks by remember { mutableStateOf(0) }
+    var widgetLastAskMs by remember { mutableLongStateOf(0L) }
+    var widgetOnHomeScreen by remember { mutableStateOf(true) } // assume yes until checked — never ask by mistake
+    val widgetPinSupported = remember { StreakWidgetPinning.isPinSupported(context) }
+    var showWidgetManualSteps by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         assetsShown = ScreenStateManager.isAssetsShown(context)
         ratingShown = ScreenStateManager.isRatingShown(context)
         premiumShown = ScreenStateManager.isPremiumShown(context)
         lastPopupAtMinutes = ScreenStateManager.getLastPopupShownAtMinutes(context)
+        ScreenStateManager.widgetPromptHistory(context).let { (asks, lastMs) ->
+            widgetAsks = asks
+            widgetLastAskMs = lastMs
+        }
+        widgetOnHomeScreen = StreakWidgetPinning.isOnHomeScreen(context)
         isReady = true
         kotlinx.coroutines.delay(SLOW_POPUP_STARTUP_DELAY_MS)
         slowPopupsUnlocked = true
@@ -79,15 +100,24 @@ fun HomePopupOrchestrator(
         isGuest,
         isPremium,
         slowPopupsUnlocked,
-        lastPopupAtMinutes
+        lastPopupAtMinutes,
+        dailyStreak,
+        widgetAsks,
+        widgetOnHomeScreen
     ) {
         if (!isReady) return@LaunchedEffect
 
         val minutesSinceLastPopup = totalSessionMinutes - lastPopupAtMinutes
         val cooldownPassed = minutesSinceLastPopup >= MIN_GAP_BETWEEN_POPUPS_MINUTES
+        val widgetAskDue = widgetAsks == 0 ||
+            (widgetAsks < WIDGET_MAX_ASKS && System.currentTimeMillis() - widgetLastAskMs >= WIDGET_REASK_GAP_MS)
 
         activePopup = when {
             !assetsShown && !originalAssetsEnabled -> HomePopup.Assets
+
+            !widgetOnHomeScreen && widgetAskDue &&
+                    dailyStreak >= WIDGET_MIN_STREAK &&
+                    slowPopupsUnlocked && cooldownPassed -> HomePopup.Widget
 
             !ratingShown && !isGuest &&
                     slowPopupsUnlocked &&
@@ -163,8 +193,31 @@ fun HomePopupOrchestrator(
             }
         )
 
+        HomePopup.Widget -> StreakWidgetPromptDialog(
+            streakDays = dailyStreak,
+            pinSupported = widgetPinSupported,
+            onAdd = {
+                dismissPopup {
+                    ScreenStateManager.markWidgetPromptShown(context)
+                    widgetAsks += 1
+                }
+                coroutineScope.launch {
+                    // If the launcher refuses the system sheet, fall back to telling them how.
+                    if (!StreakWidgetPinning.requestPin(context)) showWidgetManualSteps = true
+                }
+            },
+            onDismiss = {
+                dismissPopup {
+                    ScreenStateManager.markWidgetPromptShown(context)
+                    widgetAsks += 1
+                }
+            }
+        )
+
         HomePopup.None -> {}
     }
+
+    if (showWidgetManualSteps) StreakWidgetManualStepsDialog(onDismiss = { showWidgetManualSteps = false })
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -186,14 +239,14 @@ fun UpdateAvailableDialog(
         icon = { Icon(Icons.Default.NewReleases, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp)) },
         title = {
             Text(
-                "Update Available",
+                stringResource(R.string.update_available_title),
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center
             )
         },
         text = {
             Text(
-                "Version $latestVersionName is here with new features and improvements. Update now to continue.",
+                stringResource(R.string.update_available_body, latestVersionName),
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -213,7 +266,7 @@ fun UpdateAvailableDialog(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Update Now", fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.update_now), fontWeight = FontWeight.Bold)
             }
         }
     )

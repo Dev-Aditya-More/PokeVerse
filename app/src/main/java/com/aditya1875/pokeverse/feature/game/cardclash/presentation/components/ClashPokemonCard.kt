@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.cardclash.presentation.components
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -119,7 +120,7 @@ fun TypeChip(type: String) {
             .padding(horizontal = 5.dp, vertical = 2.dp)
     ) {
         Text(
-            text = type.replaceFirstChar { it.uppercase() },
+            text = localizedTypeName(type),
             style = MaterialTheme.typography.labelSmall,
             color = Color.White,
             fontSize = 9.sp

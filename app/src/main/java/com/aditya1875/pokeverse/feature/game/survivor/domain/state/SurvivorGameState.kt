@@ -15,7 +15,9 @@ sealed class SurvivorGameState {
         val streak: Int,
         val score: Int,
         val timeRemainingMs: Int,
-        val bestScore: Int = 0
+        val bestScore: Int = 0,
+        /** The "wild Pokémon appeared" reveal is playing; the clock hasn't started and answers are locked. */
+        val isIntro: Boolean = false
     ) : SurvivorGameState()
 
     data class RoundResult(

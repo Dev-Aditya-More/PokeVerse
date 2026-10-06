@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.battlestats.presentation.screens
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -100,10 +102,10 @@ fun StandaloneStatCalculatorScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Stat Calculator", color = Color.White, fontWeight = FontWeight.Black) },
+                title = { Text(stringResource(R.string.stat_calc_title), color = Color.White, fontWeight = FontWeight.Black) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back), tint = Color.White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF1A1A1A))
@@ -150,7 +152,7 @@ fun StandaloneStatCalculatorScreen(
                     } else {
                         Spacer(Modifier.height(48.dp))
                         Text(
-                            "Pick a Pokémon to calculate its IV/EV stats and GO combat power.",
+                            stringResource(R.string.stat_calc_pick_hint),
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.White.copy(alpha = 0.6f),
                             textAlign = TextAlign.Center,
@@ -161,7 +163,7 @@ fun StandaloneStatCalculatorScreen(
             }
 
             if (showPremiumSheet) {
-                val purchaseError = "Unable to start purchase"
+                val purchaseError = stringResource(R.string.game_hub_purchase_error)
                 PremiumBottomSheet(
                     onDismiss = { showPremiumSheet = false },
                     onSubscribeMonthly = {
@@ -205,14 +207,14 @@ private fun CalculatorAdGate(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                "Unlock the Stat Calculator",
+                stringResource(R.string.stat_calc_unlock_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             Text(
-                "Watch a quick ad to calculate IV/EV stats and GO combat power for any Pokémon this session.",
+                stringResource(R.string.stat_calc_unlock_body),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center
@@ -221,7 +223,7 @@ private fun CalculatorAdGate(
             when (adState) {
                 is RewardedAdState.Loading -> {
                     CircularProgressIndicator(color = PickerAccent, modifier = Modifier.size(40.dp))
-                    Text("Loading ad…", style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.5f))
+                    Text(stringResource(R.string.analysis_ad_loading), style = MaterialTheme.typography.bodySmall, color = Color.White.copy(alpha = 0.5f))
                 }
                 is RewardedAdState.Ready, is RewardedAdState.Idle -> {
                     Button(
@@ -232,7 +234,7 @@ private fun CalculatorAdGate(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            if (adState is RewardedAdState.Ready) "Watch Ad" else "Ad unavailable, try again shortly",
+                            if (adState is RewardedAdState.Ready) stringResource(R.string.action_watch_ad) else stringResource(R.string.ad_unavailable_short),
                             modifier = Modifier.padding(vertical = 4.dp)
                         )
                     }
@@ -247,7 +249,7 @@ private fun CalculatorAdGate(
                 colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.12f)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Go Premium", color = Color.White, modifier = Modifier.padding(vertical = 4.dp))
+                Text(stringResource(R.string.go_premium), color = Color.White, modifier = Modifier.padding(vertical = 4.dp))
             }
         }
     }

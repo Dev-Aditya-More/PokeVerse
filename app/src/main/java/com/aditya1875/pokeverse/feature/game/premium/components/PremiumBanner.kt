@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.game.premium.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -87,20 +89,20 @@ fun PremiumBanner(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Go Premium",
+                        text = stringResource(R.string.go_premium),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Text(
-                        text = "Unlock Hard mode and more",
+                        text = stringResource(R.string.premium_banner_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                     )
                 }
 
                 Text(
-                    text = price.ifEmpty { "Loading..." },
+                    text = price.ifEmpty { stringResource(R.string.premium_price_loading) },
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary

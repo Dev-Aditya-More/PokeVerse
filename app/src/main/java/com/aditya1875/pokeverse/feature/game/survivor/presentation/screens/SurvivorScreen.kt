@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.game.survivor.presentation.screens
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -11,6 +14,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import com.aditya1875.pokeverse.feature.game.survivor.domain.model.MatchupPokemon
+import kotlinx.coroutines.delay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -33,6 +44,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.HelpOutline
@@ -101,10 +113,11 @@ import com.aditya1875.pokeverse.utils.SoundManager
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.BackdropPulse
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.SkyWeather
 
-private val SurvivorBg = Brush.verticalGradient(
-    colors = listOf(Color(0xFF1A1206), Color(0xFF130D1E), Color(0xFF0C0A14))
-)
 private val AmberAccent = Color(0xFFFFC107)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -152,73 +165,88 @@ fun SurvivorScreen(
 
     BackHandler(enabled = hasActiveProgress) { showExitDialog = true }
 
+    val activeRound = (gameState as? SurvivorGameState.Playing)?.round
+        ?: (gameState as? SurvivorGameState.RoundResult)?.round
+    val sky = when (activeRound?.activeModifiers?.filterIsInstance<SurvivorModifier.Weather>()?.firstOrNull()?.kind) {
+        WeatherKind.RAIN -> SkyWeather.RAIN
+        WeatherKind.SUN -> SkyWeather.SUN
+        null -> SkyWeather.CLEAR
+    }
+    val roundResult = gameState as? SurvivorGameState.RoundResult
+
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
-        Scaffold(
-            topBar = {
-                TopAppBar(
-                    title = { Text("Pokémon Survivor", color = Color.White) },
-                    navigationIcon = {
-                        IconButton(onClick = requestExit) {
-                            Icon(
-                                Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = Color.White
+        GameBackdrop(
+            scene = GameScene.Weather(sky),
+            pulseKey = roundResult,
+            pulseColor = if (roundResult?.wasCorrect == true) BackdropPulse.Correct else BackdropPulse.Wrong
+        ) {
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        title = { Text(stringResource(R.string.game_name_survivor_title), color = Color.White) },
+                        navigationIcon = {
+                            IconButton(onClick = requestExit) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.back),
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { showGuide = true }) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.HelpOutline,
+                                    contentDescription = stringResource(R.string.game_how_to_play),
+                                    tint = Color.White
+                                )
+                            }
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+                    )
+                },
+                containerColor = Color.Transparent
+            ) { padding ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AnimatedContent(
+                        targetState = gameState,
+                        // Animate only when the *phase* changes. Keyed on the whole state, every
+                        // 100 ms timer tick restarted the fade/scale transition and the screen
+                        // ghosted over itself continuously — the "blurry" look.
+                        contentKey = { it::class },
+                        transitionSpec = {
+                            (fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.95f))
+                                .togetherWith(fadeOut(tween(200)))
+                        },
+                        label = "survivor_state"
+                    ) { state ->
+                        when (state) {
+                            is SurvivorGameState.Idle,
+                            is SurvivorGameState.Loading -> GameLoadingContent(
+                                text = stringResource(R.string.survivor_loading),
+                                modifier = Modifier.fillMaxSize().padding(padding),
+                                textColor = Color.White.copy(alpha = 0.85f),
+                                spinnerColor = AmberAccent
+                            )
+                            is SurvivorGameState.Playing -> PlayingContent(
+                                state = state,
+                                modifier = Modifier.fillMaxSize().padding(padding),
+                                onAnswer = { type -> viewModel.submitAnswer(type) }
+                            )
+                            is SurvivorGameState.RoundResult -> RoundResultContent(
+                                state = state,
+                                modifier = Modifier.fillMaxSize().padding(padding),
+                                isOnline = isOnline,
+                                isPremium = isPremium,
+                                onRevive = { viewModel.reviveGame() }
+                            )
+                            is SurvivorGameState.Finished -> FinishedContent(
+                                state = state,
+                                modifier = Modifier.fillMaxSize().padding(padding),
+                                onPlayAgain = { viewModel.startGame() },
+                                onBack = onBack
                             )
                         }
-                    },
-                    actions = {
-                        IconButton(onClick = { showGuide = true }) {
-                            Icon(
-                                Icons.Default.HelpOutline,
-                                contentDescription = "How to play",
-                                tint = Color.White
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-                )
-            },
-            containerColor = Color(0xFF130D1E)
-        ) { padding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(SurvivorBg)
-            ) {
-                AnimatedContent(
-                    targetState = gameState,
-                    transitionSpec = {
-                        (fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.95f))
-                            .togetherWith(fadeOut(tween(200)))
-                    },
-                    label = "survivor_state"
-                ) { state ->
-                    when (state) {
-                        is SurvivorGameState.Idle,
-                        is SurvivorGameState.Loading -> GameLoadingContent(
-                            text = "A wild Pokémon is approaching…",
-                            modifier = Modifier.fillMaxSize().padding(padding),
-                            textColor = Color.White.copy(alpha = 0.85f),
-                            spinnerColor = AmberAccent
-                        )
-                        is SurvivorGameState.Playing -> PlayingContent(
-                            state = state,
-                            modifier = Modifier.fillMaxSize().padding(padding),
-                            onAnswer = { type -> viewModel.submitAnswer(type) }
-                        )
-                        is SurvivorGameState.RoundResult -> RoundResultContent(
-                            state = state,
-                            modifier = Modifier.fillMaxSize().padding(padding),
-                            isOnline = isOnline,
-                            isPremium = isPremium,
-                            onRevive = { viewModel.reviveGame() }
-                        )
-                        is SurvivorGameState.Finished -> FinishedContent(
-                            state = state,
-                            modifier = Modifier.fillMaxSize().padding(padding),
-                            onPlayAgain = { viewModel.startGame() },
-                            onBack = onBack
-                        )
                     }
                 }
             }
@@ -228,14 +256,14 @@ fun SurvivorScreen(
     if (showExitDialog) {
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
-            title = { Text("Leave game?") },
-            text = { Text("Your run will be lost if you exit now.") },
+            title = { Text(stringResource(R.string.game_leave_title)) },
+            text = { Text(stringResource(R.string.game_leave_message)) },
             confirmButton = {
                 TextButton(onClick = { showExitDialog = false; onBack() }) {
-                    Text("Leave", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.game_leave), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text("Cancel") } }
+            dismissButton = { TextButton(onClick = { showExitDialog = false }) { Text(stringResource(R.string.cancel)) } }
         )
     }
 
@@ -278,20 +306,20 @@ private fun SurvivorGuideOverlay(onDismiss: () -> Unit) {
                 )
                 Spacer(Modifier.height(10.dp))
                 Text(
-                    "How to Survive",
+                    stringResource(R.string.survivor_guide_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Black,
                     color = Color.White
                 )
                 Spacer(Modifier.height(18.dp))
 
-                GuideRow(Icons.Default.Bolt, AmberAccent, "A wild Pokémon appears — tap the type that's super effective against it.")
+                GuideRow(Icons.Default.Bolt, AmberAccent, stringResource(R.string.survivor_guide_types))
                 Spacer(Modifier.height(14.dp))
-                GuideRow(Icons.Default.WaterDrop, Color(0xFF4FC3F7), "Watch for weather — Rain boosts Water and weakens Fire, Sun does the opposite.")
+                GuideRow(Icons.Default.WaterDrop, Color(0xFF4FC3F7), stringResource(R.string.survivor_guide_weather))
                 Spacer(Modifier.height(14.dp))
-                GuideRow(Icons.Default.Timer, Color(0xFFE53935), "Answer before the bar runs out — a timeout counts as a miss.")
+                GuideRow(Icons.Default.Timer, Color(0xFFE53935), stringResource(R.string.survivor_guide_timer))
                 Spacer(Modifier.height(14.dp))
-                GuideRow(Icons.Default.Favorite, Color(0xFFE53935), "You've got 3 lives. Chain correct answers for streak bonuses and XP.")
+                GuideRow(Icons.Default.Favorite, Color(0xFFE53935), stringResource(R.string.survivor_guide_lives))
 
                 Spacer(Modifier.height(22.dp))
 
@@ -301,7 +329,7 @@ private fun SurvivorGuideOverlay(onDismiss: () -> Unit) {
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = AmberAccent)
                 ) {
-                    Text("Let's go!", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.Black)
+                    Text(stringResource(R.string.survivor_guide_go), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = Color.Black)
                 }
             }
         }
@@ -362,15 +390,159 @@ private fun SpriteImage(
     )
 }
 
+/**
+ * The "wild Pokémon appeared!" reveal, timed to [SurvivorViewModel.INTRO_MS]:
+ *  0–380 ms   slides in as a black silhouette onto a type-tinted battle platform
+ *  420 ms     white flash burst; silhouette resolves into full colour with a bounce
+ *  ~600 ms    "A wild X appeared!" + name
+ *  ~650 ms+   type chips pop in one by one
+ * The clock starts when it ends, so the reveal gives time to read the types.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun EncounterStage(defender: MatchupPokemon) {
+    val key = defender.id
+    val slide = remember(key) { Animatable(1f) }      // 1 = off-screen right, 0 = in place
+    val reveal = remember(key) { Animatable(0f) }     // 0 = silhouette, 1 = full colour
+    val flash = remember(key) { Animatable(0f) }
+    val bounce = remember(key) { Animatable(1f) }
+    val textIn = remember(key) { Animatable(0f) }
+    val chipsShown = remember(key) { mutableStateOf(0) }
+    val platformColor = typeColor(defender.types.firstOrNull().orEmpty())
+
+    LaunchedEffect(key) {
+        slide.animateTo(0f, tween(380, easing = FastOutSlowInEasing))
+        delay(40)
+        launch {
+            flash.animateTo(1f, tween(90))
+            flash.animateTo(0f, tween(220))
+        }
+        launch { reveal.animateTo(1f, tween(180)) }
+        bounce.snapTo(1.12f)
+        launch { bounce.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium)) }
+        delay(140)
+        launch { textIn.animateTo(1f, tween(200)) }
+        delay(60)
+        repeat(defender.types.size) {
+            chipsShown.value = it + 1
+            delay(90)
+        }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(modifier = Modifier.size(width = 240.dp, height = 200.dp), contentAlignment = Alignment.BottomCenter) {
+            // Battle platform: an oval glowing in the defender's primary type colour.
+            Canvas(modifier = Modifier.size(width = 220.dp, height = 46.dp)) {
+                drawOval(
+                    brush = Brush.radialGradient(
+                        colors = listOf(platformColor.copy(alpha = 0.55f), platformColor.copy(alpha = 0.08f), Color.Transparent),
+                        center = center,
+                        radius = size.width / 2
+                    )
+                )
+                drawOval(color = platformColor.copy(alpha = 0.5f), style = Stroke(width = 2.dp.toPx()))
+            }
+            Box(
+                modifier = Modifier
+                    .padding(bottom = 18.dp)
+                    .size(170.dp)
+                    .graphicsLayer {
+                        translationX = slide.value * size.width * 1.6f
+                        scaleX = bounce.value
+                        scaleY = bounce.value
+                        transformOrigin = TransformOrigin(0.5f, 1f)
+                    }
+            ) {
+                val request = ImageRequest.Builder(LocalContext.current).data(defender.spriteUrl).build()
+                // Silhouette underneath, full colour fading in on top: "Who's that…" then the reveal.
+                AsyncImage(
+                    model = request,
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(Color(0xFF0B0A12)),
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+                AsyncImage(
+                    model = request,
+                    contentDescription = defender.name,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize().graphicsLayer { alpha = reveal.value }
+                )
+            }
+            // Reveal flash: a white burst behind/over the Pokémon.
+            if (flash.value > 0f) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    val radius = size.minDimension * (0.25f + 0.5f * flash.value)
+                    drawCircle(
+                        brush = Brush.radialGradient(
+                            colors = listOf(Color.White.copy(alpha = 0.85f * flash.value), Color.Transparent),
+                            center = Offset(center.x, center.y - 10.dp.toPx()),
+                            radius = radius
+                        ),
+                        radius = radius,
+                        center = Offset(center.x, center.y - 10.dp.toPx())
+                    )
+                }
+            }
+        }
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.graphicsLayer {
+                alpha = textIn.value
+                translationY = (1f - textIn.value) * 12.dp.toPx()
+            }
+        ) {
+            Text(
+                stringResource(R.string.survivor_wild_appeared, defender.displayName()),
+                style = MaterialTheme.typography.labelLarge,
+                color = Color.White.copy(alpha = 0.65f)
+            )
+            Text(
+                text = defender.displayName(),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+            if (LegendaryPokemon.isLegendary(defender.id)) {
+                Spacer(Modifier.height(2.dp))
+                LegendaryBadge()
+            }
+        }
+        Spacer(Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.height(26.dp)) {
+            defender.types.take(chipsShown.value).forEach { type -> PopIn { TypeChip(type) } }
+        }
+    }
+}
+
+private fun MatchupPokemon.displayName() = name.replaceFirstChar { it.uppercase() }
+
+/** Springs its content in from small — used for type chips and answers appearing. */
+@Suppress("EffectKeys")
+@Composable
+private fun PopIn(delayMs: Long = 0L, content: @Composable () -> Unit) {
+    val scale = remember { Animatable(0.4f) }
+    val alpha = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(delayMs)
+        launch { alpha.animateTo(1f, tween(140)) }
+        scale.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium))
+    }
+    Box(modifier = Modifier.graphicsLayer { scaleX = scale.value; scaleY = scale.value; this.alpha = alpha.value }) {
+        content()
+    }
+}
+
 @Composable
 private fun ModifierBadge(modifiers: List<SurvivorModifier>) {
     if (modifiers.isEmpty()) return
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         modifiers.forEach { modifier ->
-            val emoji = when (modifier) {
+            val (emoji, label) = when (modifier) {
                 is SurvivorModifier.Weather -> when (modifier.kind) {
-                    WeatherKind.RAIN -> "🌧"
-                    WeatherKind.SUN -> "☀️"
+                    WeatherKind.RAIN -> "🌧" to stringResource(R.string.survivor_weather_rain)
+                    WeatherKind.SUN -> "☀️" to stringResource(R.string.survivor_weather_sun)
                 }
             }
             Box(
@@ -380,7 +552,7 @@ private fun ModifierBadge(modifiers: List<SurvivorModifier>) {
                     .padding(horizontal = 12.dp, vertical = 5.dp)
             ) {
                 Text(
-                    "$emoji ${modifier.label}",
+                    "$emoji $label",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = AmberAccent
@@ -415,7 +587,7 @@ private fun PlayingContent(
             LivesRow(lives = state.lives, maxLives = 3)
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    "${state.score} pts",
+                    stringResource(R.string.game_points_short, state.score),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = AmberAccent
@@ -449,46 +621,33 @@ private fun PlayingContent(
         ModifierBadge(round.activeModifiers)
         Spacer(Modifier.height(10.dp))
 
-        SpriteImage(
-            url = round.defender.spriteUrl,
-            contentDescription = round.defender.name,
-            modifier = Modifier.size(180.dp)
-        )
+        EncounterStage(round.defender)
 
+        Spacer(Modifier.height(16.dp))
         Text(
-            text = round.defender.name.replaceFirstChar { it.uppercase() },
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.ExtraBold,
-            color = Color.White
-        )
-        if (LegendaryPokemon.isLegendary(round.defender.id)) {
-            Spacer(Modifier.height(2.dp))
-            LegendaryBadge()
-        }
-        Spacer(Modifier.height(6.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            round.defender.types.forEach { type -> TypeChip(type) }
-        }
-
-        Spacer(Modifier.height(20.dp))
-        Text(
-            "What's super effective?",
+            stringResource(R.string.survivor_whats_super_effective),
             style = MaterialTheme.typography.labelLarge,
             color = Color.White.copy(alpha = 0.6f)
         )
         Spacer(Modifier.height(10.dp))
 
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            round.options.forEach { type ->
-                AnswerChip(type = type, onClick = { onAnswer(type) })
+        // Answers appear (and unlock) the moment the reveal ends and the clock starts.
+        Box(modifier = Modifier.heightIn(min = 120.dp)) {
+            if (!state.isIntro) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    round.options.forEachIndexed { index, type ->
+                        PopIn(delayMs = index * 45L) { AnswerChip(type = type, onClick = { onAnswer(type) }) }
+                    }
+                }
             }
         }
     }
 }
 
+@Suppress("EffectKeys")
 @Composable
 private fun RoundResultContent(
     state: SurvivorGameState.RoundResult,
@@ -527,7 +686,13 @@ private fun RoundResultContent(
         Spacer(Modifier.height(12.dp))
 
         Text(
-            text = if (state.wasCorrect) "Super effective! 🎯" else if (state.selectedType == null) "Too slow!" else "Not effective enough…",
+            text = stringResource(
+                when {
+                    state.wasCorrect -> R.string.survivor_result_correct
+                    state.selectedType == null -> R.string.survivor_result_timeout
+                    else -> R.string.survivor_result_wrong
+                }
+            ),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.ExtraBold,
             color = if (state.wasCorrect) Color(0xFF43A047) else Color(0xFFE53935)
@@ -535,7 +700,7 @@ private fun RoundResultContent(
 
         Spacer(Modifier.height(6.dp))
         Text(
-            "The right call: ${state.round.correctTypes.joinToString(" / ") { it.replaceFirstChar { c -> c.uppercase() } }}",
+            stringResource(R.string.survivor_right_call, state.round.correctTypes.map { localizedTypeName(it) }.joinToString(" / ")),
             style = MaterialTheme.typography.bodyMedium,
             color = Color.White.copy(alpha = 0.7f)
         )
@@ -560,7 +725,7 @@ private fun RoundResultContent(
                 border = BorderStroke(1.5.dp, AmberAccent.copy(alpha = 0.6f))
             ) {
                 Text(
-                    if (isPremium) "Revive  ❤️" else "📺  Watch Ad to Revive  ❤️",
+                    stringResource(if (isPremium) R.string.survivor_revive else R.string.survivor_revive_ad),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -589,10 +754,10 @@ private fun FinishedContent(
 
     Box(modifier = modifier) {
         GameResultLayout(
-            title = "Run Over!",
-            subtitle = "You survived ${state.roundsPlayed} rounds",
+            title = stringResource(R.string.survivor_result_title),
+            subtitle = stringResource(R.string.survivor_result_subtitle, state.roundsPlayed),
             score = state.score.toString(),
-            scoreLabel = "points",
+            scoreLabel = stringResource(R.string.game_score_label_points),
             heroColor = AmberAccent,
             stars = stars,
             isNewBest = state.isNewBest,
@@ -601,8 +766,8 @@ private fun FinishedContent(
             heroContent = { ResultHeroIcon(icon = Icons.Default.Bolt, heroColor = AmberAccent) },
             statsContent = {
                 ResultStatChips(
-                    "Best Streak" to "${state.bestStreak}",
-                    "Rounds" to "${state.roundsPlayed}",
+                    stringResource(R.string.game_stat_best_streak) to "${state.bestStreak}",
+                    stringResource(R.string.game_stat_rounds) to "${state.roundsPlayed}",
                 )
             }
         )
@@ -618,7 +783,7 @@ private fun TypeChip(type: String) {
             .background(color.copy(alpha = 0.25f))
             .padding(horizontal = 12.dp, vertical = 4.dp)
     ) {
-        Text(type.replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelMedium, color = color, fontWeight = FontWeight.Bold)
+        Text(localizedTypeName(type), style = MaterialTheme.typography.labelMedium, color = color, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -634,7 +799,7 @@ private fun AnswerChip(type: String, onClick: () -> Unit) {
             .padding(horizontal = 18.dp, vertical = 12.dp)
     ) {
         Text(
-            type.replaceFirstChar { it.uppercase() },
+            localizedTypeName(type),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
             color = color

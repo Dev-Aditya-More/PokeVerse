@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.inbox.presentation.screens
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -63,14 +65,14 @@ fun InboxSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "📬 Inbox",
+                    stringResource(R.string.inbox_title),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.weight(1f))
                 if (messages.any { !it.isRead }) {
                     TextButton(onClick = { viewModel.markAllAsRead() }) {
-                        Text("Mark all read", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(R.string.inbox_mark_all_read), style = MaterialTheme.typography.labelMedium)
                     }
                 }
             }
@@ -102,7 +104,7 @@ fun InboxSheet(
                         ) {
                             Text("📭", fontSize = 48.sp)
                             Text(
-                                "No messages yet",
+                                stringResource(R.string.inbox_empty),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
@@ -193,14 +195,15 @@ private fun InboxMessageCard(
     }
 }
 
+@Composable
 private fun formatTimestamp(timestamp: Long): String {
     if (timestamp == 0L) return ""
     val diff = System.currentTimeMillis() - timestamp
     return when {
-        diff < 60_000L -> "Just now"
-        diff < 3_600_000L -> "${diff / 60_000}m ago"
-        diff < 86_400_000L -> "${diff / 3_600_000}h ago"
-        diff < 7 * 86_400_000L -> "${diff / 86_400_000}d ago"
+        diff < 60_000L -> stringResource(R.string.time_just_now)
+        diff < 3_600_000L -> stringResource(R.string.time_minutes_ago, (diff / 60_000).toInt())
+        diff < 86_400_000L -> stringResource(R.string.time_hours_ago, (diff / 3_600_000).toInt())
+        diff < 7 * 86_400_000L -> stringResource(R.string.time_days_ago, (diff / 86_400_000).toInt())
         else -> SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(timestamp))
     }
 }

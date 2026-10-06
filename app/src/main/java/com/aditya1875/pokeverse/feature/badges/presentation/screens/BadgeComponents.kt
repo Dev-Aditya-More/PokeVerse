@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.badges.presentation.screens
 
+import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -159,7 +160,7 @@ fun BadgeDetailSheet(badge: GymBadge, onDismiss: () -> Unit) {
                     border = BorderStroke(1.dp, accent.copy(alpha = 0.35f))
                 ) {
                     Text(
-                        badge.type.replaceFirstChar { it.uppercase() },
+                        localizedTypeName(badge.type),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,

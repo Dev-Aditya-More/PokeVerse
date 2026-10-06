@@ -72,6 +72,9 @@ import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.BackdropPulse
 
 @Composable
 fun GameScreen(
@@ -112,268 +115,278 @@ fun GameScreen(
         viewModel.startGame(difficulty)
     }
 
+    val matchedCount = ((gameState as? GameState.Playing) ?: (gameState as? GameState.Paused)?.playing)
+        ?.matchedPairs?.size ?: 0
+
     XPOverlay(
         result = pendingXp,
         onDismiss = { pendingXp = null }
     ) {
-        Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .navigationBarsPadding()
-        ) { innerPadding ->
-
-            Box(
+        GameBackdrop(
+            scene = GameScene.TrainerTable,
+            paused = gameState is GameState.Paused,
+            pulseKey = matchedCount.takeIf { it > 0 },
+            pulseColor = BackdropPulse.Gold
+        ) {
+            Scaffold(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                if (!isOnline && gameState is GameState.Loading) {
-                    NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
-                } else when (val state = gameState) {
-                    is GameState.Loading -> GameLoadingContent(
-                        text = stringResource(R.string.match_preparing)
-                    )
+                    .navigationBarsPadding(),
+                containerColor = Color.Transparent
+            ) { innerPadding ->
 
-                    is GameState.Playing, is GameState.Paused -> {
-                        val playing =
-                            state as? GameState.Playing ?: (state as GameState.Paused).playing
-                        val isPaused = state is GameState.Paused
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    if (!isOnline && gameState is GameState.Loading) {
+                        NoInternetScreen(onRetry = { viewModel.startGame(difficulty) })
+                    } else when (val state = gameState) {
+                        is GameState.Loading -> GameLoadingContent(
+                            text = stringResource(R.string.match_preparing)
+                        )
 
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp)
-                        ) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                // Score
-                                Column {
-                                    Text(
-                                        stringResource(R.string.match_stat_score),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                                    )
-                                    Text(
-                                        playing.score.toString(),
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
+                        is GameState.Playing, is GameState.Paused -> {
+                            val playing =
+                                state as? GameState.Playing ?: (state as GameState.Paused).playing
+                            val isPaused = state is GameState.Paused
 
-                                // Timer
-                                GameTimer(
-                                    timeRemaining = playing.timeRemaining,
-                                    totalTime = playing.difficulty.timeSeconds,
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .padding(horizontal = 16.dp)
-                                )
-
-                                Column(horizontalAlignment = Alignment.End) {
-                                    Text(
-                                        stringResource(R.string.match_stat_moves),
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                                    )
-                                    Text(
-                                        playing.moves.toString(),
-                                        style = MaterialTheme.typography.headlineSmall,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-
-                                IconButton(
-                                    enabled = !playing.isPreviewing,
-                                    onClick = {
-                                        if (isPaused) viewModel.resumeGame()
-                                        else viewModel.pauseGame()
-                                    }
-                                ) {
-                                    Icon(
-                                        imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-
-                            // Progress text — swapped for a memorize prompt during the preview window
-                            Text(
-                                text = if (playing.isPreviewing)
-                                    stringResource(R.string.match_memorize_prompt, playing.previewSecondsRemaining)
-                                else
-                                    "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = if (playing.isPreviewing)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                                fontWeight = if (playing.isPreviewing) FontWeight.Bold else FontWeight.Normal,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Card(
-                                    modifier = Modifier.fillMaxSize(),
-                                    shape = RoundedCornerShape(20.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surface.copy(
-                                            alpha = 0.35f
-                                        )
-                                    )
-                                ) {
-                                    LazyVerticalGrid(
-                                        columns = GridCells.Fixed(playing.difficulty.gridColumns),
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(12.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                                        userScrollEnabled = true
-                                    ) {
-                                        itemsIndexed(playing.cards) { index, card ->
-
-                                            val context = LocalContext.current
-                                            val imageLoader : ImageLoader = koinInject()
-
-                                            PokemonCard(
-                                                card = card,
-                                                onClick = {
-                                                    if (!isPaused && !playing.isPreviewing) {
-                                                        soundManager.play(SoundManager.Sound.CARD_FLIP)
-                                                        haptic.performHapticFeedback(
-                                                            HapticFeedbackType.LongPress
-                                                        )
-
-                                                        viewModel.onCardFlipped(index)
-                                                    }
-                                                },
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .aspectRatio(0.75f) // use 1f for square cards
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if (isPaused) {
-                            Box(
+                            Column(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.Black.copy(alpha = 0.6f)),
-                                contentAlignment = Alignment.Center
+                                    .padding(16.dp)
                             ) {
-                                Card(
-                                    shape = RoundedCornerShape(24.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.surface
-                                    )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Column(
-                                        modifier = Modifier.padding(32.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                                    ) {
+                                    // Score
+                                    Column {
                                         Text(
-                                            stringResource(R.string.match_paused),
-                                            style = MaterialTheme.typography.headlineMedium,
+                                            stringResource(R.string.match_stat_score),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                        )
+                                        Text(
+                                            playing.score.toString(),
+                                            style = MaterialTheme.typography.headlineSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                    }
+
+                                    // Timer
+                                    GameTimer(
+                                        timeRemaining = playing.timeRemaining,
+                                        totalTime = playing.difficulty.timeSeconds,
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(horizontal = 16.dp)
+                                    )
+
+                                    Column(horizontalAlignment = Alignment.End) {
+                                        Text(
+                                            stringResource(R.string.match_stat_moves),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                        )
+                                        Text(
+                                            playing.moves.toString(),
+                                            style = MaterialTheme.typography.headlineSmall,
                                             fontWeight = FontWeight.Bold
                                         )
-                                        Button(
-                                            onClick = { viewModel.resumeGame() },
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Icon(Icons.Default.PlayArrow, null)
-                                            Spacer(Modifier.width(8.dp))
-                                            Text(stringResource(R.string.match_resume))
+                                    }
+
+                                    IconButton(
+                                        enabled = !playing.isPreviewing,
+                                        onClick = {
+                                            if (isPaused) viewModel.resumeGame()
+                                            else viewModel.pauseGame()
                                         }
-                                        OutlinedButton(
-                                            onClick = { viewModel.restartGame() },
-                                            modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Icon(
+                                            imageVector = if (isPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+
+                                // Progress text — swapped for a memorize prompt during the preview window
+                                Text(
+                                    text = if (playing.isPreviewing)
+                                        stringResource(R.string.match_memorize_prompt, playing.previewSecondsRemaining)
+                                    else
+                                        "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = if (playing.isPreviewing)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                                    fontWeight = if (playing.isPreviewing) FontWeight.Bold else FontWeight.Normal,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Card(
+                                        modifier = Modifier.fillMaxSize(),
+                                        shape = RoundedCornerShape(20.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surface.copy(
+                                                alpha = 0.35f
+                                            )
+                                        )
+                                    ) {
+                                        LazyVerticalGrid(
+                                            columns = GridCells.Fixed(playing.difficulty.gridColumns),
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(12.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                                            userScrollEnabled = true
                                         ) {
-                                            Icon(Icons.Default.Refresh, null)
-                                            Spacer(Modifier.width(8.dp))
-                                            Text(stringResource(R.string.match_restart))
+                                            itemsIndexed(playing.cards) { index, card ->
+
+                                                val context = LocalContext.current
+                                                val imageLoader : ImageLoader = koinInject()
+
+                                                PokemonCard(
+                                                    card = card,
+                                                    onClick = {
+                                                        if (!isPaused && !playing.isPreviewing) {
+                                                            soundManager.play(SoundManager.Sound.CARD_FLIP)
+                                                            haptic.performHapticFeedback(
+                                                                HapticFeedbackType.LongPress
+                                                            )
+
+                                                            viewModel.onCardFlipped(index)
+                                                        }
+                                                    },
+                                                    modifier = Modifier
+                                                        .fillMaxWidth()
+                                                        .aspectRatio(0.75f) // use 1f for square cards
+                                                )
+                                            }
                                         }
-                                        TextButton(
-                                            onClick = { showExitDialog = true },
-                                            modifier = Modifier.fillMaxWidth()
+                                    }
+                                }
+                            }
+
+                            if (isPaused) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = 0.6f)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Card(
+                                        shape = RoundedCornerShape(24.dp),
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = MaterialTheme.colorScheme.surface
+                                        )
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(32.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.spacedBy(16.dp)
                                         ) {
                                             Text(
-                                                stringResource(R.string.match_exit_game),
-                                                color = MaterialTheme.colorScheme.error
+                                                stringResource(R.string.match_paused),
+                                                style = MaterialTheme.typography.headlineMedium,
+                                                fontWeight = FontWeight.Bold
                                             )
+                                            Button(
+                                                onClick = { viewModel.resumeGame() },
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Icon(Icons.Default.PlayArrow, null)
+                                                Spacer(Modifier.width(8.dp))
+                                                Text(stringResource(R.string.match_resume))
+                                            }
+                                            OutlinedButton(
+                                                onClick = { viewModel.restartGame() },
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Icon(Icons.Default.Refresh, null)
+                                                Spacer(Modifier.width(8.dp))
+                                                Text(stringResource(R.string.match_restart))
+                                            }
+                                            TextButton(
+                                                onClick = { showExitDialog = true },
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                Text(
+                                                    stringResource(R.string.match_exit_game),
+                                                    color = MaterialTheme.colorScheme.error
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
+
+                        is GameState.Victory -> VictoryScreen(
+                            victory = state,
+                            onPlayAgain = {
+                                if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                                    requestRewardedAd(context, activity, adManager, adState) {
+                                        viewModel.startGame(state.difficulty)
+                                    }
+                                } else viewModel.startGame(state.difficulty)
+                            },
+                            onChangeDifficulty = onBack,
+                            onHome = { showExitDialog = true }
+                        )
+
+                        is GameState.TimeUp -> TimeUpScreen(
+                            timeUp = state,
+                            onPlayAgain = {
+                                if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                                    requestRewardedAd(context, activity, adManager, adState) {
+                                        viewModel.startGame(state.difficulty)
+                                    }
+                                } else viewModel.startGame(state.difficulty)
+                            },
+                            onBack = { showExitDialog = true }
+                        )
+
+                        else -> Unit
                     }
-
-                    is GameState.Victory -> VictoryScreen(
-                        victory = state,
-                        onPlayAgain = {
-                            if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
-                                requestRewardedAd(context, activity, adManager, adState) {
-                                    viewModel.startGame(state.difficulty)
-                                }
-                            } else viewModel.startGame(state.difficulty)
-                        },
-                        onChangeDifficulty = onBack,
-                        onHome = { showExitDialog = true }
-                    )
-
-                    is GameState.TimeUp -> TimeUpScreen(
-                        timeUp = state,
-                        onPlayAgain = {
-                            if (state.difficulty == Difficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
-                                requestRewardedAd(context, activity, adManager, adState) {
-                                    viewModel.startGame(state.difficulty)
-                                }
-                            } else viewModel.startGame(state.difficulty)
-                        },
-                        onBack = { showExitDialog = true }
-                    )
-
-                    else -> Unit
                 }
-            }
 
-            if (showExitDialog) {
-                AlertDialog(
-                    onDismissRequest = { showExitDialog = false },
-                    title = { Text(stringResource(R.string.dialog_exit_game_title)) },
-                    text = { Text(stringResource(R.string.dialog_exit_game_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                showExitDialog = false
-                                viewModel.returnToMenu()
-                                onBack()
+                if (showExitDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showExitDialog = false },
+                        title = { Text(stringResource(R.string.dialog_exit_game_title)) },
+                        text = { Text(stringResource(R.string.dialog_exit_game_message)) },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showExitDialog = false
+                                    viewModel.returnToMenu()
+                                    onBack()
+                                }
+                            ) {
+                                Text(stringResource(R.string.quiz_exit_confirm), color = MaterialTheme.colorScheme.error)
                             }
-                        ) {
-                            Text(stringResource(R.string.quiz_exit_confirm), color = MaterialTheme.colorScheme.error)
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showExitDialog = false }) {
+                                Text(stringResource(R.string.cancel))
+                            }
                         }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { showExitDialog = false }) {
-                            Text(stringResource(R.string.cancel))
-                        }
-                    }
-                )
+                    )
+                }
             }
         }
     }

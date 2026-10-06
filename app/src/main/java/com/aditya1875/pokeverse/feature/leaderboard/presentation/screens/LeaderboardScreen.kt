@@ -400,7 +400,7 @@ private fun LeaderboardTitleRow(
             IconButton(onClick = onBellClick) {
                 Icon(
                     Icons.Default.Notifications,
-                    contentDescription = "Inbox",
+                    contentDescription = stringResource(R.string.a11y_inbox),
                     tint = if (unreadCount > 0)
                         MaterialTheme.colorScheme.primary
                     else
@@ -571,12 +571,12 @@ private fun PodiumColumn(
             modifier = Modifier.widthIn(max = 80.dp)
         )
         Text(
-            text = "$xpToShow XP",
+            text = stringResource(R.string.xp_count, xpToShow),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            "Lv. $level",
+            stringResource(R.string.level_short, level),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
@@ -689,7 +689,7 @@ private fun LeaderboardRow(
                 horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 Text(
-                    "Lv. ${entry.level}",
+                    stringResource(R.string.level_short, entry.level),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -698,7 +698,7 @@ private fun LeaderboardRow(
         }
 
         Text(
-            "$xpToShow XP",
+            stringResource(R.string.xp_count, xpToShow),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold,
             color = MaterialTheme.colorScheme.primary
@@ -739,7 +739,7 @@ private fun UserRankBanner(type: LeaderboardType, entry: LeaderboardEntry) {
                 color = MaterialTheme.colorScheme.primary
             )
             Spacer(Modifier.width(16.dp))
-            Text("$xpToShow XP", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.xp_count, xpToShow), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
         }
     }
 }
@@ -874,12 +874,12 @@ private fun LeaderboardSkeleton() {
 // ─────────────────────────────────────────────────────────────────────────────
 // League badge
 // ─────────────────────────────────────────────────────────────────────────────
-private data class League(val label: String, val color: Color, val emoji: String)
+private data class League(@androidx.annotation.StringRes val label: Int, val color: Color, val emoji: String)
 
 private fun leagueFor(rank: Int): League? = when {
-    rank in 1..10 -> League("Gold", Color(0xFFFFD700), "🥇")
-    rank in 11..30 -> League("Silver", Color(0xFFC0C0C0), "🥈")
-    rank in 31..100 -> League("Bronze", Color(0xFFCD7F32), "🥉")
+    rank in 1..10 -> League(R.string.league_gold, Color(0xFFFFD700), "🥇")
+    rank in 11..30 -> League(R.string.league_silver, Color(0xFFC0C0C0), "🥈")
+    rank in 31..100 -> League(R.string.league_bronze, Color(0xFFCD7F32), "🥉")
     else -> null
 }
 
@@ -897,7 +897,7 @@ private fun LeagueBadge(rank: Int) {
         ) {
             Text(league.emoji, fontSize = 9.sp)
             Text(
-                text = "${league.label} League",
+                text = stringResource(league.label),
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = league.color,
@@ -1032,14 +1032,14 @@ private fun LastWeekHeroHeader(weekOf: Long) {
             Spacer(Modifier.width(14.dp))
             Column {
                 Text(
-                    "Last Week's Champions",
+                    stringResource(R.string.leaderboard_last_week_champions),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Black,
                     color = Color(0xFFB8860B)
                 )
                 if (dateStr != null) {
                     Text(
-                        "Week of $dateStr",
+                        stringResource(R.string.leaderboard_last_week_week_of, dateStr),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -1192,12 +1192,12 @@ private fun LastWeekPodiumColumn(
             modifier = Modifier.widthIn(max = 80.dp)
         )
         Text(
-            "${entry.weeklyXp} XP",
+            stringResource(R.string.xp_count, entry.weeklyXp),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
-            "Lv. ${entry.level}",
+            stringResource(R.string.level_short, entry.level),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

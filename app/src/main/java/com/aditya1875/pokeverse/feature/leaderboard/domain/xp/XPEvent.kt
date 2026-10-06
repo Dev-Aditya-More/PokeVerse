@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.leaderboard.domain.xp
 
+import androidx.annotation.StringRes
+
 sealed class XPEvent {
     object DailyLogin : XPEvent()
 
@@ -115,5 +117,29 @@ data class XPResult(
     val newCurrentXp: Int,
     val newNextLevelXp: Int,
     val leveledUp: Boolean,
-    val label: String
+    /** What the popup says; null for a no-op award. Turned into text by the UI, in the user's language. */
+    val label: XPLabel? = null
 )
+
+/**
+ * A language-neutral XP popup message: "<title> +<amount> XP<flair>" plus optional notes.
+ * Built as resource ids + numbers so the domain needs no Context, and the text always
+ * follows the language the user picked (even right after an in-app language switch).
+ */
+data class XPLabel(
+    @StringRes val title: Int,
+    val titleArg: Int? = null,
+    val amount: Int,
+    /** Emoji/number decoration that reads the same in every language, e.g. " 🔥 x5". */
+    val flair: String = "",
+    val notes: List<XPNote> = emptyList()
+)
+
+sealed interface XPNote {
+    data class StreakBonus(val xp: Int) : XPNote
+    data class RestedBanked(val xp: Int) : XPNote
+    data object RestedDouble : XPNote
+    data class DailyRate(val percent: Int) : XPNote
+    data object Perfect : XPNote
+    data object UnderPar : XPNote
+}

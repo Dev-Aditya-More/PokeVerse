@@ -86,6 +86,9 @@ import com.aditya1875.pokeverse.utils.ConnectivityObserver
 import com.aditya1875.pokeverse.utils.SoundManager
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameBackdrop
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.GameScene
+import com.aditya1875.pokeverse.feature.game.core.presentation.backdrop.BackdropPulse
 
 private val OPTION_LABELS = listOf("A", "B", "C", "D")
 
@@ -130,62 +133,68 @@ fun QuizGameScreen(
     DisposableEffect(Unit) { onDispose { viewModel.resetQuiz() } }
 
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
-        Scaffold(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .navigationBarsPadding()
-        ) { paddingValues ->
-            when (val state = uiState) {
-                is QuizUiState.Idle -> {}
-                is QuizUiState.Loading -> GameLoadingContent(
-                    text = stringResource(R.string.quiz_loading)
-                )
-                is QuizUiState.Playing -> QuizPlayingContent(
-                    gameState = state.gameState,
-                    difficulty = difficulty,
-                    onAnswerSelected = { viewModel.selectAnswer(it) },
-                    onRequestExit = { showExitDialog = true },
-                    onSkip = {
-                        requestRewardedAd(
-                            context, activity, adManager, adState,
-                            onAdWillShow = { viewModel.pauseTimer() }
-                        ) { skipPending = true }
-                    },
-                    showSkip = subscriptionState !is SubscriptionState.Premium,
-                    modifier = Modifier.padding(paddingValues)
-                )
-                is QuizUiState.ShowingAnswer -> {
-                    LaunchedEffect(state.isCorrect) {
-                        soundManager.play(
-                            if (state.isCorrect) SoundManager.Sound.CORRECT_ANSWER
-                            else SoundManager.Sound.WRONG_ANSWER
+        GameBackdrop(
+            scene = GameScene.Lab,
+            pulseKey = uiState as? QuizUiState.ShowingAnswer,
+            pulseColor = if ((uiState as? QuizUiState.ShowingAnswer)?.isCorrect == true) BackdropPulse.Correct else BackdropPulse.Wrong
+        ) {
+            Scaffold(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .navigationBarsPadding(),
+                containerColor = Color.Transparent
+            ) { paddingValues ->
+                when (val state = uiState) {
+                    is QuizUiState.Idle -> {}
+                    is QuizUiState.Loading -> GameLoadingContent(
+                        text = stringResource(R.string.quiz_loading)
+                    )
+                    is QuizUiState.Playing -> QuizPlayingContent(
+                        gameState = state.gameState,
+                        difficulty = difficulty,
+                        onAnswerSelected = { viewModel.selectAnswer(it) },
+                        onRequestExit = { showExitDialog = true },
+                        onSkip = {
+                            requestRewardedAd(
+                                context, activity, adManager, adState,
+                                onAdWillShow = { viewModel.pauseTimer() }
+                            ) { skipPending = true }
+                        },
+                        showSkip = subscriptionState !is SubscriptionState.Premium,
+                        modifier = Modifier.padding(paddingValues)
+                    )
+                    is QuizUiState.ShowingAnswer -> {
+                        LaunchedEffect(state.isCorrect) {
+                            soundManager.play(
+                                if (state.isCorrect) SoundManager.Sound.CORRECT_ANSWER
+                                else SoundManager.Sound.WRONG_ANSWER
+                            )
+                        }
+                        QuizAnswerFeedbackContent(
+                            gameState = state.gameState,
+                            selectedAnswerIndex = state.selectedAnswerIndex,
+                            isCorrect = state.isCorrect,
+                            explanation = state.explanation,
+                            onNext = { viewModel.nextQuestion() }
                         )
                     }
-                    QuizAnswerFeedbackContent(
-                        gameState = state.gameState,
-                        selectedAnswerIndex = state.selectedAnswerIndex,
-                        isCorrect = state.isCorrect,
-                        explanation = state.explanation,
-                        onNext = { viewModel.nextQuestion() }
+                    is QuizUiState.Finished -> QuizResultScreen(
+                        score = state.score,
+                        correctAnswers = state.correctAnswers,
+                        totalQuestions = state.totalQuestions,
+                        difficulty = state.difficulty,
+                        stars = state.stars,
+                        isNewBest = state.isNewBest,
+                        onPlayAgain = {
+                            if (difficulty == QuizDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
+                                requestRewardedAd(context, activity, adManager, adState) {
+                                    viewModel.startQuiz(difficulty)
+                                }
+                            } else viewModel.startQuiz(difficulty)
+                        },
+                        onBackToMenu = { viewModel.onBackToMenu(); onBack() }
                     )
                 }
-                is QuizUiState.Finished -> QuizResultScreen(
-                    score = state.score,
-                    correctAnswers = state.correctAnswers,
-                    totalQuestions = state.totalQuestions,
-                    difficulty = state.difficulty,
-                    stars = state.stars,
-                    isNewBest = state.isNewBest,
-                    onPlayAgain = {
-                        if (difficulty == QuizDifficulty.HARD && subscriptionState !is SubscriptionState.Premium) {
-                            requestRewardedAd(context, activity, adManager, adState) {
-                                viewModel.startQuiz(difficulty)
-                            }
-                        } else viewModel.startQuiz(difficulty)
-                    },
-                    onBackToMenu = { viewModel.onBackToMenu(); onBack() }
-                )
             }
         }
     }
@@ -411,7 +420,7 @@ private fun QuizAnswerFeedbackContent(
         entrance.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMediumLow))
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Box(modifier = Modifier.fillMaxSize()) {
         // Colour sweep
         Box(
             modifier = Modifier.fillMaxWidth().fillMaxHeight(0.42f)

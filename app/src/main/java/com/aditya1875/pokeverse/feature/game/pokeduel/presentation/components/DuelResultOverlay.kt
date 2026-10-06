@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.game.pokeduel.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -46,7 +48,7 @@ fun DuelResultOverlay(state: DuelGameState.Dueling) {
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = if (isCorrect) "✅ Correct!" else "❌ Wrong!",
+                        text = stringResource(if (isCorrect) R.string.duel_correct else R.string.duel_wrong),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Black,
                         color = Color.White
@@ -59,7 +61,7 @@ fun DuelResultOverlay(state: DuelGameState.Dueling) {
                     )
                     if (isCorrect && state.streak >= 2) {
                         Text(
-                            text = "🔥 ${state.streak}x Streak!",
+                            text = stringResource(R.string.duel_streak, state.streak),
                             style = MaterialTheme.typography.labelLarge,
                             color = Color(0xFFFFD700),
                             fontWeight = FontWeight.Bold

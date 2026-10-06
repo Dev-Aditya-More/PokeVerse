@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import com.aditya1875.pokeverse.R
+import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -71,7 +73,7 @@ fun RecommendationsCard(recommendations: List<String>) {
                 }
                 Spacer(Modifier.width(12.dp))
                 Text(
-                    text = "Recommendations",
+                    text = stringResource(R.string.analysis_recommendations),
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     fontWeight = FontWeight.Bold

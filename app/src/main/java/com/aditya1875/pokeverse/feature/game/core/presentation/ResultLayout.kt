@@ -69,6 +69,9 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
+import kotlin.time.Duration.Companion.milliseconds
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.IntOffset
 
 private data class Particle(
     val x: Float, val y: Float,
@@ -141,62 +144,56 @@ fun GameResultLayout(
     score: String,
     scoreLabel: String,
     heroColor: Color,
+    onPlayAgain: () -> Unit,
+    onBack: () -> Unit, modifier: Modifier = Modifier,
     stars: Int = -1,
     isNewBest: Boolean = false,
-    onPlayAgain: () -> Unit,
-    onBack: () -> Unit,
     heroContent: @Composable () -> Unit = {},
-    statsContent: @Composable ColumnScope.() -> Unit,
+    statsContent: @Composable ColumnScope.() -> Unit
 ) {
     val entrance = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         entrance.animateTo(1f, tween(1200, easing = FastOutSlowInEasing))
     }
 
-    // ── Particle system ───────────────────────────────────────────────────────
     val particles = remember(heroColor) { generateParticles(heroColor) }
     val particleProgress = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        delay(300)
+        delay(300.milliseconds)
         particleProgress.animateTo(1f, tween(2200, easing = LinearEasing))
     }
 
-    // ── Star pop animation ────────────────────────────────────────────────────
     val starScales = remember { List(3) { Animatable(0f) } }
     LaunchedEffect(stars) {
         if (stars >= 0) {
-            // Empty (unfilled) stars snap in immediately — no celebratory bounce
             starScales.drop(stars.coerceAtLeast(0)).forEach { it.snapTo(1f) }
             if (stars > 0) {
-                delay(600)
-                // Only the filled stars get the bouncy pop, one by one
+                delay(600.milliseconds)
                 starScales.take(stars).forEachIndexed { i, anim ->
-                    delay(150L * i)
+                    delay((150L * i).milliseconds)
                     anim.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium))
                 }
             }
         }
     }
 
-    // ── Score count-up ────────────────────────────────────────────────────────
     val targetScore = score.toIntOrNull() ?: 0
     val animatedScore = remember { Animatable(0f) }
     LaunchedEffect(targetScore) {
-        delay(500)
+        delay(500.milliseconds)
         animatedScore.animateTo(targetScore.toFloat(), tween(900, easing = LinearEasing))
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // ── Background gradient ───────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
                         0f to heroColor.copy(alpha = 0.18f),
-                        0.45f to MaterialTheme.colorScheme.background,
-                        1f to MaterialTheme.colorScheme.background,
+                        0.45f to MaterialTheme.colorScheme.background.copy(alpha = 0.55f),
+                        1f to MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
                     )
                 )
         )
@@ -248,13 +245,13 @@ fun GameResultLayout(
 
             Box(
                 modifier = Modifier
-                    .scale(
+                    .graphicsLayer {
+                        scaleX = lerp(0.6f, 1f, entrance.value.coerceIn(0f, 1f)); scaleY =
                         lerp(0.6f, 1f, entrance.value.coerceIn(0f, 1f))
-                    )
-                    .alpha(entrance.value.coerceIn(0f, 1f)),
+                    }
+                    .graphicsLayer { alpha = entrance.value.coerceIn(0f, 1f) },
                 contentAlignment = Alignment.Center
             ) {
-                // Glowing halo ring
                 Box(
                     modifier = Modifier
                         .size(120.dp)
@@ -270,7 +267,6 @@ fun GameResultLayout(
 
             Spacer(Modifier.height(20.dp))
 
-            // ── Stars row ─────────────────────────────────────────────────────
             if (stars >= 0) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -285,22 +281,29 @@ fun GameResultLayout(
                             else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                             modifier = Modifier
                                 .size(36.dp)
-                                .scale(starScales[i].value)
+                                .graphicsLayer {
+                                    scaleX = starScales[i].value; scaleY = starScales[i].value
+                                }
                         )
                     }
                 }
                 Spacer(Modifier.height(16.dp))
             }
 
-            // ── Title ─────────────────────────────────────────────────────────
             Text(
                 text = title,
                 style = MaterialTheme.typography.displaySmall,
                 fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
-                    .alpha(((entrance.value - 0.2f) * 2f).coerceIn(0f, 1f))
-                    .offset(y = lerp(12f, 0f, entrance.value).dp)
+                    .graphicsLayer { alpha = ((entrance.value - 0.2f) * 2f).coerceIn(0f, 1f) }
+                    .offset {
+                        IntOffset(
+                            (lerp(12f, 0f, entrance.value).dp).roundToPx(),
+                            (lerp(12f, 0f, entrance.value).dp).roundToPx()
+                        )
+                    },
+                color = MaterialTheme.colorScheme.surface
             )
 
             if (subtitle.isNotEmpty()) {
@@ -310,13 +313,14 @@ fun GameResultLayout(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.alpha(((entrance.value - 0.3f) * 2f).coerceIn(0f, 1f))
+                    modifier = Modifier.graphicsLayer {
+                        alpha = ((entrance.value - 0.3f) * 2f).coerceIn(0f, 1f)
+                    }
                 )
             }
 
             Spacer(Modifier.height(28.dp))
 
-            // ── Score — large, count-up animated ──────────────────────────────
             val displayScore = if (score.toIntOrNull() != null)
                 animatedScore.value.toInt().toString()
             else score
@@ -324,7 +328,7 @@ fun GameResultLayout(
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .alpha(((entrance.value - 0.35f) * 2.5f).coerceIn(0f, 1f))
+                    .graphicsLayer { alpha = ((entrance.value - 0.35f) * 2.5f).coerceIn(0f, 1f) }
             ) {
                 Text(
                     text = displayScore,
@@ -343,12 +347,24 @@ fun GameResultLayout(
 
             Spacer(Modifier.height(28.dp))
 
-            // ── Stats block ───────────────────────────────────────────────────
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .alpha(((entrance.value - 0.5f) * 3f).coerceIn(0f, 1f))
-                    .offset(y = lerp(20f, 0f, ((entrance.value - 0.5f) * 3f).coerceIn(0f, 1f)).dp),
+                    .graphicsLayer { alpha = ((entrance.value - 0.5f) * 3f).coerceIn(0f, 1f) }
+                    .offset {
+                        IntOffset(
+                            (lerp(
+                                20f,
+                                0f,
+                                ((entrance.value - 0.5f) * 3f).coerceIn(0f, 1f)
+                            ).dp).roundToPx(),
+                            (lerp(
+                                20f,
+                                0f,
+                                ((entrance.value - 0.5f) * 3f).coerceIn(0f, 1f)
+                            ).dp).roundToPx()
+                        )
+                    },
                 shape = RoundedCornerShape(24.dp),
                 color = MaterialTheme.colorScheme.surface,
                 tonalElevation = 2.dp,
@@ -409,11 +425,10 @@ fun GameResultLayout(
     }
 }
 
-// ─── Shared stat row inside stats block ──────────────────────────────────────
 @Composable
 fun ResultStatRow(
     label: String,
-    value: String,
+    value: String, modifier: Modifier = Modifier,
     valueColor: Color = Color.Unspecified,
     icon: ImageVector? = null,
     isLast: Boolean = false,
@@ -460,9 +475,8 @@ fun ResultStatRow(
     }
 }
 
-// ─── Inline stat chips row (3 across) ────────────────────────────────────────
 @Composable
-fun ResultStatChips(vararg chips: Pair<String, String>) {
+fun ResultStatChips(vararg chips: Pair<String, String>, modifier: Modifier = Modifier) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
