@@ -91,6 +91,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.draw.clip
@@ -163,6 +164,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.dexmode.data.DexModeStore
+import com.aditya1875.pokeverse.feature.dexmode.presentation.DexModeNudgeDot
+import androidx.compose.material.icons.filled.PhoneAndroid
+import com.aditya1875.pokeverse.feature.referral.presentation.ReferralViewModel
+import com.aditya1875.pokeverse.feature.referral.presentation.InviteFriendsSheet
+import com.aditya1875.pokeverse.feature.feedback.presentation.FeedbackViewModel
+import com.aditya1875.pokeverse.feature.feedback.presentation.FeedbackSheet
 
 @Suppress("EffectKeys")
 @OptIn(
@@ -180,6 +188,8 @@ fun SharedTransitionScope.HomeScreen(
     billingViewModel: BillingViewModel = koinViewModel(),
     profileViewModel: ProfileViewModel = koinViewModel(),
     triviaViewModel: DailyTriviaViewModel = koinViewModel(),
+    referralViewModel: ReferralViewModel = koinViewModel(),
+    feedbackViewModel: FeedbackViewModel = koinViewModel(),
     itemViewModel: ItemViewModel = koinViewModel(),
     berryViewModel: BerryViewModel = koinViewModel(),
     badgesViewModel: BadgesViewModel = koinViewModel(),
@@ -337,6 +347,34 @@ fun SharedTransitionScope.HomeScreen(
         profileViewModel.xpEvent.collect { pendingXp = it }
     }
 
+    // Referrals: remember a friend's code from the install link, and pay out
+    // XP for friends who joined with ours since the last check.
+    LaunchedEffect(Unit) { referralViewModel.captureInstallReferrer() }
+    LaunchedEffect(profile.isGuest) { if (!profile.isGuest) referralViewModel.claimRewards() }
+    LaunchedEffect(Unit) { referralViewModel.xp.collect { pendingXp = it } }
+    LaunchedEffect(Unit) { feedbackViewModel.xp.collect { pendingXp = it } }
+
+    var showInviteSheet by rememberSaveable { mutableStateOf(false) }
+    var invitePrefillCode by rememberSaveable { mutableStateOf<String?>(null) }
+    var showFeedbackSheet by rememberSaveable { mutableStateOf(false) }
+
+    if (showInviteSheet) {
+        InviteFriendsSheet(
+            viewModel = referralViewModel,
+            prefillCode = invitePrefillCode,
+            onDismiss = {
+                showInviteSheet = false
+                invitePrefillCode = null
+            }
+        )
+    }
+    if (showFeedbackSheet) {
+        FeedbackSheet(viewModel = feedbackViewModel, onDismiss = { showFeedbackSheet = false })
+    }
+
+    val dexModeStore: DexModeStore = koinInject()
+    val dexModeDiscovered by dexModeStore.discovered.collectAsStateWithLifecycle()
+
     HomePopupOrchestrator(
         originalAssetsEnabled = originalAssetsEnabled,
         totalSessionMinutes = totalSessionMinutes,
@@ -350,6 +388,12 @@ fun SharedTransitionScope.HomeScreen(
         onGoPremium = {
             showPremiumSheet = true
         },
+        onOpenDexMode = { navController.navigate(Route.DexMode.route) },
+        onOpenInvite = { prefill ->
+            invitePrefillCode = prefill
+            showInviteSheet = true
+        },
+        onOpenFeedback = { showFeedbackSheet = true },
     )
 
     if (showPremiumSheet) {
@@ -400,6 +444,10 @@ fun SharedTransitionScope.HomeScreen(
                                     ),
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
+
+                                if (!dexModeDiscovered) {
+                                    DexModeNudgeDot(Modifier.padding(start = 6.dp))
+                                }
 
                                 Icon(
                                     imageVector = Icons.Default.ArrowDropDown,
@@ -492,6 +540,18 @@ fun SharedTransitionScope.HomeScreen(
                                     fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                                )
+
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.dex_menu_title), fontWeight = FontWeight.Bold) },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.PhoneAndroid, contentDescription = null, tint = Color(0xFFE53935))
+                                    },
+                                    trailingIcon = { NewBadge() },
+                                    onClick = {
+                                        navController.navigate(Route.DexMode.route)
+                                        showMenu = false
+                                    }
                                 )
 
                                 DropdownMenuItem(

@@ -199,6 +199,7 @@ dependencies {
     // On-device face detection for the "which Pokémon do you look like" feature — bundles its
     // own model (no Play Services download step), works in both flavors.
     implementation(libs.mlkit.face.detection)
+    implementation(libs.installreferrer)
 
     // Koin Core
     implementation(libs.koin.core)

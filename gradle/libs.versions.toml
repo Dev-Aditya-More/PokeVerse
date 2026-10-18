@@ -1,4 +1,5 @@
 [versions]
+installReferrer = "2.2"
 accompanistNavigationAnimationVersion = "0.36.0"
 agp = "8.11.1"
 billingKtx = "8.3.0"
@@ -55,6 +56,7 @@ animationVersion = "1.10.6"
 volley = "1.2.1"
 
 [libraries]
+installreferrer = { module = "com.android.installreferrer:installreferrer", version.ref = "installReferrer" }
 accompanist-navigation-animation-v0340 = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimationVersion" }
 accompanist-pager = { module = "com.google.accompanist:accompanist-pager", version.ref = "accompanistNavigationAnimationVersion" }
 accompanist-pager-indicators = { module = "com.google.accompanist:accompanist-pager-indicators", version.ref = "accompanistNavigationAnimationVersion" }

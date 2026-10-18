@@ -85,13 +85,21 @@ import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.components
 import com.aditya1875.pokeverse.utils.EffectCapabilities
 import com.aditya1875.pokeverse.utils.LocaleHelper
 import org.koin.androidx.compose.koinViewModel
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Lightbulb
+import com.aditya1875.pokeverse.feature.referral.presentation.ReferralViewModel
+import com.aditya1875.pokeverse.feature.referral.presentation.InviteFriendsSheet
+import com.aditya1875.pokeverse.feature.feedback.presentation.FeedbackViewModel
+import com.aditya1875.pokeverse.feature.feedback.presentation.FeedbackSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
     settingsViewModel: SettingsViewModel = koinViewModel(),
-    billingViewModel: BillingViewModel = koinViewModel()
+    billingViewModel: BillingViewModel = koinViewModel(),
+    referralViewModel: ReferralViewModel = koinViewModel(),
+    feedbackViewModel: FeedbackViewModel = koinViewModel()
 ) {
     val subscriptionState by billingViewModel.subscriptionState.collectAsStateWithLifecycle()
     var showCustomerCenter by remember { mutableStateOf(false) }
@@ -468,6 +476,44 @@ fun SettingsScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
+                }
+
+                // Invite friends (referral XP)
+                var showInviteSheet by rememberSaveable { mutableStateOf(false) }
+                SettingsCard(
+                    title = stringResource(R.string.settings_invite),
+                    icon = Icons.Default.PersonAdd,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = false,
+                    onExpandToggle = { showInviteSheet = true }
+                ) {
+                    Text(
+                        stringResource(R.string.settings_invite_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+                if (showInviteSheet) {
+                    InviteFriendsSheet(viewModel = referralViewModel, onDismiss = { showInviteSheet = false })
+                }
+
+                // Suggest a feature
+                var showFeedbackSheet by rememberSaveable { mutableStateOf(false) }
+                SettingsCard(
+                    title = stringResource(R.string.settings_feedback),
+                    icon = Icons.Default.Lightbulb,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = false,
+                    onExpandToggle = { showFeedbackSheet = true }
+                ) {
+                    Text(
+                        stringResource(R.string.settings_feedback_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+                if (showFeedbackSheet) {
+                    FeedbackSheet(viewModel = feedbackViewModel, onDismiss = { showFeedbackSheet = false })
                 }
 
                 // Share

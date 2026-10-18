@@ -31,6 +31,8 @@ import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
 import kotlin.random.Random
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.CompositionLocalProvider
 
 // POKEVERSE CLASSIC
 
@@ -650,14 +652,19 @@ fun PokeverseTheme(
         motionScheme = MotionScheme.expressive(),
         typography = AppTypography,
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            content()
-            // Expanding energy wave in the new theme's colors on switch
-            ThemeSwitchWave(
-                themeKey = selectedTheme,
-                accent = targetScheme.primary,
-                secondary = targetScheme.secondary
-            )
+        // Material's default content colour is black, which only Surface/Scaffold/Card
+        // override. Every theme here is dark, so any Text or Icon without an explicit
+        // colour outside those containers rendered black-on-dark. Default to onBackground.
+        CompositionLocalProvider(LocalContentColor provides colorScheme.onBackground) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                content()
+                // Expanding energy wave in the new theme's colors on switch
+                ThemeSwitchWave(
+                    themeKey = selectedTheme,
+                    accent = targetScheme.primary,
+                    secondary = targetScheme.secondary
+                )
+            }
         }
     }
 }

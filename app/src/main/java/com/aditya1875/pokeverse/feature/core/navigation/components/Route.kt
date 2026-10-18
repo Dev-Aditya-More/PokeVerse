@@ -83,6 +83,8 @@ sealed class Route(val route: String) {
 
     object StatCalculator : Route("stat_calculator")
 
+    object DexMode : Route("dex_mode")
+
     object Details : Route("pokemon_detail/{pokemonName}") {
         fun createDetails(pokemonName: String): String = "pokemon_detail/$pokemonName"
     }

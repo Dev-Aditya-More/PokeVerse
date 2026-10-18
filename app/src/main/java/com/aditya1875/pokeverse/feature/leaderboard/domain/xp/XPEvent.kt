@@ -48,9 +48,15 @@ sealed class XPEvent {
     // Easter Egg
     object EasterEggClaim : XPEvent()
 
+    // Community — one-off bonuses, verified/deduplicated outside XPManager
+    object ReferralWelcome : XPEvent()                       // you joined with a friend's code
+    data class ReferralReward(val friends: Int) : XPEvent()  // friends joined with your code
+    object FeedbackThanks : XPEvent()
+
     /** Once-a-day rewards for showing up — paid in full, outside [XPEconomy]'s tiers and rested pool. */
     val isRetentionBonus: Boolean
-        get() = this is DailyLogin || this is FirstGameOfDay || this is FirstExplorationOfDay || this is EasterEggClaim
+        get() = this is DailyLogin || this is FirstGameOfDay || this is FirstExplorationOfDay || this is EasterEggClaim ||
+            this is ReferralWelcome || this is ReferralReward || this is FeedbackThanks
 }
 
 /**
@@ -67,6 +73,11 @@ object XPValues {
     const val FIRST_GAME_OF_DAY = 40
     const val FIRST_EXPLORATION_OF_DAY = 20
     const val EASTER_EGG_CLAIM = 25
+
+    // Community bonuses — also outside the tiers.
+    const val REFERRAL_WELCOME = 150
+    const val REFERRAL_PER_FRIEND = 300
+    const val FEEDBACK_THANKS = 25
 
     const val QUIZ_CORRECT = 3
     const val QUIZ_COMPLETE = 15

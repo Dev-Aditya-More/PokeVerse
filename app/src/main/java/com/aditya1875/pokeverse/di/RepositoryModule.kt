@@ -20,6 +20,9 @@ import com.aditya1875.pokeverse.feature.pokemon.home.domain.repository.PokemonSe
 import com.aditya1875.pokeverse.feature.pokemon.theme_selector.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.utils.TeamMapper
 import org.koin.dsl.module
+import com.aditya1875.pokeverse.feature.dexmode.data.DexModeStore
+import com.aditya1875.pokeverse.feature.referral.data.ReferralRepository
+import com.aditya1875.pokeverse.feature.feedback.data.FeedbackRepository
 
 val repositoryModule = module {
 
@@ -31,6 +34,12 @@ val repositoryModule = module {
     }
 
     single { PokemonSearchRepository(get()) }
+
+    single { DexModeStore(get()) }
+
+    single { ReferralRepository(get()) }
+
+    single { FeedbackRepository(get()) }
 
     single<PokemonDetailRepo> {
         PokemonDetailImpl(get())

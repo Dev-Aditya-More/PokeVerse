@@ -26,6 +26,15 @@ import com.aditya1875.pokeverse.feature.widget.streak.StreakWidgetPinning
 import com.aditya1875.pokeverse.feature.widget.streak.StreakWidgetPromptDialog
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import kotlinx.coroutines.launch
+import com.aditya1875.pokeverse.feature.dexmode.data.DexModeStore
+import com.aditya1875.pokeverse.feature.dexmode.presentation.DexModeAnnouncementDialog
+import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.referral.data.ReferralRepository
+import com.aditya1875.pokeverse.feature.feedback.data.FeedbackRepository
+import com.aditya1875.pokeverse.feature.referral.presentation.ReferralClaimDialog
+import com.aditya1875.pokeverse.feature.referral.presentation.InvitePromptDialog
+import com.aditya1875.pokeverse.feature.feedback.presentation.FeedbackPromptDialog
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 private const val RATING_MIN_MINUTES = 10L
 private const val PREMIUM_MIN_MINUTES = 40L
@@ -36,15 +45,25 @@ private const val WIDGET_MIN_STREAK = 2
 /** At most two asks, and the second only after this long. */
 private const val WIDGET_MAX_ASKS = 2
 private const val WIDGET_REASK_GAP_MS = 5L * 24 * 60 * 60 * 1000
+private const val INVITE_MIN_MINUTES = 15L
+private const val INVITE_MAX_ASKS = 2
+private const val INVITE_REASK_GAP_MS = 10L * 24 * 60 * 60 * 1000
+private const val FEEDBACK_MIN_MINUTES = 25L
+private const val FEEDBACK_MAX_ASKS = 2
+private const val FEEDBACK_REASK_GAP_MS = 21L * 24 * 60 * 60 * 1000
 
-enum class HomePopup { None, Assets, Widget, Rating, Premium }
+enum class HomePopup { None, Assets, DexMode, ReferralClaim, Widget, Rating, Invite, Feedback, Premium }
 
 // Single dialog visible at a time. Priority:
 //   1. Assets  — first-ever launch only, shows after DataStore is ready
+//   1b. DexMode — one-time announcement of Dex Mode (skipped once the user has opened it)
+//   1c. ReferralClaim — installed via a friend's invite link; signed in and not yet redeemed
 //   2. Widget  — streak ≥ 2 days and the widget isn't on the home screen yet; asked at
 //                most twice (5+ days apart). Android never surfaces widgets on its own.
 //   3. Rating  — signed-in users only; asks "enjoying it?" after RATING_MIN_MINUTES,
 //                only launching Play In-App Review if they say yes
+//   3b. Invite  — signed-in users after INVITE_MIN_MINUTES; at most twice, 10+ days apart
+//   3c. Feedback — "what should we build next?" after FEEDBACK_MIN_MINUTES; twice max, 21+ days apart
 //   4. Premium — after PREMIUM_MIN_MINUTES, 30-min gap since last popup
 
 @Composable
@@ -57,6 +76,9 @@ fun HomePopupOrchestrator(
     onEnableAssets: () -> Unit,
     onRateNow: () -> Unit,
     onGoPremium: () -> Unit,
+    onOpenDexMode: () -> Unit,
+    onOpenInvite: (prefillCode: String?) -> Unit,
+    onOpenFeedback: () -> Unit,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -72,6 +94,17 @@ fun HomePopupOrchestrator(
     var widgetOnHomeScreen by remember { mutableStateOf(true) } // assume yes until checked — never ask by mistake
     val widgetPinSupported = remember { StreakWidgetPinning.isPinSupported(context) }
     var showWidgetManualSteps by remember { mutableStateOf(false) }
+    val dexModeStore: DexModeStore = koinInject()
+    var dexAnnounced by remember { mutableStateOf(true) }
+    val referralRepository: ReferralRepository = koinInject()
+    val feedbackRepository: FeedbackRepository = koinInject()
+    val pendingReferralCode by referralRepository.pendingInstallCode.collectAsStateWithLifecycle()
+    var referralRedeemed by remember { mutableStateOf(true) }
+    var inviteAsks by remember { mutableStateOf(0) }
+    var inviteLastAskMs by remember { mutableLongStateOf(0L) }
+    var feedbackAsks by remember { mutableStateOf(0) }
+    var feedbackLastAskMs by remember { mutableLongStateOf(0L) }
+    var feedbackSubmitted by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
         assetsShown = ScreenStateManager.isAssetsShown(context)
@@ -83,6 +116,17 @@ fun HomePopupOrchestrator(
             widgetLastAskMs = lastMs
         }
         widgetOnHomeScreen = StreakWidgetPinning.isOnHomeScreen(context)
+        dexAnnounced = dexModeStore.isAnnounced || dexModeStore.discovered.value
+        referralRedeemed = referralRepository.hasRedeemed
+        referralRepository.invitePromptHistory().let { (asks, lastMs) ->
+            inviteAsks = asks
+            inviteLastAskMs = lastMs
+        }
+        feedbackRepository.promptHistory().let { (asks, lastMs) ->
+            feedbackAsks = asks
+            feedbackLastAskMs = lastMs
+        }
+        feedbackSubmitted = feedbackRepository.hasSubmitted
         isReady = true
         kotlinx.coroutines.delay(SLOW_POPUP_STARTUP_DELAY_MS)
         slowPopupsUnlocked = true
@@ -103,7 +147,13 @@ fun HomePopupOrchestrator(
         lastPopupAtMinutes,
         dailyStreak,
         widgetAsks,
-        widgetOnHomeScreen
+        widgetOnHomeScreen,
+        dexAnnounced,
+        pendingReferralCode,
+        referralRedeemed,
+        inviteAsks,
+        feedbackAsks,
+        feedbackSubmitted
     ) {
         if (!isReady) return@LaunchedEffect
 
@@ -115,6 +165,12 @@ fun HomePopupOrchestrator(
         activePopup = when {
             !assetsShown && !originalAssetsEnabled -> HomePopup.Assets
 
+            // A brand-new mode: announced once, without waiting out the popup cooldown.
+            !dexAnnounced && slowPopupsUnlocked -> HomePopup.DexMode
+
+            // Came in through a friend's invite link: offer the welcome bonus right away.
+            pendingReferralCode != null && !referralRedeemed && !isGuest -> HomePopup.ReferralClaim
+
             !widgetOnHomeScreen && widgetAskDue &&
                     dailyStreak >= WIDGET_MIN_STREAK &&
                     slowPopupsUnlocked && cooldownPassed -> HomePopup.Widget
@@ -123,6 +179,14 @@ fun HomePopupOrchestrator(
                     slowPopupsUnlocked &&
                     totalSessionMinutes >= RATING_MIN_MINUTES &&
                     cooldownPassed -> HomePopup.Rating
+
+            !isGuest && slowPopupsUnlocked && cooldownPassed &&
+                    totalSessionMinutes >= INVITE_MIN_MINUTES &&
+                    askDue(inviteAsks, inviteLastAskMs, INVITE_MAX_ASKS, INVITE_REASK_GAP_MS) -> HomePopup.Invite
+
+            !feedbackSubmitted && slowPopupsUnlocked && cooldownPassed &&
+                    totalSessionMinutes >= FEEDBACK_MIN_MINUTES &&
+                    askDue(feedbackAsks, feedbackLastAskMs, FEEDBACK_MAX_ASKS, FEEDBACK_REASK_GAP_MS) -> HomePopup.Feedback
 
             ratingShown && !premiumShown &&
                     !isPremium && !isGuest &&
@@ -157,6 +221,69 @@ fun HomePopupOrchestrator(
                 dismissPopup {
                     ScreenStateManager.markAssetsShown(context)
                     assetsShown = true
+                }
+            }
+        )
+
+        HomePopup.DexMode -> DexModeAnnouncementDialog(
+            onPowerOn = {
+                dismissPopup {
+                    dexModeStore.markAnnounced()
+                    dexAnnounced = true
+                }
+                onOpenDexMode()
+            },
+            onLater = {
+                dismissPopup {
+                    dexModeStore.markAnnounced()
+                    dexAnnounced = true
+                }
+            }
+        )
+
+        HomePopup.ReferralClaim -> ReferralClaimDialog(
+            code = pendingReferralCode.orEmpty(),
+            onClaim = {
+                val code = pendingReferralCode
+                dismissPopup { referralRedeemed = true }
+                onOpenInvite(code)
+            },
+            onLater = {
+                dismissPopup {
+                    referralRepository.clearPendingCode()
+                    referralRedeemed = true
+                }
+            }
+        )
+
+        HomePopup.Invite -> InvitePromptDialog(
+            onInvite = {
+                dismissPopup {
+                    referralRepository.markInvitePromptShown()
+                    inviteAsks += 1
+                }
+                onOpenInvite(null)
+            },
+            onLater = {
+                dismissPopup {
+                    referralRepository.markInvitePromptShown()
+                    inviteAsks += 1
+                }
+            }
+        )
+
+        HomePopup.Feedback -> FeedbackPromptDialog(
+            onOpen = {
+                dismissPopup {
+                    feedbackRepository.markPromptShown()
+                    feedbackAsks += 1
+                }
+                onOpenFeedback()
+            },
+            onLater = {
+                dismissPopup {
+                    feedbackRepository.markPromptShown()
+                    feedbackAsks += 1
                 }
             }
         )
@@ -219,6 +346,9 @@ fun HomePopupOrchestrator(
 
     if (showWidgetManualSteps) StreakWidgetManualStepsDialog(onDismiss = { showWidgetManualSteps = false })
 }
+
+private fun askDue(asks: Int, lastAskMs: Long, maxAsks: Int, gapMs: Long): Boolean =
+    asks == 0 || (asks < maxAsks && System.currentTimeMillis() - lastAskMs >= gapMs)
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Force update screen — non-dismissible, blocks the entire app

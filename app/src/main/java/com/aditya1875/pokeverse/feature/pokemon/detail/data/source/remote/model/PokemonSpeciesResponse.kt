@@ -11,7 +11,16 @@ data class PokemonSpeciesResponse(
     val varieties: List<PokemonVariety> = emptyList(),
 
     @SerializedName("evolution_chain")
-    val evolutionChain: EvolutionChainResponse? = null
+    val evolutionChain: EvolutionChainResponse? = null,
+
+    // Nullable: Gson skips Kotlin defaults, and cached/partial payloads may omit it.
+    @SerializedName("genera")
+    val genera: List<Genus>? = null
+)
+
+data class Genus(
+    val genus: String,
+    val language: Language
 )
 
 data class FlavorTextEntry(

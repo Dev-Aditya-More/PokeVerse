@@ -177,6 +177,12 @@ class XPManager(
         is XPEvent.EasterEggClaim ->
             if (profile.lastEasterEggXpDate == today) null
             else RawXp(XPValues.EASTER_EGG_CLAIM, R.string.xp_easter_egg, " ✨")
+
+        // Community bonuses: the referral server / feedback store already guarantee these fire once.
+        is XPEvent.ReferralWelcome -> RawXp(XPValues.REFERRAL_WELCOME, R.string.xp_referral_welcome, " 🤝")
+        is XPEvent.ReferralReward ->
+            RawXp(XPValues.REFERRAL_PER_FRIEND * event.friends, R.string.xp_referral_reward, " 🎉", titleArg = event.friends)
+        is XPEvent.FeedbackThanks -> RawXp(XPValues.FEEDBACK_THANKS, R.string.xp_feedback_thanks, " 💌")
     }
 
     private fun guessStreakBonus(streak: Int) = when {
