@@ -70,9 +70,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -654,7 +652,6 @@ private fun TypeChip(type: String) {
 private fun EdgeVerdictCard(left: PokemonResponse, right: PokemonResponse) {
     var revealed by remember(left.name, right.name) { mutableStateOf(false) }
     val soundManager: SoundManager = koinInject()
-    val haptic = LocalHapticFeedback.current
     val verdict = remember(left.name, right.name) { computeEdgeVerdict(left, right) }
 
     val scale = remember(left.name, right.name) { Animatable(0.7f) }
@@ -676,7 +673,6 @@ private fun EdgeVerdictCard(left: PokemonResponse, right: PokemonResponse) {
                     onClick = {
                         revealed = true
                         soundManager.play(SoundManager.Sound.LEVEL_UP)
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     },
                     shape = RoundedCornerShape(14.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107)),

@@ -1167,4 +1167,26 @@
     <string name="feedback_wish_languages">और भाषाएँ</string>
     <string name="feedback_wish_widgets">विजेट</string>
     <string name="feedback_wish_other">कुछ और</string>
+    <string name="chase_biome_meadow">विरिडियन घास का मैदान</string>
+    <string name="chase_biome_sunset">सूर्यास्त रूट</string>
+    <string name="chase_biome_hideout">रॉकेट ठिकाना</string>
+    <string name="fact_scratch_hint">👆 आज का तथ्य देखने के लिए कार्ड खुरचें</string>
+    <string name="fact_scratch_foil">मुझे खुरचें</string>
+    <string name="fact_reveal_a11y">तथ्य दिखाएँ</string>
+    <string name="fact_streak">%1$d दिन की तथ्य स्ट्रीक</string>
+    <string name="fact_bonus">बोनस तथ्य</string>
+    <string name="fact_react_new">🤯 पता नहीं था!</string>
+    <string name="fact_react_knew">😎 पता था</string>
+    <string name="fact_reacted_summary">सीखे %1$d · पहले से पता %2$d</string>
+    <string name="fact_another">एक और तथ्य</string>
+    <string name="fact_back_to_today">आज का</string>
+    <string name="fact_share">तथ्य शेयर करें</string>
+    <string name="fact_share_message">क्या आप जानते हैं? %1$s\n\nDexverse पर और Pokémon तथ्य: %2$s</string>
+    <string name="xp_daily_fact">आज का तथ्य</string>
+    <string name="profile_stat_total_xp">कुल XP</string>
+    <string name="profile_stat_games">गेम</string>
+    <string name="profile_stat_streak">दिन स्ट्रीक</string>
+    <string name="profile_personal_bests">सर्वश्रेष्ठ स्कोर</string>
+    <string name="profile_not_played">अभी नहीं खेला</string>
+    <string name="profile_synced_as">सिंक हुआ · %1$s</string>
 </resources>

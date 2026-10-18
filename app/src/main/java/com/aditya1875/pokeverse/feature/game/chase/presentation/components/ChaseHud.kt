@@ -44,8 +44,25 @@ import androidx.compose.ui.unit.dp
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.chase.domain.model.ChaseWorld
 import com.aditya1875.pokeverse.feature.game.core.presentation.LivesRow
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.border
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
 
-private val HudPill = Color.Black.copy(alpha = 0.45f)
+/** Frosted-glass panel: a translucent dark fill, a top sheen and a hairline rim. */
+private fun Modifier.glass(shape: Shape): Modifier = this
+    .clip(shape)
+    .background(Color.Black.copy(alpha = 0.38f))
+    .background(Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.16f), Color.White.copy(alpha = 0.03f))))
+    .border(1.dp, Color.White.copy(alpha = 0.18f), shape)
 private val Thunder = Color(0xFFFFEB3B)
 private val SnareRed = Color(0xFFE53935)
 
@@ -97,9 +114,8 @@ fun ChaseHud(
         ) {
             Column(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(HudPill)
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .glass(RoundedCornerShape(16.dp))
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
             ) {
                 Text(
                     stringResource(R.string.chase_meters, meters),
@@ -118,17 +134,19 @@ fun ChaseHud(
                 lives = lives,
                 maxLives = maxLives,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(HudPill)
+                    .glass(RoundedCornerShape(16.dp))
                     .padding(horizontal = 10.dp, vertical = 8.dp)
             )
             IconButton(
                 onClick = onPause,
-                modifier = Modifier.clip(CircleShape).background(HudPill)
+                modifier = Modifier.glass(CircleShape)
             ) {
                 Icon(Icons.Default.Pause, contentDescription = stringResource(R.string.chase_paused), tint = Color.White)
             }
         }
+
+        val biome by remember { derivedStateOf { ChaseBiome.at(world.value.meters) } }
+        BiomeBanner(biome, Modifier.align(BiasAlignment(horizontalBias = 0f, verticalBias = -0.72f)))
 
         val strugglesLeft by remember { derivedStateOf { world.value.snare?.strugglesLeft } }
         strugglesLeft?.let { left ->
@@ -150,6 +168,34 @@ fun ChaseHud(
             timeLeft = agilityLeft,
             onClick = onAgility,
             modifier = Modifier.align(Alignment.BottomEnd).padding(bottom = 8.dp)
+        )
+    }
+}
+
+/** Slides in "SUNSET ROUTE" etc. for a moment each time the run enters a new biome. */
+@Composable
+private fun BiomeBanner(biome: ChaseBiome, modifier: Modifier = Modifier) {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(biome) {
+        visible = true
+        delay(2200)
+        visible = false
+    }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(250)) + slideInVertically(tween(300)) { -it / 2 },
+        exit = fadeOut(tween(400)),
+        modifier = modifier
+    ) {
+        Text(
+            text = stringResource(biome.label).uppercase(),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 3.sp,
+            color = Color.White,
+            modifier = Modifier
+                .glass(RoundedCornerShape(50))
+                .padding(horizontal = 18.dp, vertical = 8.dp)
         )
     }
 }
@@ -192,8 +238,7 @@ private fun ThunderboltButton(charge: Float, onClick: () -> Unit, modifier: Modi
         modifier = modifier
             .size(76.dp)
             .scale(glow)
-            .clip(CircleShape)
-            .background(if (ready) Thunder.copy(alpha = 0.92f) else HudPill)
+            .then(if (ready) Modifier.clip(CircleShape).background(Thunder.copy(alpha = 0.92f)) else Modifier.glass(CircleShape))
             .clickable(enabled = ready, onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
@@ -243,8 +288,10 @@ private fun AgilityButton(
             modifier = Modifier
                 .size(76.dp)
                 .scale(glow)
-                .clip(CircleShape)
-                .background(if (ready || active) Thunder.copy(alpha = 0.92f) else HudPill)
+                .then(
+                    if (ready || active) Modifier.clip(CircleShape).background(Thunder.copy(alpha = 0.92f))
+                    else Modifier.glass(CircleShape)
+                )
                 .clickable(enabled = enabled, onClick = onClick),
             contentAlignment = Alignment.Center
         ) {

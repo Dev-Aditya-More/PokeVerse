@@ -183,6 +183,7 @@ class XPManager(
         is XPEvent.ReferralReward ->
             RawXp(XPValues.REFERRAL_PER_FRIEND * event.friends, R.string.xp_referral_reward, " 🎉", titleArg = event.friends)
         is XPEvent.FeedbackThanks -> RawXp(XPValues.FEEDBACK_THANKS, R.string.xp_feedback_thanks, " 💌")
+        is XPEvent.DailyFact -> RawXp(XPValues.DAILY_FACT, R.string.xp_daily_fact, " 💡")
     }
 
     private fun guessStreakBonus(streak: Int) = when {

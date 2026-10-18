@@ -35,10 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -69,6 +66,10 @@ import com.aditya1875.pokeverse.utils.SoundManager
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.utils.Haptics
+import com.aditya1875.pokeverse.feature.game.chase.presentation.components.ChaseFx
+import com.aditya1875.pokeverse.feature.game.chase.domain.model.EntityKind
+import androidx.compose.runtime.derivedStateOf
 
 private val ChaseBackground = Color(0xFF14181F)
 
@@ -86,7 +87,8 @@ fun ChaseScreen(
     val connectivityObserver: ConnectivityObserver = koinInject()
     val isOnline by connectivityObserver.isOnline.collectAsState(initial = true)
     val soundManager: SoundManager = koinInject()
-    val haptics = LocalHapticFeedback.current
+    val haptics: Haptics = koinInject()
+    val fx = remember { ChaseFx() }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
@@ -108,7 +110,21 @@ fun ChaseScreen(
         guideChecked = true
     }
     LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }
-    LaunchedEffect(Unit) { viewModel.events.collect { playFeedback(it, soundManager, haptics) } }
+    LaunchedEffect(Unit) {
+        viewModel.events.collect {
+            playFeedback(it, soundManager, haptics)
+            fx.onEvent(it, world.value, viewModel.config)
+        }
+    }
+    // A light tick for every lane change, like a notch on a dial.
+    val targetLane by remember { derivedStateOf { world.value.targetLane } }
+    var lastLane by remember { mutableStateOf<Int?>(null) }
+    LaunchedEffect(targetLane) {
+        if (lastLane != null && lastLane != targetLane) haptics.play(Haptics.Haptic.TICK)
+        lastLane = targetLane
+    }
+    // A fresh run starts with a clean slate of effects.
+    LaunchedEffect(gameState is ChaseGameState.Ready) { if (gameState is ChaseGameState.Ready) fx.clear() }
     LaunchedEffect(isOnline, guideChecked, showGuide) {
         if (isOnline && guideChecked && !showGuide) viewModel.prepare()
     }
@@ -177,6 +193,7 @@ fun ChaseScreen(
                             world = world,
                             sprites = sprites,
                             config = viewModel.config,
+                            fx = fx,
                             modifier = Modifier.fillMaxSize().laneSteering(
                                 config = viewModel.config,
                                 onPress = viewModel::struggle,
@@ -286,37 +303,54 @@ private fun ChaseResult(
     )
 }
 
-private fun playFeedback(event: ChaseEvent, sound: SoundManager, haptics: HapticFeedback) {
+/**
+ * Sound + haptics for each engine event. Haptics are chosen explicitly here (sounds are
+ * played with haptic = false) so a hit thuds, a pickup ticks and a Thunderbolt rumbles.
+ */
+private fun playFeedback(event: ChaseEvent, sound: SoundManager, haptics: Haptics) {
+    fun sfx(s: SoundManager.Sound, volume: Float = 1f) = sound.play(s, volume, haptic = false)
     when (event) {
         is ChaseEvent.Hit -> {
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-            sound.play(SoundManager.Sound.WRONG_ANSWER)
+            haptics.play(Haptics.Haptic.HEAVY)
+            sfx(SoundManager.Sound.WRONG_ANSWER)
         }
-        is ChaseEvent.Collected -> sound.play(SoundManager.Sound.RUSH_CLICK, volume = 0.6f)
+        is ChaseEvent.Collected -> {
+            haptics.play(if (event.kind == EntityKind.THUNDER_STONE) Haptics.Haptic.CONFIRM else Haptics.Haptic.TICK)
+            sfx(SoundManager.Sound.RUSH_CLICK, volume = 0.6f)
+        }
         ChaseEvent.AgilityStarted -> {
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-            sound.play(SoundManager.Sound.PIKACHU_CRY)
+            haptics.play(Haptics.Haptic.RUMBLE)
+            sfx(SoundManager.Sound.PIKACHU_CRY)
         }
         is ChaseEvent.Zapped -> {
-            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            sound.play(SoundManager.Sound.RUSH_CLICK, volume = 0.4f)
+            haptics.play(Haptics.Haptic.TICK)
+            sfx(SoundManager.Sound.RUSH_CLICK, volume = 0.4f)
         }
         is ChaseEvent.ThunderUsed -> {
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-            sound.play(SoundManager.Sound.PIKACHU_CRY)
+            haptics.play(Haptics.Haptic.RUMBLE)
+            sfx(SoundManager.Sound.PIKACHU_CRY)
         }
-        ChaseEvent.AgilityEnded -> sound.play(SoundManager.Sound.TIMER_UP, volume = 0.35f)
-        ChaseEvent.NetIncoming -> sound.play(SoundManager.Sound.TIMER_UP, volume = 0.5f)
+        ChaseEvent.AgilityEnded -> sfx(SoundManager.Sound.TIMER_UP, volume = 0.35f)
+        ChaseEvent.NetIncoming -> {
+            haptics.play(Haptics.Haptic.WARNING)
+            sfx(SoundManager.Sound.TIMER_UP, volume = 0.5f)
+        }
         ChaseEvent.Snared -> {
-            haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-            sound.play(SoundManager.Sound.WRONG_ANSWER, volume = 0.7f)
+            haptics.play(Haptics.Haptic.HEAVY)
+            sfx(SoundManager.Sound.WRONG_ANSWER, volume = 0.7f)
         }
         is ChaseEvent.Struggled -> {
-            haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-            sound.play(SoundManager.Sound.RUSH_CLICK, volume = 0.5f)
+            haptics.play(Haptics.Haptic.CLICK)
+            sfx(SoundManager.Sound.RUSH_CLICK, volume = 0.5f)
         }
-        ChaseEvent.BrokeFree, ChaseEvent.ShookOffRocket -> sound.play(SoundManager.Sound.CORRECT_ANSWER)
-        ChaseEvent.Caught -> sound.play(SoundManager.Sound.GAME_LOSE)
+        ChaseEvent.BrokeFree, ChaseEvent.ShookOffRocket -> {
+            haptics.play(Haptics.Haptic.SUCCESS)
+            sfx(SoundManager.Sound.CORRECT_ANSWER)
+        }
+        ChaseEvent.Caught -> {
+            haptics.play(Haptics.Haptic.REJECT)
+            sfx(SoundManager.Sound.GAME_LOSE)
+        }
         ChaseEvent.NetDodged -> Unit
     }
 }

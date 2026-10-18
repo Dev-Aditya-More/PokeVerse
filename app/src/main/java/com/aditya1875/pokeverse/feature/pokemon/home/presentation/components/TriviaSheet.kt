@@ -16,10 +16,8 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -175,7 +173,6 @@ private fun GuessingTriviaContent(trivia: DailyTriviaState, onAnswer: (Boolean) 
     val answered = tappedIndex != null
     val correctIndex = trivia.options.indexOfFirst { it.equals(trivia.pokemonName, ignoreCase = true) }
 
-    val haptic = LocalHapticFeedback.current
     val soundManager: SoundManager = koinInject()
 
     // Container background: surfaceVariant → type-color wash on answer
@@ -324,10 +321,8 @@ private fun GuessingTriviaContent(trivia: DailyTriviaState, onAnswer: (Boolean) 
                 val correct = index == correctIndex
                 onAnswer(correct)
                 if (correct) {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     soundManager.play(SoundManager.Sound.CORRECT_ANSWER)
                 } else {
-                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                     soundManager.play(SoundManager.Sound.WRONG_ANSWER)
                 }
             }

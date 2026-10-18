@@ -151,6 +151,14 @@ class ProfileViewModel(
         viewModelScope.launch { repository.incrementGamesPlayed() }
     }
 
+    /** Today's fact was scratched open (the card's store guarantees once a day). */
+    fun claimDailyFactXp() {
+        viewModelScope.launch {
+            val result = xpManager.awardGameXP(XPEvent.DailyFact)
+            if (result.xpGained > 0) _xpEvent.emit(result)
+        }
+    }
+
     fun claimEasterEggXP() {
         viewModelScope.launch {
             val result = xpManager.awardGameXP(XPEvent.EasterEggClaim)

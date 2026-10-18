@@ -13,6 +13,7 @@ import com.aditya1875.pokeverse.feature.pokemon.home.domain.trivia.DailyTriviaMa
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.presentation.auth.AuthManager
 import com.aditya1875.pokeverse.utils.IReviewManager
+import com.aditya1875.pokeverse.utils.Haptics
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
@@ -50,6 +51,8 @@ val billingModule = module {
 
     single { Gson() }
 
-    single { SoundManager(get()) }
+    single { Haptics(get()) }
+
+    single { SoundManager(get(), get()) }
 
 }

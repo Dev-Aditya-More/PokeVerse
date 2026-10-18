@@ -7,7 +7,10 @@ import android.media.SoundPool
 import androidx.annotation.RawRes
 import com.aditya1875.pokeverse.R
 
-class SoundManager(private val context: Context) {
+class SoundManager(
+    private val context: Context,
+    private val haptics: Haptics? = null
+) {
 
     private var soundPool: SoundPool? = null
     private val soundMap = mutableMapOf<Sound, Int>()
@@ -76,7 +79,12 @@ class SoundManager(private val context: Context) {
         return soundPool?.load(context, resId, 1) ?: -1
     }
 
-    fun play(sound: Sound, volume: Float = 1.0f) {
+    /**
+     * Plays [sound] and, unless [haptic] is false, its matching vibration. Haptics fire even
+     * when sound is muted — they follow the system touch-feedback setting instead.
+     */
+    fun play(sound: Sound, volume: Float = 1.0f, haptic: Boolean = true) {
+        if (haptic) hapticFor(sound)?.let { haptics?.play(it) }
         if (!isEnabled) return
 
         soundMap[sound]?.let { soundId ->
@@ -89,6 +97,19 @@ class SoundManager(private val context: Context) {
                 1.0f
             )
         }
+    }
+
+    private fun hapticFor(sound: Sound): Haptics.Haptic? = when (sound) {
+        Sound.BUTTON_CLICK -> Haptics.Haptic.CLICK
+        Sound.CARD_FLIP, Sound.RUSH_CLICK -> Haptics.Haptic.TICK
+        Sound.MATCH_FOUND, Sound.CORRECT_ANSWER -> Haptics.Haptic.CONFIRM
+        Sound.WRONG_ANSWER -> Haptics.Haptic.REJECT
+        Sound.GAME_WIN -> Haptics.Haptic.SUCCESS
+        Sound.GAME_LOSE -> Haptics.Haptic.HEAVY
+        Sound.TIMER_UP -> Haptics.Haptic.WARNING
+        Sound.LEVEL_UP -> Haptics.Haptic.LEVEL_UP
+        Sound.PIKACHU_CRY -> Haptics.Haptic.RUMBLE
+        Sound.WHOS_THAT_POKEMON -> Haptics.Haptic.POP
     }
 
     fun setEnabled(enabled: Boolean) {

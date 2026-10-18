@@ -39,8 +39,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -50,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.utils.Haptics
 import com.aditya1875.pokeverse.utils.SoundManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -99,7 +98,7 @@ private const val FALLBACK_HOLD_MS = 2600
 fun SplashScreen(onFinish: () -> Unit = {}) {
 
     val soundManager: SoundManager = koinInject()
-    val haptic = LocalHapticFeedback.current
+    val haptics: Haptics = koinInject()
 
     // Ambient loop — runs for the whole life of the screen.
     val infiniteTransition = rememberInfiniteRing()
@@ -132,13 +131,18 @@ fun SplashScreen(onFinish: () -> Unit = {}) {
         launch {
             ballAlpha.animateTo(1f, tween(320, easing = LinearEasing))
         }
+        // Haptics are choreographed to the animation: a rising hum as the ball grows,
+        // a tick on each squish, a heavy pop as it bursts, a soft click as the name lands.
+        haptics.play(Haptics.Haptic.CHARGE)
         ballScale.animateTo(1f, tween(420, easing = EaseOutBack))
 
         // brief anticipation "charge" before it pops open
+        haptics.play(Haptics.Haptic.TICK)
         ballScale.animateTo(0.9f, tween(120))
+        haptics.play(Haptics.Haptic.TICK)
         ballScale.animateTo(1.05f, tween(120))
 
-        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+        haptics.play(Haptics.Haptic.POP)
 
         launch { ballAlpha.animateTo(0f, tween(260)) }
         launch {
@@ -149,6 +153,10 @@ fun SplashScreen(onFinish: () -> Unit = {}) {
 
         delay(120.milliseconds)
         launch { wordmarkAlpha.animateTo(1f, tween(420)) }
+        launch {
+            delay(260.milliseconds) // the EaseOutBack overshoot "lands" here
+            haptics.play(Haptics.Haptic.CLICK)
+        }
         wordmarkScale.animateTo(1f, tween(420, easing = EaseOutBack))
 
         delay(160.milliseconds)

@@ -33,11 +33,14 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
+import com.aditya1875.pokeverse.utils.Haptics
+import org.koin.compose.koinInject
 
 @Composable
 fun BottomNavigationBar(
     navController: NavHostController
 ) {
+    val haptics: Haptics = koinInject()
     BottomAppBar(
         containerColor = MaterialTheme.colorScheme.surface,
         contentColor = MaterialTheme.colorScheme.onSurface,
@@ -106,6 +109,7 @@ fun BottomNavigationBar(
                 selected = selected,
                 onClick = {
                     if (!selected) {
+                        haptics.play(Haptics.Haptic.TICK)
                         navController.navigate(routeItem.route) {
                             popUpTo(Route.BottomBar.Home.route) {
                                 saveState = true

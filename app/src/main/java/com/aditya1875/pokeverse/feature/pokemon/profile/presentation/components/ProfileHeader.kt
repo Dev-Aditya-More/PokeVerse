@@ -56,6 +56,14 @@ import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.google.firebase.auth.FirebaseUser
 import org.koin.compose.viewmodel.koinViewModel
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.res.pluralStringResource
 
 @Composable
 fun ProfileHeader(
@@ -64,6 +72,7 @@ fun ProfileHeader(
     onEditName: () -> Unit,
     onEditPhoto: () -> Unit,
     photoUploading: Boolean = false,
+    onSettingsClick: (() -> Unit)? = null,
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     var prevLevel by remember { mutableIntStateOf(profile.level) }
@@ -140,13 +149,30 @@ fun ProfileHeader(
         label = "levelScale"
     )
 
+    val xpProgress by animateFloatAsState(
+        targetValue = (profile.currentXp.toFloat() / profile.nextLevelXp.coerceAtLeast(1)).coerceIn(0f, 1f),
+        animationSpec = tween(900, easing = FastOutSlowInEasing),
+        label = "xpRing"
+    )
+    val ringColor = MaterialTheme.colorScheme.primary
+    val ringTrack = MaterialTheme.colorScheme.surfaceVariant
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
+      // XP ring around the avatar replaces the old separate "Trainer progress" card.
+      Box(Modifier.size(88.dp), contentAlignment = Alignment.Center) {
+        if (!profile.isGuest) {
+            Canvas(Modifier.fillMaxSize()) {
+                val stroke = 5.dp.toPx()
+                drawArc(ringTrack, 0f, 360f, false, style = Stroke(stroke))
+                drawArc(ringColor, -90f, 360f * xpProgress, false, style = Stroke(stroke, cap = StrokeCap.Round))
+            }
+        }
         Box(
             modifier = Modifier
-                .size(90.dp)
+                .size(74.dp)
                 .clip(CircleShape)
                 .background(
                     if (profile.photoUrl.isNotEmpty() || currentUser?.photoUrl != null)
@@ -204,10 +230,26 @@ fun ProfileHeader(
                 }
             }
         }
+        if (!profile.isGuest) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.align(Alignment.BottomCenter).scale(levelScale)
+            ) {
+                Text(
+                    text = stringResource(R.string.level_short, profile.level),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Black,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            }
+        }
+      }
 
-        Spacer(Modifier.width(16.dp))
+        Spacer(Modifier.width(14.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -254,20 +296,33 @@ fun ProfileHeader(
                 }
             }
 
-            if(!profile.isGuest) {
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(0.6f),
-                    modifier = Modifier.scale(levelScale)
-                ) {
+            if (!profile.isGuest) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
-                        text = stringResource(R.string.profile_level_badge, profile.level),
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        text = stringResource(R.string.xp_progress, profile.currentXp, profile.nextLevelXp),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
                     )
+                    if (profile.dailyStreak > 0) {
+                        Text(
+                            text = "🔥 " + pluralStringResource(R.plurals.profile_day_streak, profile.dailyStreak, profile.dailyStreak),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFFFF8A3D)
+                        )
+                    }
                 }
+            }
+        }
+
+        onSettingsClick?.let {
+            IconButton(onClick = it, modifier = Modifier.align(Alignment.Top)) {
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = stringResource(R.string.profile_settings),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }

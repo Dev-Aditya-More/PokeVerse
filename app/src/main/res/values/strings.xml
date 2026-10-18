@@ -1180,4 +1180,26 @@
     <string name="feedback_wish_languages">More languages</string>
     <string name="feedback_wish_widgets">Widgets</string>
     <string name="feedback_wish_other">Something else</string>
+    <string name="chase_biome_meadow">Viridian Meadow</string>
+    <string name="chase_biome_sunset">Sunset Route</string>
+    <string name="chase_biome_hideout">Rocket Hideout</string>
+    <string name="fact_scratch_hint">👆 Scratch the card to reveal today\'s fact</string>
+    <string name="fact_scratch_foil">SCRATCH ME</string>
+    <string name="fact_reveal_a11y">Reveal fact</string>
+    <string name="fact_streak">%1$d-day fact streak</string>
+    <string name="fact_bonus">Bonus fact</string>
+    <string name="fact_react_new">🤯 Didn\'t know!</string>
+    <string name="fact_react_knew">😎 Knew it</string>
+    <string name="fact_reacted_summary">Learned %1$d · Already knew %2$d</string>
+    <string name="fact_another">Another fact</string>
+    <string name="fact_back_to_today">Today\'s</string>
+    <string name="fact_share">Share fact</string>
+    <string name="fact_share_message">Did you know? %1$s\n\nMore Pokémon facts on Dexverse: %2$s</string>
+    <string name="xp_daily_fact">Daily fact</string>
+    <string name="profile_stat_total_xp">Total XP</string>
+    <string name="profile_stat_games">Games</string>
+    <string name="profile_stat_streak">Day streak</string>
+    <string name="profile_personal_bests">Personal bests</string>
+    <string name="profile_not_played">Not played yet</string>
+    <string name="profile_synced_as">Synced · %1$s</string>
 </resources>

@@ -68,10 +68,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -398,7 +396,6 @@ private fun ResultContent(
 ) {
     val context = LocalContext.current
     val soundManager: SoundManager = koinInject()
-    val haptic = LocalHapticFeedback.current
     val match = result.match
 
     var showConfetti by remember { mutableStateOf(false) }
@@ -409,7 +406,6 @@ private fun ResultContent(
     LaunchedEffect(match) {
         selfieAlpha.animateTo(1f, tween(250))
         delay(150)
-        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         soundManager.play(SoundManager.Sound.MATCH_FOUND)
         showConfetti = true
         revealAlpha.animateTo(1f, tween(320))

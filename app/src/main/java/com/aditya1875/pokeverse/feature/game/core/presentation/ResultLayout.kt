@@ -303,7 +303,7 @@ fun GameResultLayout(
                             (lerp(12f, 0f, entrance.value).dp).roundToPx()
                         )
                     },
-                color = MaterialTheme.colorScheme.surface
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             if (subtitle.isNotEmpty()) {

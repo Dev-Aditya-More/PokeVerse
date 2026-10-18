@@ -1167,4 +1167,26 @@
     <string name="feedback_wish_languages">Plus de langues</string>
     <string name="feedback_wish_widgets">Widgets</string>
     <string name="feedback_wish_other">Autre chose</string>
+    <string name="chase_biome_meadow">Prairie de Jadielle</string>
+    <string name="chase_biome_sunset">Route du Couchant</string>
+    <string name="chase_biome_hideout">Planque Rocket</string>
+    <string name="fact_scratch_hint">👆 Grattez la carte pour révéler l\'anecdote du jour</string>
+    <string name="fact_scratch_foil">GRATTEZ-MOI</string>
+    <string name="fact_reveal_a11y">Révéler l\'anecdote</string>
+    <string name="fact_streak">Série de %1$d jours</string>
+    <string name="fact_bonus">Anecdote bonus</string>
+    <string name="fact_react_new">🤯 Je savais pas !</string>
+    <string name="fact_react_knew">😎 Je savais</string>
+    <string name="fact_reacted_summary">Appris %1$d · Déjà su %2$d</string>
+    <string name="fact_another">Une autre</string>
+    <string name="fact_back_to_today">Celle du jour</string>
+    <string name="fact_share">Partager l\'anecdote</string>
+    <string name="fact_share_message">Le saviez-vous ? %1$s\n\nPlus d\'anecdotes Pokémon sur Dexverse : %2$s</string>
+    <string name="xp_daily_fact">Anecdote du jour</string>
+    <string name="profile_stat_total_xp">XP total</string>
+    <string name="profile_stat_games">Parties</string>
+    <string name="profile_stat_streak">Série</string>
+    <string name="profile_personal_bests">Records personnels</string>
+    <string name="profile_not_played">Pas encore joué</string>
+    <string name="profile_synced_as">Synchronisé · %1$s</string>
 </resources>

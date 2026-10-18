@@ -1181,4 +1181,26 @@
     <string name="feedback_wish_languages">Mais idiomas</string>
     <string name="feedback_wish_widgets">Widgets</string>
     <string name="feedback_wish_other">Outra coisa</string>
+    <string name="chase_biome_meadow">Campo de Viridian</string>
+    <string name="chase_biome_sunset">Rota do Pôr do Sol</string>
+    <string name="chase_biome_hideout">Esconderijo Rocket</string>
+    <string name="fact_scratch_hint">👆 Raspe o cartão para revelar o fato de hoje</string>
+    <string name="fact_scratch_foil">RASPE AQUI</string>
+    <string name="fact_reveal_a11y">Revelar fato</string>
+    <string name="fact_streak">Sequência de %1$d dias</string>
+    <string name="fact_bonus">Fato bônus</string>
+    <string name="fact_react_new">🤯 Não sabia!</string>
+    <string name="fact_react_knew">😎 Já sabia</string>
+    <string name="fact_reacted_summary">Aprendeu %1$d · Já sabia %2$d</string>
+    <string name="fact_another">Outro fato</string>
+    <string name="fact_back_to_today">O de hoje</string>
+    <string name="fact_share">Compartilhar fato</string>
+    <string name="fact_share_message">Você sabia? %1$s\n\nMais fatos Pokémon no Dexverse: %2$s</string>
+    <string name="xp_daily_fact">Fato do dia</string>
+    <string name="profile_stat_total_xp">XP total</string>
+    <string name="profile_stat_games">Jogos</string>
+    <string name="profile_stat_streak">Sequência</string>
+    <string name="profile_personal_bests">Recordes pessoais</string>
+    <string name="profile_not_played">Ainda não jogado</string>
+    <string name="profile_synced_as">Sincronizado · %1$s</string>
 </resources>

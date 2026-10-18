@@ -1,22 +1,19 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
-import com.aditya1875.pokeverse.R
-import androidx.compose.ui.res.stringResource
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,249 +26,148 @@ import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SportsEsports
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import kotlin.math.roundToInt
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
+import java.text.NumberFormat
 
+/** Total XP · games · streak in one slim strip (was three tall cards). */
 @Composable
 fun StatsSection(profile: UserProfile) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        AnimatedStatCard(
-            modifier = Modifier.weight(1f),
-            label = "Total XP",
-            value = profile.totalXp.toString(),
-            icon = Icons.Default.Star,
-            iconTint = Color(0xFFFFD700)
-        )
-        AnimatedStatCard(
-            modifier = Modifier.weight(1f),
-            label = "Games",
-            value = profile.gamesPlayed.toString(),
-            icon = Icons.Default.SportsEsports,
-            iconTint = MaterialTheme.colorScheme.primary
-        )
-        AnimatedStatCard(
-            modifier = Modifier.weight(1f),
-            label = "Streak",
-            value = stringResource(R.string.streak_days_short, profile.dailyStreak),
-            icon = Icons.Default.LocalFireDepartment,
-            iconTint = Color(0xFFFF6D00)
-        )
-    }
-}
-
-@Composable
-fun GameStatsSection(profile: UserProfile) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        GameStatRow(
-            icon = Icons.AutoMirrored.Filled.DirectionsRun,
-            title = stringResource(R.string.game_name_chase_title),
-            bestScore = profile.bestChaseScore,
-            accentColor = Color(0xFFFFD54F)
-        )
-        GameStatRow(
-            icon = Icons.Default.Bolt,
-            title = stringResource(R.string.game_name_survivor_title),
-            bestScore = profile.bestSurvivorScore,
-            accentColor = Color(0xFFFFC107)
-        )
-        GameStatRow(
-            icon = Icons.Default.RadioButtonUnchecked,
-            title = stringResource(R.string.game_name_wildcatch_title),
-            bestScore = profile.bestWildCatchScore,
-            accentColor = Color(0xFFE53935)
-        )
-
-        GameStatRow(
-            icon = Icons.Default.FlashOn,
-            title = stringResource(R.string.game_name_pokeduel_title),
-            bestScore = profile.bestDuelScore,
-            accentColor = Color(0xFFFF9800)
-        )
-        GameStatRow(
-            icon = Icons.Default.SportsEsports,
-            title = stringResource(R.string.typerush_game_title),
-            bestScore = profile.bestTypeRushScore,
-            accentColor = Color(0xFF3F51B5)
-        )
-        GameStatRow(
-            icon = Icons.Default.Quiz,
-            title = stringResource(R.string.game_name_pokequiz_title),
-            bestScore = profile.bestQuizScore,
-            accentColor = Color(0xFF2196F3)
-        )
-
-        GameStatRow(
-            icon = Icons.Default.GridView,
-            title = stringResource(R.string.game_name_pokematch_title),
-            bestScore = profile.bestMatchScore,
-            accentColor = Color(0xFF4CAF50)
-        )
-
-        GameStatRow(
-            icon = Icons.Default.Visibility,
-            title = stringResource(R.string.game_name_pokeguess_title),
-            bestScore = profile.bestGuessScore,
-            accentColor = Color(0xFF9C27B0)
-        )
-    }
-}
-@Composable
-fun GameStatRow(
-    icon: ImageVector,
-    title: String,
-    bestScore: Int,
-    accentColor: Color
-) {
-    // Count-up animation: start at 0, animate to bestScore on first composition
-    var scoreTarget by remember { mutableStateOf(0) }
-    LaunchedEffect(bestScore) { scoreTarget = bestScore }
-    val animatedScore by animateFloatAsState(
-        targetValue = scoreTarget.toFloat(),
-        animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing),
-        label = "score_counter"
-    )
-
-    Card(
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = accentColor.copy(alpha = 0.08f)),
-        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.22f)),
-        elevation = CardDefaults.cardElevation(0.dp)
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
+            Modifier.height(IntrinsicSize.Min).padding(vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(accentColor.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = accentColor,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
+            StripStat(Icons.Default.Star, Color(0xFFFFD54F), profile.totalXp, stringResource(R.string.profile_stat_total_xp), Modifier.weight(1f))
+            VerticalDivider(Modifier.fillMaxHeight().padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant)
+            StripStat(Icons.Default.SportsEsports, MaterialTheme.colorScheme.primary, profile.gamesPlayed, stringResource(R.string.profile_stat_games), Modifier.weight(1f))
+            VerticalDivider(Modifier.fillMaxHeight().padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant)
+            StripStat(Icons.Default.LocalFireDepartment, Color(0xFFFF8A3D), profile.dailyStreak, stringResource(R.string.profile_stat_streak), Modifier.weight(1f))
+        }
+    }
+}
 
-            Spacer(Modifier.width(12.dp))
+@Composable
+private fun StripStat(icon: ImageVector, tint: Color, value: Int, label: String, modifier: Modifier) {
+    val shown by countUp(value)
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(
+                NumberFormat.getIntegerInstance().format(shown),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
 
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = stringResource(R.string.profile_best_score),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+/** Counts up from 0 on first show, then animates to any new value. */
+@Composable
+private fun countUp(target: Int) = run {
+    var start by remember { mutableIntStateOf(0) }
+    LaunchedEffect(target) { start = target }
+    animateIntAsState(start, tween(900, easing = FastOutSlowInEasing), label = "count")
+}
 
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = if (bestScore > 0) animatedScore.roundToInt().toString() else "—",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Black,
-                    color = accentColor
-                )
-                if (bestScore > 0) {
-                    Text(
-                        text = "pts",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = accentColor.copy(alpha = 0.7f),
-                        fontSize = 10.sp
-                    )
-                }
+private data class GameBest(val icon: ImageVector, val title: Int, val score: Int, val color: Color)
+
+/** Personal bests as a compact two-column grid, played games first. */
+@Composable
+fun GameStatsSection(profile: UserProfile) {
+    val games = listOf(
+        GameBest(Icons.AutoMirrored.Filled.DirectionsRun, R.string.game_name_chase_title, profile.bestChaseScore, Color(0xFFFFD54F)),
+        GameBest(Icons.Default.Bolt, R.string.game_name_survivor_title, profile.bestSurvivorScore, Color(0xFFFFC107)),
+        GameBest(Icons.Default.RadioButtonUnchecked, R.string.game_name_wildcatch_title, profile.bestWildCatchScore, Color(0xFFEF5350)),
+        GameBest(Icons.Default.FlashOn, R.string.game_name_pokeduel_title, profile.bestDuelScore, Color(0xFFFF9800)),
+        GameBest(Icons.Default.SportsEsports, R.string.typerush_game_title, profile.bestTypeRushScore, Color(0xFF7986CB)),
+        GameBest(Icons.Default.Quiz, R.string.game_name_pokequiz_title, profile.bestQuizScore, Color(0xFF42A5F5)),
+        GameBest(Icons.Default.GridView, R.string.game_name_pokematch_title, profile.bestMatchScore, Color(0xFF66BB6A)),
+        GameBest(Icons.Default.Visibility, R.string.game_name_pokeguess_title, profile.bestGuessScore, Color(0xFFBA68C8))
+    ).sortedByDescending { it.score > 0 }
+    val topScore = games.maxOf { it.score }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            "🏆 " + stringResource(R.string.profile_personal_bests),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        games.chunked(2).forEach { row ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                row.forEach { BestTile(it, isTop = topScore > 0 && it.score == topScore, modifier = Modifier.weight(1f)) }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
     }
 }
 
 @Composable
-fun AnimatedStatCard(
-    modifier: Modifier = Modifier,
-    label: String,
-    value: String,
-    icon: ImageVector,
-    iconTint: Color = MaterialTheme.colorScheme.primary
-) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = iconTint.copy(alpha = 0.1f)
-        ),
-        border = BorderStroke(1.dp, iconTint.copy(alpha = 0.18f)),
-        elevation = CardDefaults.cardElevation(0.dp)
+private fun BestTile(game: GameBest, isTop: Boolean, modifier: Modifier) {
+    val played = game.score > 0
+    val shown by countUp(game.score)
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = game.color.copy(alpha = if (played) 0.1f else 0.04f),
+        border = BorderStroke(1.dp, game.color.copy(alpha = if (isTop) 0.7f else if (played) 0.25f else 0.1f)),
+        modifier = modifier
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(22.dp)
-            )
-
-            // Animated value — slides up when it increments
-            AnimatedContent(
-                targetState = value,
-                transitionSpec = {
-                    slideInVertically { it } togetherWith slideOutVertically { -it }
-                },
-                label = "statValue"
-            ) { v ->
+        Row(Modifier.padding(horizontal = 10.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier.size(32.dp).clip(RoundedCornerShape(10.dp)).background(game.color.copy(alpha = if (played) 0.22f else 0.08f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(game.icon, contentDescription = null, tint = game.color.copy(alpha = if (played) 1f else 0.5f), modifier = Modifier.size(18.dp))
+            }
+            Spacer(Modifier.width(8.dp))
+            Column(Modifier.weight(1f)) {
                 Text(
-                    text = v,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Black,
-                    fontSize = 18.sp
+                    stringResource(game.title),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (played) 1f else 0.6f)
+                )
+                Text(
+                    if (played) (if (isTop) "👑 " else "") + NumberFormat.getIntegerInstance().format(shown)
+                    else stringResource(R.string.profile_not_played),
+                    style = if (played) MaterialTheme.typography.titleSmall else MaterialTheme.typography.labelSmall,
+                    fontWeight = if (played) FontWeight.Black else FontWeight.Normal,
+                    color = if (played) game.color else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = iconTint.copy(alpha = 0.75f)
-            )
         }
     }
 }

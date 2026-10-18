@@ -194,11 +194,6 @@ fun PremiumBottomSheet(
                         stringResource(R.string.premium_feature_hard_mode_subtitle)
                     )
                     BenefitRow(
-                        Icons.Default.CatchingPokemon,
-                        stringResource(R.string.premium_feature_items_title),
-                        stringResource(R.string.premium_feature_items_subtitle)
-                    )
-                    BenefitRow(
                         Icons.Default.Palette,
                         stringResource(R.string.premium_feature_themes_title),
                         stringResource(R.string.premium_feature_themes_subtitle)

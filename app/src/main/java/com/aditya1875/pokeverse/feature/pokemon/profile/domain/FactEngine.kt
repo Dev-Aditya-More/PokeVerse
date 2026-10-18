@@ -35,6 +35,12 @@ object FactEngine {
         return facts[factIndex]
     }
 
+    /** A random fact other than [exclude], for the "another one" button. */
+    fun randomFact(context: Context, exclude: PokemonFact?): PokemonFact {
+        val facts = loadFacts(context).filter { it != exclude }
+        return facts.randomOrNull() ?: fallback
+    }
+
     private fun loadFacts(context: Context): List<PokemonFact> {
         cachedFacts?.let { return it }
         return try {

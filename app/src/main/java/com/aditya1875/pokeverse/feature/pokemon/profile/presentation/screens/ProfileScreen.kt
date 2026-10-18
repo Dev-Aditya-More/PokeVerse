@@ -14,11 +14,9 @@ import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOv
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.FactOfTheDayCard
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.GameStatsSection
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.GuestLoginCard
-import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.ProfileActions
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.ProfileHeader
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.SignedInCard
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.StatsSection
-import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.XPProgress
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.aditya1875.pokeverse.utils.rememberAdaptiveHPaddingProfile
@@ -73,22 +71,23 @@ fun ProfileScreen(
                 photoUploading = photoUploading,
                 onEditPhoto = {
                     if (!photoUploading) imagePicker.launch("image/*")
-                }
+                },
+                onSettingsClick = onSettingsClick
             )
-            if (authState is AuthState.Authenticated) {
-                Spacer(Modifier.height(16.dp))
-                XPProgress(profile = profile)
-            }
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
 
             // ── Scrollable section: account cards + stats + actions ────────
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                item { FactOfTheDayCard() }
+                if (!profile.isGuest) {
+                    item { StatsSection(profile = profile) }
+                }
+
+                item { FactOfTheDayCard(onRevealed = viewModel::claimDailyFactXp) }
 
                 if (profile.isGuest && authState !is AuthState.Authenticated) {
                     item { GuestLoginCard() }
@@ -103,13 +102,7 @@ fun ProfileScreen(
                     }
                 }
 
-                if (!profile.isGuest) {
-                    item { StatsSection(profile = profile) }
-                }
-
                 item { GameStatsSection(profile = profile) }
-
-                item { ProfileActions(onSettingsClick = onSettingsClick) }
 
                 item { Spacer(Modifier.height(24.dp)) }
             }
