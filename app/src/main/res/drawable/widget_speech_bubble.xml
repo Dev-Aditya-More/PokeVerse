@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pikachu's speech bubble: rounded body with a small tail pointing down-right toward Pikachu. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:bottom="5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="12dp" />
+            <solid android:color="#F2FFFFFF" />
+        </shape>
+    </item>
+    <item android:gravity="bottom|end" android:end="14dp" android:width="10dp" android:height="10dp">
+        <rotate android:fromDegrees="45" android:pivotX="50%" android:pivotY="50%">
+            <shape android:shape="rectangle">
+                <solid android:color="#F2FFFFFF" />
+            </shape>
+        </rotate>
+    </item>
+</layer-list>
