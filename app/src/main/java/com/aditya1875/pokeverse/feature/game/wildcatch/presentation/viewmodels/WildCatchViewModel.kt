@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -27,7 +28,8 @@ class WildCatchViewModel(
     private val repo: PokemonDetailRepo,
     private val xpManager: XPManager,
     private val gameScoreDao: GameScoreDao,
-    private val userRepository: UserProfileRepository
+    private val userRepository: UserProfileRepository,
+    private val pokedex: PokedexRepository
 ) : ViewModel() {
 
     companion object {
@@ -91,6 +93,7 @@ class WildCatchViewModel(
         if (caught) {
             catches++
             currentStreak++
+            viewModelScope.launch { pokedex.markCaught(state.pokemon.id) }
             currentScore += 100 + accuracy.scoreBonus
             // Recover a life every STREAK_FOR_LIFE consecutive catches
             if (currentStreak % STREAK_FOR_LIFE == 0 && currentLives < MAX_LIVES) {

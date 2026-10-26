@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.PrivacyTip
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.StarRate
@@ -330,6 +331,28 @@ fun SettingsScreen(
                 ) {
                     Text(
                         stringResource(R.string.settings_original_assets_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                val mysterySilhouettes by settingsViewModel.mysterySilhouettes.collectAsStateWithLifecycle()
+                var isMysteryExpanded by remember { mutableStateOf(false) }
+                SettingsCard(
+                    title = stringResource(R.string.settings_mystery),
+                    icon = Icons.Default.Visibility,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = isMysteryExpanded,
+                    onExpandToggle = { isMysteryExpanded = !isMysteryExpanded },
+                    trailing = {
+                        ResponsiveMetaballSwitch(
+                            checked = mysterySilhouettes,
+                            onCheckedChange = { settingsViewModel.setMysterySilhouettes(it) }
+                        )
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.settings_mystery_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )

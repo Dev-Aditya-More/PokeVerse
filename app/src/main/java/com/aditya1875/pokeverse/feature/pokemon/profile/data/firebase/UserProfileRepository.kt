@@ -28,6 +28,9 @@ class UserProfileRepository(private val context: Context) {
         val UID = stringPreferencesKey("uid")
         val USERNAME = stringPreferencesKey("username")
         val BIO = stringPreferencesKey("bio")
+        val FAVORITE_TYPE = stringPreferencesKey("favorite_type")
+        val PLAY_STYLE = stringPreferencesKey("play_style")
+        val STARTER = stringPreferencesKey("starter")
         val TOTAL_XP = intPreferencesKey("total_xp")
 
         val WEEKLY_XP = intPreferencesKey("weekly_xp")
@@ -73,6 +76,9 @@ class UserProfileRepository(private val context: Context) {
             uid = p[K.UID] ?: "guest",
             username = p[K.USERNAME] ?: "Trainer",
             bio = p[K.BIO] ?: "",
+            favoriteType = p[K.FAVORITE_TYPE] ?: "",
+            playStyle = p[K.PLAY_STYLE] ?: "",
+            starter = p[K.STARTER] ?: "",
             totalXp = totalXp,
             // Weekly XP from before the Monday 00:00 IST boundary belongs to last week
             weeklyXp = if (WeeklyReset.isStale(lastWeeklyReset)) 0 else (p[K.WEEKLY_XP] ?: 0),
@@ -115,6 +121,9 @@ class UserProfileRepository(private val context: Context) {
             p[K.UID] = profile.uid
             p[K.USERNAME] = profile.username
             p[K.BIO] = profile.bio
+            p[K.FAVORITE_TYPE] = profile.favoriteType
+            p[K.PLAY_STYLE] = profile.playStyle
+            p[K.STARTER] = profile.starter
             p[K.TOTAL_XP] = profile.totalXp
             p[K.WEEKLY_XP] = profile.weeklyXp
             p[K.LAST_WEEKLY_RESET] = profile.lastWeeklyReset

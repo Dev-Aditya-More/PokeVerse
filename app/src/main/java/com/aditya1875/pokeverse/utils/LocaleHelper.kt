@@ -1,6 +1,7 @@
 package com.aditya1875.pokeverse.utils
 
 import android.content.Context
+import android.content.res.Configuration
 import java.util.Locale
 import androidx.core.content.edit
 
@@ -34,12 +35,13 @@ object LocaleHelper {
     }
 
     fun applyLocale(context: Context): Context {
-        val lang = getSelectedLanguage(context)
-        if (lang == LANG_ENGLISH) return context
-        val locale = Locale.forLanguageTag(lang)
+        val locale = Locale.forLanguageTag(getSelectedLanguage(context))
         Locale.setDefault(locale)
-        val config = context.resources.configuration
+        // Copy: mutating the shared Configuration leaks the locale into the base context,
+        // and English must be applied explicitly or a non-English device locale wins.
+        val config = Configuration(context.resources.configuration)
         config.setLocale(locale)
+        config.setLayoutDirection(locale)
         return context.createConfigurationContext(config)
     }
 }

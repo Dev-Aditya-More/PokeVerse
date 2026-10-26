@@ -1189,4 +1189,64 @@
     <string name="profile_personal_bests">सर्वश्रेष्ठ स्कोर</string>
     <string name="profile_not_played">अभी नहीं खेला</string>
     <string name="profile_synced_as">सिंक हुआ · %1$s</string>
+
+    <!-- Trainer Card + Coach's Read -->
+    <string name="tc_intro">Hello Trainer! Pokémon की दुनिया में welcome है! सफ़र शुरू करने से पहले, चलो तुम्हारा Trainer Card भरते हैं।</string>
+    <string name="tc_ask_name">सबसे पहले: तुम्हारा नाम क्या है?</string>
+    <string name="tc_ask_type">%1$s! क्या बढ़िया नाम है। हर Trainer का एक favorite type होता है। तुम्हारा कौन सा है?</string>
+    <string name="tc_ask_style">%1$s के fan! और तुम कैसे खेलना पसंद करते हो?</string>
+    <string name="tc_ask_phrase">आख़िरी सवाल! हर Trainer का एक catchphrase होना चाहिए। जीतने पर तुम क्या बोलते हो?</string>
+    <string name="tc_done_line">Perfect! ये रहा तुम्हारा Trainer Card, %1$s। तुम्हारा adventure अब शुरू होता है!</string>
+    <string name="tc_next">आगे</string>
+    <string name="tc_back">पीछे</string>
+    <string name="tc_confirm">मेरा सफ़र शुरू करो</string>
+    <string name="tc_confirm_edit">मेरा सफ़र जारी रखो</string>
+    <string name="tc_close">बंद करो</string>
+    <string name="tc_card_title">Trainer Card</string>
+    <string name="tc_style_catcher">Catcher</string>
+    <string name="tc_style_catcher_desc">मुझे सबको पकड़ना है</string>
+    <string name="tc_style_battler">Battler</string>
+    <string name="tc_style_battler_desc">Strategy और मुक़ाबले मेरा काम हैं</string>
+    <string name="tc_style_collector">Collector</string>
+    <string name="tc_style_collector_desc">Shiny, favorites और पूरा Dex</string>
+    <string name="tc_style_scholar">Scholar</string>
+    <string name="tc_style_scholar_desc">मुझे stats, types और lore पसंद हैं</string>
+    <string name="tc_phrase_1">मैं तुम्हें चुनता हूँ!</string>
+    <string name="tc_phrase_2">चलो partner!</string>
+    <string name="tc_phrase_3">कभी पीछे नहीं हटना!</string>
+    <string name="tc_phrase_4">बस एक और catch, फिर सोना है।</string>
+    <string name="tc_phrase_5">Type advantage मेरी life है।</string>
+    <string name="tc_phrase_6">तुम तैयार हो तो मैं भी।</string>
+    <string name="tc_phrase_own">अपना ख़ुद लिखो</string>
+    <string name="tc_phrase_own_hint">तुम्हारा catchphrase</string>
+    <string name="tc_phrase_count">%1$d/%2$d</string>
+    <string name="coach_title">Coach की राय</string>
+    <string name="coach_subtitle">तुम्हारी Team पर एक पर्सनल राय</string>
+    <string name="coach_ask">Coach से पूछो</string>
+    <string name="coach_left">आज %1$d बचे हैं</string>
+    <string name="coach_loading">Coach तुम्हारी Team को देख रहा है…</string>
+    <string name="coach_limit">आज की सारी Coach reads इस्तेमाल हो गईं। कल फिर आना!</string>
+    <string name="coach_error">Coach से connect नहीं हो पाया। Internet check करो और फिर try करो।</string>
+    <string name="coach_retry">फिर try करो</string>
+    <string name="coach_disclaimer">AI से बना है। ऊपर के scores और type matchups सही हैं; सलाह बस एक दूसरी राय है।</string>
+
+    <!-- Professor intro -->
+    <string name="pro_hello_1">Hello! Pokémon की दुनिया में welcome है!</string>
+    <string name="pro_hello_2">मेरा नाम Professor Dex है। लोग मुझे Pokémon Professor बुलाते हैं!</string>
+    <string name="pro_hello_3">ये दुनिया Pokémon नाम के जीवों से भरी है। कुछ दोस्त हैं, कुछ rivals, और तुम इन सबसे मिलने वाले हो।</string>
+    <string name="pro_ask_name">लेकिन पहले, अपने बारे में बताओ। तुम्हारा नाम क्या है?</string>
+    <string name="pro_ask_starter">Welcome, %1$s! अब चुनने का वक़्त है अपना पहला partner। कौन सा होगा?</string>
+    <string name="pro_confirm_starter">%1$s, %2$s-type Pokémon! बढ़िया choice। पक्का?</string>
+    <string name="pro_finale">%1$s, तुम्हारा Pokémon adventure अब शुरू होता है! जाओ और सबको पकड़ लो!</string>
+    <string name="pro_skip">Skip करो</string>
+    <string name="pro_yes">हाँ!</string>
+    <string name="pro_begin">चलो!</string>
+
+    <!-- Pokédex progress -->
+    <string name="dex_title">Pokédex</string>
+    <string name="dex_seen">देखे</string>
+    <string name="dex_caught">पकड़े</string>
+    <string name="dex_new_entry">Pokédex में नई entry दर्ज हुई!</string>
+    <string name="settings_mystery">Mystery silhouettes</string>
+    <string name="settings_mystery_desc">जो Pokémon तुमने अभी नहीं देखे, उन्हें खोलने तक silhouette में दिखाओ।</string>
 </resources>

@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.screens
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.DexProgressStrip
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexViewModel
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
@@ -32,6 +34,8 @@ fun ProfileScreen(
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
     val photoUploading by viewModel.photoUploading.collectAsStateWithLifecycle()
+    val dexViewModel: PokedexViewModel = koinViewModel()
+    val dexProgress by dexViewModel.progress.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
 
@@ -86,6 +90,8 @@ fun ProfileScreen(
                 if (!profile.isGuest) {
                     item { StatsSection(profile = profile) }
                 }
+
+                item { DexProgressStrip(dexProgress) }
 
                 item { FactOfTheDayCard(onRevealed = viewModel::claimDailyFactXp) }
 

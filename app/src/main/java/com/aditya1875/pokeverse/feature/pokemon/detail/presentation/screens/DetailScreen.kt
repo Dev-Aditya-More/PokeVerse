@@ -1,5 +1,13 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens
 
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
+import androidx.compose.runtime.setValue
+import com.aditya1875.pokeverse.feature.pokemon.dex.DexEntryBanner
+import com.aditya1875.pokeverse.utils.SoundManager
+import kotlinx.coroutines.delay
+import org.koin.compose.koinInject
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -49,6 +57,17 @@ fun PokemonDetailScreen(
 
     val spriteEffectsEnabledState = remember { mutableStateOf(false) }
 
+    val sound: SoundManager = koinInject()
+    var showNewEntry by remember { mutableStateOf(false) }
+    LaunchedEffect(viewModel) {
+        viewModel.newEntry.collect {
+            sound.play(SoundManager.Sound.MATCH_FOUND)
+            showNewEntry = true
+            delay(2400)
+            showNewEntry = false
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -59,6 +78,10 @@ fun PokemonDetailScreen(
             specialEffectsEnabled = specialEffectsEnabled,
             spriteEffectsEnabledState = spriteEffectsEnabledState,
             settingsViewModel = settingsViewModel
+        )
+        DexEntryBanner(
+            visible = showNewEntry,
+            modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top = 8.dp)
         )
     }
 }

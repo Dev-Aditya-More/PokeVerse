@@ -60,6 +60,7 @@ import com.aditya1875.pokeverse.feature.analysis.presentation.components.ErrorVi
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.LoadingView
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamAnalysis
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamAnalyzer
+import com.aditya1875.pokeverse.feature.analysis.presentation.viewmodels.TeamCoachViewModel
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamMemberWithTypes
 import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels.PokemonDetailsViewModel
@@ -84,8 +85,11 @@ fun TeamAnalysisScreen(
     navController: NavController,
     viewModel: TeamViewModel = koinViewModel(),
     pokemonDetailsViewModel: PokemonDetailsViewModel = koinViewModel(),
+    coachViewModel: TeamCoachViewModel = koinViewModel(),
     teamId: String? = null
 ) {
+    val coachState by coachViewModel.state.collectAsStateWithLifecycle()
+
     val billingManager: IBillingManager = koinInject()
     val subscriptionState by billingManager.subscriptionState.collectAsState()
     val isPremium = subscriptionState is SubscriptionState.Premium
@@ -165,6 +169,7 @@ fun TeamAnalysisScreen(
 
             teamWithTypes = withTypes
             analysis = TeamAnalyzer.analyzeTeam(withTypes)
+            coachViewModel.load(withTypes)
 
             Log.d("TeamAnalysis", "Analysis complete: score=${analysis?.coverageScore}")
 
@@ -228,7 +233,9 @@ fun TeamAnalysisScreen(
 
                 analysis != null -> AnalysisContent(
                     analysis = analysis!!,
-                    teamWithTypes = teamWithTypes
+                    teamWithTypes = teamWithTypes,
+                    coachState = coachState,
+                    onAskCoach = { coachViewModel.ask(teamWithTypes, analysis!!) }
                 )
             }
         }

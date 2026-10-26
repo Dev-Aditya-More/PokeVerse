@@ -33,6 +33,8 @@ import org.koin.dsl.module
 import com.aditya1875.pokeverse.feature.dexmode.presentation.DexModeViewModel
 import com.aditya1875.pokeverse.feature.referral.presentation.ReferralViewModel
 import com.aditya1875.pokeverse.feature.feedback.presentation.FeedbackViewModel
+import com.aditya1875.pokeverse.feature.analysis.presentation.viewmodels.TeamCoachViewModel
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexViewModel
 
 val viewModelModule = module {
 
@@ -63,6 +65,8 @@ val viewModelModule = module {
     viewModelOf(::DexModeViewModel)
     viewModelOf(::ReferralViewModel)
     viewModelOf(::FeedbackViewModel)
+    viewModelOf(::TeamCoachViewModel)
+    viewModelOf(::PokedexViewModel)
     // TODO(friends): re-add when the feature ships
     // viewModelOf(::FriendsViewModel)
     viewModelOf(::BadgesViewModel)

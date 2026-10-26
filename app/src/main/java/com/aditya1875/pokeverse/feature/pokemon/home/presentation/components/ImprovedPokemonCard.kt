@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokeBallIcon
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.model.PokemonResult
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
@@ -74,7 +75,9 @@ fun ImprovedPokemonCard(
     onRemoveFromFavorites: () -> Unit,
     onClick: () -> Unit,
     isAssetEnabled: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    seen: Boolean = true,
+    caught: Boolean = false
 ) {
     val pokemonId = remember(pokemon.url) {
         pokemon.url.trimEnd('/')
@@ -164,7 +167,7 @@ fun ImprovedPokemonCard(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                if(!isAssetEnabled) {
+                if (!isAssetEnabled || !seen) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(spriteUrl)
@@ -193,6 +196,9 @@ fun ImprovedPokemonCard(
                             .size(64.dp),
                         contentScale = ContentScale.Fit
                     )
+                }
+                if (caught) {
+                    PokeBallIcon(Modifier.align(Alignment.BottomEnd).padding(4.dp).size(16.dp))
                 }
             }
 

@@ -68,7 +68,7 @@ import com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens.HomeSc
 import com.aditya1875.pokeverse.feature.battlestats.presentation.screens.StandaloneStatCalculatorScreen
 import com.aditya1875.pokeverse.feature.compare.presentation.screens.ComparePokemonScreen
 import com.aditya1875.pokeverse.feature.facematch.presentation.FaceMatchScreen
-import com.aditya1875.pokeverse.feature.pokemon.onboarding.IntroScreen
+import com.aditya1875.pokeverse.feature.pokemon.onboarding.ProfessorIntroScreen
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.EditProfileDialog
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.screens.ProfileScreen
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.screens.SettingsScreen
@@ -204,7 +204,7 @@ fun AppNavGraph(
             }
 
             composable(Route.Onboarding.route) {
-                IntroScreen(navController)
+                ProfessorIntroScreen(navController)
             }
 
             composable(Route.BottomBar.Home.route) {

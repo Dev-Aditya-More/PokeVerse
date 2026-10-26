@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.aditya1875.pokeverse.feature.analysis.presentation.viewmodels.CoachUiState
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.AMBER
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.BG
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisColors.GREEN
@@ -20,7 +21,9 @@ import com.aditya1875.pokeverse.feature.analysis.presentation.screens.AnalysisCo
 @Composable
 fun AnalysisContent(
     analysis: TeamAnalysis,
-    teamWithTypes: List<TeamMemberWithTypes>
+    teamWithTypes: List<TeamMemberWithTypes>,
+    coachState: CoachUiState,
+    onAskCoach: () -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BG),
@@ -30,6 +33,8 @@ fun AnalysisContent(
         item { ScoreHeroCard(score = analysis.coverageScore) }
 
         item { QuickStatsRow(analysis = analysis, teamSize = teamWithTypes.size) }
+
+        item { CoachReadCard(state = coachState, onAsk = onAskCoach) }
 
         if (analysis.strengths.isNotEmpty()) {
             item { InsightCard(

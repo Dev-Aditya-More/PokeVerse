@@ -235,6 +235,8 @@ dependencies {
     add("playImplementation", libs.firebase.database)
     add("playImplementation", libs.firebase.functions)
     add("playImplementation", libs.firebase.storage)
+    // Gemini Flash via Firebase AI Logic — powers the team "Coach's Read" (no API key in the app)
+    add("playImplementation", libs.firebase.ai)
 
     add("playImplementation", libs.play.services.auth)
     add("playImplementation", libs.play.services.ads)

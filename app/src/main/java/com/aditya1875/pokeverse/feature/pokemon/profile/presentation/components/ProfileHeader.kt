@@ -54,6 +54,11 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.feature.pokemon.onboarding.Starter
+import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
+import com.aditya1875.pokeverse.utils.localizedTypeName
+import com.aditya1875.pokeverse.utils.pokemonTypeColor
 import com.google.firebase.auth.FirebaseUser
 import org.koin.compose.viewmodel.koinViewModel
 import androidx.compose.foundation.Canvas
@@ -73,14 +78,14 @@ fun ProfileHeader(
     onEditPhoto: () -> Unit,
     photoUploading: Boolean = false,
     onSettingsClick: (() -> Unit)? = null,
-    viewModel: ProfileViewModel = koinViewModel()
+    viewModel: ProfileViewModel = koinViewModel(),
+    settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
+    val assetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
     var prevLevel by remember { mutableIntStateOf(profile.level) }
     var levelChanged by remember { mutableStateOf(false) }
 
-    var showNameDialog by remember { mutableStateOf(false) }
-    var nameInput by remember { mutableStateOf(profile.username) }
-    var bioInput by remember { mutableStateOf(profile.bio) }
+    var showTrainerCard by remember { mutableStateOf(false) }
 
     LaunchedEffect(profile.level) {
         if (profile.level != prevLevel) {
@@ -89,53 +94,11 @@ fun ProfileHeader(
         }
     }
 
-    if (showNameDialog) {
-        AlertDialog(
-            onDismissRequest = { showNameDialog = false },
-            title = { Text(stringResource(R.string.profile_edit_display_name)) },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = nameInput,
-                        onValueChange = { nameInput = it },
-                        label = { Text(stringResource(R.string.profile_name_label)) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            capitalization = KeyboardCapitalization.Words,
-                            imeAction = ImeAction.Done
-                        )
-                    )
-                    Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = bioInput,
-                        onValueChange = { bioInput = it.take(60) },
-                        label = { Text(stringResource(R.string.profile_bio_label)) },
-                        placeholder = { Text(stringResource(R.string.profile_bio_placeholder)) },
-                        maxLines = 2,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = stringResource(R.string.profile_bio_count, bioInput.length),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                        modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (nameInput.isNotBlank()) {
-                            viewModel.updateUsername(nameInput.trim())
-                        }
-                        viewModel.updateBio(bioInput)
-                        showNameDialog = false
-                    }
-                ) { Text(stringResource(R.string.action_save)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { showNameDialog = false }) { Text(stringResource(R.string.cancel)) }
-            }
+    if (showTrainerCard) {
+        TrainerCardSetup(
+            profile = profile,
+            onSave = viewModel::saveTrainerCard,
+            onDismiss = { showTrainerCard = false }
         )
     }
 
@@ -175,7 +138,7 @@ fun ProfileHeader(
                 .size(74.dp)
                 .clip(CircleShape)
                 .background(
-                    if (profile.photoUrl.isNotEmpty() || currentUser?.photoUrl != null)
+                    if (profile.photoUrl.isNotEmpty() || currentUser?.photoUrl != null || (assetsEnabled && profile.starter.isNotEmpty()))
                         Color.Transparent
                     else
                         MaterialTheme.colorScheme.surfaceVariant
@@ -194,6 +157,8 @@ fun ProfileHeader(
             val photo = when {
                 profile.photoUrl.isNotEmpty() -> profile.photoUrl
                 currentUser?.photoUrl != null -> currentUser.photoUrl.toString()
+                // Franchise art only when Original Assets is on; otherwise the initial, as before.
+                assetsEnabled -> Starter.fromId(profile.starter)?.artworkUrl
                 else -> null
             }
 
@@ -253,11 +218,7 @@ fun ProfileHeader(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.clickable {
-                    nameInput = profile.username
-                    bioInput = profile.bio
-                    showNameDialog = true
-                }
+                modifier = Modifier.clickable { showTrainerCard = true }
             ) {
                 Text(
                     text = profile.username,
@@ -279,11 +240,7 @@ fun ProfileHeader(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.clickable {
-                    nameInput = profile.username
-                    bioInput = profile.bio
-                    showNameDialog = true
-                }
+                modifier = Modifier.clickable { showTrainerCard = true }
             ) {
                 Text(
                     text = profile.bio.ifBlank { stringResource(R.string.profile_bio_empty_hint) },
@@ -293,6 +250,18 @@ fun ProfileHeader(
                 )
                 if (profile.bio.isBlank()) {
                     NewBadge()
+                }
+            }
+
+            val style = PlayStyle.fromId(profile.playStyle)
+            if (profile.favoriteType.isNotEmpty() || style != null) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (profile.favoriteType.isNotEmpty()) {
+                        TrainerChip(localizedTypeName(profile.favoriteType), pokemonTypeColor(profile.favoriteType))
+                    }
+                    if (style != null) {
+                        TrainerChip("${style.emoji} ${stringResource(style.label)}", MaterialTheme.colorScheme.primary)
+                    }
                 }
             }
 

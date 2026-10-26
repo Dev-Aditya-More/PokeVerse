@@ -1202,4 +1202,64 @@
     <string name="profile_personal_bests">Personal bests</string>
     <string name="profile_not_played">Not played yet</string>
     <string name="profile_synced_as">Synced · %1$s</string>
+
+    <!-- Trainer Card + Coach's Read -->
+    <string name="tc_intro">Hello there, Trainer! Welcome to the world of Pokémon! Before your journey begins, let\'s fill out your Trainer Card.</string>
+    <string name="tc_ask_name">First things first: what is your name?</string>
+    <string name="tc_ask_type">%1$s! What a great name. Every Trainer has a favorite type. What\'s yours?</string>
+    <string name="tc_ask_style">A %1$s fan! And how do you like to play?</string>
+    <string name="tc_ask_phrase">Last one! Every Trainer needs a catchphrase. What do you say when you win?</string>
+    <string name="tc_done_line">Perfect! Here is your Trainer Card, %1$s. Your adventure starts now!</string>
+    <string name="tc_next">Next</string>
+    <string name="tc_back">Back</string>
+    <string name="tc_confirm">Start my journey</string>
+    <string name="tc_confirm_edit">Continue my journey</string>
+    <string name="tc_close">Close</string>
+    <string name="tc_card_title">Trainer Card</string>
+    <string name="tc_style_catcher">Catcher</string>
+    <string name="tc_style_catcher_desc">I want to catch them all</string>
+    <string name="tc_style_battler">Battler</string>
+    <string name="tc_style_battler_desc">Strategy and showdowns are my thing</string>
+    <string name="tc_style_collector">Collector</string>
+    <string name="tc_style_collector_desc">Shinies, favorites and a full Dex</string>
+    <string name="tc_style_scholar">Scholar</string>
+    <string name="tc_style_scholar_desc">I love stats, types and lore</string>
+    <string name="tc_phrase_1">I choose you!</string>
+    <string name="tc_phrase_2">Let\'s go, partner!</string>
+    <string name="tc_phrase_3">Never back down!</string>
+    <string name="tc_phrase_4">One more catch, then bed.</string>
+    <string name="tc_phrase_5">Type advantage is a lifestyle.</string>
+    <string name="tc_phrase_6">Ready when you are.</string>
+    <string name="tc_phrase_own">Write my own</string>
+    <string name="tc_phrase_own_hint">Your catchphrase</string>
+    <string name="tc_phrase_count">%1$d/%2$d</string>
+    <string name="coach_title">Coach\'s Read</string>
+    <string name="coach_subtitle">A personal take on your team</string>
+    <string name="coach_ask">Ask the Coach</string>
+    <string name="coach_left">%1$d left today</string>
+    <string name="coach_loading">The Coach is studying your team…</string>
+    <string name="coach_limit">You\'ve used all of today\'s Coach reads. Come back tomorrow!</string>
+    <string name="coach_error">The Coach couldn\'t be reached. Check your connection and try again.</string>
+    <string name="coach_retry">Try again</string>
+    <string name="coach_disclaimer">AI-generated. Scores and type matchups above are exact; the advice is a second opinion.</string>
+
+    <!-- Professor intro -->
+    <string name="pro_hello_1">Hello there! Welcome to the world of Pokémon!</string>
+    <string name="pro_hello_2">My name is Professor Dex. People call me the Pokémon Professor!</string>
+    <string name="pro_hello_3">This world is full of creatures called Pokémon. Some are friends, some are rivals, and you are about to meet them all.</string>
+    <string name="pro_ask_name">But first, tell me about yourself. What is your name?</string>
+    <string name="pro_ask_starter">Welcome, %1$s! Now it\'s time to choose your very first partner. Which will it be?</string>
+    <string name="pro_confirm_starter">%1$s, the %2$s-type Pokémon! A fine choice. Are you sure?</string>
+    <string name="pro_finale">%1$s, your Pokémon adventure begins now! Go out there and catch them all!</string>
+    <string name="pro_skip">Skip</string>
+    <string name="pro_yes">Yes!</string>
+    <string name="pro_begin">Let\'s go!</string>
+
+    <!-- Pokédex progress -->
+    <string name="dex_title">Pokédex</string>
+    <string name="dex_seen">Seen</string>
+    <string name="dex_caught">Caught</string>
+    <string name="dex_new_entry">New Pokédex entry registered!</string>
+    <string name="settings_mystery">Mystery silhouettes</string>
+    <string name="settings_mystery_desc">Show Pokémon you haven\'t seen yet as silhouettes until you open them.</string>
 </resources>

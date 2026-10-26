@@ -106,6 +106,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.feature.pokemon.dex.DexProgressStrip
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexViewModel
+import com.aditya1875.pokeverse.feature.pokemon.dex.pokemonIdFromUrl
 import androidx.navigation.NavHostController
 
 import com.aditya1875.pokeverse.R
@@ -225,6 +228,9 @@ fun SharedTransitionScope.HomeScreen(
     )
 
     val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
+    val mysteryMode by settingsViewModel.mysterySilhouettes.collectAsStateWithLifecycle()
+    val dexViewModel: PokedexViewModel = koinViewModel()
+    val dexProgress by dexViewModel.progress.collectAsStateWithLifecycle()
 
     var isSearchFocused by remember { mutableStateOf(false) }
 
@@ -990,6 +996,10 @@ fun SharedTransitionScope.HomeScreen(
                                             modifier = Modifier.fillMaxSize()
                                         ) {
 
+                                            item(key = "dex_progress", span = { GridItemSpan(maxLineSpan) }) {
+                                                DexProgressStrip(dexProgress)
+                                            }
+
                                             items(pokemonList, key = { it.name }) { pokemon ->
 
                                                 val isFavorite by favouriteViewModel
@@ -1000,8 +1010,19 @@ fun SharedTransitionScope.HomeScreen(
                                                     .isInAnyTeam(pokemon.name)
                                                     .collectAsStateWithLifecycle(false)
 
+                                                val dexId = pokemonIdFromUrl(pokemon.url)
+                                                val inDexSeen = dexId in dexProgress.seen
+                                                val inDexCaught = dexId in dexProgress.caught
+                                                // Whatever is already on a team / favourited counts, so the dex catches up as you browse.
+                                                LaunchedEffect(isInTeam, isFavorite, inDexSeen, inDexCaught) {
+                                                    if (isInTeam && !inDexCaught) dexViewModel.markCaught(dexId)
+                                                    else if (isFavorite && !inDexSeen) dexViewModel.markSeen(dexId)
+                                                }
+
                                                 ImprovedPokemonCard(
                                                     pokemon = pokemon,
+                                                    seen = !mysteryMode || inDexSeen || isInTeam || isFavorite,
+                                                    caught = inDexCaught || isInTeam,
                                                     isInTeam = isInTeam,
                                                     isInFavorites = isFavorite,
                                                     onAddToFavorites = {

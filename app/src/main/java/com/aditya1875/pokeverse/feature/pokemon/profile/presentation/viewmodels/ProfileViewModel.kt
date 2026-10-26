@@ -5,6 +5,8 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
+import com.aditya1875.pokeverse.feature.pokemon.onboarding.Starter
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
@@ -39,6 +41,7 @@ class ProfileViewModel(
     private val authManager: AuthManager,
     private val repository: UserProfileRepository,
     private val xpManager: XPManager,
+    private val pokedex: PokedexRepository,
 ) : ViewModel() {
 
     val userProfile: StateFlow<UserProfile> =
@@ -113,6 +116,9 @@ class ProfileViewModel(
                     else
                         cloudProfile.username,
                     photoUrl = local.photoUrl.ifEmpty { cloudProfile.photoUrl },
+                    favoriteType = local.favoriteType,
+                    playStyle = local.playStyle,
+                    starter = local.starter,
                     lastDailyXpDate = if (localDateIsNewer) local.lastDailyXpDate
                     else cloudProfile.lastDailyXpDate,
                     dailyStreak     = if (localDateIsNewer) local.dailyStreak
@@ -141,6 +147,38 @@ class ProfileViewModel(
             repository.saveProfile(updated)
             if (!updated.isGuest) repository.syncToFirestore(updated)
         }
+    }
+
+    /** One write for the whole Trainer Card, so name/bio/style never land half-updated. */
+    fun saveTrainerCard(name: String, favoriteType: String, playStyle: String, catchphrase: String) {
+        viewModelScope.launch {
+            val current = userProfile.value
+            val updated = current.copy(
+                username = name.trim().ifBlank { current.username },
+                favoriteType = favoriteType,
+                playStyle = playStyle,
+                bio = catchphrase.trim().take(60)
+            )
+            repository.saveProfile(updated)
+            if (!updated.isGuest) repository.syncToFirestore(updated)
+        }
+    }
+
+    /**
+     * Saves the professor-intro result. Suspends (rather than launching in viewModelScope) because the
+     * intro's nav entry is popped right after, which would cancel a launched write.
+     * The starter's type becomes the favorite type until the trainer picks their own.
+     */
+    suspend fun saveStarter(name: String, starter: Starter) {
+        val current = userProfile.value
+        val updated = current.copy(
+            username = name.trim().ifBlank { current.username },
+            starter = starter.id,
+            favoriteType = current.favoriteType.ifEmpty { starter.type }
+        )
+        repository.saveProfile(updated)
+        if (!updated.isGuest) repository.syncToFirestore(updated)
+        pokedex.markCaught(starter.dexId)
     }
 
     fun updateBestScore(game: String, score: Int) {
@@ -190,6 +228,9 @@ class ProfileViewModel(
                             photoUrl = userProfile.value.photoUrl.ifEmpty { result.user.photoUrl?.toString() ?: cloudProfile.photoUrl },
                             username = if (local.username.isCustomUsername()) local.username
                             else cloudProfile.username,
+                            favoriteType = local.favoriteType,
+                            playStyle = local.playStyle,
+                            starter = local.starter,
                             isGuest = false,
                             lastDailyXpDate = if (localDateIsNewer) local.lastDailyXpDate
                             else cloudProfile.lastDailyXpDate,

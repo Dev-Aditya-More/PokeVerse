@@ -4,6 +4,10 @@ data class UserProfile(
     val uid: String = "",
     val username: String = "Trainer",
     val bio: String = "",
+    // Trainer Card — device-local on purpose (not synced), so no Firestore rules change is needed.
+    val favoriteType: String = "",
+    val playStyle: String = "",
+    val starter: String = "",
     val level: Int = 1,
     val totalXp: Int = 0,
     val currentXp: Int = 0,

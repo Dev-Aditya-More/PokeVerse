@@ -2,6 +2,8 @@ package com.aditya1875.pokeverse.di
 
 import com.aditya1875.pokeverse.feature.game.cardclash.data.repository.CardClashRepository
 import com.aditya1875.pokeverse.feature.game.cardclash.data.repository.CardClashRepositoryImpl
+import com.aditya1875.pokeverse.feature.analysis.data.TeamCoach
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
 import com.aditya1875.pokeverse.feature.badges.domain.BadgeRepository
 import com.aditya1875.pokeverse.feature.characters.domain.CharacterRepository
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.battlestats.GoStatsRepository
@@ -19,6 +21,7 @@ import com.aditya1875.pokeverse.feature.pokemon.home.domain.repository.PokemonLi
 import com.aditya1875.pokeverse.feature.pokemon.home.domain.repository.PokemonSearchRepository
 import com.aditya1875.pokeverse.feature.pokemon.theme_selector.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.utils.TeamMapper
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 import com.aditya1875.pokeverse.feature.dexmode.data.DexModeStore
 import com.aditya1875.pokeverse.feature.referral.data.ReferralRepository
@@ -65,5 +68,9 @@ val repositoryModule = module {
     single<CardClashRepository> { CardClashRepositoryImpl(get()) }
 
     single { TeamMapper }
+
+    single { TeamCoach(androidContext()) }
+
+    single { PokedexRepository(androidContext()) }
 
 }

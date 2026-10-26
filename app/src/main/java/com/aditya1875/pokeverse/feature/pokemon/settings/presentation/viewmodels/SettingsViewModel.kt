@@ -67,6 +67,17 @@ class SettingsViewModel(
         }
     }
 
+    // Unseen Pokémon show as silhouettes on Home until opened (Pokédex progress). On by default.
+    private val MYSTERY_SILHOUETTES_KEY = booleanPreferencesKey("mystery_silhouettes")
+
+    val mysterySilhouettes: StateFlow<Boolean> = context.dataStore.data
+        .map { it[MYSTERY_SILHOUETTES_KEY] ?: true }
+        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, true)
+
+    fun setMysterySilhouettes(enabled: Boolean) {
+        viewModelScope.launch { context.dataStore.edit { it[MYSTERY_SILHOUETTES_KEY] = enabled } }
+    }
+
     // ── Popup state flows from DataStore ──────────────────────────────────────
     val assetsBannerSeen: StateFlow<Boolean> = context.dataStore.data
         .map { it[ASSETS_BANNER_SEEN] ?: false }

@@ -1,5 +1,9 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
@@ -24,8 +28,13 @@ class PokemonDetailsViewModel(
     private val getPokemonByNameUseCase: GetPokemonByNameUseCase,
     private val getEvolutionChainUiUseCase: GetEvolutionChainUiUseCase,
     private val descriptionRepo: DescriptionRepo,
-    private val xpManager: XPManager
+    private val xpManager: XPManager,
+    private val pokedex: PokedexRepository
 ) : ViewModel() {
+
+    /** Emits the dex number when this detail page registers a Pokémon for the first time. */
+    private val _newEntry = MutableSharedFlow<Int>(extraBufferCapacity = 1)
+    val newEntry: SharedFlow<Int> = _newEntry.asSharedFlow()
 
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
@@ -46,6 +55,9 @@ class PokemonDetailsViewModel(
                         flavorTextEntries = result.flavorTextEntries,
                         isLoading = false
                     )
+                }
+                if (runCatching { pokedex.markSeen(result.pokemon.id) }.getOrDefault(false)) {
+                    _newEntry.tryEmit(result.pokemon.id)
                 }
 
             } catch (e: IOException) {

@@ -93,6 +93,7 @@ firebase-messaging = { module = "com.google.firebase:firebase-messaging"}
 firebase-crashlytics = { module = "com.google.firebase:firebase-crashlytics" }
 firebase-functions = { module = "com.google.firebase:firebase-functions" }
 firebase-storage = { module = "com.google.firebase:firebase-storage" }
+firebase-ai = { module = "com.google.firebase:firebase-ai" }
 googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version.ref = "googleid" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 haze-jetpack-compose = { module = "dev.chrisbanes.haze:haze-jetpack-compose", version.ref = "hazeJetpackComposeVersion" }
