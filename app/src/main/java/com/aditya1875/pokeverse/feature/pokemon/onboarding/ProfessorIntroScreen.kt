@@ -1,8 +1,21 @@
 package com.aditya1875.pokeverse.feature.pokemon.onboarding
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
+import androidx.activity.compose.BackHandler
+import com.aditya1875.pokeverse.feature.core.ui.components.ForceDarkSystemBars
+import com.aditya1875.pokeverse.feature.core.ui.components.introBackground
+import com.aditya1875.pokeverse.feature.core.ui.components.onAccent
+import com.aditya1875.pokeverse.feature.core.ui.components.readableOnDark
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -15,6 +28,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +40,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -46,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -63,6 +79,7 @@ import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.core.ui.components.DialogueBox
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokeBallIcon
 import com.aditya1875.pokeverse.feature.core.ui.components.darkFieldColors
 import com.aditya1875.pokeverse.feature.core.ui.components.rememberTypewriter
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.TrainerChip
@@ -78,7 +95,6 @@ import org.koin.compose.viewmodel.koinViewModel
 
 private enum class IntroStep { HELLO_1, HELLO_2, HELLO_3, NAME, STARTER, CONFIRM, FINALE }
 
-private val InkBg = Color(0xFF0B0E17)
 private const val NAME_MAX = 16
 
 /**
@@ -91,6 +107,7 @@ fun ProfessorIntroScreen(
     profileViewModel: ProfileViewModel = koinViewModel(),
 ) {
     val sound: SoundManager = koinInject()
+    val pokedex: PokedexRepository = koinInject()
     val settingsViewModel: SettingsViewModel = koinViewModel()
     val assetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -135,6 +152,7 @@ fun ProfessorIntroScreen(
         if (finishing) return
         finishing = true
         scope.launch {
+            pokedex.ensureDefaultStarter() // skipping still leaves you with Pikachu
             ScreenStateManager.markIntroSeen(context)
             leave()
         }
@@ -164,11 +182,16 @@ fun ProfessorIntroScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(InkBg, accent.copy(alpha = 0.25f), InkBg)))
+            .introBackground(accent)
             .systemBarsPadding()
             .imePadding()
             .padding(horizontal = 20.dp, vertical = 12.dp),
     ) {
+        ForceDarkSystemBars()
+        // Back walks back through the dialogue; on the first line it falls through to the system.
+        val previousStep = IntroStep.entries.getOrNull(step.ordinal - 1)
+        BackHandler(enabled = previousStep != null && !finishing) { previousStep?.let { step = it } }
+
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             TextButton(onClick = ::skip) {
                 Text(stringResource(R.string.pro_skip), color = Color.White.copy(alpha = 0.6f))
@@ -190,10 +213,13 @@ fun ProfessorIntroScreen(
                 verticalArrangement = Arrangement.Center,
             ) {
                 // Choices wait for the line to finish typing, like the games.
-                AnimatedVisibility(visible = !typewriter.typing || current != step, enter = fadeIn()) {
+                AnimatedVisibility(
+                    visible = !typewriter.typing || current != step || current <= IntroStep.HELLO_3,
+                    enter = fadeIn()
+                ) {
                     when (current) {
                         IntroStep.HELLO_1, IntroStep.HELLO_2, IntroStep.HELLO_3 ->
-                            Text("🧑‍🔬", fontSize = 110.sp)
+                            ProfessorMascot(talking = typewriter.typing && current == step, accent = accent)
 
                         IntroStep.NAME -> OutlinedTextField(
                             value = name,
@@ -236,12 +262,20 @@ fun ProfessorIntroScreen(
         }
 
         Spacer(Modifier.height(10.dp))
+        Text(
+            "PROFESSOR DEX",
+            color = accent.readableOnDark(),
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Black,
+            letterSpacing = 2.sp,
+            modifier = Modifier.padding(start = 6.dp, bottom = 4.dp),
+        )
         DialogueBox(typewriter = typewriter, accent = accent)
         Spacer(Modifier.height(10.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             val prev = IntroStep.entries.getOrNull(step.ordinal - 1)
-            if (prev != null && step != IntroStep.FINALE) {
+            if (prev != null) {
                 TextButton(onClick = { step = prev }) {
                     Text(stringResource(R.string.tc_back), color = Color.White.copy(alpha = 0.7f))
                 }
@@ -251,7 +285,7 @@ fun ProfessorIntroScreen(
                 onClick = ::advance,
                 enabled = canAdvance && !typewriter.typing && !finishing,
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = Color.Black),
+                colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = accent.onAccent()),
             ) {
                 Text(
                     when (step) {
@@ -309,6 +343,45 @@ private fun StarterCard(
 /** Franchise artwork stays a silhouette until the user enables Original Assets, like everywhere else in the app. */
 private fun starterFilter(assetsEnabled: Boolean): ColorFilter? =
     if (assetsEnabled) null else ColorFilter.tint(Color.Black, BlendMode.SrcAtop)
+
+/**
+ * Stand-in for the professor: a Poké Ball that floats, glows, and rattles while he talks.
+ * Drawn in code, so it needs no franchise artwork and works with Original Assets off.
+ */
+@Composable
+private fun ProfessorMascot(talking: Boolean, accent: Color) {
+    val transition = rememberInfiniteTransition(label = "mascot")
+    val bob by transition.animateFloat(
+        initialValue = -8f, targetValue = 8f,
+        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "bob",
+    )
+    val chatter by transition.animateFloat(
+        initialValue = -9f, targetValue = 9f,
+        animationSpec = infiniteRepeatable(tween(240, easing = LinearEasing), RepeatMode.Reverse),
+        label = "chatter",
+    )
+    val glow by transition.animateFloat(
+        initialValue = 0.18f, targetValue = 0.45f,
+        animationSpec = infiniteRepeatable(tween(1800, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+        label = "glow",
+    )
+    Box(Modifier.size(200.dp), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Brush.radialGradient(listOf(accent.copy(alpha = glow), Color.Transparent)), CircleShape)
+        )
+        PokeBallIcon(
+            Modifier
+                .size(124.dp)
+                .graphicsLayer {
+                    translationY = bob
+                    rotationZ = if (talking) chatter else 0f
+                }
+        )
+    }
+}
 
 /** The chosen starter, popping in with a springy scale. */
 @Composable

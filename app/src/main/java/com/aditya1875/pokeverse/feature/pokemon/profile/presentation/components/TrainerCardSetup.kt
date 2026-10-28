@@ -1,5 +1,9 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
+import androidx.activity.compose.BackHandler
+import com.aditya1875.pokeverse.feature.core.ui.components.ForceDarkSystemBars
+import com.aditya1875.pokeverse.feature.core.ui.components.introBackground
+import com.aditya1875.pokeverse.feature.core.ui.components.onAccent
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -105,7 +109,6 @@ private val PHRASES = listOf(
 
 private const val NAME_MAX = 16
 private const val PHRASE_MAX = 40
-private val InkBg = Color(0xFF0B0E17)
 private val DialogueFill = Color(0xFF101626)
 
 /**
@@ -180,11 +183,16 @@ fun TrainerCardSetup(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(InkBg, accent.copy(alpha = 0.22f), InkBg)))
+                .introBackground(accent)
                 .systemBarsPadding()
                 .imePadding()
                 .padding(horizontal = 20.dp, vertical = 12.dp),
         ) {
+            ForceDarkSystemBars()
+            // Back steps through the questions; only on the first one does it close the sheet.
+            val previousStep = Step.entries.getOrNull(step.ordinal - 1)?.takeUnless { hasName && it == Step.INTRO }
+            BackHandler(enabled = previousStep != null) { previousStep?.let { step = it } }
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Row(
                     modifier = Modifier.weight(1f),
@@ -364,7 +372,7 @@ fun TrainerCardSetup(
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = accent,
-                        contentColor = Color.Black,
+                        contentColor = accent.onAccent(),
                     ),
                 ) {
                     Text(
@@ -394,7 +402,7 @@ private fun TypePill(label: String, color: Color, selected: Boolean, onClick: ()
     ) {
         Text(
             label,
-            color = if (selected) Color.Black else Color.White,
+            color = if (selected) color.onAccent() else Color.White,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
             fontSize = 14.sp,
         )
