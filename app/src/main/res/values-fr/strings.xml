@@ -1227,6 +1227,8 @@
     <string name="coach_loading">Le Coach étudie ton équipe…</string>
     <string name="coach_limit">Tu as utilisé tous les avis du Coach d\'aujourd\'hui. Reviens demain !</string>
     <string name="coach_error">Impossible de joindre le Coach. Vérifie ta connexion et réessaie.</string>
+    <string name="analysis_team_title">Ton équipe (%1$d)</string>
+    <string name="coach_unavailable">Le Coach est indisponible pour le moment. Réessaie plus tard.</string>
     <string name="coach_retry">Réessayer</string>
     <string name="coach_disclaimer">Généré par IA. Les scores et les affinités de type ci-dessus sont exacts ; le conseil est un deuxième avis.</string>
 
@@ -1246,6 +1248,20 @@
     <string name="dex_title">Pokédex</string>
     <string name="dex_seen">Vus</string>
     <string name="dex_caught">Capturés</string>
+    <string name="dex_catch_hint">Les Pokémon capturés viennent de Wild Catch.</string>
+    <string name="dex_play">Jouer</string>
+    <string name="wildcatch_tier_uncommon">Peu commun</string>
+    <string name="wildcatch_tier_rare">Rare</string>
+    <string name="wildcatch_tier_epic">Épique</string>
+    <string name="wildcatch_new_catch">Nouvelle capture !</string>
+    <string name="settings_auto_cry">Lecture auto des cris</string>
+    <string name="settings_auto_cry_desc">Joue le cri d\'un Pokémon à l\'ouverture de sa page. Nécessite que Contenus originaux soit activé.</string>
+    <string name="dex_filter_all">Tous</string>
+    <string name="dex_empty_seen">Rien de vu ici pour l\'instant. Ouvre un Pokémon pour l\'enregistrer.</string>
+    <string name="dex_empty_caught">Aucune capture ici pour l\'instant. Joue à Wild Catch pour capturer des Pokémon !</string>
+    <string name="dex_party_badge">Équipe du Dresseur</string>
+    <string name="dex_lcd_caught">◓ CAPTURÉ</string>
+    <string name="dex_lcd_caught_count">CAPT. %1$03d</string>
     <string name="dex_new_entry">Nouvelle entrée enregistrée dans le Pokédex !</string>
     <string name="settings_mystery">Silhouettes mystères</string>
     <string name="settings_mystery_desc">Affiche en silhouette les Pokémon que tu n\'as pas encore vus, jusqu\'à ce que tu les ouvres.</string>

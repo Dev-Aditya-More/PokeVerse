@@ -1227,6 +1227,8 @@
     <string name="coach_loading">Coach तुम्हारी Team को देख रहा है…</string>
     <string name="coach_limit">आज की सारी Coach reads इस्तेमाल हो गईं। कल फिर आना!</string>
     <string name="coach_error">Coach से connect नहीं हो पाया। Internet check करो और फिर try करो।</string>
+    <string name="analysis_team_title">तुम्हारी Team (%1$d)</string>
+    <string name="coach_unavailable">Coach अभी उपलब्ध नहीं है। थोड़ी देर बाद फिर try करो।</string>
     <string name="coach_retry">फिर try करो</string>
     <string name="coach_disclaimer">AI से बना है। ऊपर के scores और type matchups सही हैं; सलाह बस एक दूसरी राय है।</string>
 
@@ -1246,6 +1248,20 @@
     <string name="dex_title">Pokédex</string>
     <string name="dex_seen">देखे</string>
     <string name="dex_caught">पकड़े</string>
+    <string name="dex_catch_hint">Pokémon पकड़ने के लिए Wild Catch खेलो।</string>
+    <string name="dex_play">खेलो</string>
+    <string name="wildcatch_tier_uncommon">Uncommon</string>
+    <string name="wildcatch_tier_rare">Rare</string>
+    <string name="wildcatch_tier_epic">Epic</string>
+    <string name="wildcatch_new_catch">नया catch!</string>
+    <string name="settings_auto_cry">Cry अपने आप बजाओ</string>
+    <string name="settings_auto_cry_desc">Pokémon का page खोलते ही उसकी cry बजाओ। इसके लिए Original Visuals ऑन होना चाहिए।</string>
+    <string name="dex_filter_all">सब</string>
+    <string name="dex_empty_seen">यहाँ अभी कुछ नहीं देखा। रजिस्टर करने के लिए कोई Pokémon खोलो।</string>
+    <string name="dex_empty_caught">यहाँ अभी कोई catch नहीं। Pokémon पकड़ने के लिए Wild Catch खेलो!</string>
+    <string name="dex_party_badge">Trainer की Party</string>
+    <string name="dex_lcd_caught">◓ पकड़ा</string>
+    <string name="dex_lcd_caught_count">पकड़े %1$03d</string>
     <string name="dex_new_entry">Pokédex में नई entry दर्ज हुई!</string>
     <string name="settings_mystery">Mystery silhouettes</string>
     <string name="settings_mystery_desc">जो Pokémon तुमने अभी नहीं देखे, उन्हें खोलने तक silhouette में दिखाओ।</string>

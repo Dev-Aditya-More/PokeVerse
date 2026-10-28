@@ -1240,6 +1240,8 @@
     <string name="coach_loading">The Coach is studying your team…</string>
     <string name="coach_limit">You\'ve used all of today\'s Coach reads. Come back tomorrow!</string>
     <string name="coach_error">The Coach couldn\'t be reached. Check your connection and try again.</string>
+    <string name="analysis_team_title">Your team (%1$d)</string>
+    <string name="coach_unavailable">The Coach is unavailable right now. Please try again later.</string>
     <string name="coach_retry">Try again</string>
     <string name="coach_disclaimer">AI-generated. Scores and type matchups above are exact; the advice is a second opinion.</string>
 
@@ -1259,6 +1261,20 @@
     <string name="dex_title">Pokédex</string>
     <string name="dex_seen">Seen</string>
     <string name="dex_caught">Caught</string>
+    <string name="dex_catch_hint">Caught Pokémon come from playing Wild Catch.</string>
+    <string name="dex_play">Play</string>
+    <string name="wildcatch_tier_uncommon">Uncommon</string>
+    <string name="wildcatch_tier_rare">Rare</string>
+    <string name="wildcatch_tier_epic">Epic</string>
+    <string name="wildcatch_new_catch">New catch!</string>
+    <string name="settings_auto_cry">Auto-play cries</string>
+    <string name="settings_auto_cry_desc">Play a Pokémon\'s cry when you open its page. Needs Original Assets to be on.</string>
+    <string name="dex_filter_all">All</string>
+    <string name="dex_empty_seen">Nothing seen here yet. Open a Pokémon to register it.</string>
+    <string name="dex_empty_caught">No catches here yet. Play Wild Catch to catch Pokémon!</string>
+    <string name="dex_party_badge">Trainer\'s party</string>
+    <string name="dex_lcd_caught">◓ CAUGHT</string>
+    <string name="dex_lcd_caught_count">CAUGHT %1$03d</string>
     <string name="dex_new_entry">New Pokédex entry registered!</string>
     <string name="settings_mystery">Mystery silhouettes</string>
     <string name="settings_mystery_desc">Show Pokémon you haven\'t seen yet as silhouettes until you open them.</string>
