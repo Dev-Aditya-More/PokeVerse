@@ -1,5 +1,10 @@
 package com.aditya1875.pokeverse.feature.game.wildcatch.presentation.screens
 
+import androidx.compose.animation.core.VectorConverter
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.platform.LocalDensity
+import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.CatchTier
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokeBallIcon
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.ThrowAccuracy
 import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.activity.compose.BackHandler
@@ -312,6 +317,51 @@ private fun ThrowingContent(
     }
     val ringColor = lerp(Color(0xFFE53935), Color(0xFF43A047), 1f - ringAnim.value)
 
+    // The Pokémon (ring included) wanders according to its tier: commons bob, legendaries dart.
+    val density = LocalDensity.current.density
+    val tier = state.pokemon.tier
+    val wander = remember(state.pokemonCount) { Animatable(Offset.Zero, Offset.VectorConverter) }
+    LaunchedEffect(state.pokemonCount, tier) {
+        fun dp(v: Float) = v * density
+        val ease = FastOutSlowInEasing
+        when (tier) {
+            CatchTier.COMMON -> while (true) {
+                wander.animateTo(Offset(0f, dp(-6f)), tween(1200, easing = ease))
+                wander.animateTo(Offset(0f, dp(6f)), tween(1200, easing = ease))
+            }
+            CatchTier.UNCOMMON -> while (true) {
+                wander.animateTo(Offset(dp(-24f), dp(-4f)), tween(1000, easing = ease))
+                wander.animateTo(Offset(dp(24f), dp(4f)), tween(1000, easing = ease))
+            }
+            CatchTier.RARE -> while (true) {
+                for (p in listOf(Offset(-36f, -14f), Offset(0f, 14f), Offset(36f, -14f), Offset(0f, 14f))) {
+                    wander.animateTo(Offset(dp(p.x), dp(p.y)), tween(700, easing = ease))
+                }
+            }
+            CatchTier.EPIC -> while (true) {
+                wander.animateTo(
+                    Offset(dp(Random.nextFloat() * 112f - 56f), dp(Random.nextFloat() * 48f - 24f)),
+                    tween(600, easing = ease)
+                )
+                delay(250)
+            }
+            CatchTier.LEGENDARY -> while (true) {
+                wander.animateTo(
+                    Offset(dp(Random.nextFloat() * 144f - 72f), dp(Random.nextFloat() * 64f - 32f)),
+                    tween(180, easing = ease)
+                )
+                // Long enough that a throw released right after a dart still lands on it.
+                delay(Random.nextLong(650L, 1100L))
+            }
+        }
+    }
+    // Only the quick tiers can actually dodge; the gentle ones never move far enough to matter.
+    val dodgeRadiusPx = density * when (tier) {
+        CatchTier.LEGENDARY -> 70f
+        CatchTier.EPIC -> 80f
+        else -> 100f
+    }
+
     // Throw gesture state
     val coroutineScope = rememberCoroutineScope()
     val ballX = remember(state.pokemonCount) { Animatable(0f) }
@@ -325,6 +375,11 @@ private fun ThrowingContent(
     var lastEmitMs by remember { mutableStateOf(0L) }
     var ballLayoutCenter by remember { mutableStateOf(Offset.Zero) }
     var ringCenterRoot by remember { mutableStateOf(Offset.Zero) }
+    var ringCoords by remember(state.pokemonCount) { mutableStateOf<LayoutCoordinates?>(null) }
+    // Read at throw time: onGloballyPositioned does not re-fire for graphicsLayer movement.
+    fun currentRingCenter(): Offset? = ringCoords?.takeIf { it.isAttached }?.let {
+        it.positionInRoot() + Offset(it.size.width / 2f, it.size.height / 2f)
+    }
     var ballCenterRoot by remember { mutableStateOf(Offset.Zero) }
     val ballScale = remember(state.pokemonCount) { Animatable(1f) }
 
@@ -428,13 +483,17 @@ private fun ThrowingContent(
                             val captured = ringAnim.value
                             coroutineScope.launch {
                                 soundManager.play(SoundManager.Sound.BUTTON_CLICK)
-                                val targetX = ringCenterRoot.x - ballCenterRoot.x
-                                val targetY = ringCenterRoot.y - ballCenterRoot.y
+                                // Aim where the Pokémon is right now; if it has moved off by the time the ball lands, it dodged.
+                                val aim = currentRingCenter() ?: ringCenterRoot
+                                val targetX = aim.x - ballCenterRoot.x
+                                val targetY = aim.y - ballCenterRoot.y
                                 launch { ballScale.animateTo(0.4f, tween(450)) }
                                 launch { ballX.animateTo(targetX, tween(450, easing = FastOutSlowInEasing)) }
                                 ballY.animateTo(targetY, tween(450, easing = FastOutSlowInEasing))
                                 delay(80)
-                                onThrow(captured)
+                                val landed = currentRingCenter() ?: aim
+                                val dodged = (landed - aim).getDistance() > dodgeRadiusPx
+                                onThrow(if (dodged) 1f else captured)
                             }
                         } else {
                             coroutineScope.launch {
@@ -517,15 +576,23 @@ private fun ThrowingContent(
             Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 state.pokemon.types.forEach { type -> TypeChip(type) }
+                TierChip(state.pokemon.tier)
             }
 
             Spacer(Modifier.height(16.dp))
 
-            // Pokemon + shrinking catch ring
+            // Pokemon + shrinking catch ring, wandering as one so the ring stays on the Pokémon
+            Box(
+                modifier = Modifier.graphicsLayer {
+                    translationX = wander.value.x
+                    translationY = wander.value.y
+                }
+            ) {
             Box(
                 modifier = Modifier
                     .size(230.dp)
                     .onGloballyPositioned { coords ->
+                        ringCoords = coords
                         val pos = coords.positionInRoot()
                         ringCenterRoot = Offset(
                             pos.x + coords.size.width / 2f,
@@ -554,6 +621,7 @@ private fun ThrowingContent(
                         }
                     }
                 }
+            }
             }
 
             // Ground shadow
@@ -783,6 +851,10 @@ private fun ShakeResultContent(
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White.copy(alpha = 0.7f)
                 )
+                if (state.newCatch) {
+                    Spacer(Modifier.height(8.dp))
+                    NewCatchPill()
+                }
                 if (LegendaryPokemon.isLegendary(state.pokemon.id)) {
                     Spacer(Modifier.height(6.dp))
                     LegendaryBadge()
@@ -941,6 +1013,25 @@ private fun FinishedContent(
     }
 }
 
+/** Uncommon / Rare / Epic marker, same pill as the type chips. Commons and legendaries (which have their own badge) show nothing. */
+@Composable
+private fun TierChip(tier: CatchTier) {
+    val (label, color) = when (tier) {
+        CatchTier.UNCOMMON -> R.string.wildcatch_tier_uncommon to Color(0xFF66BB6A)
+        CatchTier.RARE -> R.string.wildcatch_tier_rare to Color(0xFF42A5F5)
+        CatchTier.EPIC -> R.string.wildcatch_tier_epic to Color(0xFFAB47BC)
+        else -> return
+    }
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .background(color.copy(alpha = 0.25f))
+            .padding(horizontal = 12.dp, vertical = 4.dp)
+    ) {
+        Text(stringResource(label), style = MaterialTheme.typography.labelMedium, color = color, fontWeight = FontWeight.Bold)
+    }
+}
+
 @Composable
 private fun TypeChip(type: String) {
     val color = typeColor(type)
@@ -976,3 +1067,25 @@ private fun typeColor(type: String): Color = when (type.lowercase()) {
     else -> Color(0xFF9E9E9E)
 }
 
+
+
+/** Same dark pill as the accuracy badge above it, so a first catch reads as part of the result, not an overlay. */
+@Composable
+private fun NewCatchPill() {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.Black.copy(alpha = 0.45f))
+            .padding(horizontal = 12.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        PokeBallIcon(Modifier.size(14.dp))
+        Text(
+            stringResource(R.string.wildcatch_new_catch),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color.White
+        )
+    }
+}

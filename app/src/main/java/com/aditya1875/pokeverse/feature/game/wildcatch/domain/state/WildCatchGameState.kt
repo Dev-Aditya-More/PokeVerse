@@ -30,6 +30,8 @@ sealed class WildCatchGameState {
         val score: Int,
         val lives: Int,
         val shakeCount: Int,
+        /** First time this Pokémon is caught, so the result screen can say so. */
+        val newCatch: Boolean = false,
         val bestScore: Int = 0
     ) : WildCatchGameState()
 

@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.wildcatch.presentation.viewmodels
 
+import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.CatchTier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.game.core.data.local.dao.GameScoreDao
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import com.aditya1875.pokeverse.feature.pokemon.dex.DexProgress
 import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -51,6 +53,13 @@ class WildCatchViewModel(
     private var nextPokemon: WildCatchPokemon? = null
     private var sessionBestScore = 0
 
+    // Caught ids as of the last dex update: tells a first catch from a repeat when the ball settles.
+    private var knownCaught: Set<Int> = emptySet()
+
+    init {
+        viewModelScope.launch { pokedex.progress.collect { knownCaught = it.caught } }
+    }
+
     fun startGame() {
         currentLives = MAX_LIVES
         pokemonCount = 0
@@ -64,7 +73,7 @@ class WildCatchViewModel(
             val pokemon = loadRandomPokemon()
             if (pokemon != null) {
                 pokemonCount++
-                _gameState.value = throwingState(pokemon)
+                _gameState.value = encounter(pokemon)
                 prefetchNext()
             } else {
                 _gameState.value = WildCatchGameState.Idle
@@ -86,15 +95,19 @@ class WildCatchViewModel(
             else -> ThrowAccuracy.MISS
         }
 
-        val catchChance = accuracy.baseCatchChance * WildCatchDifficulty.catchChanceMultiplier(state.pokemonCount)
+        val catchChance = accuracy.baseCatchChance *
+            WildCatchDifficulty.catchChanceMultiplier(state.pokemonCount) *
+            state.pokemon.tier.catchFactor
         val caught = Random.nextFloat() < catchChance
+        val newCatch = caught && state.pokemon.id !in knownCaught
         var lifeRecovered = false
 
         if (caught) {
             catches++
             currentStreak++
+            knownCaught = knownCaught + state.pokemon.id
             viewModelScope.launch { pokedex.markCaught(state.pokemon.id) }
-            currentScore += 100 + accuracy.scoreBonus
+            currentScore += 100 + accuracy.scoreBonus + state.pokemon.tier.scoreBonus
             // Recover a life every STREAK_FOR_LIFE consecutive catches
             if (currentStreak % STREAK_FOR_LIFE == 0 && currentLives < MAX_LIVES) {
                 currentLives++
@@ -128,6 +141,7 @@ class WildCatchViewModel(
             score = currentScore,
             lives = currentLives,
             shakeCount = shakeCount,
+            newCatch = newCatch,
             bestScore = sessionBestScore
         )
     }
@@ -141,7 +155,7 @@ class WildCatchViewModel(
         nextPokemon = null
         if (cached != null) {
             pokemonCount++
-            _gameState.value = throwingState(cached)
+            _gameState.value = encounter(cached)
             prefetchNext()
         } else {
             _gameState.value = WildCatchGameState.Loading
@@ -149,7 +163,7 @@ class WildCatchViewModel(
                 val pokemon = loadRandomPokemon()
                 if (pokemon != null) {
                     pokemonCount++
-                    _gameState.value = throwingState(pokemon)
+                    _gameState.value = encounter(pokemon)
                     prefetchNext()
                 } else {
                     finishGame()
@@ -173,9 +187,15 @@ class WildCatchViewModel(
         nextPokemon = null
     }
 
+    /** A wild Pokémon appears: it is now seen, whether or not it ends up caught. */
+    private fun encounter(pokemon: WildCatchPokemon): WildCatchGameState.Throwing {
+        viewModelScope.launch { pokedex.markSeen(pokemon.id) }
+        return throwingState(pokemon)
+    }
+
     private fun throwingState(pokemon: WildCatchPokemon) = WildCatchGameState.Throwing(
         pokemon = pokemon,
-        cycleDurationMs = speedFor(pokemonCount),
+        cycleDurationMs = (speedFor(pokemonCount) * pokemon.tier.ringSpeedFactor).toLong(),
         pokemonCount = pokemonCount,
         catches = catches,
         score = currentScore,
@@ -191,15 +211,19 @@ class WildCatchViewModel(
     private suspend fun loadRandomPokemon(): WildCatchPokemon? {
         repeat(5) {
             try {
-                val id = (1..809).random()
+                val id = (1..DexProgress.CATCHABLE).random()
                 val p = repo.getPokemonByName(id.toString())
                 val sprite = p.sprites.other?.officialArtwork?.frontDefault
                     ?: p.sprites.front_default ?: return@repeat
+                val tier = CatchTier.of(id, p.stats.sumOf { it.base_stat })
+                // The first few encounters stay friendly: no epic or legendary yet.
+                if (pokemonCount < 4 && tier >= CatchTier.EPIC) return@repeat
                 return WildCatchPokemon(
                     id = id,
                     name = p.name,
                     spriteUrl = sprite,
-                    types = p.types.map { it.type.name }
+                    types = p.types.map { it.type.name },
+                    tier = tier
                 )
             } catch (_: Exception) {}
         }

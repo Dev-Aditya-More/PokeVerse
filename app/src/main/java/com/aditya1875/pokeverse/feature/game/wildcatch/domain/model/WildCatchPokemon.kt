@@ -4,5 +4,6 @@ data class WildCatchPokemon(
     val id: Int,
     val name: String,
     val spriteUrl: String,
-    val types: List<String>
+    val types: List<String>,
+    val tier: CatchTier = CatchTier.COMMON
 )
