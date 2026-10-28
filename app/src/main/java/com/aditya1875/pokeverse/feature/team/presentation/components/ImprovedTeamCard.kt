@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.team.presentation.components
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokeBallIcon
 import com.aditya1875.pokeverse.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.animateFloatAsState
@@ -59,7 +60,8 @@ fun ImprovedTeamCard(
     pokemon: TeamMemberEntity,
     navController: NavController,
     onRemove: (TeamMemberEntity) -> Unit,
-    assetsEnabled: Boolean
+    assetsEnabled: Boolean,
+    caught: Boolean = false
 ) {
     val pokemonId = remember {
         pokemon.name.hashCode().absoluteValue % 1000
@@ -140,6 +142,9 @@ fun ImprovedTeamCard(
                         },
                     contentScale = ContentScale.Fit
                 )
+                if (caught) {
+                    PokeBallIcon(Modifier.align(Alignment.BottomEnd).padding(4.dp).size(16.dp))
+                }
             }
 
             Spacer(Modifier.width(16.dp))

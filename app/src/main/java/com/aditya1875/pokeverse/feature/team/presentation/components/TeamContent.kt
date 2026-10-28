@@ -1,5 +1,12 @@
 package com.aditya1875.pokeverse.feature.team.presentation.components
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.PartyBadge
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexViewModel
+import com.aditya1875.pokeverse.feature.pokemon.dex.isTrainersParty
+import com.aditya1875.pokeverse.feature.pokemon.dex.pokemonIdFromSpriteUrl
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import org.koin.compose.viewmodel.koinViewModel
 import com.aditya1875.pokeverse.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
@@ -55,6 +62,11 @@ fun TeamContent(
 ) {
     val progressColor = accentColor ?: MaterialTheme.colorScheme.primary
     val meetsMinimumForAnalysisOrShare = team.size >= MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE
+    val dexProgress by koinViewModel<PokedexViewModel>().progress.collectAsStateWithLifecycle()
+    val isCaught: (TeamMemberEntity) -> Boolean = { m ->
+        pokemonIdFromSpriteUrl(m.imageUrl)?.let { it in dexProgress.caught } == true
+    }
+    val partyCaught = isTrainersParty(team.map { pokemonIdFromSpriteUrl(it.imageUrl) ?: 0 }, dexProgress.caught)
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (team.isEmpty()) {
@@ -112,6 +124,11 @@ fun TeamContent(
                         fontSize = 14.sp,
                         textAlign = TextAlign.Center
                     )
+
+                    if (partyCaught) {
+                        Spacer(Modifier.height(10.dp))
+                        PartyBadge()
+                    }
 
                     Spacer(Modifier.height(16.dp))
 
@@ -238,7 +255,8 @@ fun TeamContent(
                         pokemon = pokemon,
                         navController = navController,
                         onRemove = onRemove,
-                        assetsEnabled = assetsEnabled
+                        assetsEnabled = assetsEnabled,
+                        caught = isCaught(pokemon)
                     )
                 }
             }

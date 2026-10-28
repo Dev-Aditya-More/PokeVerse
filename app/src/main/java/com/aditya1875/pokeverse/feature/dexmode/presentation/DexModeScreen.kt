@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.dexmode.presentation
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.DexProgress
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.media.MediaPlayer
@@ -167,7 +169,11 @@ fun DexModeScreen(
 ) {
     val store: DexModeStore = koinInject()
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val seen by store.seen.collectAsStateWithLifecycle()
+    val handheldSeen by store.seen.collectAsStateWithLifecycle()
+    val pokedex: PokedexRepository = koinInject()
+    val dex by pokedex.progress.collectAsStateWithLifecycle(DexProgress.EMPTY)
+    // The handheld and the main app share one Pokédex: either one having seen it counts.
+    val seen = remember(handheldSeen, dex.seen) { handheldSeen + dex.seen }
     val backlit by store.backlit.collectAsStateWithLifecycle()
     val muted by store.muted.collectAsStateWithLifecycle()
 
@@ -335,6 +341,7 @@ fun DexModeScreen(
         DexLcd(
             state = state,
             seen = seen,
+            caught = dex.caught,
             palette = palette,
             bootProgress = bootProgress,
             movesState = movesState,
@@ -717,6 +724,7 @@ private fun Modifier.holdToRepeat(
 private fun DexLcd(
     state: DexUiState,
     seen: Set<Int>,
+    caught: Set<Int>,
     palette: LcdPalette,
     bootProgress: Float,
     movesState: LazyListState,
@@ -726,7 +734,7 @@ private fun DexLcd(
     Box(Modifier.fillMaxSize().background(palette.bg)) {
         when (state.screen) {
             DexScreen.BOOT -> BootLcd(palette, bootProgress)
-            DexScreen.LIST -> ListLcd(state, seen, palette, onRowTap, onRetryList)
+            DexScreen.LIST -> ListLcd(state, seen, caught, palette, onRowTap, onRetryList)
             DexScreen.ENTRY -> EntryLcd(state, palette, movesState)
         }
         state.searchMiss?.let { miss ->
@@ -825,6 +833,7 @@ private fun PixelBall(ink: Color, modifier: Modifier) {
 private fun ListLcd(
     state: DexUiState,
     seen: Set<Int>,
+    caught: Set<Int>,
     palette: LcdPalette,
     onRowTap: (Int) -> Unit,
     onRetryList: () -> Unit
@@ -837,6 +846,8 @@ private fun ListLcd(
                 stringResource(R.string.dex_lcd_seen_count, seen.size, DexModeViewModel.NATIONAL_DEX_SIZE),
                 palette.ink, 11.sp
             )
+            Spacer(Modifier.width(8.dp))
+            LcdText(stringResource(R.string.dex_lcd_caught_count, caught.size), palette.ink, 11.sp)
         }
         Spacer(Modifier.height(4.dp))
 
@@ -854,6 +865,7 @@ private fun ListLcd(
         }
 
         val isSeen = current.id in seen
+        val isCaught = current.id in caught
         Row(
             Modifier.fillMaxWidth().background(palette.bgDark).padding(6.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -870,7 +882,13 @@ private fun ListLcd(
                 LcdText(dexName(current.name), palette.ink, 17.sp, weight = FontWeight.Black, maxLines = 1)
                 Spacer(Modifier.height(4.dp))
                 LcdText(
-                    stringResource(if (isSeen) R.string.dex_lcd_seen else R.string.dex_lcd_not_seen),
+                    stringResource(
+                        when {
+                            isCaught -> R.string.dex_lcd_caught
+                            isSeen -> R.string.dex_lcd_seen
+                            else -> R.string.dex_lcd_not_seen
+                        }
+                    ),
                     palette.ink, 11.sp
                 )
             }
@@ -914,7 +932,11 @@ private fun ListLcd(
                     )
                     LcdText("%04d".format(entry.id), palette.inkSoft, 13.sp, Modifier.width(48.dp))
                     LcdText(dexName(entry.name), palette.ink, 13.sp, Modifier.weight(1f), maxLines = 1)
-                    if (entry.id in seen) MiniBall(palette.ink) else LcdText("-", palette.inkSoft, 13.sp)
+                    when {
+                        entry.id in caught -> MiniBall(palette.ink)
+                        entry.id in seen -> LcdText("•", palette.ink, 13.sp)
+                        else -> LcdText("-", palette.inkSoft, 13.sp)
+                    }
                 }
             }
         }

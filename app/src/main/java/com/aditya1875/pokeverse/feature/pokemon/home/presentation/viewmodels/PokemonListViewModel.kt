@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.DexProgress
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -164,6 +165,43 @@ class PokemonListViewModel(
                 _uiState.update { it.copy(error = UiError.Unexpected(e.message)) }
             } finally {
                 // Don't reset isLoading if cancelled — setRegionFilter already did it
+                if (!wasCancelled) _isLoading.value = false
+            }
+        }
+    }
+
+    /**
+     * Pulls the rest of the current region in one request, so a Seen/Caught filter sees every Pokémon
+     * instead of only the pages scrolled so far. Does nothing on failure; normal paging still works.
+     */
+    fun loadRemaining() {
+        if (_isLoading.value || endReached) return
+        val region = _filters.value.selectedRegion
+        val regionEnd = region?.let { it.offset + it.limit } ?: DexProgress.TOTAL
+        val fetchOffset = currentOffset
+        val count = regionEnd - fetchOffset
+        if (count <= 0) {
+            endReached = true
+            return
+        }
+
+        _isLoading.value = true
+        loadJob = viewModelScope.launch {
+            var wasCancelled = false
+            try {
+                val result = getPokemonListUseCase(count, fetchOffset)
+                val regionRange = region?.range
+                val rest = result.results.filter { regionRange?.contains(extractIdFromUrl(it.url)) ?: true }
+                allPokemonInRegion = allPokemonInRegion + rest
+                currentOffset = fetchOffset + count
+                endReached = true
+                applyCurrentFilters()
+            } catch (e: CancellationException) {
+                wasCancelled = true
+                throw e
+            } catch (_: Exception) {
+                // Keep what is loaded; the user can still scroll normally.
+            } finally {
                 if (!wasCancelled) _isLoading.value = false
             }
         }

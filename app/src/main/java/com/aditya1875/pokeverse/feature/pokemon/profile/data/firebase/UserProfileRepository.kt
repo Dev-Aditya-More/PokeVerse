@@ -78,7 +78,7 @@ class UserProfileRepository(private val context: Context) {
             bio = p[K.BIO] ?: "",
             favoriteType = p[K.FAVORITE_TYPE] ?: "",
             playStyle = p[K.PLAY_STYLE] ?: "",
-            starter = p[K.STARTER] ?: "",
+            starter = p[K.STARTER] ?: "pikachu",
             totalXp = totalXp,
             // Weekly XP from before the Monday 00:00 IST boundary belongs to last week
             weeklyXp = if (WeeklyReset.isStale(lastWeeklyReset)) 0 else (p[K.WEEKLY_XP] ?: 0),

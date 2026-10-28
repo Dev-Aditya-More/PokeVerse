@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.dexmode.presentation
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.dexmode.data.DexModeStore
@@ -52,7 +53,8 @@ data class DexUiState(
 class DexModeViewModel(
     private val searchRepo: PokemonSearchRepository,
     private val detailRepo: PokemonDetailRepo,
-    private val store: DexModeStore
+    private val store: DexModeStore,
+    private val pokedex: PokedexRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(DexUiState())
@@ -197,6 +199,7 @@ class DexModeViewModel(
                     cryUrl = p.cries?.legacy ?: p.cries?.latest
                 )
                 store.markSeen(entry.id)
+                runCatching { pokedex.markSeen(entry.id) }
                 _state.update { it.copy(detail = detail, detailLoading = false) }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e

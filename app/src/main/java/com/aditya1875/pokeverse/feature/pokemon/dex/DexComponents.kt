@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -62,7 +63,11 @@ fun PokeBallIcon(modifier: Modifier = Modifier) {
 
 /** Seen / caught out of the whole national dex, as two progress bars. */
 @Composable
-fun DexProgressStrip(progress: DexProgress, modifier: Modifier = Modifier) {
+fun DexProgressStrip(
+    progress: DexProgress,
+    modifier: Modifier = Modifier,
+    onPlayWildCatch: (() -> Unit)? = null,
+) {
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -78,16 +83,30 @@ fun DexProgressStrip(progress: DexProgress, modifier: Modifier = Modifier) {
                     fontWeight = FontWeight.Bold,
                 )
             }
-            DexBar(stringResource(R.string.dex_seen), progress.seenCount, MaterialTheme.colorScheme.primary)
-            DexBar(stringResource(R.string.dex_caught), progress.caughtCount, BallRed)
+            DexBar(stringResource(R.string.dex_seen), progress.seenCount, DexProgress.TOTAL, MaterialTheme.colorScheme.primary)
+            DexBar(stringResource(R.string.dex_caught), progress.caughtCount, DexProgress.CATCHABLE, BallRed)
+            // Caught only comes from Wild Catch, so say so (and offer the shortcut).
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    stringResource(R.string.dex_catch_hint),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                if (onPlayWildCatch != null) {
+                    TextButton(onClick = onPlayWildCatch) {
+                        Text(stringResource(R.string.dex_play), fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun DexBar(label: String, count: Int, color: Color) {
+private fun DexBar(label: String, count: Int, total: Int, color: Color) {
     val fraction by animateFloatAsState(
-        targetValue = (count.toFloat() / DexProgress.TOTAL).coerceIn(0f, 1f),
+        targetValue = (count.toFloat() / total).coerceIn(0f, 1f),
         animationSpec = tween(700, easing = FastOutSlowInEasing),
         label = "dexBar",
     )
@@ -96,7 +115,7 @@ private fun DexBar(label: String, count: Int, color: Color) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
-                "${nf.format(count)} / ${nf.format(DexProgress.TOTAL)}",
+                "${nf.format(count)} / ${nf.format(total)}",
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
             )
@@ -149,5 +168,30 @@ fun DexEntryBanner(visible: Boolean, modifier: Modifier = Modifier) {
                 )
             }
         }
+    }
+}
+
+/** "Trainer's party": every member of a full team was caught in Wild Catch. Colours are passed in so it sits right on light and dark cards. */
+@Composable
+fun PartyBadge(
+    modifier: Modifier = Modifier,
+    container: Color = MaterialTheme.colorScheme.secondaryContainer,
+    content: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .background(container)
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PokeBallIcon(Modifier.size(14.dp))
+        Spacer(Modifier.width(6.dp))
+        Text(
+            stringResource(R.string.dex_party_badge),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = content,
+        )
     }
 }

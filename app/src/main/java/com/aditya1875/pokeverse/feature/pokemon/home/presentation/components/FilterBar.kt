@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.components
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.DexFilter
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokeBallIcon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +39,9 @@ fun FilterBar(
     onRegionChange: (Region?) -> Unit,
     onTypeChange: (PokemonType?) -> Unit,
     modifier: Modifier = Modifier,
-    isTypeFiltering: Boolean
+    isTypeFiltering: Boolean,
+    dexFilter: DexFilter = DexFilter.ALL,
+    onDexFilterChange: (DexFilter) -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -172,6 +176,55 @@ fun FilterBar(
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
+                    } else null,
+                    modifier = Modifier
+                        .padding(vertical = 2.dp)
+                        .graphicsLayer { scaleX = chipScale; scaleY = chipScale },
+                    colors = FilterChipDefaults.filterChipColors(
+                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                )
+            }
+        }
+
+        // Pokédex progress: all / seen / caught, same chip style as the rows above.
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            items(DexFilter.entries.toTypedArray()) { filter ->
+                val selected = dexFilter == filter
+                val chipScale by animateFloatAsState(
+                    targetValue = if (selected) 1.06f else 1f,
+                    animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium),
+                    label = "chip_scale_dex_${filter.name}"
+                )
+                FilterChip(
+                    onClick = { onDexFilterChange(filter) },
+                    label = {
+                        Text(
+                            stringResource(
+                                when (filter) {
+                                    DexFilter.ALL -> R.string.dex_filter_all
+                                    DexFilter.SEEN -> R.string.dex_seen
+                                    DexFilter.CAUGHT -> R.string.dex_caught
+                                }
+                            )
+                        )
+                    },
+                    selected = selected,
+                    leadingIcon = if (selected) {
+                        {
+                            Icon(
+                                imageVector = Icons.Filled.Done,
+                                contentDescription = stringResource(R.string.filter_selected),
+                                modifier = Modifier.size(FilterChipDefaults.IconSize),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    } else if (filter == DexFilter.CAUGHT) {
+                        { PokeBallIcon(Modifier.size(FilterChipDefaults.IconSize)) }
                     } else null,
                     modifier = Modifier
                         .padding(vertical = 2.dp)

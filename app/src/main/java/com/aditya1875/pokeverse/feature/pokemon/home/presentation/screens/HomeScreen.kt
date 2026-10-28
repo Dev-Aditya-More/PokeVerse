@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.DexFilter
+import androidx.compose.ui.text.style.TextAlign
 import android.app.Activity
 
 import androidx.compose.animation.AnimatedVisibility
@@ -231,6 +233,18 @@ fun SharedTransitionScope.HomeScreen(
     val mysteryMode by settingsViewModel.mysterySilhouettes.collectAsStateWithLifecycle()
     val dexViewModel: PokedexViewModel = koinViewModel()
     val dexProgress by dexViewModel.progress.collectAsStateWithLifecycle()
+    var dexFilter by rememberSaveable { mutableStateOf(DexFilter.ALL) }
+    // Seen/Caught need the whole region in memory, not just the pages scrolled so far.
+    LaunchedEffect(dexFilter, isLoading, viewModel.endReached) {
+        if (dexFilter != DexFilter.ALL && !isLoading) viewModel.loadRemaining()
+    }
+    val visiblePokemon = remember(pokemonList, dexFilter, dexProgress) {
+        when (dexFilter) {
+            DexFilter.ALL -> pokemonList
+            DexFilter.SEEN -> pokemonList.filter { pokemonIdFromUrl(it.url) in dexProgress.seen }
+            DexFilter.CAUGHT -> pokemonList.filter { pokemonIdFromUrl(it.url) in dexProgress.caught }
+        }
+    }
 
     var isSearchFocused by remember { mutableStateOf(false) }
 
@@ -762,7 +776,9 @@ fun SharedTransitionScope.HomeScreen(
                             currentFilter = filterState,
                             onRegionChange = { viewModel.setRegionFilter(it) },
                             onTypeChange = { viewModel.setTypeFilter(it) },
-                            isTypeFiltering = isTypeFiltering
+                            isTypeFiltering = isTypeFiltering,
+                            dexFilter = dexFilter,
+                            onDexFilterChange = { dexFilter = it }
                         )
                     }
 
@@ -997,10 +1013,27 @@ fun SharedTransitionScope.HomeScreen(
                                         ) {
 
                                             item(key = "dex_progress", span = { GridItemSpan(maxLineSpan) }) {
-                                                DexProgressStrip(dexProgress)
+                                                DexProgressStrip(
+                                                    dexProgress,
+                                                    onPlayWildCatch = { navController.navigate(Route.WildCatchPlay.route) }
+                                                )
                                             }
 
-                                            items(pokemonList, key = { it.name }) { pokemon ->
+                                            if (dexFilter != DexFilter.ALL && visiblePokemon.isEmpty() && viewModel.endReached && !isLoading) {
+                                                item(key = "dex_empty", span = { GridItemSpan(maxLineSpan) }) {
+                                                    Text(
+                                                        text = stringResource(
+                                                            if (dexFilter == DexFilter.CAUGHT) R.string.dex_empty_caught else R.string.dex_empty_seen
+                                                        ),
+                                                        style = MaterialTheme.typography.bodyMedium,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                        textAlign = TextAlign.Center,
+                                                        modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp)
+                                                    )
+                                                }
+                                            }
+
+                                            items(visiblePokemon, key = { it.name }) { pokemon ->
 
                                                 val isFavorite by favouriteViewModel
                                                     .isInFavorites(pokemon.name)
@@ -1013,16 +1046,15 @@ fun SharedTransitionScope.HomeScreen(
                                                 val dexId = pokemonIdFromUrl(pokemon.url)
                                                 val inDexSeen = dexId in dexProgress.seen
                                                 val inDexCaught = dexId in dexProgress.caught
-                                                // Whatever is already on a team / favourited counts, so the dex catches up as you browse.
-                                                LaunchedEffect(isInTeam, isFavorite, inDexSeen, inDexCaught) {
-                                                    if (isInTeam && !inDexCaught) dexViewModel.markCaught(dexId)
-                                                    else if (isFavorite && !inDexSeen) dexViewModel.markSeen(dexId)
+                                                // Whatever is already on a team / favourited is seen, so the dex catches up as you browse.
+                                                LaunchedEffect(isInTeam, isFavorite, inDexSeen) {
+                                                    if ((isInTeam || isFavorite) && !inDexSeen) dexViewModel.markSeen(dexId)
                                                 }
 
                                                 ImprovedPokemonCard(
                                                     pokemon = pokemon,
                                                     seen = !mysteryMode || inDexSeen || isInTeam || isFavorite,
-                                                    caught = inDexCaught || isInTeam,
+                                                    caught = inDexCaught,
                                                     isInTeam = isInTeam,
                                                     isInFavorites = isFavorite,
                                                     onAddToFavorites = {

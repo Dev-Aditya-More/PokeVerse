@@ -178,7 +178,7 @@ class ProfileViewModel(
         )
         repository.saveProfile(updated)
         if (!updated.isGuest) repository.syncToFirestore(updated)
-        pokedex.markCaught(starter.dexId)
+        pokedex.chooseStarter(starter.dexId)
     }
 
     fun updateBestScore(game: String, score: Int) {

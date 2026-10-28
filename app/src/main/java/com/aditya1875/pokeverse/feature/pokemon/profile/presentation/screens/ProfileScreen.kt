@@ -28,6 +28,7 @@ import org.koin.androidx.compose.koinViewModel
 fun ProfileScreen(
     onSettingsClick: () -> Unit,
     onEditName: () -> Unit,
+    onPlayWildCatch: () -> Unit,
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     val profile by viewModel.userProfile.collectAsStateWithLifecycle()
@@ -91,7 +92,7 @@ fun ProfileScreen(
                     item { StatsSection(profile = profile) }
                 }
 
-                item { DexProgressStrip(dexProgress) }
+                item { DexProgressStrip(dexProgress, onPlayWildCatch = onPlayWildCatch) }
 
                 item { FactOfTheDayCard(onRevealed = viewModel::claimDailyFactXp) }
 

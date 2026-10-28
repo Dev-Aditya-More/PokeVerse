@@ -7,7 +7,8 @@ data class UserProfile(
     // Trainer Card — device-local on purpose (not synced), so no Firestore rules change is needed.
     val favoriteType: String = "",
     val playStyle: String = "",
-    val starter: String = "",
+    // Pikachu unless the professor intro picked another one (also covers anyone who skipped it).
+    val starter: String = "pikachu",
     val level: Int = 1,
     val totalXp: Int = 0,
     val currentXp: Int = 0,

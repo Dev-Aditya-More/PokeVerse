@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -138,6 +139,7 @@ fun AppNavGraph(
     }
 
     val themePreferences = koinInject<ThemePreferences>()
+    val pokedexRepository = koinInject<PokedexRepository>()
 
     // Set by SplashScreen once its reveal animation + intro music hold have played out.
     var splashFinished by remember { mutableStateOf(false) }
@@ -157,6 +159,8 @@ fun AppNavGraph(
         if (!splashFinished) return@LaunchedEffect
 
         val introSeen = ScreenStateManager.isIntroSeen(context)
+        // Existing installs never saw the professor, so they get the default starter here.
+        if (introSeen) pokedexRepository.ensureDefaultStarter()
         val lastRoute = ScreenStateManager.getLastRoute(context)
 
         val validRoutes = setOf(
@@ -306,6 +310,9 @@ fun AppNavGraph(
                         },
                         onEditName = {
                             navController.navigate(Route.EditProfile.route)
+                        },
+                        onPlayWildCatch = {
+                            navController.navigate(Route.WildCatchPlay.route)
                         }
                     )
                 }
