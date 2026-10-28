@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.settings.presentation.screens
 
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -353,6 +354,28 @@ fun SettingsScreen(
                 ) {
                     Text(
                         stringResource(R.string.settings_mystery_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+
+                val autoPlayCries by settingsViewModel.autoPlayCries.collectAsStateWithLifecycle()
+                var isCryExpanded by remember { mutableStateOf(false) }
+                SettingsCard(
+                    title = stringResource(R.string.settings_auto_cry),
+                    icon = Icons.AutoMirrored.Filled.VolumeUp,
+                    iconTint = MaterialTheme.colorScheme.onSurface,
+                    expanded = isCryExpanded,
+                    onExpandToggle = { isCryExpanded = !isCryExpanded },
+                    trailing = {
+                        ResponsiveMetaballSwitch(
+                            checked = autoPlayCries,
+                            onCheckedChange = { settingsViewModel.setAutoPlayCries(it) }
+                        )
+                    }
+                ) {
+                    Text(
+                        stringResource(R.string.settings_auto_cry_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )

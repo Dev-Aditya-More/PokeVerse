@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -40,12 +41,47 @@ private val LegendaryGold = Color(0xFFFFC107)
 private val LegendaryGoldBright = Color(0xFFFFF3C4)
 
 /**
+ * Quiet version for text-heavy screens: no pulse, shimmer or halo, and gold text on a dark pill
+ * (about 10:1 contrast) instead of white on bright gold, which was hard to read.
+ */
+@Composable
+private fun CalmLegendaryBadge(modifier: Modifier) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(50))
+            .background(Color(0xFF2E2200))
+            .border(1.dp, LegendaryGold.copy(alpha = 0.6f), RoundedCornerShape(50))
+            .padding(horizontal = 10.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Icon(
+            Icons.Default.Star,
+            contentDescription = stringResource(R.string.legendary),
+            tint = LegendaryGold,
+            modifier = Modifier.size(12.dp)
+        )
+        Text(
+            stringResource(R.string.legendary_badge),
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFFFFE08A),
+            letterSpacing = 0.5.sp
+        )
+    }
+}
+
+/**
  * Eye-catching pill marking a Pokémon as Legendary/Mythical: a solid gold
  * gradient, a twinkling rotating star, a light-sweep shimmer, and a soft
  * pulsing glow halo behind it.
  */
 @Composable
-fun LegendaryBadge(modifier: Modifier = Modifier) {
+fun LegendaryBadge(modifier: Modifier = Modifier, calm: Boolean = false) {
+    if (calm) {
+        CalmLegendaryBadge(modifier)
+        return
+    }
     val infinite = rememberInfiniteTransition(label = "legendary_flash")
 
     val glow by infinite.animateFloat(

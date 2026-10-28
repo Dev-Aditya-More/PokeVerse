@@ -78,6 +78,17 @@ class SettingsViewModel(
         viewModelScope.launch { context.dataStore.edit { it[MYSTERY_SILHOUETTES_KEY] = enabled } }
     }
 
+    // Cry plays when a Pokémon page opens. Franchise audio, so it also needs Original Assets. On by default.
+    private val AUTO_PLAY_CRIES_KEY = booleanPreferencesKey("auto_play_cries")
+
+    val autoPlayCries: StateFlow<Boolean> = context.dataStore.data
+        .map { it[AUTO_PLAY_CRIES_KEY] ?: true }
+        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, true)
+
+    fun setAutoPlayCries(enabled: Boolean) {
+        viewModelScope.launch { context.dataStore.edit { it[AUTO_PLAY_CRIES_KEY] = enabled } }
+    }
+
     // ── Popup state flows from DataStore ──────────────────────────────────────
     val assetsBannerSeen: StateFlow<Boolean> = context.dataStore.data
         .map { it[ASSETS_BANNER_SEEN] ?: false }

@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
+import kotlinx.coroutines.delay
 import com.aditya1875.pokeverse.utils.localizedTypeName
 import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
 import android.media.MediaPlayer
@@ -171,7 +172,7 @@ fun PokemonDetailPage(
         )
     }
 
-    fun playCry() {
+    fun playCry(silent: Boolean = false) {
         pokemon?.let {
             val cryUrl = it.cries?.latest ?: it.cries?.legacy
 
@@ -191,16 +192,16 @@ fun PokemonDetailPage(
                         isPlayingCry = false
                     }
                     mediaPlayer.setOnErrorListener { _, what, extra ->
-                        Toast.makeText(context, context.getString(R.string.detail_cry_error), Toast.LENGTH_SHORT).show()
+                        if (!silent) Toast.makeText(context, context.getString(R.string.detail_cry_error), Toast.LENGTH_SHORT).show()
                         isPlayingCry = false
                         true
                     }
                 } catch (e: Exception) {
-                    Toast.makeText(context, context.getString(R.string.detail_cry_unavailable), Toast.LENGTH_SHORT).show()
+                    if (!silent) Toast.makeText(context, context.getString(R.string.detail_cry_unavailable), Toast.LENGTH_SHORT).show()
                     Log.e("PokemonDetail", "Error playing cry", e)
                 }
             } else {
-                Toast.makeText(context, context.getString(R.string.detail_cry_unavailable_for_pokemon), Toast.LENGTH_SHORT)
+                if (!silent) Toast.makeText(context, context.getString(R.string.detail_cry_unavailable_for_pokemon), Toast.LENGTH_SHORT)
                     .show()
             }
         }
@@ -211,6 +212,21 @@ fun PokemonDetailPage(
             mediaPlayer.stop()
             isPlayingCry = false
         }
+    }
+
+    // Pokémon-game touch: the cry plays as the page opens. It is franchise audio, so only with Original Assets on;
+    // never on silent/vibrate, once per Pokémon per visit, and failures stay quiet.
+    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
+    val autoPlayCries by settingsViewModel.autoPlayCries.collectAsStateWithLifecycle()
+    var autoPlayedFor by rememberSaveable { mutableStateOf<String?>(null) }
+    LaunchedEffect(pokemon?.name, originalAssetsEnabled, autoPlayCries) {
+        val name = pokemon?.name ?: return@LaunchedEffect
+        if (!originalAssetsEnabled || !autoPlayCries || autoPlayedFor == name) return@LaunchedEffect
+        val audio = context.getSystemService(android.media.AudioManager::class.java)
+        if (audio?.ringerMode != android.media.AudioManager.RINGER_MODE_NORMAL) return@LaunchedEffect
+        autoPlayedFor = name
+        delay(400) // let the page settle before the sound
+        playCry(silent = true)
     }
 
     val infiniteTransition = rememberInfiniteTransition(label = "speaking")
@@ -767,7 +783,7 @@ fun PokemonDetailPage(
                                             stringResource(R.string.detail_id, pokemon.id.toString().padStart(4, '0')),
                                             color = MaterialTheme.colorScheme.onSurface
                                         )
-                                        if (LegendaryPokemon.isLegendary(pokemon.id)) LegendaryBadge()
+                                        if (LegendaryPokemon.isLegendary(pokemon.id)) LegendaryBadge(calm = true)
                                     }
                                     Text(
                                         stringResource(R.string.detail_height, (pokemon.height / 10.0).toString()),
