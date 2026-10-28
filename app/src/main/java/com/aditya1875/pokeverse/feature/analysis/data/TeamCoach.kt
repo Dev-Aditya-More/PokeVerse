@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.analysis.data
 
+import android.util.Log
+import com.aditya1875.pokeverse.BuildConfig
+import java.io.IOException
 import android.content.Context
 import androidx.core.content.edit
 import com.aditya1875.pokeverse.feature.analysis.presentation.components.TeamAnalysis
@@ -21,7 +24,8 @@ import java.util.Locale
 sealed interface CoachResult {
     data class Success(val text: String, val remaining: Int) : CoachResult
     data object LimitReached : CoachResult
-    data object Failed : CoachResult
+    /** [network] = worth retrying on a better connection; [detail] is only filled in debug builds. */
+    data class Failed(val network: Boolean, val detail: String?) : CoachResult
 }
 
 /**
@@ -54,31 +58,38 @@ class TeamCoach(context: Context) {
     fun cached(team: List<TeamMemberWithTypes>): String? =
         prefs.getString(cacheKey(team), null)
 
-    suspend fun read(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis): CoachResult {
+    suspend fun read(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis, allCaught: Boolean = false): CoachResult {
         cached(team)?.let { return CoachResult.Success(it, remainingToday()) }
         if (remainingToday() <= 0) return CoachResult.LimitReached
 
         return try {
             val text = withContext(Dispatchers.IO) {
                 withTimeout(TIMEOUT_MS) {
-                    model.generateContent(buildPrompt(team, analysis)).text?.trim()
+                    model.generateContent(buildPrompt(team, analysis, allCaught)).text?.trim()
                 }
             }
-            if (text.isNullOrBlank()) return CoachResult.Failed
+            if (text.isNullOrBlank()) return failed(IllegalStateException("Empty response from the model"), network = false)
             val clean = text.replace("**", "").replace("*", "")
             spendOne()
             remember(team, clean)
             CoachResult.Success(clean, remainingToday())
-        } catch (_: TimeoutCancellationException) {
-            CoachResult.Failed
+        } catch (e: TimeoutCancellationException) {
+            Log.w(TAG, "Coach request timed out", e)
+            failed(e, network = true)
         } catch (e: kotlinx.coroutines.CancellationException) {
             throw e
-        } catch (_: Exception) {
-            CoachResult.Failed
+        } catch (e: Exception) {
+            Log.e(TAG, "Coach request failed", e)
+            failed(e, network = e is IOException || e.cause is IOException)
         }
     }
 
-    private fun buildPrompt(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis): String {
+    private fun failed(e: Exception, network: Boolean) = CoachResult.Failed(
+        network = network,
+        detail = if (BuildConfig.DEBUG) "${e::class.java.simpleName}: ${e.message}".take(300) else null
+    )
+
+    private fun buildPrompt(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis, allCaught: Boolean): String {
         val roster = team.joinToString("; ") { "${it.name} (${it.types.joinToString("/")})" }
         val weak = analysis.defensiveWeaknesses.entries
             .filter { it.value.size >= 2 }
@@ -101,6 +112,7 @@ class TeamCoach(context: Context) {
             appendLine("Biggest weaknesses: $weak")
             appendLine("Types the team cannot hit super-effectively: $blind")
             appendLine("Types the team resists well: $resists")
+            if (allCaught) appendLine("The player caught all six of these Pokémon themselves in the app's Wild Catch minigame; you may acknowledge that in a few words.")
             append("Write the coach's read in ${languageName()}.")
         }
     }
@@ -142,6 +154,7 @@ class TeamCoach(context: Context) {
     }
 
     companion object {
+        private const val TAG = "TeamCoach"
         const val DAILY_LIMIT = 5
 
         // Stable (not a short-term-availability) Flash model; see Firebase AI Logic "supported models".

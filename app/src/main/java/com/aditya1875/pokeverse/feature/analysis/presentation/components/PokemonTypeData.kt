@@ -314,5 +314,6 @@ object TeamAnalyzer {
 data class TeamMemberWithTypes(
     val name: String,
     val types: List<String>,
-    val imageUrl: String
+    val imageUrl: String,
+    val id: Int = 0
 )

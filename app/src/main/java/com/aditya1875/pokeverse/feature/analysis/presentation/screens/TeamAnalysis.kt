@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.screens
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexViewModel
+import com.aditya1875.pokeverse.feature.pokemon.dex.isTrainersParty
+import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
 import android.app.Activity
 import android.util.Log
 import android.widget.Toast
@@ -89,6 +92,10 @@ fun TeamAnalysisScreen(
     teamId: String? = null
 ) {
     val coachState by coachViewModel.state.collectAsStateWithLifecycle()
+    val settingsViewModel: SettingsViewModel = koinViewModel()
+    val assetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
+    val dexViewModel: PokedexViewModel = koinViewModel()
+    val dexProgress by dexViewModel.progress.collectAsStateWithLifecycle()
 
     val billingManager: IBillingManager = koinInject()
     val subscriptionState by billingManager.subscriptionState.collectAsState()
@@ -152,7 +159,8 @@ fun TeamAnalysisScreen(
                         TeamMemberWithTypes(
                             name = member.name,
                             types = types,
-                            imageUrl = member.imageUrl
+                            imageUrl = member.imageUrl,
+                            id = pokemon.id
                         )
                     )
                 } catch (e: Exception) {
@@ -235,7 +243,12 @@ fun TeamAnalysisScreen(
                     analysis = analysis!!,
                     teamWithTypes = teamWithTypes,
                     coachState = coachState,
-                    onAskCoach = { coachViewModel.ask(teamWithTypes, analysis!!) }
+                    onAskCoach = {
+                        val party = isTrainersParty(teamWithTypes.map { it.id }, dexProgress.caught)
+                        coachViewModel.ask(teamWithTypes, analysis!!, allCaught = party)
+                    },
+                    assetsEnabled = assetsEnabled,
+                    caughtIds = dexProgress.caught
                 )
             }
         }

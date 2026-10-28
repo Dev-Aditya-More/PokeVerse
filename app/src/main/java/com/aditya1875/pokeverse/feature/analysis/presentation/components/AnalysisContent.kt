@@ -23,7 +23,9 @@ fun AnalysisContent(
     analysis: TeamAnalysis,
     teamWithTypes: List<TeamMemberWithTypes>,
     coachState: CoachUiState,
-    onAskCoach: () -> Unit
+    onAskCoach: () -> Unit,
+    assetsEnabled: Boolean,
+    caughtIds: Set<Int>
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(BG),
@@ -31,6 +33,8 @@ fun AnalysisContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item { ScoreHeroCard(score = analysis.coverageScore) }
+
+        item { TeamRosterCard(team = teamWithTypes, assetsEnabled = assetsEnabled, caughtIds = caughtIds) }
 
         item { QuickStatsRow(analysis = analysis, teamSize = teamWithTypes.size) }
 

@@ -16,7 +16,7 @@ sealed interface CoachUiState {
     data object Loading : CoachUiState
     data class Ready(val text: String, val remaining: Int, val fresh: Boolean) : CoachUiState
     data object Limit : CoachUiState
-    data class Error(val remaining: Int) : CoachUiState
+    data class Error(val remaining: Int, val network: Boolean, val detail: String?) : CoachUiState
 }
 
 class TeamCoachViewModel(private val coach: TeamCoach) : ViewModel() {
@@ -35,14 +35,14 @@ class TeamCoachViewModel(private val coach: TeamCoach) : ViewModel() {
         }
     }
 
-    fun ask(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis) {
+    fun ask(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis, allCaught: Boolean = false) {
         if (_state.value is CoachUiState.Loading) return
         _state.value = CoachUiState.Loading
         viewModelScope.launch {
-            _state.value = when (val result = coach.read(team, analysis)) {
+            _state.value = when (val result = coach.read(team, analysis, allCaught)) {
                 is CoachResult.Success -> CoachUiState.Ready(result.text, result.remaining, fresh = true)
                 CoachResult.LimitReached -> CoachUiState.Limit
-                CoachResult.Failed -> CoachUiState.Error(coach.remainingToday())
+                is CoachResult.Failed -> CoachUiState.Error(coach.remainingToday(), result.network, result.detail)
             }
         }
     }
