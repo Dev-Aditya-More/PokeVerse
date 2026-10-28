@@ -1094,7 +1094,7 @@
     <string name="dex_btn_start">START</string>
     <string name="dex_lcd_national">NATIONAL DEX</string>
     <string name="dex_lcd_system_check">SYSTEM CHECK</string>
-    <string name="dex_lcd_seen_count">SEEN %1$03d/%2$d</string>
+    <string name="dex_lcd_seen_count">SEEN %1$03d</string>
     <string name="dex_lcd_seen">● SEEN</string>
     <string name="dex_lcd_not_seen">NOT YET SEEN</string>
     <string name="dex_lcd_loading">LOADING</string>
@@ -1278,4 +1278,23 @@
     <string name="dex_new_entry">New Pokédex entry registered!</string>
     <string name="settings_mystery">Mystery silhouettes</string>
     <string name="settings_mystery_desc">Show Pokémon you haven\'t seen yet as silhouettes until you open them.</string>
+
+    <!-- Playful analysis screen -->
+    <string name="an_rank_champion">Champion Squad</string>
+    <string name="an_rank_elite">Elite Squad</string>
+    <string name="an_rank_gym">Gym-Ready</string>
+    <string name="an_rank_rookie">Rookie Squad</string>
+    <string name="an_rank_pep">Needs a Pep Talk</string>
+    <string name="an_trait_wall">Iron Wall</string>
+    <string name="an_trait_king">Coverage King</string>
+    <string name="an_trait_rainbow">Rainbow Team</string>
+    <string name="an_trait_glass">Glass Cannon</string>
+    <string name="an_trait_twins">Type Twins</string>
+    <string name="an_spotlight_hint">Tap a Pokémon to see its matchups</string>
+    <string name="an_spot_weak">Weak to</string>
+    <string name="an_spot_resists">Resists</string>
+    <string name="an_spot_immune">Immune to</string>
+    <string name="an_stat_coverage">Coverage</string>
+    <string name="an_stat_types">Types</string>
+    <string name="an_stat_weak">Weaknesses</string>
 </resources>

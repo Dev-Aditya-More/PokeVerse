@@ -1081,7 +1081,7 @@
     <string name="dex_btn_start">START</string>
     <string name="dex_lcd_national">नेशनल डेक्स</string>
     <string name="dex_lcd_system_check">सिस्टम जाँच</string>
-    <string name="dex_lcd_seen_count">देखे %1$03d/%2$d</string>
+    <string name="dex_lcd_seen_count">देखे %1$03d</string>
     <string name="dex_lcd_seen">● देखा</string>
     <string name="dex_lcd_not_seen">अभी नहीं देखा</string>
     <string name="dex_lcd_loading">लोड हो रहा है</string>
@@ -1265,4 +1265,23 @@
     <string name="dex_new_entry">Pokédex में नई entry दर्ज हुई!</string>
     <string name="settings_mystery">Mystery silhouettes</string>
     <string name="settings_mystery_desc">जो Pokémon तुमने अभी नहीं देखे, उन्हें खोलने तक silhouette में दिखाओ।</string>
+
+    <!-- Playful analysis screen -->
+    <string name="an_rank_champion">Champion Squad</string>
+    <string name="an_rank_elite">Elite Squad</string>
+    <string name="an_rank_gym">Gym-Ready</string>
+    <string name="an_rank_rookie">Rookie Squad</string>
+    <string name="an_rank_pep">थोड़ा Pep Talk चाहिए</string>
+    <string name="an_trait_wall">Iron Wall</string>
+    <string name="an_trait_king">Coverage King</string>
+    <string name="an_trait_rainbow">Rainbow Team</string>
+    <string name="an_trait_glass">Glass Cannon</string>
+    <string name="an_trait_twins">Type Twins</string>
+    <string name="an_spotlight_hint">Matchups देखने के लिए किसी Pokémon पर tap करो</string>
+    <string name="an_spot_weak">इनसे कमज़ोर</string>
+    <string name="an_spot_resists">इनसे मज़बूत</string>
+    <string name="an_spot_immune">इन पर immune</string>
+    <string name="an_stat_coverage">Coverage</string>
+    <string name="an_stat_types">Types</string>
+    <string name="an_stat_weak">Weaknesses</string>
 </resources>

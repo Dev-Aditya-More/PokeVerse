@@ -123,6 +123,8 @@ private val RedLight = Color(0xFFE85A5A)
 private val Red = Color(0xFFD32F2F)
 private val RedDark = Color(0xFF9E1B1B)
 private val RedDeep = Color(0xFF6E1010)
+// Printed labels on the red shell: RedDeep on Red was nearly invisible, so they use a warm off-white.
+private val ShellLabel = Color(0xFFFFE9DA)
 private val BezelLight = Color(0xFFECECEC)
 private val BezelShade = Color(0xFFC4C4C4)
 private val Plastic = Color(0xFF2B2B2B)
@@ -589,7 +591,7 @@ private fun Controls(
             Spacer(Modifier.height(unit * 8))
             Text(
                 "DEXVERSE · DX-01",
-                color = RedDeep.copy(alpha = 0.75f),
+                color = ShellLabel.copy(alpha = 0.9f),
                 fontFamily = LcdFont,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 4.sp,
@@ -685,7 +687,7 @@ private fun PillButton(label: String, unit: Dp, onClick: () -> Unit) {
                 .holdToRepeat(repeat = false, onPress = onClick, onPressedChange = { down = it })
         )
         Spacer(Modifier.height(unit * 6))
-        Text(label, color = RedDeep, fontFamily = LcdFont, fontWeight = FontWeight.Black, fontSize = 9.sp, letterSpacing = 1.sp)
+        Text(label, color = ShellLabel, fontFamily = LcdFont, fontWeight = FontWeight.Black, fontSize = 10.sp, letterSpacing = 1.sp)
     }
 }
 
@@ -1047,9 +1049,10 @@ private fun InfoPage(detail: DexEntryDetail, palette: LcdPalette) {
                 }
             }
         }
-        Spacer(Modifier.height(6.dp))
+        // A few lines of air between the portrait/details and the description.
+        Spacer(Modifier.height(18.dp))
         DottedRule(palette)
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(12.dp))
         Box(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())) {
             LcdText(flavor.take(typed) + if (typed < flavor.length) "▌" else "", palette.ink, 13.sp)
         }

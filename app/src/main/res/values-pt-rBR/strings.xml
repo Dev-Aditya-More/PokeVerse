@@ -1095,7 +1095,7 @@
     <string name="dex_btn_start">START</string>
     <string name="dex_lcd_national">DEX NACIONAL</string>
     <string name="dex_lcd_system_check">VERIFICANDO</string>
-    <string name="dex_lcd_seen_count">VISTOS %1$03d/%2$d</string>
+    <string name="dex_lcd_seen_count">VISTOS %1$03d</string>
     <string name="dex_lcd_seen">● VISTO</string>
     <string name="dex_lcd_not_seen">AINDA NÃO VISTO</string>
     <string name="dex_lcd_loading">CARREGANDO</string>
@@ -1279,4 +1279,23 @@
     <string name="dex_new_entry">Nova entrada registrada na Pokédex!</string>
     <string name="settings_mystery">Silhuetas misteriosas</string>
     <string name="settings_mystery_desc">Mostra como silhuetas os Pokémon que você ainda não viu, até abri-los.</string>
+
+    <!-- Playful analysis screen -->
+    <string name="an_rank_champion">Esquadrão Campeão</string>
+    <string name="an_rank_elite">Esquadrão de Elite</string>
+    <string name="an_rank_gym">Pronto para Ginásios</string>
+    <string name="an_rank_rookie">Esquadrão Novato</string>
+    <string name="an_rank_pep">Precisa de um Incentivo</string>
+    <string name="an_trait_wall">Muralha de Ferro</string>
+    <string name="an_trait_king">Rei da Cobertura</string>
+    <string name="an_trait_rainbow">Time Arco-Íris</string>
+    <string name="an_trait_glass">Canhão de Vidro</string>
+    <string name="an_trait_twins">Gêmeos de Tipo</string>
+    <string name="an_spotlight_hint">Toque em um Pokémon para ver os confrontos</string>
+    <string name="an_spot_weak">Fraco contra</string>
+    <string name="an_spot_resists">Resiste a</string>
+    <string name="an_spot_immune">Imune a</string>
+    <string name="an_stat_coverage">Cobertura</string>
+    <string name="an_stat_types">Tipos</string>
+    <string name="an_stat_weak">Fraquezas</string>
 </resources>

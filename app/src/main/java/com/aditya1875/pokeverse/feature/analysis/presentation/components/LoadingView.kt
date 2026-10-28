@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.MascotBall
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,7 +26,7 @@ fun LoadingView() {
     Box(Modifier.fillMaxSize().background(BG), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            CircularProgressIndicator(color = BLUE, strokeWidth = 3.dp, modifier = Modifier.size(44.dp))
+            MascotBall(talking = true, size = 72.dp)
             Text(stringResource(R.string.analysis_loading_title),
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White, fontWeight = FontWeight.SemiBold)

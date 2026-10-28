@@ -30,8 +30,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 95
-        versionName = "2.2.4"
+        versionCode = 96
+        versionName = "2.2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -237,6 +237,10 @@ dependencies {
     add("playImplementation", libs.firebase.storage)
     // Gemini Flash via Firebase AI Logic — powers the team "Coach's Read" (no API key in the app)
     add("playImplementation", libs.firebase.ai)
+    // App Check: the AI API rejects requests without a valid token. Debug builds use the debug
+    // provider (register its token in the console); release builds attest through Play Integrity.
+    debugImplementation(libs.firebase.appcheck.debug)
+    releaseImplementation(libs.firebase.appcheck.playintegrity)
 
     add("playImplementation", libs.play.services.auth)
     add("playImplementation", libs.play.services.ads)

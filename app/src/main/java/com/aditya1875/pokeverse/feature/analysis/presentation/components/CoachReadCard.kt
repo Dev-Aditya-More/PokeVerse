@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import com.aditya1875.pokeverse.feature.pokemon.dex.MascotBall
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -59,7 +60,7 @@ fun CoachReadCard(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("🎓", fontSize = 26.sp)
+            MascotBall(talking = state is CoachUiState.Loading, size = 30.dp)
             Spacer(Modifier.width(10.dp))
             Column {
                 Text(

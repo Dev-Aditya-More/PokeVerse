@@ -1,5 +1,12 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
+import kotlinx.coroutines.delay
 import com.aditya1875.pokeverse.R
 import androidx.compose.ui.res.stringResource
 import com.aditya1875.pokeverse.utils.localizedTypeName
@@ -39,6 +46,8 @@ fun CoverageSection(coverage: Map<String, Int>, teamSize: Int) {
             )
             HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
 
+            CoverageRadar(coverage)
+
             // Legend
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                 LegendDot(CARD2, stringResource(R.string.analysis_legend_none))
@@ -53,12 +62,12 @@ fun CoverageSection(coverage: Map<String, Int>, teamSize: Int) {
                 .toList()
 
             val rows = sortedCoverage.chunked(3)
-            rows.forEach { row ->
+            rows.forEachIndexed { r, row ->
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    row.forEach { (type, count) ->
+                    row.forEachIndexed { c, (type, count) ->
                         CoverageCell(
                             modifier = Modifier.weight(1f),
-                            type = type, count = count, teamSize = teamSize
+                            type = type, count = count, teamSize = teamSize, index = r * 3 + c
                         )
                     }
                     // Fill empty cells in last row
@@ -70,7 +79,12 @@ fun CoverageSection(coverage: Map<String, Int>, teamSize: Int) {
 }
 
 @Composable
-private fun CoverageCell(modifier: Modifier, type: String, count: Int, teamSize: Int) {
+private fun CoverageCell(modifier: Modifier, type: String, count: Int, teamSize: Int, index: Int) {
+    val pop = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        delay(250L + index * 40L)
+        pop.animateTo(1f, spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMedium))
+    }
     val cellColor = when {
         count == 0           -> CARD2
         count >= 3           -> GREEN.copy(alpha = 0.25f)
@@ -84,7 +98,11 @@ private fun CoverageCell(modifier: Modifier, type: String, count: Int, teamSize:
         else                 -> AMBER
     }
     Surface(
-        modifier = modifier,
+        modifier = modifier.graphicsLayer {
+            scaleX = pop.value
+            scaleY = pop.value
+            alpha = pop.value.coerceIn(0f, 1f)
+        },
         shape = RoundedCornerShape(10.dp),
         color = cellColor
     ) {

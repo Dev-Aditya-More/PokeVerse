@@ -25,6 +25,8 @@ private val Context.dexStore: DataStore<Preferences> by preferencesDataStore("po
 data class DexProgress(
     val seen: Set<Int> = emptySet(),
     val caught: Set<Int> = emptySet(),
+    /** False only for the placeholder emitted before the stored progress has been read. */
+    val loaded: Boolean = true,
 ) {
     val seenCount: Int get() = seen.size
     val caughtCount: Int get() = caught.size
@@ -40,7 +42,7 @@ data class DexProgress(
 
         /** Pikachu: the starter for anyone who skips or predates the professor intro. */
         const val DEFAULT_STARTER_ID = 25
-        val EMPTY = DexProgress()
+        val EMPTY = DexProgress(loaded = false)
     }
 }
 

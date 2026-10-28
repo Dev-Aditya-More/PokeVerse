@@ -1081,7 +1081,7 @@
     <string name="dex_btn_start">START</string>
     <string name="dex_lcd_national">DEX NATIONAL</string>
     <string name="dex_lcd_system_check">DIAGNOSTIC</string>
-    <string name="dex_lcd_seen_count">VUS %1$03d/%2$d</string>
+    <string name="dex_lcd_seen_count">VUS %1$03d</string>
     <string name="dex_lcd_seen">● VU</string>
     <string name="dex_lcd_not_seen">PAS ENCORE VU</string>
     <string name="dex_lcd_loading">CHARGEMENT</string>
@@ -1265,4 +1265,23 @@
     <string name="dex_new_entry">Nouvelle entrée enregistrée dans le Pokédex !</string>
     <string name="settings_mystery">Silhouettes mystères</string>
     <string name="settings_mystery_desc">Affiche en silhouette les Pokémon que tu n\'as pas encore vus, jusqu\'à ce que tu les ouvres.</string>
+
+    <!-- Playful analysis screen -->
+    <string name="an_rank_champion">Équipe de Champions</string>
+    <string name="an_rank_elite">Équipe d\'Élite</string>
+    <string name="an_rank_gym">Prête pour l\'Arène</string>
+    <string name="an_rank_rookie">Équipe de Débutants</string>
+    <string name="an_rank_pep">A besoin d\'un coup de boost</string>
+    <string name="an_trait_wall">Mur de Fer</string>
+    <string name="an_trait_king">Roi de la Couverture</string>
+    <string name="an_trait_rainbow">Équipe Arc-en-ciel</string>
+    <string name="an_trait_glass">Canon de Verre</string>
+    <string name="an_trait_twins">Jumeaux de Type</string>
+    <string name="an_spotlight_hint">Touche un Pokémon pour voir ses affinités</string>
+    <string name="an_spot_weak">Faible contre</string>
+    <string name="an_spot_resists">Résiste à</string>
+    <string name="an_spot_immune">Immunisé contre</string>
+    <string name="an_stat_coverage">Couverture</string>
+    <string name="an_stat_types">Types</string>
+    <string name="an_stat_weak">Faiblesses</string>
 </resources>

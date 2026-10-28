@@ -1,5 +1,15 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.components
 
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import com.aditya1875.pokeverse.utils.localizedTypeName
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -212,16 +222,16 @@ fun DefenseSection(
             if (weaknesses.isNotEmpty()) {
                 Text(stringResource(R.string.analysis_vulnerable_to), style = MaterialTheme.typography.labelSmall,
                     color = RED.copy(alpha = 0.8f), letterSpacing = 1.5.sp)
-                weaknesses.entries.sortedByDescending { it.value.size }.take(6).forEach { (type, pokemon) ->
-                    DefenseTypeBar(type = type, count = pokemon.size, total = teamSize, isWeakness = true)
+                weaknesses.entries.sortedByDescending { it.value.size }.take(6).forEachIndexed { i, (type, pokemon) ->
+                    DefenseTypeBar(type = type, count = pokemon.size, total = teamSize, isWeakness = true, index = i)
                 }
             }
 
             if (resistances.isNotEmpty()) {
                 Text(stringResource(R.string.analysis_resists), style = MaterialTheme.typography.labelSmall,
                     color = GREEN.copy(alpha = 0.8f), letterSpacing = 1.5.sp)
-                resistances.entries.sortedByDescending { it.value.size }.take(6).forEach { (type, pokemon) ->
-                    DefenseTypeBar(type = type, count = pokemon.size, total = teamSize, isWeakness = false)
+                resistances.entries.sortedByDescending { it.value.size }.take(6).forEachIndexed { i, (type, pokemon) ->
+                    DefenseTypeBar(type = type, count = pokemon.size, total = teamSize, isWeakness = false, index = i)
                 }
             }
         }
@@ -229,11 +239,23 @@ fun DefenseSection(
 }
 
 @Composable
-private fun DefenseTypeBar(type: String, count: Int, total: Int, isWeakness: Boolean) {
+private fun DefenseTypeBar(type: String, count: Int, total: Int, isWeakness: Boolean, index: Int) {
     val barColor = if (isWeakness) RED else GREEN
+    // Bars grow in one after another; a weakness shared by half the team or more pulses.
+    var go by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        delay(200L + index * 80L)
+        go = true
+    }
     val fraction by animateFloatAsState(
-        count.toFloat() / total.toFloat().coerceAtLeast(1f),
-        tween(600), label = "bar"
+        if (go) count.toFloat() / total.toFloat().coerceAtLeast(1f) else 0f,
+        tween(700, easing = FastOutSlowInEasing), label = "bar"
+    )
+    val danger = isWeakness && total > 0 && count * 2 >= total
+    val pulse by rememberInfiniteTransition(label = "danger").animateFloat(
+        initialValue = 0.45f, targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(650), RepeatMode.Reverse),
+        label = "pulse"
     )
     Row(
         Modifier.fillMaxWidth(),
@@ -259,7 +281,7 @@ private fun DefenseTypeBar(type: String, count: Int, total: Int, isWeakness: Boo
         ) {
             Box(
                 Modifier.fillMaxHeight().fillMaxWidth(fraction).clip(RoundedCornerShape(4.dp))
-                    .background(barColor.copy(alpha = 0.7f))
+                    .background(barColor.copy(alpha = if (danger) pulse else 0.7f))
             )
         }
         Text(
