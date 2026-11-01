@@ -8,6 +8,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.google.android.gms.ads.AdRequest
@@ -15,10 +16,12 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import org.koin.compose.koinInject
 
-// ── Replace these with your real AdMob banner unit IDs before release ─────────
+// Real units in release; Google's official test unit in debug, so taps while developing never
+// count as invalid traffic against the AdMob account (a common cause of account suspension).
 object BannerAdUnitIds {
-    const val GAME_HUB = "ca-app-pub-5302526681326969/9951979383" // TODO: replace
-    const val LEADERBOARD = "ca-app-pub-5302526681326969/9117409862" // TODO: replace
+    private const val TEST_BANNER = "ca-app-pub-3940256099942544/9214589741"
+    val GAME_HUB = if (BuildConfig.DEBUG) TEST_BANNER else "ca-app-pub-5302526681326969/9951979383"
+    val LEADERBOARD = if (BuildConfig.DEBUG) TEST_BANNER else "ca-app-pub-5302526681326969/9117409862"
 }
 
 /**

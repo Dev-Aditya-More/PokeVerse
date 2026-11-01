@@ -18,7 +18,9 @@ import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.messaging.FirebaseMessaging
+import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.ProfilePhotoEncoder
 import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.storageMetadata
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -288,9 +290,9 @@ class ProfileViewModel(
             try {
                 val ref = FirebaseStorage.getInstance()
                     .reference.child("profile_photos/$uid.jpg")
-                val stream = context.contentResolver.openInputStream(uri) ?: return@launch
-                ref.putStream(stream).await()
-                stream.close()
+                val bytes = ProfilePhotoEncoder.encode(context, uri) ?: return@launch
+                // Explicit content type: the Storage rule only accepts images.
+                ref.putBytes(bytes, storageMetadata { contentType = "image/jpeg" }).await()
                 val downloadUrl = ref.downloadUrl.await().toString()
                 val updated = userProfile.value.copy(photoUrl = downloadUrl)
                 repository.saveProfile(updated)

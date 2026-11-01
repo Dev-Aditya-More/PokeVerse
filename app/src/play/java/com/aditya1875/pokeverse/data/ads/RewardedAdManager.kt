@@ -17,8 +17,10 @@ import kotlinx.coroutines.flow.StateFlow
 class RewardedAdManager : IRewardedAdManager {
 
     companion object {
-        private const val AD_UNIT_ID =
-            "ca-app-pub-5302526681326969/9257053855"
+        // Debug builds use Google's official rewarded-interstitial test unit (see BannerAdUnitIds).
+        private val AD_UNIT_ID =
+            if (com.aditya1875.pokeverse.BuildConfig.DEBUG) "ca-app-pub-3940256099942544/5354046379"
+            else "ca-app-pub-5302526681326969/9257053855"
     }
 
     private val _adState = MutableStateFlow<RewardedAdState>(RewardedAdState.Idle)

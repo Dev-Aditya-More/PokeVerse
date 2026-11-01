@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- HTTPS only. Every host the app talks to (PokeAPI, sprite CDNs, Firebase, RevenueCat) serves
+     TLS, so plain HTTP is refused outright instead of being allowed "just in case". -->
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">pokeapi.co</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="false" />
 </network-security-config>

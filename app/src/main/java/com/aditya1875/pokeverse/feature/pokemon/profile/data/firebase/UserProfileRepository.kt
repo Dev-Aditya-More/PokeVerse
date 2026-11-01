@@ -221,13 +221,17 @@ class UserProfileRepository(private val context: Context) {
         val p = if (WeeklyReset.isStale(profile.lastWeeklyReset)) {
             profile.copy(weeklyXp = 0, lastWeeklyReset = WeeklyReset.startOfCurrentWeekMillis())
         } else profile
+        // Only a real uploaded/Google photo URL may go public. Older versions could store a local
+        // content:// path here, which nobody else can load and which the leaderboard rules reject
+        // (failing the whole write).
+        val photoUrl = p.photoUrl.takeIf { it.startsWith("https://") } ?: ""
         try {
             firestore.collection("users").document(uid).set(
                 mapOf(
                     "uid" to uid,
                     "username" to p.username,
                     "bio" to p.bio.take(60),
-                    "photoUrl" to p.photoUrl,
+                    "photoUrl" to photoUrl,
                     "email" to p.email,
                     "totalXp" to p.totalXp,
                     "weeklyXp" to p.weeklyXp,
@@ -268,7 +272,7 @@ class UserProfileRepository(private val context: Context) {
                     // lowercase copy for case-insensitive friend search (prefix queries)
                     "displayNameLower" to p.username.lowercase(),
                     "bio" to p.bio.take(60),
-                    "photoUrl" to p.photoUrl,
+                    "photoUrl" to photoUrl,
                     "totalXp" to p.totalXp,
                     "weeklyXp" to p.weeklyXp,
                     "lastWeeklyReset" to p.lastWeeklyReset,

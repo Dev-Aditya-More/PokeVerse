@@ -76,3 +76,10 @@
 # RevenueCat (see BillingManager.kt)
 ############################
 -keep class com.revenuecat.purchases.** { *; }
+
+# Strip verbose/debug/info logging from release builds (keeps Log.w/e for Crashlytics context).
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+}
