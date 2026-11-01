@@ -77,6 +77,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -117,6 +119,7 @@ import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.aditya1875.pokeverse.ui.BannerAd
 import com.aditya1875.pokeverse.ui.BannerAdUnitIds
 import com.aditya1875.pokeverse.utils.ScreenStateManager
+import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -181,8 +184,20 @@ fun LeaderboardScreen(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (BuildConfig.ENABLE_ADS) {
-                BannerAd(adUnitId = BannerAdUnitIds.LEADERBOARD)
+            Column {
+                // Pinned above the ad instead of floating over the list, so it never covers rows.
+                // Hidden for the top 3: they're already on the podium with a "You" tag.
+                val me = (state as? LeaderboardState.Success)?.userEntry
+                if (type != LeaderboardType.LAST_WEEK && me != null && me.rank > 3) {
+                    UserRankBanner(
+                        type = type,
+                        entry = me,
+                        modifier = Modifier.padding(horizontal = rememberAdaptiveHPadding(), vertical = 8.dp)
+                    )
+                }
+                if (BuildConfig.ENABLE_ADS) {
+                    BannerAd(adUnitId = BannerAdUnitIds.LEADERBOARD)
+                }
             }
         }
     ) { padding ->
@@ -289,16 +304,6 @@ fun LeaderboardScreen(
                         )
                     }
 
-                    if (s.userEntry != null && s.userEntry.rank > 0) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .align(Alignment.BottomCenter)
-                                .padding(16.dp)
-                        ) {
-                            UserRankBanner(type = type, entry = s.userEntry)
-                        }
-                    }
                 }
             }
         }
@@ -345,7 +350,7 @@ private fun LeaderboardList(
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 100.dp)
+        contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         // Scrolls away: title + bell
         item(key = "title") {
@@ -369,11 +374,12 @@ private fun LeaderboardList(
                     first = entries[0],
                     second = entries[1],
                     third = entries[2],
+                    userUid = userEntry?.uid,
                     onBioTap = onBioTap,
                     onProTap = onProTap
                 )
                 Spacer(Modifier.height(8.dp))
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(modifier = Modifier.padding(horizontal = rememberAdaptiveHPadding()))
                 Spacer(Modifier.height(4.dp))
             }
         }
@@ -421,7 +427,7 @@ private fun LeaderboardTitleRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 20.dp, end = 4.dp, top = 16.dp, bottom = 8.dp),
+            .padding(start = rememberAdaptiveHPadding(), end = 4.dp, top = 16.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -463,8 +469,8 @@ private fun LeaderboardTabStrip(type: LeaderboardType, onTypeChange: (Leaderboar
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    start = 20.dp,
-                    end = 20.dp,
+                    start = rememberAdaptiveHPadding(),
+                    end = rememberAdaptiveHPadding(),
                     top = 8.dp,
                     bottom = 12.dp
                 )
@@ -538,6 +544,7 @@ private fun PodiumSection(
     first: LeaderboardEntry,
     second: LeaderboardEntry,
     third: LeaderboardEntry,
+    userUid: String? = null,
     onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
     onProTap: (LeaderboardEntry) -> Unit = {}
 ) {
@@ -548,21 +555,21 @@ private fun PodiumSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+            .padding(horizontal = rememberAdaptiveHPadding(), vertical = 8.dp),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         PodiumColumn(
             type = type, entry = second, rank = 2, level = second.level,
-            color = silver, avatarSize = 64.dp, podiumHeight = 70.dp, onBioTap = onBioTap, onProTap = onProTap
+            color = silver, avatarSize = 56.dp, podiumHeight = 44.dp, isUser = second.uid == userUid, onBioTap = onBioTap, onProTap = onProTap
         )
         PodiumColumn(
             type = type, entry = first, rank = 1, level = first.level,
-            color = gold, avatarSize = 80.dp, podiumHeight = 96.dp, onBioTap = onBioTap, onProTap = onProTap
+            color = gold, avatarSize = 68.dp, podiumHeight = 60.dp, isUser = first.uid == userUid, onBioTap = onBioTap, onProTap = onProTap
         )
         PodiumColumn(
             type = type, entry = third, rank = 3, level = third.level,
-            color = bronze, avatarSize = 56.dp, podiumHeight = 52.dp, onBioTap = onBioTap, onProTap = onProTap
+            color = bronze, avatarSize = 52.dp, podiumHeight = 32.dp, isUser = third.uid == userUid, onBioTap = onBioTap, onProTap = onProTap
         )
     }
 }
@@ -576,6 +583,7 @@ private fun PodiumColumn(
     color: Color,
     avatarSize: Dp,
     podiumHeight: Dp,
+    isUser: Boolean = false,
     onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
     onProTap: (LeaderboardEntry) -> Unit = {}
 ) {
@@ -615,24 +623,24 @@ private fun PodiumColumn(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
-                .widthIn(max = 80.dp)
+                .widthIn(max = 96.dp)
                 .then(if (entry.isPremium) Modifier.premiumNameShimmer() else Modifier)
         )
-        if (entry.isPremium) {
-            ProChip(onClick = { onProTap(entry) }, modifier = Modifier.padding(vertical = 2.dp))
+        if (entry.isPremium || isUser) {
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(vertical = 2.dp)) {
+                if (entry.isPremium) ProChip(onClick = { onProTap(entry) })
+                if (isUser) YouTag()
+            }
         }
+        // XP and level share one line: the podium was eating half a phone screen.
         Text(
-            text = stringResource(R.string.xp_count, xpToShow),
+            text = stringResource(R.string.xp_count, xpToShow) + " · " + stringResource(R.string.level_short, level),
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            stringResource(R.string.level_short, level),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1
         )
 
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(4.dp))
 
         Box(
             modifier = Modifier
@@ -688,7 +696,7 @@ private fun LeaderboardRow(
             )
             .background(bgColor)
             .then(if (entry.isPremium) Modifier.premiumRowGlow() else Modifier)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = rememberAdaptiveHPadding(), vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -728,17 +736,7 @@ private fun LeaderboardRow(
                 }
                 if (isUser) {
                     Spacer(Modifier.width(6.dp))
-                    Surface(
-                        shape = RoundedCornerShape(4.dp),
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                    ) {
-                        Text(
-                            stringResource(R.string.leaderboard_you_label),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
+                    YouTag()
                 }
             }
             Row(
@@ -767,11 +765,12 @@ private fun LeaderboardRow(
 // Pinned bottom banner
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
-private fun UserRankBanner(type: LeaderboardType, entry: LeaderboardEntry) {
+private fun UserRankBanner(type: LeaderboardType, entry: LeaderboardEntry, modifier: Modifier = Modifier) {
     val xpToShow = if (type == LeaderboardType.WEEKLY || type == LeaderboardType.LAST_WEEK)
         entry.weeklyXp else entry.totalXp
 
     Card(
+        modifier = modifier,
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
         elevation = CardDefaults.cardElevation(8.dp),
@@ -849,6 +848,25 @@ private fun TrainerAvatar(
         }
         if (isPremium) PremiumBadge(Modifier.align(Alignment.BottomEnd).size(size * 0.38f))
     }
+}
+
+/** Compact "You" tag, sized to match the PRO pill. */
+@Composable
+private fun YouTag() {
+    Text(
+        stringResource(R.string.leaderboard_you_label),
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            .padding(horizontal = 6.dp, vertical = 2.5.dp),
+        color = MaterialTheme.colorScheme.primary,
+        style = TextStyle(
+            fontSize = 9.sp,
+            lineHeight = 9.sp,
+            fontWeight = FontWeight.Bold,
+            platformStyle = PlatformTextStyle(includeFontPadding = false)
+        )
+    )
 }
 
 /** Small gold crest on a premium trainer's avatar. Cosmetic only. */
@@ -979,7 +997,7 @@ private fun LastWeekList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 100.dp)
+        contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         // Scrolls away: title + bell
         item(key = "title") {
@@ -1027,7 +1045,7 @@ private fun LastWeekList(
                         onBioTap = onBioTap
                     )
                     Spacer(Modifier.height(8.dp))
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = rememberAdaptiveHPadding()))
                     Spacer(Modifier.height(4.dp))
                 }
             }
@@ -1125,16 +1143,16 @@ private fun LastWeekPodiumSection(
     ) {
         LastWeekPodiumColumn(
             entry = second, rank = 2, color = silver,
-            avatarSize = 64.dp, podiumHeight = 70.dp, entranceDelay = 150L, onBioTap = onBioTap
+            avatarSize = 56.dp, podiumHeight = 44.dp, entranceDelay = 150L, onBioTap = onBioTap
         )
         LastWeekPodiumColumn(
             entry = first, rank = 1, color = gold,
-            avatarSize = 80.dp, podiumHeight = 96.dp, entranceDelay = 0L,
+            avatarSize = 68.dp, podiumHeight = 60.dp, entranceDelay = 0L,
             isChampion = true, onBioTap = onBioTap
         )
         LastWeekPodiumColumn(
             entry = third, rank = 3, color = bronze,
-            avatarSize = 56.dp, podiumHeight = 52.dp, entranceDelay = 300L, onBioTap = onBioTap
+            avatarSize = 52.dp, podiumHeight = 32.dp, entranceDelay = 300L, onBioTap = onBioTap
         )
     }
 }

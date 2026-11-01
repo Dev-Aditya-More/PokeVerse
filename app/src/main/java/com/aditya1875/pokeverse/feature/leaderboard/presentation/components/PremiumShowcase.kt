@@ -60,6 +60,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -204,15 +206,21 @@ fun ProChip(onClick: () -> Unit, modifier: Modifier = Modifier) {
             .clip(RoundedCornerShape(50))
             .background(Brush.horizontalGradient(listOf(PremiumGoldLight, PremiumGold, PremiumGoldDeep)))
             .clickable(onClick = onClick)
-            .padding(horizontal = 6.dp, vertical = 1.5.dp),
+            .padding(horizontal = 5.dp, vertical = 2.5.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             stringResource(R.string.leaderboard_pro_chip),
             color = PremiumInk,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Black,
-            letterSpacing = 0.8.sp
+            // No font padding: the glyphs alone set the pill's height, so it sits like a badge
+            // next to the name instead of a button.
+            style = TextStyle(
+                fontSize = 8.sp,
+                lineHeight = 8.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 0.6.sp,
+                platformStyle = PlatformTextStyle(includeFontPadding = false)
+            )
         )
     }
 }
