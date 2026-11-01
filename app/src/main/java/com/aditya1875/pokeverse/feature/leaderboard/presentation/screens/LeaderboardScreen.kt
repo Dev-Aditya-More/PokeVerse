@@ -12,6 +12,7 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -37,6 +38,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.MilitaryTech
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material3.Badge
@@ -92,9 +95,23 @@ import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.BioA
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.BioAnchorHandles
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.BioSpeechBubble
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.GuestLeaderboardLocked
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.PodiumCrown
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.PremiumGold
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.PremiumGoldDeep
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.PremiumGoldLight
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.ProChip
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.ProTrainerSheet
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.ProvidePremiumShine
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.premiumAura
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.premiumNameColor
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.premiumNameShimmer
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.premiumRing
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.premiumRowGlow
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.RankCelebrationDialog
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardType
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardViewModel
+import com.aditya1875.pokeverse.feature.game.premium.LocalPremium
+import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.aditya1875.pokeverse.ui.BannerAd
@@ -132,6 +149,10 @@ fun LeaderboardScreen(
     val onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { entry, anchor ->
         bioBubble = entry to anchor
     }
+    // Premium Showcase: tapping a PRO chip explains Pro; plans open only from that sheet.
+    var proSheetFor by remember { mutableStateOf<LeaderboardEntry?>(null) }
+    var showPlans by remember { mutableStateOf(false) }
+    val onProTap: (LeaderboardEntry) -> Unit = { proSheetFor = it }
 
     if (authState !is AuthState.Authenticated) {
         GuestLeaderboardLocked()
@@ -141,9 +162,20 @@ fun LeaderboardScreen(
     if (showInbox) {
         InboxSheet(onDismiss = { showInbox = false })
     }
+    proSheetFor?.let { entry ->
+        ProTrainerSheet(
+            trainerName = entry.displayName,
+            viewerIsPremium = LocalPremium.current,
+            onSeePlans = { proSheetFor = null; showPlans = true },
+            onDismiss = { proSheetFor = null }
+        )
+    }
+    if (showPlans) PremiumBottomSheet(onDismiss = { showPlans = false })
 
     // Wraps Scaffold so the bio overlay (spotlight + bubble) covers the whole
     // screen; it converts the tapped row's window rect into its own space.
+    // ProvidePremiumShine: one shared animation clock for every Pro row on screen.
+    ProvidePremiumShine {
     Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -181,7 +213,11 @@ fun LeaderboardScreen(
                     if (s.entries.isEmpty() && type == LeaderboardType.WEEKLY) {
                         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("🏆", fontSize = 48.sp)
+                                Icon(
+                                    Icons.Default.EmojiEvents, null,
+                                    tint = PremiumGold,
+                                    modifier = Modifier.size(56.dp)
+                                )
                                 Spacer(Modifier.height(12.dp))
                                 Text(
                                     stringResource(R.string.leaderboard_weekly_empty_title),
@@ -248,7 +284,8 @@ fun LeaderboardScreen(
                             onLoadMore = { viewModel.loadNextPage() },
                             unreadCount = unreadCount,
                             onBellClick = { showInbox = true },
-                            onBioTap = onBioTap
+                            onBioTap = onBioTap,
+                            onProTap = onProTap
                         )
                     }
 
@@ -275,6 +312,7 @@ fun LeaderboardScreen(
         )
     }
     }
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -288,7 +326,8 @@ private fun LeaderboardList(
     onLoadMore: () -> Unit,
     unreadCount: Int,
     onBellClick: () -> Unit,
-    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
+    onProTap: (LeaderboardEntry) -> Unit = {}
 ) {
     val listState = rememberLazyListState()
 
@@ -330,7 +369,8 @@ private fun LeaderboardList(
                     first = entries[0],
                     second = entries[1],
                     third = entries[2],
-                    onBioTap = onBioTap
+                    onBioTap = onBioTap,
+                    onProTap = onProTap
                 )
                 Spacer(Modifier.height(8.dp))
                 HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -349,7 +389,8 @@ private fun LeaderboardList(
                 entry = entry,
                 isUser = isUser,
                 maxXp = entries[0].totalXp,
-                onBioTap = onBioTap
+                onBioTap = onBioTap,
+                onProTap = onProTap
             )
         }
 
@@ -497,7 +538,8 @@ private fun PodiumSection(
     first: LeaderboardEntry,
     second: LeaderboardEntry,
     third: LeaderboardEntry,
-    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
+    onProTap: (LeaderboardEntry) -> Unit = {}
 ) {
     val gold = Color(0xFFFFD700)
     val silver = Color(0xFFC0C0C0)
@@ -512,15 +554,15 @@ private fun PodiumSection(
     ) {
         PodiumColumn(
             type = type, entry = second, rank = 2, level = second.level,
-            color = silver, avatarSize = 64.dp, podiumHeight = 70.dp, onBioTap = onBioTap
+            color = silver, avatarSize = 64.dp, podiumHeight = 70.dp, onBioTap = onBioTap, onProTap = onProTap
         )
         PodiumColumn(
             type = type, entry = first, rank = 1, level = first.level,
-            color = gold, avatarSize = 80.dp, podiumHeight = 96.dp, onBioTap = onBioTap
+            color = gold, avatarSize = 80.dp, podiumHeight = 96.dp, onBioTap = onBioTap, onProTap = onProTap
         )
         PodiumColumn(
             type = type, entry = third, rank = 3, level = third.level,
-            color = bronze, avatarSize = 56.dp, podiumHeight = 52.dp, onBioTap = onBioTap
+            color = bronze, avatarSize = 56.dp, podiumHeight = 52.dp, onBioTap = onBioTap, onProTap = onProTap
         )
     }
 }
@@ -534,7 +576,8 @@ private fun PodiumColumn(
     color: Color,
     avatarSize: Dp,
     podiumHeight: Dp,
-    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
+    onProTap: (LeaderboardEntry) -> Unit = {}
 ) {
     val bioAnchor = remember { BioAnchorHandles() }
     Column(
@@ -547,7 +590,7 @@ private fun PodiumColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
     ) {
-        if (rank == 1) Text("👑", fontSize = 22.sp)
+        if (rank == 1) PodiumCrown(Modifier.padding(bottom = 2.dp))
 
         val xpToShow = if (type == LeaderboardType.WEEKLY || type == LeaderboardType.LAST_WEEK) entry.weeklyXp else entry.totalXp
 
@@ -557,7 +600,9 @@ private fun PodiumColumn(
             size = avatarSize,
             borderColor = color,
             isPremium = entry.isPremium,
-            modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
+            modifier = Modifier
+                .then(if (entry.isPremium) Modifier.premiumAura() else Modifier)
+                .onGloballyPositioned { bioAnchor.avatar = it }
         )
 
         Spacer(Modifier.height(6.dp))
@@ -566,10 +611,16 @@ private fun PodiumColumn(
             entry.displayName,
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
+            color = if (entry.isPremium) premiumNameColor() else Color.Unspecified,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.widthIn(max = 80.dp)
+            modifier = Modifier
+                .widthIn(max = 80.dp)
+                .then(if (entry.isPremium) Modifier.premiumNameShimmer() else Modifier)
         )
+        if (entry.isPremium) {
+            ProChip(onClick = { onProTap(entry) }, modifier = Modifier.padding(vertical = 2.dp))
+        }
         Text(
             text = stringResource(R.string.xp_count, xpToShow),
             style = MaterialTheme.typography.labelSmall,
@@ -580,9 +631,6 @@ private fun PodiumColumn(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
-        Log.d("PodiumColumn", "xpToShow: $xpToShow")
-        Log.d("PodiumColumn", "level: $level")
 
         Spacer(Modifier.height(6.dp))
 
@@ -614,7 +662,8 @@ private fun LeaderboardRow(
     entry: LeaderboardEntry,
     isUser: Boolean,
     maxXp: Int,
-    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> }
+    onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
+    onProTap: (LeaderboardEntry) -> Unit = {}
 ) {
     val bgColor = if (isUser)
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -638,6 +687,7 @@ private fun LeaderboardRow(
                 else Modifier
             )
             .background(bgColor)
+            .then(if (entry.isPremium) Modifier.premiumRowGlow() else Modifier)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -664,11 +714,18 @@ private fun LeaderboardRow(
                 Text(
                     entry.displayName,
                     style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (isUser) FontWeight.Bold else FontWeight.Normal,
+                    fontWeight = if (isUser || entry.isPremium) FontWeight.Bold else FontWeight.Normal,
+                    color = if (entry.isPremium) premiumNameColor() else Color.Unspecified,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f, fill = false)
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .then(if (entry.isPremium) Modifier.premiumNameShimmer() else Modifier)
                 )
+                if (entry.isPremium) {
+                    Spacer(Modifier.width(6.dp))
+                    ProChip(onClick = { onProTap(entry) })
+                }
                 if (isUser) {
                     Spacer(Modifier.width(6.dp))
                     Surface(
@@ -717,7 +774,9 @@ private fun UserRankBanner(type: LeaderboardType, entry: LeaderboardEntry) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        elevation = CardDefaults.cardElevation(8.dp)
+        elevation = CardDefaults.cardElevation(8.dp),
+        // A Pro trainer's own pinned rank card wears a gold edge.
+        border = if (entry.isPremium) BorderStroke(1.5.dp, Brush.horizontalGradient(listOf(PremiumGoldLight, PremiumGoldDeep, PremiumGoldLight))) else null
     ) {
         Row(
             modifier = Modifier
@@ -760,12 +819,13 @@ private fun TrainerAvatar(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(CircleShape)
                 .then(
-                    // Premium: a gold gradient ring — unless the podium's rank colour already owns the border.
-                    if (isPremium && borderColor == Color.Transparent) Modifier.border(2.5.dp, PremiumRing, CircleShape)
+                    // Premium: a slowly turning gold ring, unless the podium's rank colour owns the border.
+                    if (isPremium && borderColor == Color.Transparent) Modifier.premiumRing(2.5.dp)
                     else Modifier.border(2.dp, borderColor, CircleShape)
                 )
+                .padding(if (isPremium && borderColor == Color.Transparent) 2.5.dp else 0.dp)
+                .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
@@ -790,11 +850,6 @@ private fun TrainerAvatar(
         if (isPremium) PremiumBadge(Modifier.align(Alignment.BottomEnd).size(size * 0.38f))
     }
 }
-
-private val PremiumGold = Color(0xFFFFD54F)
-private val PremiumRing = Brush.sweepGradient(
-    listOf(Color(0xFFFFE082), Color(0xFFFFB300), Color(0xFFFFF8E1), Color(0xFFFFB300), Color(0xFFFFE082))
-)
 
 /** Small gold crest on a premium trainer's avatar. Cosmetic only. */
 @Composable
@@ -874,12 +929,12 @@ private fun LeaderboardSkeleton() {
 // ─────────────────────────────────────────────────────────────────────────────
 // League badge
 // ─────────────────────────────────────────────────────────────────────────────
-private data class League(@androidx.annotation.StringRes val label: Int, val color: Color, val emoji: String)
+private data class League(@androidx.annotation.StringRes val label: Int, val color: Color)
 
 private fun leagueFor(rank: Int): League? = when {
-    rank in 1..10 -> League(R.string.league_gold, Color(0xFFFFD700), "🥇")
-    rank in 11..30 -> League(R.string.league_silver, Color(0xFFC0C0C0), "🥈")
-    rank in 31..100 -> League(R.string.league_bronze, Color(0xFFCD7F32), "🥉")
+    rank in 1..10 -> League(R.string.league_gold, Color(0xFFFFD700))
+    rank in 11..30 -> League(R.string.league_silver, Color(0xFFC0C0C0))
+    rank in 31..100 -> League(R.string.league_bronze, Color(0xFFCD7F32))
     else -> null
 }
 
@@ -895,7 +950,7 @@ private fun LeagueBadge(rank: Int) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            Text(league.emoji, fontSize = 9.sp)
+            Icon(Icons.Default.MilitaryTech, null, tint = league.color, modifier = Modifier.size(11.dp))
             Text(
                 text = stringResource(league.label),
                 style = MaterialTheme.typography.labelSmall,

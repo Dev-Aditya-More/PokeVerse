@@ -1284,4 +1284,15 @@
     <string name="an_stat_coverage">Couverture</string>
     <string name="an_stat_types">Types</string>
     <string name="an_stat_weak">Faiblesses</string>
+    <!-- Leaderboard: Premium Showcase -->
+    <string name="leaderboard_pro_chip">PRO</string>
+    <string name="leaderboard_pro_sheet_title">%1$s est Dexverse Pro</string>
+    <string name="leaderboard_pro_sheet_body">Les dresseurs Pro brillent dans le classement et débloquent tout le style Dexverse.</string>
+    <string name="leaderboard_pro_sheet_body_member">Toi aussi tu es Pro : ton nom brille ainsi pour tout le monde.</string>
+    <string name="leaderboard_pro_perk_flair">Une touche dorée animée dans le classement</string>
+    <string name="leaderboard_pro_perk_looks">Aura vivante, Shiny Dex et 16 thèmes premium</string>
+    <string name="leaderboard_pro_perk_ads">Aucune pub, nulle part</string>
+    <string name="leaderboard_pro_sheet_cta">Voir les offres Pro</string>
+    <string name="leaderboard_pro_sheet_later">Plus tard</string>
+    <string name="leaderboard_pro_sheet_member_cta">Génial</string>
 </resources>

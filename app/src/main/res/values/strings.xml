@@ -1297,4 +1297,15 @@
     <string name="an_stat_coverage">Coverage</string>
     <string name="an_stat_types">Types</string>
     <string name="an_stat_weak">Weaknesses</string>
+    <!-- Leaderboard: Premium Showcase -->
+    <string name="leaderboard_pro_chip">PRO</string>
+    <string name="leaderboard_pro_sheet_title">%1$s is Dexverse Pro</string>
+    <string name="leaderboard_pro_sheet_body">Pro trainers shine on the leaderboard and unlock the full Dexverse look.</string>
+    <string name="leaderboard_pro_sheet_body_member">You\'re Pro too, so your name shines like this for everyone.</string>
+    <string name="leaderboard_pro_perk_flair">Animated gold flair on the leaderboard</string>
+    <string name="leaderboard_pro_perk_looks">Living Aura, Shiny Dex and 16 premium themes</string>
+    <string name="leaderboard_pro_perk_ads">No ads, anywhere</string>
+    <string name="leaderboard_pro_sheet_cta">See Pro plans</string>
+    <string name="leaderboard_pro_sheet_later">Maybe later</string>
+    <string name="leaderboard_pro_sheet_member_cta">Awesome</string>
 </resources>

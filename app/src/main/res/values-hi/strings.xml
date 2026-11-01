@@ -1284,4 +1284,15 @@
     <string name="an_stat_coverage">Coverage</string>
     <string name="an_stat_types">Types</string>
     <string name="an_stat_weak">Weaknesses</string>
+    <!-- Leaderboard: Premium Showcase -->
+    <string name="leaderboard_pro_chip">PRO</string>
+    <string name="leaderboard_pro_sheet_title">%1$s Dexverse Pro हैं</string>
+    <string name="leaderboard_pro_sheet_body">Pro ट्रेनर लीडरबोर्ड पर चमकते हैं और Dexverse का पूरा लुक अनलॉक करते हैं।</string>
+    <string name="leaderboard_pro_sheet_body_member">आप भी Pro हैं, इसलिए आपका नाम सबके लिए ऐसे ही चमकता है।</string>
+    <string name="leaderboard_pro_perk_flair">लीडरबोर्ड पर चमकता सुनहरा अंदाज़</string>
+    <string name="leaderboard_pro_perk_looks">Living Aura, Shiny Dex और 16 प्रीमियम थीम</string>
+    <string name="leaderboard_pro_perk_ads">कहीं भी कोई विज्ञापन नहीं</string>
+    <string name="leaderboard_pro_sheet_cta">Pro प्लान देखें</string>
+    <string name="leaderboard_pro_sheet_later">बाद में</string>
+    <string name="leaderboard_pro_sheet_member_cta">बढ़िया</string>
 </resources>

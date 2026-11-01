@@ -1,7 +1,5 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
-import android.os.PowerManager
-import android.provider.Settings
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -25,12 +23,12 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
+import com.aditya1875.pokeverse.utils.rememberDecorativeMotionEnabled
 import com.aditya1875.pokeverse.utils.pokemonTypeColor
 import kotlin.math.PI
 import kotlin.math.abs
@@ -61,14 +59,7 @@ fun DetailAura(
     scrollPx: () -> Float,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val motionEnabled = remember {
-        val animationsOn = Settings.Global.getFloat(
-            context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f
-        ) > 0f
-        val batterySaver = context.getSystemService(PowerManager::class.java)?.isPowerSaveMode == true
-        animationsOn && !batterySaver
-    }
+    val motionEnabled = rememberDecorativeMotionEnabled()
 
     // Colours glide when moving along an evolution chain instead of snapping.
     val primary by animateColorAsState(baseColor, tween(800), label = "auraPrimary")

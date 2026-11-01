@@ -1298,4 +1298,15 @@
     <string name="an_stat_coverage">Cobertura</string>
     <string name="an_stat_types">Tipos</string>
     <string name="an_stat_weak">Fraquezas</string>
+    <!-- Leaderboard: Premium Showcase -->
+    <string name="leaderboard_pro_chip">PRO</string>
+    <string name="leaderboard_pro_sheet_title">%1$s é Dexverse Pro</string>
+    <string name="leaderboard_pro_sheet_body">Treinadores Pro brilham no ranking e desbloqueiam todo o visual do Dexverse.</string>
+    <string name="leaderboard_pro_sheet_body_member">Você também é Pro, então seu nome brilha assim para todo mundo.</string>
+    <string name="leaderboard_pro_perk_flair">Brilho dourado animado no ranking</string>
+    <string name="leaderboard_pro_perk_looks">Aura Viva, Shiny Dex e 16 temas premium</string>
+    <string name="leaderboard_pro_perk_ads">Sem anúncios, em lugar nenhum</string>
+    <string name="leaderboard_pro_sheet_cta">Ver planos Pro</string>
+    <string name="leaderboard_pro_sheet_later">Agora não</string>
+    <string name="leaderboard_pro_sheet_member_cta">Demais</string>
 </resources>
