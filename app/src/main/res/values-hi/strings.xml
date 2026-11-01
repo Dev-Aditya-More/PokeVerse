@@ -521,8 +521,14 @@
     <string name="premium_feature_ad_free_subtitle">कहीं कोई banner नहीं, और हर revive या skip बिना ad देखे</string>
     <string name="premium_feature_shiny_title">Shiny Dex</string>
     <string name="premium_feature_shiny_subtitle">पूरे Pokédex में हर Pokémon को उसके shiny रूप में देखो</string>
-    <string name="premium_feature_flair_title">Premium पहचान</string>
-    <string name="premium_feature_flair_subtitle">Leaderboard profile पर सुनहरी ring और crest</string>
+    <string name="premium_feature_flair_title">लीडरबोर्ड फ़्लेयर</string>
+    <string name="premium_feature_flair_subtitle">चमकता सुनहरा नाम, घूमती सुनहरी रिंग और PRO बैज</string>
+    <string name="premium_feature_dex_daily_title">Dex Daily हिंट और आर्काइव</string>
+    <string name="premium_feature_dex_daily_subtitle">अनुमान से पहले सुराग देखें और हर पुरानी पहेली खेलें</string>
+    <string name="premium_feature_aura_title">Living Aura</string>
+    <string name="premium_feature_aura_subtitle">हर Pokémon पेज पर टाइप के हिसाब से एनिमेटेड बैकग्राउंड</string>
+    <string name="premium_feature_widget_title">सुनहरा स्ट्रीक विजेट</string>
+    <string name="premium_feature_widget_subtitle">होम स्क्रीन के लिए सुनहरे किनारे और सुनहरी लौ वाला विजेट</string>
     <string name="settings_shiny_dex">Shiny Dex</string>
     <string name="settings_shiny_dex_desc">पूरे Pokédex में shiny रूप दिखाओ। किसी भी Pokémon को उसके page पर वापस normal कर सकते हो।</string>
     <string name="settings_premium_only">Premium</string>
@@ -635,12 +641,12 @@
         <item quantity="one">दिन</item>
         <item quantity="other">दिन</item>
     </plurals>
-    <string name="widget_streak_safe">✓ आज के लिए safe</string>
+    <string name="widget_streak_safe">आज के लिए safe</string>
     <string name="widget_streak_at_risk">बचाने के लिए आज app खोलो</string>
-    <string name="widget_streak_hours_left">⏳ बचाने के लिए %1$d घंटे बचे</string>
+    <string name="widget_streak_hours_left">बचाने के लिए %1$d घंटे बचे</string>
     <string name="widget_streak_start">आज streak शुरू करो</string>
-    <string name="widget_streak_rested">💤 2× XP तुम्हारा इंतज़ार कर रहा है</string>
-    <string name="widget_pika_happy">Pika pi! ⚡</string>
+    <string name="widget_streak_rested">2× XP तुम्हारा इंतज़ार कर रहा है</string>
+    <string name="widget_pika_happy">Pika pi!</string>
     <string name="widget_pika_waiting">Pika…? आज खेलो!</string>
     <string name="widget_pika_panic">PIKA!! सिर्फ %1$d घंटे!</string>
     <string name="widget_pika_sleepy">zzz… मुझे जगाओ</string>
@@ -648,7 +654,7 @@
         <item quantity="one">%2$s outfit %1$d दिन में</item>
         <item quantity="other">%2$s outfit %1$d दिन में</item>
     </plurals>
-    <string name="widget_all_looks">👑 सारे outfits unlock!</string>
+    <string name="widget_all_looks">सारे outfits unlock!</string>
     <string name="widget_look_classic">Pikachu</string>
     <string name="widget_look_cap">Ash की Cap</string>
     <string name="widget_look_popstar">Pop Star</string>
@@ -984,12 +990,14 @@
 
     <!-- Themes, Wild Catch, Face Match, premium, misc -->
     <string name="theme_choose_your_vibe">अपना Vibe चुनो</string>
+    <string name="theme_section_free">फ्री थीम</string>
+    <string name="theme_section_pro">Pro थीम</string>
+    <string name="theme_section_pro_owned">सभी %1$d आपकी हैं</string>
+    <string name="theme_section_pro_locked">%1$d लुक जो पूरे ऐप को बदल दें</string>
+    <string name="theme_unlock_all">सब अनलॉक करें</string>
     <string name="theme_active">चालू theme</string>
     <string name="theme_tap_to_apply">Theme पर tap करो, तुरंत लग जाएगा</string>
-    <string name="theme_brand">Brand</string>
     <string name="theme_official">Official Theme</string>
-    <string name="theme_classic">Classic</string>
-    <string name="theme_premium_a11y">Premium Theme</string>
     <string name="theme_desc_dexverse">Dexverse का classic theme</string>
     <string name="theme_desc_pikachu">सबके पसंदीदा electric mouse जैसा चमकीला और energetic</string>
     <string name="theme_desc_darkrai">उनके लिए जो dark side पसंद करते हैं</string>

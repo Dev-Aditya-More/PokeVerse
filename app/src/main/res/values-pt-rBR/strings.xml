@@ -342,8 +342,14 @@
     <string name="premium_feature_ad_free_subtitle">Nenhum banner, e reviver ou pular sem assistir anúncios</string>
     <string name="premium_feature_shiny_title">Pokédex Shiny</string>
     <string name="premium_feature_shiny_subtitle">Veja todos os Pokémon na forma shiny em toda a Pokédex</string>
-    <string name="premium_feature_flair_title">Destaque Premium</string>
-    <string name="premium_feature_flair_subtitle">Um anel dourado e um brasão no seu perfil do ranking</string>
+    <string name="premium_feature_flair_title">Destaque no ranking</string>
+    <string name="premium_feature_flair_subtitle">Seu nome em dourado brilhante, um anel dourado girando e um selo PRO</string>
+    <string name="premium_feature_dex_daily_title">Dicas e arquivo do Dex Daily</string>
+    <string name="premium_feature_dex_daily_subtitle">Veja dicas antes do palpite e jogue todos os desafios anteriores</string>
+    <string name="premium_feature_aura_title">Aura Viva</string>
+    <string name="premium_feature_aura_subtitle">Fundos animados no tema do tipo em cada página de Pokémon</string>
+    <string name="premium_feature_widget_title">Widget de sequência dourado</string>
+    <string name="premium_feature_widget_subtitle">Um widget de tela inicial com borda dourada e chama dourada</string>
     <string name="settings_shiny_dex">Pokédex Shiny</string>
     <string name="settings_shiny_dex_desc">Mostra as formas shiny em toda a Pokédex. Você ainda pode voltar ao normal em cada Pokémon.</string>
     <string name="settings_premium_only">Premium</string>
@@ -639,12 +645,12 @@
         <item quantity="one">dia</item>
         <item quantity="other">dias</item>
     </plurals>
-    <string name="widget_streak_safe">✓ Garantida hoje</string>
+    <string name="widget_streak_safe">Garantida hoje</string>
     <string name="widget_streak_at_risk">Abra hoje para manter</string>
-    <string name="widget_streak_hours_left">⏳ %1$dh para salvá-la</string>
+    <string name="widget_streak_hours_left">%1$dh para salvá-la</string>
     <string name="widget_streak_start">Comece uma sequência hoje</string>
-    <string name="widget_streak_rested">💤 XP em dobro esperando por você</string>
-    <string name="widget_pika_happy">Pika pi! ⚡</string>
+    <string name="widget_streak_rested">XP em dobro esperando por você</string>
+    <string name="widget_pika_happy">Pika pi!</string>
     <string name="widget_pika_waiting">Pika…? Jogue hoje!</string>
     <string name="widget_pika_panic">PIKA!! Faltam %1$dh!</string>
     <string name="widget_pika_sleepy">zzz… me acorda</string>
@@ -652,7 +658,7 @@
         <item quantity="one">Roupa %2$s em %1$d dia</item>
         <item quantity="other">Roupa %2$s em %1$d dias</item>
     </plurals>
-    <string name="widget_all_looks">👑 Todas as roupas desbloqueadas!</string>
+    <string name="widget_all_looks">Todas as roupas desbloqueadas!</string>
     <string name="widget_look_classic">Pikachu</string>
     <string name="widget_look_cap">Boné do Ash</string>
     <string name="widget_look_popstar">Pop Star</string>
@@ -998,12 +1004,14 @@
 
     <!-- Themes, Wild Catch, Face Match, premium, misc -->
     <string name="theme_choose_your_vibe">Escolha seu estilo</string>
+    <string name="theme_section_free">Temas grátis</string>
+    <string name="theme_section_pro">Temas Pro</string>
+    <string name="theme_section_pro_owned">Todos os %1$d são seus</string>
+    <string name="theme_section_pro_locked">%1$d visuais que mudam o app inteiro</string>
+    <string name="theme_unlock_all">Desbloquear todos</string>
     <string name="theme_active">Tema ativo</string>
     <string name="theme_tap_to_apply">Toque em um tema para aplicá-lo na hora</string>
-    <string name="theme_brand">Marca</string>
     <string name="theme_official">Tema oficial</string>
-    <string name="theme_classic">Clássico</string>
-    <string name="theme_premium_a11y">Tema Premium</string>
     <string name="theme_desc_dexverse">O tema clássico do Dexverse</string>
     <string name="theme_desc_pikachu">Vibrante e cheio de energia como o ratinho elétrico favorito de todos</string>
     <string name="theme_desc_darkrai">Para quem prefere o lado sombrio</string>

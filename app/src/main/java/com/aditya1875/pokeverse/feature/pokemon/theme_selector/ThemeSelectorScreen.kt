@@ -1,44 +1,94 @@
 package com.aditya1875.pokeverse.feature.pokemon.theme_selector
 
-import com.aditya1875.pokeverse.utils.localizedTypeName
-import com.aditya1875.pokeverse.R
-import androidx.compose.ui.res.stringResource
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.annotation.DrawableRes
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
+import com.aditya1875.pokeverse.feature.game.premium.components.PremiumBottomSheet
+import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.ProChip
 import com.aditya1875.pokeverse.feature.pokemon.theme_selector.data.preferences.ThemePreferences
-import com.aditya1875.pokeverse.ui.theme.AppTheme
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
+import com.aditya1875.pokeverse.ui.theme.AppTheme
+import com.aditya1875.pokeverse.utils.localizedTypeName
+import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
+/**
+ * Theme picker: each theme is shown with its Pokémon's official artwork on the theme's own
+ * palette (no emoji), in Free and Pro sections. Tapping applies instantly, so the whole screen
+ * recolours as a live preview; a locked Pro theme opens the plans.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ThemeSelectorScreen(
@@ -51,7 +101,6 @@ fun ThemeSelectorScreen(
 
     val billingViewModel: BillingViewModel = koinViewModel()
     val subscriptionState by billingViewModel.subscriptionState.collectAsStateWithLifecycle()
-
     val isPremium = subscriptionState is SubscriptionState.Premium
 
     val themes = remember { getStarterThemes() }
@@ -63,15 +112,24 @@ fun ThemeSelectorScreen(
     } else currentTheme
     var showPremiumSheet by remember { mutableStateOf(false) }
 
+    val hPad = rememberAdaptiveHPadding()
+    val (freeThemes, proThemes) = remember(themes) { themes.partition { !it.premium } }
+
+    fun choose(theme: StarterTheme) {
+        if (theme.premium && !isPremium) {
+            showPremiumSheet = true
+            return
+        }
+        scope.launch {
+            themePreferences.setTheme(theme.theme)
+            onThemeSelected(theme.theme)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.theme_choose_your_vibe),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
+                title = { Text(stringResource(R.string.theme_choose_your_vibe), color = MaterialTheme.colorScheme.onSurface) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -81,533 +139,312 @@ fun ThemeSelectorScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-
-        val selectedThemeData = themes.firstOrNull { it.theme == safeTheme }
-
-        LazyColumn(
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 156.dp),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+            contentPadding = PaddingValues(start = hPad, end = hPad, top = 12.dp, bottom = 32.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Live gradient banner for selected theme
-            item {
-                selectedThemeData?.let { active ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp)
-                            .background(
-                                Brush.linearGradient(active.colors)
+            themes.firstOrNull { it.theme == safeTheme }?.let { active ->
+                item(key = "hero", span = { GridItemSpan(maxLineSpan) }) { ActiveThemeHero(active) }
+            }
+
+            item(key = "free_header", span = { GridItemSpan(maxLineSpan) }) {
+                SectionHeader(title = stringResource(R.string.theme_section_free), subtitle = stringResource(R.string.theme_tap_to_apply))
+            }
+            items(freeThemes, key = { it.theme.name }) { theme ->
+                ThemeArtCard(theme, isSelected = safeTheme == theme.theme, isLocked = false) { choose(theme) }
+            }
+
+            item(key = "pro_header", span = { GridItemSpan(maxLineSpan) }) {
+                SectionHeader(
+                    title = stringResource(R.string.theme_section_pro),
+                    subtitle = stringResource(
+                        if (isPremium) R.string.theme_section_pro_owned else R.string.theme_section_pro_locked,
+                        proThemes.size
+                    ),
+                    trailing = {
+                        if (!isPremium) {
+                            TextButton(onClick = { showPremiumSheet = true }) {
+                                Text(stringResource(R.string.theme_unlock_all))
+                            }
+                        }
+                    },
+                    showProChip = true
+                )
+            }
+            items(proThemes, key = { it.theme.name }) { theme ->
+                ThemeArtCard(theme, isSelected = safeTheme == theme.theme, isLocked = !isPremium) { choose(theme) }
+            }
+        }
+    }
+
+    if (showPremiumSheet) PremiumBottomSheet(onDismiss = { showPremiumSheet = false })
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Pieces
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Big card for the theme in use: artwork on its palette, name, types and description. */
+@Composable
+private fun ActiveThemeHero(theme: StarterTheme) {
+    val start by animateColorAsState(theme.colors[0], label = "heroStart")
+    val end by animateColorAsState(theme.colors.getOrElse(1) { theme.colors[0] }, label = "heroEnd")
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(176.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(listOf(start.copy(alpha = 0.9f), end)))
+    ) {
+        ThemeArt(theme, size = 168.dp, modifier = Modifier.align(Alignment.CenterEnd).padding(end = 4.dp))
+        Column(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = 18.dp, end = 150.dp)
+        ) {
+            Text(
+                stringResource(R.string.theme_active).uppercase(),
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Black,
+                letterSpacing = 1.5.sp
+            )
+            Text(
+                theme.pokemonName,
+                color = Color.White,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                theme.theme.localizedTypes(),
+                color = Color.White.copy(alpha = 0.85f),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                stringResource(theme.theme.descriptionRes()),
+                color = Color.White.copy(alpha = 0.8f),
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    subtitle: String,
+    showProChip: Boolean = false,
+    trailing: @Composable () -> Unit = {}
+) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 10.dp)) {
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                if (showProChip) {
+                    Spacer(Modifier.width(8.dp))
+                    ProChip(onClick = {})
+                }
+            }
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        trailing()
+    }
+}
+
+/**
+ * One theme: artwork on the theme's gradient, then name, types and a palette strip. Selected =
+ * gradient border + check; locked = PRO chip and a slightly muted art (still tappable: it
+ * opens the plans).
+ */
+@Composable
+private fun ThemeArtCard(theme: StarterTheme, isSelected: Boolean, isLocked: Boolean, onClick: () -> Unit) {
+    val scale by animateFloatAsState(
+        if (isSelected) 1.03f else 1f,
+        spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        label = "cardScale"
+    )
+    val shape = RoundedCornerShape(20.dp)
+    Surface(
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(scale)
+            .then(
+                if (isSelected) Modifier.border(2.5.dp, Brush.linearGradient(theme.colors), shape)
+                else Modifier
+            )
+            .clip(shape)
+            .clickable(onClick = onClick)
+    ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(124.dp)
+                    .clipToBounds() // keep the spotlight inside the art area
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(theme.colors[0].copy(alpha = 0.55f), theme.colors.getOrElse(1) { theme.colors[0] }.copy(alpha = 0.9f))
+                        )
+                    )
+                    .drawBehind {
+                        // Soft spotlight behind the Pokémon.
+                        drawCircle(
+                            Brush.radialGradient(
+                                listOf(Color.White.copy(alpha = 0.28f), Color.Transparent),
+                                center = center.copy(y = size.height * 0.62f),
+                                radius = size.minDimension * 0.55f
                             ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = active.emoji,
-                                fontSize = 36.sp
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                text = active.pokemonName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = stringResource(R.string.theme_active),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color.White.copy(alpha = 0.75f)
+                            radius = size.minDimension * 0.55f,
+                            center = center.copy(y = size.height * 0.62f)
+                        )
+                    }
+            ) {
+                ThemeArt(
+                    theme,
+                    size = 112.dp,
+                    muted = isLocked,
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 4.dp)
+                )
+                Box(Modifier.align(Alignment.TopEnd).padding(8.dp)) {
+                    when {
+                        isSelected -> Box(
+                            Modifier
+                                .size(26.dp)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Check,
+                                contentDescription = stringResource(R.string.filter_selected),
+                                tint = theme.colors[0].takeIf { it.luminanceOk() } ?: Color.Black,
+                                modifier = Modifier.size(17.dp)
                             )
                         }
+                        isLocked -> ProChip(onClick = onClick)
                     }
                 }
             }
-
-            item { Spacer(Modifier.height(20.dp)) }
-
-            item {
+            Column(Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
                 Text(
-                    text = stringResource(R.string.theme_choose_your_vibe),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.ExtraBold,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    theme.pokemonName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height(4.dp))
                 Text(
-                    text = stringResource(R.string.theme_tap_to_apply),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    theme.theme.localizedTypes(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.height(16.dp))
-            }
-
-            items(themes) { starterTheme ->
-                val locked = starterTheme.premium && !isPremium
-                Box(modifier = Modifier.padding(horizontal = 16.dp).padding(bottom = 16.dp)) {
-                    StarterThemeCard(
-                        starterTheme = starterTheme,
-                        isSelected = safeTheme == starterTheme.theme,
-                        isLocked = locked,
-                        onClick = {
-                            if (starterTheme.premium && !isPremium) {
-                                showPremiumSheet = true
-                                return@StarterThemeCard
-                            }
-                            scope.launch {
-                                themePreferences.setTheme(starterTheme.theme)
-                                onThemeSelected(starterTheme.theme)
-                            }
-                        }
-                    )
+                Spacer(Modifier.height(8.dp))
+                // The palette as one strip, the way it'll actually sit together in the app.
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(6.dp)
+                        .clip(RoundedCornerShape(50))
+                ) {
+                    theme.colors.forEach { c -> Box(Modifier.weight(1f).fillMaxSize().background(c)) }
                 }
             }
         }
     }
 }
 
+/** Official artwork for a Pokémon theme, the Dexverse wordmark for the brand theme. */
+@Composable
+private fun ThemeArt(theme: StarterTheme, size: Dp, modifier: Modifier = Modifier, muted: Boolean = false) {
+    val filter = if (muted) ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0.55f) }) else null
+    val dexId = theme.dexId
+    if (dexId == null) {
+        Image(
+            painter = painterResource(theme.brandArt),
+            contentDescription = theme.pokemonName,
+            contentScale = ContentScale.Fit,
+            colorFilter = filter,
+            modifier = modifier.width(size * 1.15f).height(size * 0.62f)
+        )
+    } else {
+        val context = LocalContext.current
+        AsyncImage(
+            model = remember(dexId) { ImageRequest.Builder(context).data(officialArtwork(dexId)).crossfade(true).build() },
+            contentDescription = theme.pokemonName,
+            contentScale = ContentScale.Fit,
+            colorFilter = filter,
+            modifier = modifier
+                .size(size)
+                .alpha(if (muted) 0.9f else 1f)
+        )
+    }
+}
+
+private fun officialArtwork(id: Int) =
+    "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$id.png"
+
+/** True when a colour is dark enough to read as a check mark on white. */
+private fun Color.luminanceOk(): Boolean = (0.299f * red + 0.587f * green + 0.114f * blue) < 0.75f
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Data
+// ─────────────────────────────────────────────────────────────────────────────
+
 data class StarterTheme(
     val theme: AppTheme,
     val pokemonName: String,
-    val pokemonNumber: String,
-    val type: String,
-    val emoji: String,
-    val description: String,
-    val colors: List<Color>
+    /** National Dex number for the artwork; null for the brand theme. */
+    val dexId: Int?,
+    val colors: List<Color>,
+    @DrawableRes val brandArt: Int = R.drawable.dexverselogo,
 ) {
     val premium: Boolean get() = theme.isPremium
 }
 
 fun getStarterThemes(): List<StarterTheme> = listOf(
-    StarterTheme(
-        theme = AppTheme.DEXVERSE,
-        pokemonName = "Dexverse",
-        pokemonNumber = "Brand",
-        type = "Official Theme",
-        emoji = "✨",
-        description = "The classic Dexverse theme",
-        colors = listOf(
-            Color(0xFF7C4DFF), // Purple
-            Color(0xFF00E5FF), // Neon cyan
-            Color(0xFF0B0F1A)  // Deep space navy
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.PIKACHU,
-        pokemonName = "Pikachu",
-        pokemonNumber = "#025",
-        type = "Electric",
-        emoji = "⚡",
-        description = "Bright and energetic like everyone's favorite electric mouse",
-        colors = listOf(
-            Color(0xFFFFD600), // Pikachu Yellow
-            Color(0xFFFFEA00), // Bright Yellow
-            Color(0xFF212121)
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.DARKRAI,
-        pokemonName = "Darkrai",
-        pokemonNumber = "#491",
-        type = "Dark",
-        emoji = "🖤",
-        description = "For those who prefer the dark side",
-        colors = listOf(Color(0xFF9B59B6), Color(0xFF050508), Color(0xFFE53935))
-    ),
-
-    StarterTheme(
-        theme = AppTheme.MEWTWO,
-        pokemonName = "Mewtwo",
-        pokemonNumber = "#150",
-        type = "Psychic",
-        emoji = "🔮",
-        description = "Pure psychic power. Clinical, mysterious, and dangerously elegant",
-        colors = listOf(
-            Color(0xFFCE93D8), // Psychic lavender
-            Color(0xFF080010), // Void black
-            Color(0xFF80DEEA)  // Lab teal
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.UMBREON,
-        pokemonName = "Umbreon",
-        pokemonNumber = "#197",
-        type = "Dark",
-        emoji = "🌙",
-        description = "Sleek as midnight with rings that glow under the moon",
-        colors = listOf(
-            Color(0xFFF5C518), // Gold rings
-            Color(0xFF060606), // Night black
-            Color(0xFF82B1FF)  // Blue rings
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.CHARIZARD,
-        pokemonName = "Charizard",
-        pokemonNumber = "#006",
-        type = "Fire • Flying",
-        emoji = "🔥",
-        description = "Fierce and bold like a fire-breathing dragon",
-        colors = listOf(
-            Color(0xFFFF6D00),  // Charizard Orange
-            Color(0xFFE65100),  // Deep Orange
-            Color(0xFF0091EA)   // Blue Wings
-        )
-    ),
-    StarterTheme(
-        theme = AppTheme.VENUSAUR,
-        pokemonName = "Venusaur",
-        pokemonNumber = "#003",
-        type = "Grass • Poison",
-        emoji = "🌿",
-        description = "Fresh and vibrant like a blooming garden",
-        colors = listOf(
-            Color(0xFF4CAF50),  // Grass Green
-            Color(0xFF2E7D32),  // Deep Green
-            Color(0xFF26A69A)   // Teal
-        )
-    ),
-    StarterTheme(
-        theme = AppTheme.BLASTOISE,
-        pokemonName = "Blastoise",
-        pokemonNumber = "#009",
-        type = "Water",
-        emoji = "💧",
-        description = "Cool and calm like the deep ocean",
-        colors = listOf(
-            Color(0xFF2196F3),  // Ocean Blue
-            Color(0xFF1565C0),  // Deep Blue
-            Color(0xFF00BCD4)   // Cyan
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.GENGAR,
-        pokemonName = "Gengar",
-        pokemonNumber = "#094",
-        type = "Ghost • Poison",
-        emoji = "👻",
-        description = "Mischievous and spooky — shadow purple with a wicked green grin",
-        colors = listOf(
-            Color(0xFF9C27B0), // Gengar Purple
-            Color(0xFF0A0612), // Shadow Black
-            Color(0xFFC6FF00)  // Acid Green
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.RAYQUAZA,
-        pokemonName = "Rayquaza",
-        pokemonNumber = "#384",
-        type = "Dragon • Flying",
-        emoji = "🐉",
-        description = "Legendary sky serpent — emerald scales and gold markings above the clouds",
-        colors = listOf(
-            Color(0xFF00C853), // Emerald Scales
-            Color(0xFF061A0F), // Upper Atmosphere
-            Color(0xFFFFD600)  // Gold Markings
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.SYLVEON,
-        pokemonName = "Sylveon",
-        pokemonNumber = "#700",
-        type = "Fairy",
-        emoji = "🎀",
-        description = "Soft and sweet — pastel ribbons and gentle warmth",
-        colors = listOf(
-            Color(0xFFFF8FB1), // Ribbon Pink
-            Color(0xFF1A0E16), // Warm Plum
-            Color(0xFF9FE0FF)  // Baby Blue
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.LUGIA,
-        pokemonName = "Lugia",
-        pokemonNumber = "#249",
-        type = "Psychic • Flying",
-        emoji = "🌊",
-        description = "Guardian of the seas — silver plumage over midnight ocean blue",
-        colors = listOf(
-            Color(0xFFB8CCEB), // Silver Plumage
-            Color(0xFF050D1A), // Midnight Ocean
-            Color(0xFF4DD0E1)  // Storm Teal
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.LUCARIO,
-        pokemonName = "Lucario",
-        pokemonNumber = "#448",
-        type = "Fighting • Steel",
-        emoji = "🔵",
-        description = "Master of aura — glowing blue against steel black",
-        colors = listOf(
-            Color(0xFF42A5F5), // Aura Blue
-            Color(0xFF080B12), // Steel Black
-            Color(0xFFFFE0A3)  // Cream Fur
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.GRENINJA,
-        pokemonName = "Greninja",
-        pokemonNumber = "#658",
-        type = "Water • Dark",
-        emoji = "🥷",
-        description = "Silent shinobi — deep blue night with a flash of scarf pink",
-        colors = listOf(
-            Color(0xFF4F7FE0), // Ninja Blue
-            Color(0xFF060A16), // Night Mist
-            Color(0xFFFF6F91)  // Scarf Pink
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.MIMIKYU,
-        pokemonName = "Mimikyu",
-        pokemonNumber = "#778",
-        type = "Ghost • Fairy",
-        emoji = "🎭",
-        description = "Just wants to be loved — a homemade yellow disguise over something darker",
-        colors = listOf(
-            Color(0xFFF2D45C), // Costume Yellow
-            Color(0xFF0C0A07), // What Hides Beneath
-            Color(0xFFFF8A80)  // Scribbled Cheeks
-        )
-    ),
-
-    StarterTheme(
-        theme = AppTheme.HO_OH,
-        pokemonName = "Ho-Oh",
-        pokemonNumber = "#250",
-        type = "Fire • Flying",
-        emoji = "🔥",
-        description = "Rainbow phoenix — sacred gold fire with crimson and emerald wings",
-        colors = listOf(
-            Color(0xFFFFB300), // Sacred Fire
-            Color(0xFF140905), // Ember Sky
-            Color(0xFFEF5350)  // Crimson Plumage
-        )
-    )
+    StarterTheme(AppTheme.DEXVERSE, "Dexverse", null, listOf(Color(0xFF7C4DFF), Color(0xFF00E5FF), Color(0xFF0B0F1A))),
+    StarterTheme(AppTheme.CHARIZARD, "Charizard", 6, listOf(Color(0xFFFF6D00), Color(0xFFE65100), Color(0xFF0091EA))),
+    StarterTheme(AppTheme.VENUSAUR, "Venusaur", 3, listOf(Color(0xFF4CAF50), Color(0xFF2E7D32), Color(0xFF26A69A))),
+    StarterTheme(AppTheme.BLASTOISE, "Blastoise", 9, listOf(Color(0xFF2196F3), Color(0xFF1565C0), Color(0xFF00BCD4))),
+    StarterTheme(AppTheme.PIKACHU, "Pikachu", 25, listOf(Color(0xFFFFD600), Color(0xFFFFEA00), Color(0xFF212121))),
+    StarterTheme(AppTheme.DARKRAI, "Darkrai", 491, listOf(Color(0xFF9B59B6), Color(0xFF050508), Color(0xFFE53935))),
+    StarterTheme(AppTheme.MEWTWO, "Mewtwo", 150, listOf(Color(0xFFCE93D8), Color(0xFF080010), Color(0xFF80DEEA))),
+    StarterTheme(AppTheme.UMBREON, "Umbreon", 197, listOf(Color(0xFFF5C518), Color(0xFF060606), Color(0xFF82B1FF))),
+    StarterTheme(AppTheme.GENGAR, "Gengar", 94, listOf(Color(0xFF9C27B0), Color(0xFF0A0612), Color(0xFFC6FF00))),
+    StarterTheme(AppTheme.RAYQUAZA, "Rayquaza", 384, listOf(Color(0xFF00C853), Color(0xFF061A0F), Color(0xFFFFD600))),
+    StarterTheme(AppTheme.SYLVEON, "Sylveon", 700, listOf(Color(0xFFFF8FB1), Color(0xFF1A0E16), Color(0xFF9FE0FF))),
+    StarterTheme(AppTheme.LUGIA, "Lugia", 249, listOf(Color(0xFFB8CCEB), Color(0xFF050D1A), Color(0xFF4DD0E1))),
+    StarterTheme(AppTheme.LUCARIO, "Lucario", 448, listOf(Color(0xFF42A5F5), Color(0xFF080B12), Color(0xFFFFE0A3))),
+    StarterTheme(AppTheme.GRENINJA, "Greninja", 658, listOf(Color(0xFF4F7FE0), Color(0xFF060A16), Color(0xFFFF6F91))),
+    StarterTheme(AppTheme.MIMIKYU, "Mimikyu", 778, listOf(Color(0xFFF2D45C), Color(0xFF0C0A07), Color(0xFFFF8A80))),
+    StarterTheme(AppTheme.HO_OH, "Ho-Oh", 250, listOf(Color(0xFFFFB300), Color(0xFF140905), Color(0xFFEF5350))),
 )
 
-@Composable
-fun StarterThemeCard(
-    starterTheme: StarterTheme,
-    isSelected: Boolean,
-    isLocked: Boolean,
-    onClick: () -> Unit
-) {
-
-    val scale by animateFloatAsState(
-        targetValue = if (isSelected) 1.02f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessLow
-        ),
-        label = "scale"
-    )
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(scale)
-            .alpha(if (isLocked) 0.7f else 1f)
-            .then(
-                if (isSelected) {
-                    Modifier.border(
-                        width = 3.dp,
-                        brush = Brush.linearGradient(starterTheme.colors),
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                } else Modifier
-            )
-            .clickable(
-                enabled = !isLocked,
-                onClick = onClick
-            ),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isSelected) 12.dp else 4.dp
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-
-                Column(modifier = Modifier.weight(1f)) {
-
-                    if (starterTheme.theme == AppTheme.DEXVERSE) {
-                        Text(
-                            text = stringResource(R.string.theme_classic),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(Modifier.height(4.dp))
-                    }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-
-                        Text(
-                            text = starterTheme.emoji,
-                            fontSize = 32.sp
-                        )
-
-                        Spacer(Modifier.width(12.dp))
-
-                        Column {
-
-                            Text(
-                                text = starterTheme.pokemonName,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            Text(
-                                text = if (starterTheme.theme == AppTheme.DEXVERSE) stringResource(R.string.theme_brand) else starterTheme.pokemonNumber,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        }
-                    }
-                }
-
-                if (isLocked) {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Lock,
-                            contentDescription = stringResource(R.string.theme_premium_a11y),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                } else if (isSelected) {
-
-                    AnimatedVisibility(
-                        visible = true,
-                        enter = scaleIn() + fadeIn(),
-                        exit = scaleOut() + fadeOut()
-                    ) {
-
-                        Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.linearGradient(starterTheme.colors)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-
-                            Icon(
-                                Icons.Default.Check,
-                                contentDescription = stringResource(R.string.filter_selected),
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    }
-
-                } else {
-
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .border(
-                                width = 2.dp,
-                                color = MaterialTheme.colorScheme.outline,
-                                shape = CircleShape
-                            )
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = starterTheme.colors[0].copy(alpha = 0.15f)
-            ) {
-
-                Text(
-                    text = starterTheme.theme.localizedTypes(),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = starterTheme.colors[0],
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(Modifier.height(12.dp))
-
-            Text(
-                text = stringResource(starterTheme.theme.descriptionRes()),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-
-            Spacer(Modifier.height(16.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-
-                starterTheme.colors.forEach { color ->
-
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(color)
-                            .border(
-                                width = 2.dp,
-                                color = if (isSelected) Color.White else Color.Transparent,
-                                shape = CircleShape
-                            )
-                    )
-                }
-            }
-        }
-    }
-}
-
-/** Type ids shown under each theme card ("Fire • Flying"), rendered with localized type names. */
+/** Type ids shown under each theme ("Fire • Flying"), rendered with localized type names. */
 private fun AppTheme.typeIds(): List<String> = when (this) {
     AppTheme.DEXVERSE -> emptyList()
     AppTheme.PIKACHU -> listOf("electric")

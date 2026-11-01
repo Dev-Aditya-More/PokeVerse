@@ -1,0 +1,806 @@
+[
+  {
+    "fact": "Rhydon was the first Pokémon ever designed — it predates even Pikachu in Ken Sugimori's original sketches.",
+    "category": "History"
+  },
+  {
+    "fact": "Arcanine was originally intended to be a Legendary Pokémon. The in-game Pokédex even calls it a 'Legendary Pokémon.'",
+    "category": "Lore"
+  },
+  {
+    "fact": "Magikarp can jump over mountains — according to its Pokédex entry in Pokémon Gold, it can leap almost 10 feet into the air.",
+    "category": "Lore"
+  },
+  {
+    "fact": "There are 18 Pokémon types. When the series started in Gen 1, there were only 15 — Dark and Steel were added in Gen 2, Fairy in Gen 6.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Shedinja has exactly 1 HP and never takes damage from moves — but only if they aren't super effective or status-based. This is the Wonder Guard ability.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Pokémon Red and Blue were nearly cancelled. Nintendo of America thought they were 'too boring' and almost didn't localize them.",
+    "category": "History"
+  },
+  {
+    "fact": "The Pokémon anime's original episode 'Electric Soldier Porygon' caused 685 children in Japan to have seizures due to flashing lights. It was never re-aired.",
+    "category": "History"
+  },
+  {
+    "fact": "Ditto and Mew share the exact same base stat total (100 across all stats) and can both learn Transform. Many fans theorize they're related.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Cubone wears the skull of its dead mother. Its cries are said to sound like her name. This makes it one of the most tragic Pokémon lore entries.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Farfetch'd is so rarely seen that people used to doubt it existed. In the games, a man trades you one — making it rare even in-game.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Fire/Water/Grass starter triangle is a deliberate game design choice to teach new players about type advantages in a memorable way.",
+    "category": "Design"
+  },
+  {
+    "fact": "Dragonite can circle the entire globe in just 16 hours, traveling at 1,500 mph — faster than any real-world aircraft.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Wobbuffet's real body is the small black tail at the back. The large blue part is a decoy — Wobbuffet will die to protect the tail.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Bulbasaur is the only starter Pokémon to be dual-typed from the very beginning (Grass/Poison).",
+    "category": "Trivia"
+  },
+  {
+    "fact": "In competitive play, Speed is king — a Pokémon that moves first dictates the pace of the entire battle.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Mewtwo was genetically engineered from Mew's DNA. The original Mew was discovered deep in the jungles of Guyana, South America — according to Pokémon lore.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Pokémon universe has no concept of death for humans in battles. Pokémon simply faint. This was a conscious choice to keep the games family-friendly.",
+    "category": "Design"
+  },
+  {
+    "fact": "Porygon is the only Pokémon that was entirely man-made using computer programming — no DNA, no cloning, pure code.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Gengar is believed to be the shadow of Clefable — they have nearly identical body silhouettes, and both live in similar mountain/urban habitats.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Pikachu's name comes from the Japanese words 'pikapika' (sparkling) and 'chuu' (the sound a mouse makes).",
+    "category": "Trivia"
+  },
+  {
+    "fact": "The 'Rival' in the original games doesn't have a name — the player chooses it. But the manga names him 'Blue' and gives him a fully developed personality.",
+    "category": "History"
+  },
+  {
+    "fact": "Pokémon Gold and Silver were developed on the Game Boy, but Satoshi Tajiri insisted on squeezing in an entire second region (Kanto). The team worked overnight for months.",
+    "category": "History"
+  },
+  {
+    "fact": "Nidorina and Nidoqueen are the only Pokémon in the Field egg group that cannot breed — despite being in a group defined by breeding.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The Ghost type was originally super effective against Psychic in Gen 1 — but due to a programming bug, Ghost moves had no effect on Psychic types at all.",
+    "category": "History"
+  },
+  {
+    "fact": "Slowpoke takes 5 seconds to feel pain. If a Shellder bites its tail, the shock eventually reaches its brain and it evolves into Slowbro.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Charizard is not a Dragon type — it's Fire/Flying. This was a deliberate design choice in Gen 1 to make Dragon harder to counter.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "The Pokémon Trading Card Game was created because Satoshi Tajiri loved collecting insects as a child and wanted to capture that feeling digitally.",
+    "category": "History"
+  },
+  {
+    "fact": "Eevee has the most potential evolutions of any Pokémon — 8 'Eeveelutions', each representing a different type.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Snorlax is the heaviest fully evolved Pokémon available before the Elite Four in Gen 1, weighing over 1,000 lbs.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "In Gen 1, the Pokédex entries describe a world where Pokémon genuinely threaten or kill each other. The tone was much darker than the anime.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Every Fire-type starter Pokémon gains a second type upon reaching its final evolution — Charizard (Flying), Typhlosion (stays Fire), Blaziken (Fighting), etc.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Geodude, Graveler, and Golem have a 75% male bias in their gender ratio — a quirk that's never been explained in lore.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Pokémon Snap (N64) was one of the first Pokémon games to feature fully 3D Pokémon models in a real-time environment.",
+    "category": "History"
+  },
+  {
+    "fact": "Alakazam has an IQ of 5,000, can remember everything since it was born, and its brain never stops growing — but its body can't support the weight, so it has to use Psychic power to hold itself up.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The move Splash does absolutely nothing — but in the anime, James's Magikarp uses it constantly and is expelled from his team for it.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Shiny Pokémon have a 1 in 4,096 chance of appearing in the wild. Some methods like Masuda Method or Chaining can reduce this to 1 in 512.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The Safari Zone is one of the most controversial mechanics in Gen 1 — Pokémon can simply run away and you have no control over catching them.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Gyarados is a Water/Flying type despite looking like a dragon and literally evolving from a fish. It should logically be Water/Dragon.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Pokémon Crystal (GBA) was the first Pokémon game to let you choose a female protagonist — a massive milestone in 2001.",
+    "category": "History"
+  },
+  {
+    "fact": "The Pokémon world's currency is 'Pokémon Dollars' (₽). The exchange rate in real life approximately equals the Japanese Yen.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Primeape literally dies if it can't stop raging — according to its Ruby/Sapphire Pokédex entry. It enrages itself to death.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The cover Legendary of each main game is always catchable in that game — but you only get one. This makes Masterball usage a major decision.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Metagross has four brains, each linked together — giving it more processing power than a supercomputer, according to its Pokédex entry.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Gen 2 (Gold/Silver) was the peak of Pokémon in terms of post-game content — you could challenge all 8 Kanto gyms after finishing Johto.",
+    "category": "History"
+  },
+  {
+    "fact": "Every Pokémon game has an in-game trade with an NPC that gives you a Pokémon you might miss otherwise — a tradition since Gen 1.",
+    "category": "Design"
+  },
+  {
+    "fact": "Haunter can paralyze a person by licking them. In one original anime episode, Ash's Haunter accidentally makes a gym leader laugh herself into a coma.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The move Hyper Beam requires a recharge turn — making it a trap for new players who think they're dealing maximum damage efficiently.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Voltorb and Electrode are the only Pokémon whose names are not Japanese in origin — they're pure English compound words.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Blissey has the highest HP of any non-Mega, non-Dynamax Pokémon in the game — a staggering base 255 HP.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The Pokémon Deoxys has 4 different forms — Attack, Defense, Speed, and Normal — each with wildly different stats.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Pokémon Emerald introduced Battle Frontier — widely regarded as the best post-game content in the entire franchise.",
+    "category": "History"
+  },
+  {
+    "fact": "Arceus is considered the God of the Pokémon universe. It created the entire world — Dialga (time), Palkia (space), and Giratina (antimatter) from itself.",
+    "category": "Lore"
+  },
+  {
+    "fact": "There's a Pokémon called Spiritomb that has no weaknesses in Gen 4/5 — it's Ghost/Dark, and both types cancel out every weakness the other has.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The phrase 'It's super effective!' has become one of the most recognized phrases in gaming culture worldwide.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Pokémon have internal values called IVs (Individual Values) and EVs (Effort Values) that make every single Pokémon numerically unique at a hidden level.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The Safari Zone Glitch in Gen 1 lets you catch Mew through a specific sequence of steps before reaching Cerulean City — without hacking.",
+    "category": "History"
+  },
+  {
+    "fact": "Sableye was the only Pokémon with no weaknesses (Dark/Ghost) until Gen 6 introduced the Fairy type, which is super effective against Dark.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Pokémon has sold over 480 million video game copies worldwide, making it the second best-selling video game franchise of all time after Mario.",
+    "category": "History"
+  },
+  {
+    "fact": "Unown has 28 forms — one for each letter of the English alphabet, plus '!' and '?'. Its lore suggests it has psychic power in large numbers.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "The Ice type is widely considered the worst defensive type in the game — it has 4 weaknesses and only 1 resistance (to itself).",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Psyduck has a constant headache so severe it can't use its psychic powers — but when the pain peaks, it unleashes uncontrolled psychic energy.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Pokémon FireRed and LeafGreen sold over 12 million copies — proving remakes of Gen 1 games can outsell entirely new generations.",
+    "category": "History"
+  },
+  {
+    "fact": "The Dragon type has very few weaknesses (Dragon and Ice) and is resistant to Fire, Water, Grass, and Electric — making it one of the most powerful offensive types.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Rotom can possess electrical appliances — washing machine, microwave, lawnmower, fan, and refrigerator — each giving it a unique second type.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Genesect is a 300-million-year-old fossil Pokémon revived and modified by Team Plasma with a cannon attached to its back.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The name 'Pokémon' is a portmanteau of 'Pocket Monsters' — the original Japanese title of the franchise.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Solgaleo and Lunala are Ultra Beasts in disguise — they emerged from wormholes in the Ultra Space and became Legendary Pokémon of Alola.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Nurse Joy and Officer Jenny you see in every city are not the same person — the anime confirms they're extended family members who all look alike.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Zubat has no eyes. It navigates entirely using echolocation — emitting ultrasonic waves at 40 times per second.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Haunter, Kadabra, and Machoke all evolve through trading — a mechanic designed to encourage players to connect and share with friends.",
+    "category": "Design"
+  },
+  {
+    "fact": "In Gen 6, the EXP Share was changed to automatically distribute EXP to all Pokémon in your party — removing the need to rotate your team.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Mew is literally said to contain the DNA of every existing Pokémon — making it the biological ancestor of all Pokémon.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Volcarona is one of the most powerful non-Legendary Pokémon competitively — its Special Attack and Speed make it a sweeper at level 59.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The Pokémon anime has aired over 1,200 episodes. It's one of the longest-running animated series in history.",
+    "category": "History"
+  },
+  {
+    "fact": "Garchomp's Dragon/Ground typing means it has an immunity to Electric moves and only two weaknesses: Ice and Dragon.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Legendary Pokémon are genderless with a few exceptions (Latios/Latias, Heatran, Cresselia) and cannot breed in standard gameplay.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Tropius grows bananas on its neck. Children in Africa (in the Pokémon world) apparently love eating them, according to its Pokédex entry.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Steel type was added in Gen 2 specifically to nerf the Psychic type, which was broken in Gen 1. Steel resists Psychic moves.",
+    "category": "History"
+  },
+  {
+    "fact": "Pokémon Go became the fastest app to earn $100 million in history — reaching that milestone in just 20 days after its 2016 launch.",
+    "category": "History"
+  },
+  {
+    "fact": "Jynx's original design was controversial for bearing resemblance to a racial caricature. It was later redesigned to have a purple face.",
+    "category": "History"
+  },
+  {
+    "fact": "Rayquaza stops the battle between Groudon and Kyogre in Ruby/Sapphire — making it effectively the most powerful Pokémon in Hoenn lore.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Normal type has no super-effective moves. The Ghost type is immune to Normal. This makes Normal moves uniquely unreliable against Ghost types.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Pokémon Legends: Arceus was the first time a main-series Pokémon game had open-world exploration, releasing in January 2022.",
+    "category": "History"
+  },
+  {
+    "fact": "Absol appears before natural disasters — not to cause them, but to warn humans. Despite this, it's feared and driven away.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Xerneas can grant eternal life by sharing its energy with others. It sleeps for 1,000 years as a tree to restore that energy.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Incineroar, the Fire/Dark starter, was originally planned as a bipedal wrestler — its design was inspired by professional wrestling heels.",
+    "category": "Design"
+  },
+  {
+    "fact": "Piplup is the most popular starter in Japan, consistently topping polls — often beating Pikachu in Pokémon popularity rankings.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Ash Ketchum won his first World Championship in Pokémon Ultimate Journeys (2022), ending a 25-year journey as the anime's protagonist.",
+    "category": "History"
+  },
+  {
+    "fact": "The 'Type Chart' — which type beats which — has 18×18 = 324 type matchup combinations. Mastering it is one of the biggest competitive skills.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Pokémon Silver's data is so packed that the developers had to store the clock data in the save file's leftover bits to fit everything in.",
+    "category": "History"
+  },
+  {
+    "fact": "Gible, Gabite, and Garchomp all look like shark-plane hybrids. Their final form is one of the fastest non-Legendary Pokémon at base 102 Speed.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Cosmog is the smallest Legendary Pokémon in the franchise, yet it eventually evolves into Solgaleo or Lunala — universe-spanning beings.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Decidueye, the final form of Rowlet, is Grass/Ghost — making it the only non-pure-Ghost starter to have the Ghost type.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Cinderace's signature move, Pyro Ball, has 120 base power and a 10% chance to burn the target — making it one of the strongest Fire moves.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Toxtricity can be Amped (yellow) or Low Key (blue/purple) depending on its nature — one of the first Pokémon with nature-based form variants.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "In Pokémon Scarlet and Violet, Paradox Pokémon are ancient or futuristic versions of existing Pokémon found in Area Zero — bridging past and future.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Urshifu has two forms — Single Strike (Dark) and Rapid Strike (Water) — and once you choose, it can't be reversed in the game.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "The Poké Ball's design was inspired by a small toy called a Poké Ball that bounced on a string. Satoshi Tajiri owned one as a child.",
+    "category": "History"
+  },
+  {
+    "fact": "Spiritomb was specifically designed to have no weaknesses in Gen 4, but players found workarounds using the move Miracle Eye (Psychic) to bypass the Dark immunity.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Chesnaught is the only Grass/Fighting starter final evolution, making it one of the physically bulkiest starters in the franchise.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Legendary Pokémon have been present in every generation, but they weren't always powerful — the original three birds had base stat totals of 580, same as starters.",
+    "category": "History"
+  },
+  {
+    "fact": "Magikarp is considered the weakest Pokémon in the game, yet it evolves into Gyarados — one of the most fearsome Pokémon — at level 20.",
+    "category": "Design"
+  },
+  {
+    "fact": "Eevee has the most evolutions of any Pokémon, with 8 possible evolved forms called Eeveelutions — each tied to a different element.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Ditto can transform into any Pokémon it sees, copying their appearance, moves, and stats. It's the only Pokémon that can breed with almost every species.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The move 'Splash' does absolutely nothing in battle. Its only in-game description is 'No effect.' Yet Magikarp's most iconic move is exactly this.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Smeargle's signature move, Sketch, copies any move used against it permanently. This makes Smeargle theoretically capable of knowing every move in the game.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Wobbuffet can only use four moves — Counter, Mirror Coat, Safeguard, and Destiny Bond — all of which are reactive. It can never initiate an attack.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Alakazam's IQ is said to surpass 5,000. Its brain cells multiply constantly from birth, and it never forgets anything it has ever seen.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Meowth is the only Pokémon in the anime to speak human language naturally — it taught itself by watching humans and imitating speech.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Chansey appears in every Pokémon Center as a nurse assistant. In-universe, Nurse Joys specifically train Chansey because of its gentle nature and healing aura.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Electrode's Pokédex entries say it can explode even without provocation if it absorbs too much electricity — making it one of the most dangerous Pokémon to handle.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Gengar is theorized to be the Ghost form of Clefable — the two have near-identical silhouettes, and no other explanation has been given for Gengar's origin.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "The Fairy type was introduced in Generation 6 (Pokémon X/Y) to counterbalance the dominance of Dragon types in competitive play.",
+    "category": "History"
+  },
+  {
+    "fact": "Shiny Pokémon have approximately a 1 in 4096 chance of appearing in the wild by default in modern games — making each encounter feel like winning a lottery.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Charizard was explicitly NOT a Dragon-type in Gen 1 despite looking like one — likely a design choice to prevent it from being broken in competitive play.",
+    "category": "Design"
+  },
+  {
+    "fact": "The Pokémon Company makes more revenue from merchandise than from video games or the anime — making it one of the most lucrative IP licensing operations on the planet.",
+    "category": "History"
+  },
+  {
+    "fact": "Lucario can sense and read the Aura of all living things — even predicting the feelings and actions of others before they happen.",
+    "category": "Lore"
+  },
+  {
+    "category": "Mechanics",
+    "fact": "The ability Intimidate lowers the opponent's Attack stat upon entering battle. It's been one of the most influential abilities in competitive play since Gen 3."
+  },
+  {
+    "fact": "Milotic was designed as the anti-Gyarados — both evolve from seemingly weak fish Pokémon, but Milotic requires beauty conditions or Prism Scale rather than a level.",
+    "category": "Design"
+  },
+  {
+    "fact": "Kadabra holds two bent spoons in its claws — a reference to spoon-bending psychics. Uri Geller sued Nintendo in 2000 over the character's name 'Yungeller' in Japanese.",
+    "category": "History"
+  },
+  {
+    "fact": "Ninjask is one of the fastest non-Legendary Pokémon, with a base Speed of 160. It's faster than almost every Legendary before Gen 7.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Slaking has the highest base stat total of any non-Legendary, non-Pseudo-Legendary Pokémon at 670 — but its ability Truant makes it skip every other turn.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Darkrai causes people to have endless nightmares, but it actually does this out of self-defense — it cannot help inflicting bad dreams on those who get close.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Celebi is a time-traveling Pokémon that appears in forests only when time is at peace. Its presence means the forest has a bright future.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Berry system in Generation 3 allowed Pokémon to hold berries that automatically healed them in battle — a mechanic that transformed competitive strategy forever.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Metagross is a Steel/Psychic Pokémon formed by the fusion of two Metang — and each Metang is formed by the fusion of two Beldum. It has four brains in total.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Bagon has always dreamed of flying since it was young. It practices by throwing itself off cliffs — which is why its skull has become incredibly tough over time.",
+    "category": "Lore"
+  },
+  {
+    "fact": "In Generation 2, when the player calls Professor Elm's aide on the Pokégear, it turns out to be a criminal already arrested — revealing the robber was caught off-screen.",
+    "category": "History"
+  },
+  {
+    "fact": "The Pokémon Trading Card Game has printed over 43 billion cards since 1996 — more than 6 cards for every human alive on Earth.",
+    "category": "History"
+  },
+  {
+    "fact": "Mewtwo was created through years of horrific genetic engineering experiments on Mew. It's the most powerful Pokémon that was man-made.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Pangoro's Pokédex entry states it never forgives opponents who use dirty tricks — if it sees a Pokémon cheat, it will pursue that enemy to the ends of the Earth.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Goodra is the only pseudo-Legendary Dragon type that isn't part Flying or part Ground — it's pure Dragon with a Fairy-like gentle personality.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Sylveon, the Fairy-type Eeveelution, was introduced in Gen 6 to also serve as a hint about the new Fairy type before X/Y released. It was kept secret at first.",
+    "category": "History"
+  },
+  {
+    "fact": "Every 'eeveelution' except Espeon and Umbreon requires an Elemental Stone — making those two the only evolution-by-friendship Eeveelutions.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Dragapult is the fastest pseudo-Legendary ever, with a base Speed of 142 — it literally launches its Dreepy children at enemies like missiles.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Regice, Regirock, and Registeel were sealed by ancient humans who feared them. The braille messages on the doors to their chambers describe how and why.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Honchkrow is nicknamed 'Summoner of Night.' It commands flocks of Murkrow and will not forgive any member of its flock that fails to bring home sufficient food.",
+    "category": "Lore"
+  },
+  {
+    "fact": "In the original Japanese games, Ghost-type moves didn't actually hit Psychic-type Pokémon in Gen 1 due to a programming bug — the exact opposite of the intended design.",
+    "category": "History"
+  },
+  {
+    "fact": "Lapras was nearly hunted to extinction in the Pokémon world. In-game characters mourn how rare it has become, making the gift Lapras in Silph Co. feel meaningful.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Diglett's feet have never been officially shown. It's one of the longest-running mysteries in the Pokémon franchise, sparking endless fan theories.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Camerupt has a volcano on its back that erupts every 10 years. According to its Pokédex entry, the lava inside is the same temperature as the Earth's mantle.",
+    "category": "Lore"
+  },
+  {
+    "fact": "In Pokémon Diamond and Pearl, Dialga and Palkia were worshipped by the people of Sinnoh as creator deities — the actual gods of time and space.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Shaymin can purify polluted air by absorbing toxins through its flower. When it does, the flowers bloom and the whole area is cleansed.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Yamask carries a mask that resembles its face from when it was human. It occasionally looks at the mask and weeps — one of the darkest Pokédex entries ever written.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Litwick, Lampent, and Chandelure absorb the life force and souls of the living to keep their flames burning — one of the most sinister evolution lines in the game.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Sigilyph was placed by ancient people to serve as a guardian of cities. It flies the same routes forever, never stopping, never changing its patrol path.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Zorua and Zoroark can create perfect illusions of other Pokémon. Zoroark's Illusion ability was a major competitive surprise when Gen 5 launched.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The Legend of Kyurem (Black and White's third box Legendary) is that it is the shell of the original dragon after it split into Reshiram and Zekrom.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Talonflame was one of the most dominant Pokémon in Gen 6 competitive play due to its ability Gale Wings — which gave priority to Flying moves. It was later nerfed.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The move Seismic Toss deals damage equal to the user's level — making it technically deal the same damage to a level 1 Caterpie as to an Arceus.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Hawlucha is a Wrestling Pokémon modeled after the Lucha Libre tradition of Mexican wrestling. Even its fighting style mirrors signature wrestling moves.",
+    "category": "Design"
+  },
+  {
+    "fact": "Aegislash can switch between a Shield Forme (high Defense) and Blade Forme (high Attack) in the same turn using its King's Shield move.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Hoopa Unbound is one of the most visually imposing Mythical Pokémon — it was sealed inside a Prison Bottle because its power was too dangerous to contain.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Jirachi awakens from a millennium of sleep once every 1,000 years for only seven days — and during that time it can grant any wish.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Bisharp commands armies of Pawniard and leads them in hunts, but if it loses, it's immediately replaced as leader by one of its own subordinates.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Pokémon world has its own calendar — 'Pokémon time' is the same as real-world time in games like Heartgold and Diamond, syncing with the Nintendo DS clock.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Alolan forms introduced in Gen 7 showed how the same species evolves differently in different environments — a nod to real-world convergent and divergent evolution.",
+    "category": "Design"
+  },
+  {
+    "fact": "Alolan Marowak is Fire/Ghost because it evolved to channel the spirits of its deceased mothers — a haunting evolution of its original origin story.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Mimikyu wears a Pikachu disguise because it wants to be loved like Pikachu is. Under the disguise is something so horrifying that anyone who sees it falls ill.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Kommo-o has scales that jangle like bells when it moves. Ancient warriors used Kommo-o's shed scales to craft armor and weapons.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Necrozma was originally a being of pure light. Team Rainbow Rocket in USUM attempts to steal its light to power Mega Energy across dimensions.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Zeraora is the fastest Electric-type Pokémon, with a base Speed of 143 — it generates electricity by running, creating a field of plasma around itself.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "The Sword and Shield Wild Area was the first truly open-world area in a mainline Pokémon game, where the camera could be freely rotated.",
+    "category": "History"
+  },
+  {
+    "fact": "Obstagoon is an Alolan Galarian form of Linoone — it only exists because Galarian Linoone in the harsh northern climate evolved an aggressive battling stance.",
+    "category": "Design"
+  },
+  {
+    "fact": "Zacian and Zamazenta are the legendary wolves of Galar. Zacian carries a sword in its mouth it found after an ancient battle and has used it ever since.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Calyrex is the king of the Crown Tundra — but it's been forgotten and has lost most of its power over the centuries as people stopped believing in it.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Wyrdeer was introduced in Pokémon Legends: Arceus as a rideable Pokémon — the first time Stantler's evolution was shown in over 25 years of the franchise.",
+    "category": "History"
+  },
+  {
+    "fact": "Alpha Pokémon in Legends: Arceus are ancient, wild forms of Pokémon — larger, more powerful, and with glowing red eyes. They represent the untamed side of Pokémon.",
+    "category": "Design"
+  },
+  {
+    "fact": "Iron Hands, a Paradox Pokémon in Scarlet/Violet, is a futuristic robotic version of Hariyama. Its base Attack stat is among the highest of any non-Legendary.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The Tera Type mechanic in Scarlet and Violet lets any Pokémon temporarily change type during battle — even turning a Magikarp into a Dragon type.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Koraidon and Miraidon from Pokémon Scarlet and Violet are both rideable Pokémon that serve as mounts for the player from the very start of the game.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "The Pokémon franchise spans games, anime, manga, trading cards, toys, clothing, food, and theme park rides — making it the highest-grossing media franchise of all time.",
+    "category": "History"
+  },
+  {
+    "fact": "Unown's alphabet forms each correspond to a specific rune. In Pokémon 3: The Movie, a child's longing for her missing father creates real Pokémon using Unown's power.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Move tutors first appeared in Pokémon FireRed and LeafGreen, allowing Pokémon to relearn powerful moves they would have otherwise lost by evolving too early.",
+    "category": "History"
+  },
+  {
+    "fact": "The Gen 2 games introduced held items — objects a Pokémon can equip to gain passive effects. This single mechanic opened an entire new dimension of competitive strategy.",
+    "category": "History"
+  },
+  {
+    "fact": "Flygon is called the 'Desert Spirit' — it creates sandstorms by flapping its wings, hiding itself in the chaos while producing a mysterious, humming song.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Wailord is the largest Pokémon by size at 14.5 meters tall, yet it weighs less than Gastly. This is because Wailord has a density even lower than the air.",
+    "category": "Trivia"
+  },
+  {
+    "fact": "Feebas is the rarest encounter in Gen 3 — it only appears in six random tiles of a large lake in Hoenn, and those tiles change with each secret word entered in Dewford.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "A major debate among fans is whether Pokémon can die — Pokédex entries explicitly mention death, and the Marowak in Lavender Town is a confirmed ghost of a dead Pokémon.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The move Minimize causes the user to become so flat that opponents can barely hit it. This doubles the power of Stomping Tantrum and similar spread moves.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Porygon is the only Pokémon created entirely by humans using programming code — making it the world's first artificial Pokémon.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Shuckle holds the record for the most potential single-hit damage in any Pokémon game — through a very specific setup, it can deliver damage in the billions.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "The anime episode 'Electric Soldier Porygon' caused seizures in over 685 Japanese children due to a flashing effect — it was never rebroadcast and Porygon never returned to the anime.",
+    "category": "History"
+  },
+  {
+    "fact": "Hawlucha's Spanish name is 'Hawlucha' — unchanged — because Lucha Libre is so deeply tied to Latin culture that no translation was appropriate.",
+    "category": "Design"
+  },
+  {
+    "fact": "Slowpoke's tail secretes a sweet sap that Shellder bites onto. This bite transforms Slowpoke into Slowbro — without the Shellder, it would never evolve.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Hitmonchan is named after Jackie Chan, and Hitmonlee is named after Bruce Lee — Gen 1's fighting Pokémon were tributes to martial arts legends.",
+    "category": "Design"
+  },
+  {
+    "fact": "The Steelix line was the first instance of a Pokémon's evolved form having a lower Speed stat than its pre-evolution — a deliberate trade-off for Defense.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Scyther and Pinsir are counterparts — Scyther is rarer in Red, Pinsir is rarer in Blue. This version-exclusive design has been a franchise trademark ever since.",
+    "category": "Design"
+  },
+  {
+    "fact": "Hidden Abilities were introduced in Gen 5 via the Dream World feature — rare ability variants only obtainable through online events or special game modes.",
+    "category": "History"
+  },
+  {
+    "fact": "Malamar's Pokédex entry says it 'wields the most compelling hypnotic power of any Pokémon' and uses it to manipulate others into doing its bidding.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Cloud Nine ability (Golduck, Lickilicky) suppresses all weather effects while active — one of the few abilities that can completely override an opponent's strategy.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Zygarde has three forms — 10%, 50%, and Complete — and only reaches 100% power when it senses a threat to the ecosystem it is sworn to protect.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Pokémon GO Fest events have attracted hundreds of thousands of players to real-world locations — blending augmented reality gaming with live concerts and festivals.",
+    "category": "History"
+  },
+  {
+    "fact": "Galarian Slowpoke's tail has been stained yellow with spicy particles from an ancient cave — and local connoisseurs pay fortunes just to taste it.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The Pokémon UNITE MOBA launched in 2021 and reached 70 million downloads within its first month — making it one of the fastest-growing Pokémon games ever.",
+    "category": "History"
+  },
+  {
+    "fact": "Fairy-type moves are completely immune to Dragon-type moves — which means even a tiny Clefairy can completely wall a Dragonite in the right matchup.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "Pelipper has the ability Drizzle, letting it summon rain upon entry. This ability was originally exclusive to Kyogre — giving Pelipper access to it in Gen 7 shook the competitive scene.",
+    "category": "Mechanics"
+  },
+  {
+    "fact": "There are 18 Pokémon types in total. When they were introduced across generations, each addition was a deliberate design decision to solve existing balance problems.",
+    "category": "History"
+  },
+  {
+    "fact": "Togekiss is known as the 'Jubilee Pokémon' — it only appears before kind-hearted people and brings happiness wherever it goes.",
+    "category": "Lore"
+  },
+  {
+    "fact": "The legendary dogs Raikou, Entei, and Suicune were resurrected by Ho-Oh after dying in the Brass Tower fire — each embodies a different aspect of the storm that night.",
+    "category": "Lore"
+  },
+  {
+    "fact": "Tyrogue can evolve into three different Pokémon — Hitmonlee, Hitmonchan, or Hitmontop — depending on whether its Attack, Defense, or both stats are highest at level 20.",
+    "category": "Mechanics"
+  }
+]

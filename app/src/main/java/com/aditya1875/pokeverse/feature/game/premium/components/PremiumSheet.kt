@@ -36,6 +36,9 @@ import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Animation
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.outlined.RadioButtonUnchecked
 import androidx.compose.material3.Button
@@ -188,10 +191,11 @@ fun PremiumBottomSheet(
                     modifier = Modifier.padding(14.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // Strongest, most visible perks first.
                     BenefitRow(
-                        Icons.Default.EmojiEvents,
-                        stringResource(R.string.premium_feature_hard_mode_title),
-                        stringResource(R.string.premium_feature_hard_mode_subtitle)
+                        Icons.Default.Block,
+                        stringResource(R.string.premium_feature_ad_free_title),
+                        stringResource(R.string.premium_feature_ad_free_subtitle)
                     )
                     BenefitRow(
                         Icons.Default.Palette,
@@ -199,9 +203,19 @@ fun PremiumBottomSheet(
                         stringResource(R.string.premium_feature_themes_subtitle)
                     )
                     BenefitRow(
-                        Icons.Default.Block,
-                        stringResource(R.string.premium_feature_ad_free_title),
-                        stringResource(R.string.premium_feature_ad_free_subtitle)
+                        Icons.Default.WorkspacePremium,
+                        stringResource(R.string.premium_feature_flair_title),
+                        stringResource(R.string.premium_feature_flair_subtitle)
+                    )
+                    BenefitRow(
+                        Icons.Default.Lightbulb,
+                        stringResource(R.string.premium_feature_dex_daily_title),
+                        stringResource(R.string.premium_feature_dex_daily_subtitle)
+                    )
+                    BenefitRow(
+                        Icons.Default.Animation,
+                        stringResource(R.string.premium_feature_aura_title),
+                        stringResource(R.string.premium_feature_aura_subtitle)
                     )
                     BenefitRow(
                         Icons.Default.AutoAwesome,
@@ -209,9 +223,14 @@ fun PremiumBottomSheet(
                         stringResource(R.string.premium_feature_shiny_subtitle)
                     )
                     BenefitRow(
-                        Icons.Default.WorkspacePremium,
-                        stringResource(R.string.premium_feature_flair_title),
-                        stringResource(R.string.premium_feature_flair_subtitle)
+                        Icons.Default.Widgets,
+                        stringResource(R.string.premium_feature_widget_title),
+                        stringResource(R.string.premium_feature_widget_subtitle)
+                    )
+                    BenefitRow(
+                        Icons.Default.EmojiEvents,
+                        stringResource(R.string.premium_feature_hard_mode_title),
+                        stringResource(R.string.premium_feature_hard_mode_subtitle)
                     )
                 }
             }

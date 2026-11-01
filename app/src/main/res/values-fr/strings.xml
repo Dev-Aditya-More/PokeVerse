@@ -521,8 +521,14 @@
     <string name="premium_feature_ad_free_subtitle">Aucune bannière, et chaque relance ou passage sans regarder de pub</string>
     <string name="premium_feature_shiny_title">Pokédex Chromatique</string>
     <string name="premium_feature_shiny_subtitle">Voyez chaque Pokémon sous sa forme chromatique dans tout le Pokédex</string>
-    <string name="premium_feature_flair_title">Distinction Premium</string>
-    <string name="premium_feature_flair_subtitle">Un anneau doré et un blason sur votre profil du classement</string>
+    <string name="premium_feature_flair_title">Style de classement</string>
+    <string name="premium_feature_flair_subtitle">Ton nom en or scintillant, un anneau doré qui tourne et un badge PRO</string>
+    <string name="premium_feature_dex_daily_title">Indices et archives Dex Daily</string>
+    <string name="premium_feature_dex_daily_subtitle">Révèle des indices avant de répondre et joue toutes les énigmes passées</string>
+    <string name="premium_feature_aura_title">Aura vivante</string>
+    <string name="premium_feature_aura_subtitle">Des fonds animés selon le type sur chaque page Pokémon</string>
+    <string name="premium_feature_widget_title">Widget de série doré</string>
+    <string name="premium_feature_widget_subtitle">Un widget d\'écran d\'accueil bordé d\'or, avec une flamme dorée</string>
     <string name="settings_shiny_dex">Pokédex Chromatique</string>
     <string name="settings_shiny_dex_desc">Affiche les formes chromatiques dans tout le Pokédex. Vous pouvez toujours remettre un Pokémon en normal sur sa page.</string>
     <string name="settings_premium_only">Premium</string>
@@ -635,12 +641,12 @@
         <item quantity="one">jour</item>
         <item quantity="other">jours</item>
     </plurals>
-    <string name="widget_streak_safe">✓ Assurée pour aujourd’hui</string>
+    <string name="widget_streak_safe">Assurée pour aujourd’hui</string>
     <string name="widget_streak_at_risk">Ouvrez l’app aujourd’hui pour la garder</string>
-    <string name="widget_streak_hours_left">⏳ Plus que %1$d h pour la sauver</string>
+    <string name="widget_streak_hours_left">Plus que %1$d h pour la sauver</string>
     <string name="widget_streak_start">Commencez une série aujourd’hui</string>
-    <string name="widget_streak_rested">💤 XP doublée qui vous attend</string>
-    <string name="widget_pika_happy">Pika pi ! ⚡</string>
+    <string name="widget_streak_rested">XP doublée qui vous attend</string>
+    <string name="widget_pika_happy">Pika pi !</string>
     <string name="widget_pika_waiting">Pika… ? Joue aujourd’hui !</string>
     <string name="widget_pika_panic">PIKA !! Plus que %1$d h !</string>
     <string name="widget_pika_sleepy">zzz… réveille-moi</string>
@@ -648,7 +654,7 @@
         <item quantity="one">Tenue %2$s dans %1$d jour</item>
         <item quantity="other">Tenue %2$s dans %1$d jours</item>
     </plurals>
-    <string name="widget_all_looks">👑 Toutes les tenues débloquées !</string>
+    <string name="widget_all_looks">Toutes les tenues débloquées !</string>
     <string name="widget_look_classic">Pikachu</string>
     <string name="widget_look_cap">Casquette de Sacha</string>
     <string name="widget_look_popstar">Pop Star</string>
@@ -984,12 +990,14 @@
 
     <!-- Themes, Wild Catch, Face Match, premium, misc -->
     <string name="theme_choose_your_vibe">Choisissez votre style</string>
+    <string name="theme_section_free">Thèmes gratuits</string>
+    <string name="theme_section_pro">Thèmes Pro</string>
+    <string name="theme_section_pro_owned">Les %1$d sont à toi</string>
+    <string name="theme_section_pro_locked">%1$d styles qui transforment toute l\'app</string>
+    <string name="theme_unlock_all">Tout débloquer</string>
     <string name="theme_active">Thème actif</string>
     <string name="theme_tap_to_apply">Touchez un thème pour l\'appliquer</string>
-    <string name="theme_brand">Marque</string>
     <string name="theme_official">Thème officiel</string>
-    <string name="theme_classic">Classique</string>
-    <string name="theme_premium_a11y">Thème Premium</string>
     <string name="theme_desc_dexverse">Le thème classique de Dexverse</string>
     <string name="theme_desc_pikachu">Lumineux et énergique comme la souris électrique préférée de tous</string>
     <string name="theme_desc_darkrai">Pour ceux qui préfèrent le côté obscur</string>
