@@ -1,0 +1,22 @@
+rules_version = '2';
+
+// Dexverse Storage rules. Deployed with `firebase deploy --only storage`.
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // profile_photos/{uid}.jpg: public avatars (leaderboard, Last Week podium).
+    match /profile_photos/{fileName} {
+      allow read: if true;
+
+      // Only your own file, only an image, and small. The app uploads ~100 KB 512px JPEGs;
+      // the 10 MB ceiling still fits older versions that uploaded the raw photo (sent without
+      // a content type, hence octet-stream). Stops using the bucket as free file hosting.
+      allow create, update: if request.auth != null
+                            && fileName == request.auth.uid + '.jpg'
+                            && request.resource.size < 10 * 1024 * 1024
+                            && (request.resource.contentType.matches('image/.*')
+                                || request.resource.contentType == 'application/octet-stream');
+      allow delete: if request.auth != null && fileName == request.auth.uid + '.jpg';
+    }
+  }
+}

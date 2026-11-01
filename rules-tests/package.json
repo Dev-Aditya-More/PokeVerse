@@ -1,0 +1,12 @@
+{
+  "name": "dexverse-rules-tests",
+  "private": true,
+  "description": "Firestore/Storage security rules tests. Run: npm test (starts the emulators).",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore,storage --project demo-dexverse \"node --test rules.test.js\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "firebase": "^11.0.0"
+  }
+}

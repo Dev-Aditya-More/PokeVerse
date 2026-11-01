@@ -1,0 +1,160 @@
+rules_version = '2';
+
+// Dexverse Firestore rules. Deployed with `firebase deploy --only firestore:rules`.
+// Tested in rules-tests/ against the emulator before every deploy.
+//
+// Clients include app versions already installed on phones, not just the next release, so
+// validation accepts every shape a shipped version writes (e.g. lastWeeklyReset as millis or
+// timestamp, an empty legacy `email`). Anything not matched below is denied by default
+// (friendships, friend_requests, daily_challenges, feedback, referral_* are server-only or
+// unshipped).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+    function str(v, max) { return v is string && v.size() <= max; }
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // ── XP sanity bounds ─────────────────────────────────────────────────────
+    // XP is still computed on the device, so rules can only stop impossible values; scripted
+    // farming is the job of App Check (and later server-side XP). Real data for calibration:
+    // best ever week ~2.1k XP, all-time top ~190k, p99 ~27k.
+    //  - totalXp never goes down (also stops a stale second device wiping cloud progress)
+    //  - at most MAX_STEP per write (a long offline session or referral claim fits easily)
+    //  - weeklyXp stays within a week's believable ceiling and never exceeds totalXp
+    function xpShapeOk(d) {
+      return d.get('totalXp', 0) is int && d.get('totalXp', 0) >= 0 && d.get('totalXp', 0) <= 1000000
+        && d.get('weeklyXp', 0) is int && d.get('weeklyXp', 0) >= 0 && d.get('weeklyXp', 0) <= 15000
+        && d.get('weeklyXp', 0) <= d.get('totalXp', 0)
+        && d.get('level', 1) is int && d.get('level', 1) >= 0 && d.get('level', 1) <= 1000;
+    }
+    function xpCreateOk(d) { return xpShapeOk(d) && d.get('totalXp', 0) <= 100000; }
+    function xpUpdateOk(d, old) {
+      return xpShapeOk(d) && totalXpStepOk(d, old);
+    }
+    function totalXpStepOk(d, old) {
+      return d.get('totalXp', 0) >= old.get('totalXp', 0)
+        && d.get('totalXp', 0) - old.get('totalXp', 0) <= 25000;
+    }
+    // users/{uid} is private, and the server never resets its weeklyXp, so live docs hold stale
+    // weekly values above the public cap (2 of 1348 at the Nov 2026 deploy). Only totalXp is
+    // bounded here; the weekly cap is enforced where it matters, on the public leaderboard.
+    function userXpOk(d) {
+      return d.get('totalXp', 0) is int && d.get('totalXp', 0) >= 0 && d.get('totalXp', 0) <= 1000000;
+    }
+
+    // Only the player's Google photo or their own uploaded photo may appear publicly.
+    // Anything else could be a tracking pixel logging every viewer's IP, or a local path.
+    function photoOk(url, uid) {
+      return url == ''
+        || url.matches('https://lh[0-9]+[.]googleusercontent[.]com/.*')
+        || url.matches('https://firebasestorage[.]googleapis[.]com/v0/b/[^/]+/o/profile_photos%2F' + uid + '[.]jpg([?].*)?');
+    }
+
+    // ── users/{uid}: private profile + cloud save ────────────────────────────
+    // syncFromCloud trusts this doc and copies it to the leaderboard, so totalXp gets the same
+    // growth bounds. premiumState is server-only (written by verifyPurchase).
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid)
+                    && !('premiumState' in request.resource.data)
+                    && userXpOk(request.resource.data)
+                    && request.resource.data.get('totalXp', 0) <= 100000;
+      allow update: if isOwner(uid)
+                    && !changed().hasAny(['premiumState'])
+                    && userXpOk(request.resource.data)
+                    && totalXpStepOk(request.resource.data, resource.data);
+    }
+
+    // ── leaderboard/{uid}: PUBLIC to every signed-in player ──────────────────
+    match /leaderboard/{uid} {
+      // `config` holds the update prompt / force-update versions: guests must see it too.
+      allow read: if uid == 'config' || signedIn();
+
+      allow create: if isOwner(uid) && leaderboardDocOk(request.resource.data, uid)
+                    && request.resource.data.keys().hasOnly(clientKeys())
+                    && xpCreateOk(request.resource.data);
+      allow update: if isOwner(uid) && leaderboardDocOk(request.resource.data, uid)
+                    && changed().hasOnly(clientKeys())
+                    && xpUpdateOk(request.resource.data, resource.data);
+      // No deletes: delete + recreate would sidestep the XP bounds.
+
+      // previousRank / rank are written by the weekly Cloud Function only.
+      function clientKeys() {
+        return ['uid', 'displayName', 'displayNameLower', 'bio', 'photoUrl', 'totalXp',
+                'weeklyXp', 'lastWeeklyReset', 'level', 'updatedAt', 'weeklyActive',
+                'isPremium', 'email'];
+      }
+      function leaderboardDocOk(d, uid) {
+        return d.get('uid', uid) == uid
+          && str(d.get('displayName', ''), 50)
+          && str(d.get('displayNameLower', ''), 50)
+          && str(d.get('bio', ''), 60)
+          && str(d.get('photoUrl', ''), 2048) && photoOk(d.get('photoUrl', ''), uid)
+          // Old app versions still send an empty email; a real address must never be public.
+          && d.get('email', '') == ''
+          && d.get('isPremium', false) is bool
+          && d.get('weeklyActive', false) is bool
+          && (d.get('updatedAt', request.time) is timestamp)
+          && (d.get('lastWeeklyReset', 0) is int || d.get('lastWeeklyReset', 0) is timestamp);
+      }
+    }
+
+    // Last Week snapshot: written only by Cloud Functions.
+    match /leaderboard_meta/{docId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // ── card_battles: real-time Card Clash matches ───────────────────────────
+    match /card_battles/{matchId} {
+      function isPlayer(d) {
+        return d.player1Id == request.auth.uid || d.player2Id == request.auth.uid;
+      }
+
+      // Anyone signed in can discover open rooms; players can always read their own match.
+      allow read: if signedIn() && (resource.data.status == 'waiting' || isPlayer(resource.data));
+
+      // A new room: the creator is player 1 and the seat opposite is empty.
+      allow create: if signedIn()
+                    && request.resource.data.player1Id == request.auth.uid
+                    && request.resource.data.player2Id == ''
+                    && request.resource.data.status == 'waiting'
+                    && str(request.resource.data.get('player1Name', ''), 50);
+
+      allow update: if signedIn() && (
+          // Players play the match but can never swap who is in it.
+          (isPlayer(resource.data)
+            && !changed().hasAny(['player1Id', 'player2Id', 'player1Name', 'player2Name',
+                                  'roomCode', 'createdAt']))
+          // Joining an open room: take the empty seat and nothing else.
+          || (resource.data.status == 'waiting'
+            && resource.data.player2Id == ''
+            && resource.data.player1Id != request.auth.uid
+            && request.resource.data.player2Id == request.auth.uid
+            && request.resource.data.status == 'dealing'
+            && str(request.resource.data.get('player2Name', ''), 50)
+            && changed().hasOnly(['player2Id', 'player2Name', 'status', 'lastUpdated']))
+        );
+
+      allow delete: if false; // cleanupStaleCardBattles sweeps finished/abandoned matches
+
+      // card_battles/{matchId}/hands/{userId}: your own hand, only in a match you're in.
+      match /hands/{userId} {
+        allow read: if isOwner(userId);
+        allow write: if isOwner(userId)
+                     && isPlayer(get(/databases/$(database)/documents/card_battles/$(matchId)).data);
+      }
+    }
+
+    // ── user_messages/{uid}/inbox: written by Cloud Functions ────────────────
+    // The app only marks messages read; it can't plant or edit messages.
+    match /user_messages/{userId}/inbox/{messageId} {
+      allow read: if isOwner(userId);
+      allow update: if isOwner(userId)
+                    && changed().hasOnly(['isRead'])
+                    && request.resource.data.isRead is bool;
+    }
+  }
+}
