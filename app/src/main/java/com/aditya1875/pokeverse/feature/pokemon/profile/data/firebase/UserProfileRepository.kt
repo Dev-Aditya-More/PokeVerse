@@ -352,6 +352,11 @@ class UserProfileRepository(private val context: Context) {
         }
     }
 
+    /** Flips only the guest flag, so progress stays and the sign-in card can come back. */
+    suspend fun markGuest() {
+        ds.edit { it[K.IS_GUEST] = true }
+    }
+
     suspend fun clearLocal() {
         ds.edit { it.clear() }
     }

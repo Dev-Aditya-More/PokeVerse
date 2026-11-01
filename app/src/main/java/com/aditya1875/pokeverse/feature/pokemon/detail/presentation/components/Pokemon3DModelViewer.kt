@@ -2,7 +2,6 @@ package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
 import com.aditya1875.pokeverse.R
 import androidx.compose.ui.res.stringResource
-import android.os.Build
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -34,9 +33,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
+import org.koin.compose.koinInject
+import org.koin.core.qualifier.named
 
 private val SineEaseInOut = CubicBezierEasing(0.37f, 0f, 0.63f, 1f)
 
@@ -58,17 +57,7 @@ fun Pokemon3DModelViewer(
             "https://img.pokemondb.net/sprites/go/normal/$name.png"
     }
 
-    val imageLoader = remember {
-        ImageLoader.Builder(context)
-            .components {
-                if (Build.VERSION.SDK_INT >= 28) {
-                    add(ImageDecoderDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
-            }
-            .build()
-    }
+    val imageLoader = koinInject<ImageLoader>(named("gif"))
 
     var isLoading by remember(spriteUrl) { mutableStateOf(true) }
     var hasError by remember(spriteUrl) { mutableStateOf(false) }

@@ -67,6 +67,18 @@ class ProfileViewModel(
     private var hasSyncedThisSession = false
 
     init {
+        // isGuest is the local mirror of "no Firebase session". An app update or a backup restore
+        // can leave it saying signed-in while Firebase has no user: the profile then hid BOTH the
+        // sign-in and sign-out cards and the leaderboard stayed locked until data was cleared.
+        // Once Firebase has settled, repair it a single time (progress is kept; signing back in
+        // merges with the cloud copy as usual). One-shot so it can't race signOut's clearLocal().
+        viewModelScope.launch {
+            authManager.sessionResolved.first { it }
+            if (authManager.currentUser.value == null && !repository.profileFlow.first().isGuest) {
+                repository.markGuest()
+            }
+        }
+
         viewModelScope.launch {
             currentUser.filterNotNull().first().let { user ->
                 if (!hasSyncedThisSession) {

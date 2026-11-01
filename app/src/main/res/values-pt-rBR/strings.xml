@@ -1269,7 +1269,7 @@
     <string name="wildcatch_tier_epic">Épico</string>
     <string name="wildcatch_new_catch">Nova captura!</string>
     <string name="settings_auto_cry">Tocar gritos automaticamente</string>
-    <string name="settings_auto_cry_desc">Toca o grito do Pokémon ao abrir a página dele. Requer Recursos Originais ativado.</string>
+    <string name="settings_auto_cry_desc">Toca o grito do Pokémon ao abrir a página dele.</string>
     <string name="dex_filter_all">Todos</string>
     <string name="dex_empty_seen">Nada visto aqui ainda. Abra um Pokémon para registrá-lo.</string>
     <string name="dex_empty_caught">Nenhuma captura aqui ainda. Jogue Wild Catch para capturar Pokémon!</string>

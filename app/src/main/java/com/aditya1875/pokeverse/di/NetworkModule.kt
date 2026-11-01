@@ -1,6 +1,9 @@
 package com.aditya1875.pokeverse.di
 
+import android.os.Build
 import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.PokemonDetailsApi
 import com.aditya1875.pokeverse.feature.pokemon.home.data.source.remote.PokemonListApi
 import com.aditya1875.pokeverse.feature.berry.data.source.remote.BerryApiService
@@ -57,9 +60,20 @@ val networkModule = module {
     single { get<Retrofit>(named("pokeapi")).create(ItemApiService::class.java) }
     single { get<Retrofit>(named("pokeapi")).create(BerryApiService::class.java) }
 
-    single {
-        ImageLoader.Builder(androidContext())
-            .crossfade(true)
+    // The ONE image pipeline: PokeVerseApp hands this to Coil as its singleton, so plain
+    // AsyncImage calls and the games' sprite prefetches share a memory cache (before, the
+    // prefetches warmed this loader while screens drew from Coil's separate default one).
+    // No global crossfade — call sites opt in per request, matching Coil's default.
+    single { ImageLoader.Builder(androidContext()).build() }
+
+    // Animated sprites (Showdown GIFs). newBuilder() shares the memory/disk cache and HTTP
+    // client above; ImageDecoder only exists on API 28+, so older devices use GifDecoder.
+    single(named("gif")) {
+        get<ImageLoader>().newBuilder()
+            .components {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) add(ImageDecoderDecoder.Factory())
+                else add(GifDecoder.Factory())
+            }
             .build()
     }
 

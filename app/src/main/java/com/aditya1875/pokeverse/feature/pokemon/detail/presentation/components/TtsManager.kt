@@ -35,6 +35,10 @@ class TTSManager private constructor(context: Context) {
     private val _isSpeaking = MutableStateFlow(false)
     val isSpeaking: StateFlow<Boolean> = _isSpeaking.asStateFlow()
 
+    // The engine binds asynchronously (often 0.5-2s). A request made before then used to be
+    // dropped, so the first Dex Mode entry played its cry and then said nothing. Keep the latest.
+    private var pending: Pair<String, Boolean>? = null
+
     init {
         initializeTTS(context)
     }
@@ -87,6 +91,10 @@ class TTSManager private constructor(context: Context) {
 
                         _isReady.value = true
                         Log.d("TTS", "TTS initialized successfully")
+                        pending?.let { (text, withBeep) ->
+                            pending = null
+                            speak(text, withBeep)
+                        }
                     }
                 }
             } else {
@@ -116,7 +124,8 @@ class TTSManager private constructor(context: Context) {
         onComplete: (() -> Unit)? = null
     ) {
         if (!_isReady.value) {
-            Log.w("TTS", "TTS not ready yet")
+            Log.w("TTS", "TTS not ready yet; will speak once it is")
+            pending = text to withBeep
             return
         }
 
@@ -152,6 +161,7 @@ class TTSManager private constructor(context: Context) {
      * Stop current speech
      */
     fun stop() {
+        pending = null
         tts?.stop()
         mediaPlayer?.let {
             if (it.isPlaying) {

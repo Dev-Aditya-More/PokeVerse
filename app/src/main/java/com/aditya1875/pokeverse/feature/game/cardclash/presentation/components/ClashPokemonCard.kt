@@ -29,11 +29,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.ImageLoader
+import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPokemon
 import com.aditya1875.pokeverse.utils.pokemonTypeColor
-import org.koin.compose.koinInject
 
 @Composable
 fun ClashPokemonCard(
@@ -43,7 +43,6 @@ fun ClashPokemonCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val imageLoader = koinInject<ImageLoader>()
     val primaryColor = pokemonTypeColor(pokemon.types.firstOrNull() ?: "normal")
     val borderColor = when {
         isLocked -> MaterialTheme.colorScheme.tertiary
@@ -66,9 +65,11 @@ fun ClashPokemonCard(
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             AsyncImage(
-                model = pokemon.spriteUrl,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(pokemon.spriteUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = pokemon.name,
-                imageLoader = imageLoader,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier.size(72.dp)
             )

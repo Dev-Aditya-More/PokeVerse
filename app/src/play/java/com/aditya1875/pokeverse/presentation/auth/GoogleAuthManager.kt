@@ -33,12 +33,30 @@ class AuthManager(
     private val _currentUser = MutableStateFlow<FirebaseUser?>(null)
     val currentUser: StateFlow<FirebaseUser?> = _currentUser.asStateFlow()
 
+    // True once Firebase has reported its settled session at least once (the listener's first call).
+    private val _sessionResolved = MutableStateFlow(false)
+    val sessionResolved: StateFlow<Boolean> = _sessionResolved.asStateFlow()
+
     init {
         _currentUser.value = auth.currentUser
         _authState.value = if (auth.currentUser != null)
             AuthState.Authenticated(auth.currentUser!!)
         else
             AuthState.Unauthenticated
+
+        // The snapshot above can be stale: Firebase may finish restoring the saved session after
+        // this object exists (slow devices, first launch after an update), or drop it later
+        // (revoked/expired refresh token). Mirror every change instead of trusting one read.
+        auth.addAuthStateListener { firebaseAuth ->
+            val user = firebaseAuth.currentUser
+            _currentUser.value = user
+            when {
+                user != null -> _authState.value = AuthState.Authenticated(user)
+                // A sign-in in progress owns Loading; don't flip it to signed-out underneath it.
+                _authState.value !is AuthState.Loading -> _authState.value = AuthState.Unauthenticated
+            }
+            _sessionResolved.value = true
+        }
     }
 
     suspend fun signInWithGoogle(activity: Activity): AuthResult {

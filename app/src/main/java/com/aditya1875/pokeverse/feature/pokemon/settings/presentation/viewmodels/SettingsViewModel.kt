@@ -133,8 +133,8 @@ class SettingsViewModel(
     // Called from MainActivity.onStop() to accumulate real usage time
     fun recordSessionMinutes(minutes: Long) {
         viewModelScope.launch {
-            val current = totalSessionMinutes.value
-            context.dataStore.edit { it[TOTAL_SESSION_MINUTES] = current + minutes }
+            // Read inside edit{} so the add is atomic and never based on a not-yet-loaded 0.
+            context.dataStore.edit { it[TOTAL_SESSION_MINUTES] = (it[TOTAL_SESSION_MINUTES] ?: 0L) + minutes }
         }
     }   // ← FIX: was missing closing brace here, causing toggleOriginalAssetsEnabled
     //   and toggleSpecialEffects to be nested INSIDE recordSessionMinutes as dead code

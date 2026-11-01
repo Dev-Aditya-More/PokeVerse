@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
+import com.aditya1875.pokeverse.feature.game.premium.LocalPremium
 import kotlinx.coroutines.delay
 import com.aditya1875.pokeverse.utils.localizedTypeName
 import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
@@ -214,16 +217,18 @@ fun PokemonDetailPage(
         }
     }
 
-    // Pokémon-game touch: the cry plays as the page opens. It is franchise audio, so only with Original Assets on;
-    // never on silent/vibrate, once per Pokémon per visit, and failures stay quiet.
-    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
+    // Pokémon-game touch: the cry plays as the page opens, once per Pokémon per visit, failures quiet.
+    // Only the Auto-play cries setting gates it. It used to also need Original Assets (off by
+    // default, so most users never heard it even with the setting showing ON) and a normal ringer;
+    // the tap-to-play button and Dex Mode never had either gate. Media volume is what governs
+    // this sound, so a muted media stream is the one case worth skipping.
     val autoPlayCries by settingsViewModel.autoPlayCries.collectAsStateWithLifecycle()
     var autoPlayedFor by rememberSaveable { mutableStateOf<String?>(null) }
-    LaunchedEffect(pokemon?.name, originalAssetsEnabled, autoPlayCries) {
+    LaunchedEffect(pokemon?.name, autoPlayCries) {
         val name = pokemon?.name ?: return@LaunchedEffect
-        if (!originalAssetsEnabled || !autoPlayCries || autoPlayedFor == name) return@LaunchedEffect
+        if (!autoPlayCries || autoPlayedFor == name) return@LaunchedEffect
         val audio = context.getSystemService(android.media.AudioManager::class.java)
-        if (audio?.ringerMode != android.media.AudioManager.RINGER_MODE_NORMAL) return@LaunchedEffect
+        if (audio != null && audio.getStreamVolume(android.media.AudioManager.STREAM_MUSIC) == 0) return@LaunchedEffect
         autoPlayedFor = name
         delay(400) // let the page settle before the sound
         playCry(silent = true)
@@ -711,6 +716,22 @@ fun PokemonDetailPage(
                 )
             }
         ) { padding ->
+
+            // Premium Living Aura sits behind everything; Scaffold stacks its body children.
+            if (LocalPremium.current && pokemon != null && !uiState.isLoading) {
+                val density = LocalDensity.current
+                val capPx = with(density) { ScrollCap.toPx() }
+                val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+                DetailAura(
+                    types = typeList,
+                    baseColor = bgColor,
+                    isShiny = isShinyEnabled,
+                    isLegendary = LegendaryPokemon.isLegendary(pokemon.id),
+                    // The header is a square the width of the list, under the top bar.
+                    focusY = padding.calculateTopPadding() + (screenWidth - adaptiveHPadding * 2) / 2,
+                    scrollPx = { listState.detailAuraScroll(capPx) }
+                )
+            }
 
             when {
                 uiState.isLoading -> {

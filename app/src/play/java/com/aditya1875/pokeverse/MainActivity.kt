@@ -75,22 +75,27 @@ import com.aditya1875.pokeverse.utils.NotificationUtils
 import com.aditya1875.pokeverse.utils.ScreenStateManager
 import androidx.compose.runtime.CompositionLocalProvider
 import com.aditya1875.pokeverse.feature.pokemon.shiny.LocalShinyDex
+import com.aditya1875.pokeverse.feature.game.premium.LocalPremium
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.messaging.FirebaseMessaging
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
     private var sessionStartMs = -1L
-    private val settingsViewModel: SettingsViewModel by inject()
+    // by viewModel(), not inject(): inject() skips the ViewModelStore, so every rotation or
+    // language change built a new SettingsViewModel whose eager DataStore collectors never stopped.
+    private val settingsViewModel: SettingsViewModel by viewModel()
 
     override fun attachBaseContext(newBase: android.content.Context) {
         super.attachBaseContext(LocaleHelper.applyLocale(newBase))
     }
 
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,11 +103,13 @@ class MainActivity : ComponentActivity() {
         val billingManager by inject<IBillingManager>()
         billingManager.startConnection()
 
-        MobileAds.initialize(this)
+        // Google's guidance: initialize off the main thread — it does disk I/O and adapter
+        // setup that otherwise lands on the cold-start critical path. Ad loads queue until ready.
+        lifecycleScope.launch(Dispatchers.IO) { MobileAds.initialize(this@MainActivity) }
 
         enableEdgeToEdge()
 
-        requestNotificationPermission()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) requestNotificationPermission()
 
         NotificationUtils.createNotificationChannel(this)
 
@@ -163,7 +170,10 @@ class MainActivity : ComponentActivity() {
                 onDismiss = { shownXpResult = null }
             ) {
                 PokeverseTheme(selectedTheme = appliedTheme) {
-                    CompositionLocalProvider(LocalShinyDex provides shinyDex) {
+                    CompositionLocalProvider(
+                        LocalShinyDex provides shinyDex,
+                        LocalPremium provides (subscriptionState is SubscriptionState.Premium)
+                    ) {
                         AppNavGraph(
                             navController,
                             context

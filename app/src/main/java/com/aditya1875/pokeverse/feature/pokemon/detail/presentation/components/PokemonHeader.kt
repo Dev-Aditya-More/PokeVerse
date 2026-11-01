@@ -50,7 +50,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.ImageLoader
 import coil.compose.AsyncImage
-import coil.decode.ImageDecoderDecoder
 import coil.decode.SvgDecoder
 import coil.request.ImageRequest
 import coil.size.Size
@@ -66,6 +65,8 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
+import org.koin.core.qualifier.named
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -96,11 +97,9 @@ fun PokemonDetailHeader(
     val context = LocalContext.current
 
     val pressScale = remember { Animatable(1f) }
-    val imageLoader = ImageLoader.Builder(context)
-        .components {
-            add(ImageDecoderDecoder.Factory())
-        }
-        .build()
+    // Shared GIF-capable loader (Showdown sprites). This used to be built inline with no
+    // remember{}, so every recomposition made a new loader with an empty memory cache.
+    val imageLoader = koinInject<ImageLoader>(named("gif"))
 
     val animatedAlpha by animateFloatAsState(
         targetValue = if (showLoader || !spriteVisible) 0f else 1f,

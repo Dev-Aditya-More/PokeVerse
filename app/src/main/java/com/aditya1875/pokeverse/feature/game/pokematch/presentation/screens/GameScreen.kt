@@ -50,7 +50,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.R
-import coil.ImageLoader
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.RewardedAdState
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
@@ -252,10 +251,6 @@ fun GameScreen(
                                             userScrollEnabled = true
                                         ) {
                                             itemsIndexed(playing.cards) { index, card ->
-
-                                                val context = LocalContext.current
-                                                val imageLoader : ImageLoader = koinInject()
-
                                                 PokemonCard(
                                                     card = card,
                                                     onClick = {

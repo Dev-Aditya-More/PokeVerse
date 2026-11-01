@@ -1255,7 +1255,7 @@
     <string name="wildcatch_tier_epic">Epic</string>
     <string name="wildcatch_new_catch">नया catch!</string>
     <string name="settings_auto_cry">Cry अपने आप बजाओ</string>
-    <string name="settings_auto_cry_desc">Pokémon का page खोलते ही उसकी cry बजाओ। इसके लिए Original Visuals ऑन होना चाहिए।</string>
+    <string name="settings_auto_cry_desc">Pokémon का page खोलते ही उसकी cry बजाओ।</string>
     <string name="dex_filter_all">सब</string>
     <string name="dex_empty_seen">यहाँ अभी कुछ नहीं देखा। रजिस्टर करने के लिए कोई Pokémon खोलो।</string>
     <string name="dex_empty_caught">यहाँ अभी कोई catch नहीं। Pokémon पकड़ने के लिए Wild Catch खेलो!</string>
