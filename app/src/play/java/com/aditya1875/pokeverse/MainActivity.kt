@@ -33,6 +33,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.dialog
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.aditya1875.pokeverse.feature.analysis.presentation.screens.TeamAnalysisScreen
 import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.feature.core.navigation.components.WithBottomBar
@@ -147,9 +148,14 @@ class MainActivity : ComponentActivity() {
                 AppTheme.DEXVERSE
             } else currentTheme
 
-            // Leaderboard flair follows the subscription (and re-publishes after a sign-in).
+            // Leaderboard flair follows the subscription (and re-publishes after a sign-in), but
+            // only once billing has switched to the signed-in account: never publish the previous
+            // account's premium onto a newly signed-in one.
             val authState by profileViewModel.authState.collectAsState()
-            LaunchedEffect(subscriptionState, authState) {
+            val premiumOwner by billingManager.premiumOwner.collectAsState()
+            val signedInUid = (authState as? AuthState.Authenticated)?.user?.uid
+            LaunchedEffect(subscriptionState, signedInUid, premiumOwner) {
+                if (signedInUid == null || premiumOwner != signedInUid) return@LaunchedEffect
                 when (subscriptionState) {
                     is SubscriptionState.Premium -> profileViewModel.publishPremiumStatus(true)
                     SubscriptionState.Free -> profileViewModel.publishPremiumStatus(false)

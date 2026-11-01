@@ -25,6 +25,9 @@ import com.revenuecat.purchases.PurchasesErrorCode
 import com.revenuecat.purchases.PurchasesException
 import com.revenuecat.purchases.PurchasesTransactionException
 import com.revenuecat.purchases.awaitCustomerInfo
+import com.revenuecat.purchases.awaitLogIn
+import com.revenuecat.purchases.awaitLogOut
+import com.google.firebase.auth.FirebaseAuth
 import com.revenuecat.purchases.awaitOfferings
 import com.revenuecat.purchases.awaitPurchase
 import com.revenuecat.purchases.awaitRestore
@@ -39,10 +42,14 @@ import kotlinx.coroutines.sync.withLock
 /**
  * RevenueCat-backed billing.
  *
- * Identity: RevenueCat is used with its **anonymous** App User ID — there is deliberately no
- * `Purchases.logIn(firebaseUid)`. Premium therefore belongs to the Google Play account that paid
- * (and to this install until restored elsewhere), not to whichever in-app profile is signed in.
- * Buying needs no sign-in, and switching/signing out of the app profile never changes premium.
+ * Identity: premium belongs to the **Dexverse account**, not the device. While someone is signed
+ * in, RevenueCat's App User ID is their Firebase uid; signed out, it's an anonymous ID.
+ * - Buying as a guest still works; `logIn` merges that anonymous purchase into the account on
+ *   its first sign-in. The same merge moves existing (pre-account-tied) buyers onto the first
+ *   account they're signed into after updating.
+ * - A second Dexverse account on the same phone (same Google Play account) does NOT get Pro.
+ *   That needs the dashboard's Transfer Behavior set to "Keep with original App User ID";
+ *   with the default ("Transfer"), a restore would move Pro to whoever restored it.
  *
  * Entitlement: everything premium is gated on the single [ENTITLEMENT_ID] entitlement, so
  * monthly / yearly / lifetime (and legacy `pokeverse_premium_*` products, if attached to that
@@ -85,8 +92,12 @@ class BillingManager(
     private val _purchaseInProgress = MutableStateFlow(false)
     override val purchaseInProgress: StateFlow<Boolean> = _purchaseInProgress
 
+    /** Firebase uid the current [subscriptionState] belongs to (null = guest). */
+    private val _premiumOwner = MutableStateFlow(FirebaseAuth.getInstance().currentUser?.uid)
+    override val premiumOwner: StateFlow<String?> = _premiumOwner
+    private val identityLock = Mutex()
+
     private var offerings: Offerings? = null
-    private val refreshLock = Mutex()
 
     init {
         configureIfNeeded()
@@ -96,13 +107,19 @@ class BillingManager(
         Purchases.sharedInstance.updatedCustomerInfoListener =
             UpdatedCustomerInfoListener { info -> coroutineScope.launch { applyCustomerInfo(info) } }
 
-        // Show the last known state immediately (no Free flash / no lockout while offline);
-        // RevenueCat's own customer-info cache and network refresh then take over.
+        // Show the last known state immediately (no Free flash / no lockout while offline),
+        // but only if it was cached for the account signed in right now.
         coroutineScope.launch {
-            val cached = premiumRepository.cachedPlan()
+            val cached = premiumRepository.cachedPlan(_premiumOwner.value.orEmpty())
             if (cached != null && _subscriptionState.value is SubscriptionState.Loading) {
                 _subscriptionState.value = SubscriptionState.Premium(cached)
             }
+        }
+
+        // Follow sign-in / sign-out / account switches. Fires once right away with the current user.
+        FirebaseAuth.getInstance().addAuthStateListener { auth ->
+            val uid = auth.currentUser?.uid
+            coroutineScope.launch { syncIdentity(uid) }
         }
 
         // Re-verify every time the app returns to the foreground so an expired/cancelled/refunded
@@ -118,10 +135,38 @@ class BillingManager(
         if (Purchases.isConfigured) return
         Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.WARN
         Purchases.configure(
-            // No appUserID → anonymous ID. See class doc.
+            // No explicit appUserID on purpose: the SDK resumes its last identity (the uid after
+            // the first logIn). Configuring straight AS the uid would skip logIn's merge step, and
+            // existing buyers' anonymous purchases would be stranded on the old anonymous ID.
             PurchasesConfiguration.Builder(context.applicationContext, BuildConfig.REVENUECAT_API_KEY)
                 .build()
         )
+    }
+
+    /**
+     * Points RevenueCat at [uid] (or back to anonymous) and reloads that account's entitlement.
+     * Until it lands, state is Loading, so nothing (theme, flair, gates) acts on the previous
+     * account's premium.
+     */
+    private suspend fun syncIdentity(uid: String?) = identityLock.withLock {
+        val purchases = Purchases.sharedInstance
+        val current = if (purchases.isAnonymous) null else purchases.appUserID
+        if (current == uid) {
+            _premiumOwner.value = uid
+            return@withLock
+        }
+        _subscriptionState.value = SubscriptionState.Loading
+        try {
+            val info = if (uid != null) purchases.awaitLogIn(uid).customerInfo else purchases.awaitLogOut()
+            _premiumOwner.value = uid
+            applyCustomerInfo(info)
+        } catch (e: PurchasesException) {
+            Log.e(TAG, "Switching billing identity failed: ${e.error}")
+            _premiumOwner.value = uid
+            // Fail closed: never carry the previous account's premium over to this one.
+            _subscriptionState.value = premiumRepository.cachedPlan(uid.orEmpty())
+                ?.let { SubscriptionState.Premium(it) } ?: SubscriptionState.Free
+        }
     }
 
     // ─── IBillingManager ─────────────────────────────────────────────────────
@@ -219,7 +264,9 @@ class BillingManager(
 
     // ─── Customer info / entitlement ─────────────────────────────────────────
 
-    private suspend fun refreshCustomerInfo() = refreshLock.withLock {
+    // Same lock as identity switches: a refresh started for the previous account can't land
+    // after a switch and hand its premium to the new one.
+    private suspend fun refreshCustomerInfo() = identityLock.withLock {
         try {
             applyCustomerInfo(
                 // FETCH_CURRENT hits the network; falls back to the SDK's cache when offline
@@ -240,7 +287,7 @@ class BillingManager(
         if (entitlement?.isActive == true) {
             val plan = entitlement.toPlan()
             _subscriptionState.value = SubscriptionState.Premium(plan)
-            premiumRepository.cachePremium(plan)
+            premiumRepository.cachePremium(plan, _premiumOwner.value.orEmpty())
         } else {
             _subscriptionState.value = SubscriptionState.Free
             premiumRepository.clearPremium()
@@ -308,6 +355,9 @@ class BillingManager(
         PurchasesErrorCode.StoreProblemError -> "Google Play had a problem. Please try again later."
         PurchasesErrorCode.PurchaseNotAllowedError -> "Purchases aren't allowed on this device."
         PurchasesErrorCode.PurchaseInvalidError -> "The purchase couldn't be completed."
+        // Transfer Behavior "Keep with original": this Play account's Pro is someone else's.
+        PurchasesErrorCode.ReceiptAlreadyInUseError ->
+            "This Google Play account's Pro belongs to another Dexverse account. Sign in with that account to use it."
         else -> message
     }
 }

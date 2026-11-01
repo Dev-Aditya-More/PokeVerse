@@ -7,6 +7,9 @@ interface IBillingManager {
 
     val subscriptionState: StateFlow<SubscriptionState>
 
+    /** Firebase uid that [subscriptionState] belongs to; null while signed out (guest). */
+    val premiumOwner: StateFlow<String?>
+
     /**
      * Formatted prices for the UI
      */
