@@ -9,7 +9,7 @@ import com.aditya1875.pokeverse.data.review.ReviewManager
 import com.aditya1875.pokeverse.feature.game.core.data.ads.IRewardedAdManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
-import com.aditya1875.pokeverse.feature.pokemon.home.domain.trivia.DailyTriviaManager
+import com.aditya1875.pokeverse.feature.dexdaily.data.DexDailyRepository
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.presentation.auth.AuthManager
 import com.aditya1875.pokeverse.utils.IReviewManager
@@ -45,9 +45,7 @@ val billingModule = module {
         ReviewManager(androidContext())
     }
 
-    single {
-        DailyTriviaManager(get(), get())
-    }
+    single { DexDailyRepository(androidContext(), get()) }
 
     single { Gson() }
 

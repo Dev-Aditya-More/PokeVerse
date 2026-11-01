@@ -1295,4 +1295,32 @@
     <string name="leaderboard_pro_sheet_cta">Pro प्लान देखें</string>
     <string name="leaderboard_pro_sheet_later">बाद में</string>
     <string name="leaderboard_pro_sheet_member_cta">बढ़िया</string>
+    <!-- Dex Daily -->
+    <string name="dex_daily_label">DEX DAILY #%1$d</string>
+    <string name="dex_daily_title_new">आज कौन छिपा है?</string>
+    <string name="dex_daily_its">यह %1$s है!</string>
+    <string name="dex_daily_streak">%1$d दिन की स्ट्रीक</string>
+    <string name="dex_daily_next_in">अगला %1$s में</string>
+    <string name="dex_daily_play">खेलें</string>
+    <string name="dex_daily_continue">जारी रखें</string>
+    <string name="dex_daily_share">शेयर करें</string>
+    <string name="dex_daily_archive">आर्काइव</string>
+    <string name="dex_daily_clue_letter">%1$s से शुरू</string>
+    <string name="dex_daily_archive_note">आर्काइव पहेलियों से XP नहीं मिलता और स्ट्रीक में नहीं गिनी जातीं।</string>
+    <string name="dex_daily_share_footer">क्या आप आज की परछाईं पहचान सकते हैं?</string>
+    <string name="dex_daily_share_text">Dex Daily #%1$d · %2$s\nक्या आप आज की परछाईं पहचान सकते हैं?\n%3$s</string>
+    <string name="dex_daily_share_chooser">अपना Dex Daily शेयर करें</string>
+    <string name="dex_daily_archive_title">Dex Daily आर्काइव</string>
+    <string name="dex_daily_archive_stats">%2$d में से %1$d हल किए</string>
+    <string name="dex_daily_archive_pro_title">हर पुरानी पहेली खेलें</string>
+    <string name="dex_daily_archive_pro_body">Pro पूरा Dex Daily आर्काइव खोलता है।</string>
+    <string name="dex_daily_got_it">सही पहचाना!</string>
+    <string name="dex_daily_missed">चूक गए</string>
+    <string name="dex_daily_one_guess">सिर्फ़ एक मौका। सोच-समझकर चुनें।</string>
+    <string name="dex_daily_show_hints">हिंट देखें</string>
+    <string name="dex_daily_hints_cost">हिंट: 30 की जगह 15 XP</string>
+    <string name="dex_daily_hints_locked">हिंट</string>
+    <string name="dex_daily_no_hints">बिना हिंट</string>
+    <string name="dex_daily_with_hints">हिंट के साथ</string>
+    <string name="xp_dex_daily">Dex Daily</string>
 </resources>

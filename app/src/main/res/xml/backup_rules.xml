@@ -8,7 +8,7 @@
     <include domain="file" path="datastore/settings.preferences_pb" />
     <include domain="file" path="datastore/theme_preferences.preferences_pb" />
     <include domain="file" path="datastore/pokedex_progress.preferences_pb" />
-    <include domain="file" path="datastore/daily_trivia.preferences_pb" />
+    <include domain="file" path="datastore/dex_daily.preferences_pb" />
     <include domain="database" path="pokeverseTeam_db" />
     <include domain="database" path="pokeverseTeam_db-wal" />
     <include domain="database" path="pokeverseTeam_db-shm" />

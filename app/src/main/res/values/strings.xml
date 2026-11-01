@@ -1308,4 +1308,32 @@
     <string name="leaderboard_pro_sheet_cta">See Pro plans</string>
     <string name="leaderboard_pro_sheet_later">Maybe later</string>
     <string name="leaderboard_pro_sheet_member_cta">Awesome</string>
+    <!-- Dex Daily -->
+    <string name="dex_daily_label">DEX DAILY #%1$d</string>
+    <string name="dex_daily_title_new">Who\'s hiding today?</string>
+    <string name="dex_daily_its">It\'s %1$s!</string>
+    <string name="dex_daily_streak">%1$d-day streak</string>
+    <string name="dex_daily_next_in">Next in %1$s</string>
+    <string name="dex_daily_play">Play</string>
+    <string name="dex_daily_continue">Continue</string>
+    <string name="dex_daily_share">Share</string>
+    <string name="dex_daily_archive">Archive</string>
+    <string name="dex_daily_clue_letter">Starts with %1$s</string>
+    <string name="dex_daily_archive_note">Archive puzzles don\'t earn XP or count toward your streak.</string>
+    <string name="dex_daily_share_footer">Can you name today\'s shadow?</string>
+    <string name="dex_daily_share_text">Dex Daily #%1$d · %2$s\nCan you name today\'s shadow?\n%3$s</string>
+    <string name="dex_daily_share_chooser">Share your Dex Daily</string>
+    <string name="dex_daily_archive_title">Dex Daily archive</string>
+    <string name="dex_daily_archive_stats">Solved %1$d of %2$d played</string>
+    <string name="dex_daily_archive_pro_title">Play every past puzzle</string>
+    <string name="dex_daily_archive_pro_body">Pro unlocks the full Dex Daily archive.</string>
+    <string name="dex_daily_got_it">Got it!</string>
+    <string name="dex_daily_missed">Missed it</string>
+    <string name="dex_daily_one_guess">One guess. Make it count.</string>
+    <string name="dex_daily_show_hints">Show hints</string>
+    <string name="dex_daily_hints_cost">Hints: 15 XP instead of 30</string>
+    <string name="dex_daily_hints_locked">Hints</string>
+    <string name="dex_daily_no_hints">No hints</string>
+    <string name="dex_daily_with_hints">With hints</string>
+    <string name="xp_dex_daily">Dex Daily</string>
 </resources>

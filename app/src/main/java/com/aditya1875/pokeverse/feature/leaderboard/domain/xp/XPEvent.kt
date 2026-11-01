@@ -53,11 +53,13 @@ sealed class XPEvent {
     data class ReferralReward(val friends: Int) : XPEvent()  // friends joined with your code
     object FeedbackThanks : XPEvent()
     object DailyFact : XPEvent()                             // scratched open today's fact
+    /** Finished today's Dex Daily; [xp] comes from DexDailyRules (fewer tries pay more). Once a day via its store. */
+    data class DexDaily(val xp: Int) : XPEvent()
 
     /** Once-a-day rewards for showing up — paid in full, outside [XPEconomy]'s tiers and rested pool. */
     val isRetentionBonus: Boolean
         get() = this is DailyLogin || this is FirstGameOfDay || this is FirstExplorationOfDay || this is EasterEggClaim ||
-            this is ReferralWelcome || this is ReferralReward || this is FeedbackThanks || this is DailyFact
+            this is ReferralWelcome || this is ReferralReward || this is FeedbackThanks || this is DailyFact || this is DexDaily
 }
 
 /**

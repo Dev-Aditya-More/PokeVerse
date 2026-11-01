@@ -85,6 +85,8 @@ sealed class Route(val route: String) {
 
     object DexMode : Route("dex_mode")
 
+    object DexDailyArchive : Route("dex_daily_archive")
+
     object Details : Route("pokemon_detail/{pokemonName}") {
         fun createDetails(pokemonName: String): String = "pokemon_detail/$pokemonName"
     }

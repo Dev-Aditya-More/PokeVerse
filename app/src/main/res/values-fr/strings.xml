@@ -1295,4 +1295,32 @@
     <string name="leaderboard_pro_sheet_cta">Voir les offres Pro</string>
     <string name="leaderboard_pro_sheet_later">Plus tard</string>
     <string name="leaderboard_pro_sheet_member_cta">Génial</string>
+    <!-- Dex Daily -->
+    <string name="dex_daily_label">DEX DAILY N°%1$d</string>
+    <string name="dex_daily_title_new">Qui se cache aujourd\'hui ?</string>
+    <string name="dex_daily_its">C\'est %1$s !</string>
+    <string name="dex_daily_streak">Série de %1$d jours</string>
+    <string name="dex_daily_next_in">Suivant dans %1$s</string>
+    <string name="dex_daily_play">Jouer</string>
+    <string name="dex_daily_continue">Continuer</string>
+    <string name="dex_daily_share">Partager</string>
+    <string name="dex_daily_archive">Archives</string>
+    <string name="dex_daily_clue_letter">Commence par %1$s</string>
+    <string name="dex_daily_archive_note">Les énigmes des archives ne rapportent pas d\'XP et ne comptent pas pour ta série.</string>
+    <string name="dex_daily_share_footer">Sauras-tu nommer l\'ombre du jour ?</string>
+    <string name="dex_daily_share_text">Dex Daily N°%1$d · %2$s\nSauras-tu nommer l\'ombre du jour ?\n%3$s</string>
+    <string name="dex_daily_share_chooser">Partager ton Dex Daily</string>
+    <string name="dex_daily_archive_title">Archives Dex Daily</string>
+    <string name="dex_daily_archive_stats">%1$d trouvés sur %2$d joués</string>
+    <string name="dex_daily_archive_pro_title">Joue toutes les énigmes passées</string>
+    <string name="dex_daily_archive_pro_body">Pro débloque toutes les archives Dex Daily.</string>
+    <string name="dex_daily_got_it">Trouvé !</string>
+    <string name="dex_daily_missed">Raté</string>
+    <string name="dex_daily_one_guess">Une seule réponse. Fais-la compter.</string>
+    <string name="dex_daily_show_hints">Voir les indices</string>
+    <string name="dex_daily_hints_cost">Indices : 15 XP au lieu de 30</string>
+    <string name="dex_daily_hints_locked">Indices</string>
+    <string name="dex_daily_no_hints">Sans indices</string>
+    <string name="dex_daily_with_hints">Avec indices</string>
+    <string name="xp_dex_daily">Dex Daily</string>
 </resources>

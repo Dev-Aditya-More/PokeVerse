@@ -108,6 +108,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.Lifecycle
 import com.aditya1875.pokeverse.feature.pokemon.dex.DexProgressStrip
 import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexViewModel
 import com.aditya1875.pokeverse.feature.pokemon.dex.pokemonIdFromUrl
@@ -143,18 +146,18 @@ import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components.CustomProgressIndicator
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DailyHoppingPokemon
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DailyTriviaFab
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DailyTriviaSheet
+import com.aditya1875.pokeverse.feature.dexdaily.presentation.DexDailyCard
+import com.aditya1875.pokeverse.feature.dexdaily.presentation.DexDailySheet
+import com.aditya1875.pokeverse.feature.dexdaily.presentation.DexDailyViewModel
+import com.aditya1875.pokeverse.feature.game.premium.LocalPremium
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.FilterBar
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.HomeContentMode
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.HomePopupOrchestrator
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.ImprovedPokemonCard
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.SuggestionRow
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.DailyTriviaViewModel
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.ScreenState
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.SearchViewModel
-import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.TriviaUiState
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesViewModel
@@ -192,7 +195,7 @@ fun SharedTransitionScope.HomeScreen(
     searchViewModel: SearchViewModel = koinViewModel(),
     billingViewModel: BillingViewModel = koinViewModel(),
     profileViewModel: ProfileViewModel = koinViewModel(),
-    triviaViewModel: DailyTriviaViewModel = koinViewModel(),
+    dexDailyViewModel: DexDailyViewModel = koinViewModel(),
     referralViewModel: ReferralViewModel = koinViewModel(),
     feedbackViewModel: FeedbackViewModel = koinViewModel(),
     itemViewModel: ItemViewModel = koinViewModel(),
@@ -211,9 +214,12 @@ fun SharedTransitionScope.HomeScreen(
     val screenState by viewModel.screenState.collectAsStateWithLifecycle()
     val searchUiState by searchViewModel.searchUiState.collectAsStateWithLifecycle()
 
-    val triviaState by triviaViewModel.state.collectAsStateWithLifecycle()
-    val showBadge by triviaViewModel.showBadge.collectAsStateWithLifecycle()
-    var showTriviaSheet by remember { mutableStateOf(false) }
+    val dexDailyOpen by dexDailyViewModel.openDate.collectAsStateWithLifecycle()
+    // After midnight (app left open or resumed), the card moves on to the new puzzle.
+    val dexLifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(dexLifecycleOwner) {
+        dexLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) { dexDailyViewModel.refreshDay() }
+    }
 
     val isTypeFiltering by viewModel.isTypeFiltering.collectAsStateWithLifecycle()
 
@@ -360,7 +366,7 @@ fun SharedTransitionScope.HomeScreen(
     }
 
     LaunchedEffect(Unit) {
-        triviaViewModel.xpResult.collect { pendingXp = it }
+        dexDailyViewModel.xp.collect { pendingXp = it }
     }
 
     LaunchedEffect(Unit) {
@@ -627,30 +633,8 @@ fun SharedTransitionScope.HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    if (!profile.isGuest) {
-                        DailyTriviaFab(
-                            showBadge = showBadge,
-                            onClick = {
-                                val alreadyDone =
-                                    triviaState is TriviaUiState.Ready &&
-                                            (triviaState as TriviaUiState.Ready).trivia.isAnswered
-
-                                if (!alreadyDone) {
-                                    soundManager.play(SoundManager.Sound.WHOS_THAT_POKEMON)
-                                }
-
-                                coroutineScope.launch {
-                                    if (!alreadyDone) delay(400)
-
-                                    showTriviaSheet = true
-                                    triviaViewModel.loadTrivia()
-                                }
-                            },
-                            modifier = Modifier.size(52.dp)
-                        )
-                    } else {
-                        Spacer(Modifier.size(52.dp))
-                    }
+                    // Dex Daily moved to a card at the top of the list; keeps the Clash button in place.
+                    Spacer(Modifier.size(52.dp))
 
                     Box(contentAlignment = Alignment.Center) {
                         // Sonar ring 1
@@ -704,17 +688,8 @@ fun SharedTransitionScope.HomeScreen(
 
             val focusManager = LocalFocusManager.current
 
-            if (showTriviaSheet && !profile.isGuest) {
-                DailyTriviaSheet(
-                    state = triviaState,
-                    onDismiss = {
-                        showTriviaSheet = false
-                        triviaViewModel.dismiss()
-                    },
-                    onAnswer = { correct ->
-                        triviaViewModel.submitTriviaAnswer(correct)
-                    }
-                )
+            dexDailyOpen?.let { date ->
+                DexDailySheet(dexDailyViewModel, date, onDismiss = { dexDailyViewModel.close() })
             }
 
             badgeDetail?.let { badge ->
@@ -1011,6 +986,18 @@ fun SharedTransitionScope.HomeScreen(
                                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                                             modifier = Modifier.fillMaxSize()
                                         ) {
+
+                                            item(key = "dex_daily", span = { GridItemSpan(maxLineSpan) }) {
+                                                DexDailyCard(
+                                                    viewModel = dexDailyViewModel,
+                                                    isPremium = LocalPremium.current,
+                                                    onPlay = { firstOpen ->
+                                                        if (firstOpen) soundManager.play(SoundManager.Sound.WHOS_THAT_POKEMON)
+                                                        dexDailyViewModel.open(dexDailyViewModel.today.value)
+                                                    },
+                                                    onOpenArchive = { navController.navigate(Route.DexDailyArchive.route) }
+                                                )
+                                            }
 
                                             item(key = "dex_progress", span = { GridItemSpan(maxLineSpan) }) {
                                                 DexProgressStrip(

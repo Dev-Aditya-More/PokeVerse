@@ -1309,4 +1309,32 @@
     <string name="leaderboard_pro_sheet_cta">Ver planos Pro</string>
     <string name="leaderboard_pro_sheet_later">Agora não</string>
     <string name="leaderboard_pro_sheet_member_cta">Demais</string>
+    <!-- Dex Daily -->
+    <string name="dex_daily_label">DEX DAILY #%1$d</string>
+    <string name="dex_daily_title_new">Quem está escondido hoje?</string>
+    <string name="dex_daily_its">É %1$s!</string>
+    <string name="dex_daily_streak">Sequência de %1$d dias</string>
+    <string name="dex_daily_next_in">Próximo em %1$s</string>
+    <string name="dex_daily_play">Jogar</string>
+    <string name="dex_daily_continue">Continuar</string>
+    <string name="dex_daily_share">Compartilhar</string>
+    <string name="dex_daily_archive">Arquivo</string>
+    <string name="dex_daily_clue_letter">Começa com %1$s</string>
+    <string name="dex_daily_archive_note">Desafios do arquivo não dão XP nem contam para sua sequência.</string>
+    <string name="dex_daily_share_footer">Consegue dizer quem é a sombra de hoje?</string>
+    <string name="dex_daily_share_text">Dex Daily #%1$d · %2$s\nConsegue dizer quem é a sombra de hoje?\n%3$s</string>
+    <string name="dex_daily_share_chooser">Compartilhe seu Dex Daily</string>
+    <string name="dex_daily_archive_title">Arquivo do Dex Daily</string>
+    <string name="dex_daily_archive_stats">%1$d resolvidos de %2$d jogados</string>
+    <string name="dex_daily_archive_pro_title">Jogue todos os desafios anteriores</string>
+    <string name="dex_daily_archive_pro_body">O Pro libera todo o arquivo do Dex Daily.</string>
+    <string name="dex_daily_got_it">Acertou!</string>
+    <string name="dex_daily_missed">Errou</string>
+    <string name="dex_daily_one_guess">Só um palpite. Faça valer.</string>
+    <string name="dex_daily_show_hints">Ver dicas</string>
+    <string name="dex_daily_hints_cost">Dicas: 15 XP em vez de 30</string>
+    <string name="dex_daily_hints_locked">Dicas</string>
+    <string name="dex_daily_no_hints">Sem dicas</string>
+    <string name="dex_daily_with_hints">Com dicas</string>
+    <string name="xp_dex_daily">Dex Daily</string>
 </resources>

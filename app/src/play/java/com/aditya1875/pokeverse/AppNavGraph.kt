@@ -84,6 +84,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import com.aditya1875.pokeverse.feature.dexmode.presentation.DexModeScreen
+import com.aditya1875.pokeverse.feature.dexdaily.presentation.DexDailyArchiveScreen
 
 @RequiresApi(Build.VERSION_CODES.TIRAMISU)
 @Composable
@@ -569,6 +570,13 @@ fun AppNavGraph(
 
             composable(Route.DexMode.route) {
                 DexModeScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
+            composable(Route.DexDailyArchive.route) {
+                DexDailyArchiveScreen(
+                    viewModel = koinViewModel(),
                     onBack = { navController.popBackStack() }
                 )
             }
