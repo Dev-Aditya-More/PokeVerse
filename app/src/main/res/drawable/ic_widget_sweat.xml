@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Panicking mood: two sweat drops. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp" android:viewportWidth="24" android:viewportHeight="24">
+    <path android:fillColor="#FF7EC8FF" android:pathData="M9,2 C9,2 4,8.5 4,12 a5,5 0 0,0 10,0 C14,8.5 9,2 9,2 Z" />
+    <path android:fillColor="#CCFFFFFF" android:pathData="M7,10.5 a1.6,2.4 0 1,0 0.01,0 Z" />
+    <path android:fillColor="#FFA8DCFF" android:pathData="M18,12 C18,12 15,16 15,18 a3,3 0 0,0 6,0 C21,16 18,12 18,12 Z" />
+</vector>

@@ -44,26 +44,36 @@ import androidx.glance.unit.ColorProvider
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
+import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
+import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.context.GlobalContext
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 /** Everything the widget shows, computed once per update. */
 data class StreakSnapshot(
     val status: StreakStatus,
-    val restedXp: Int
+    val restedXp: Int,
+    val week: List<WeekDay> = emptyList(),
+    /** Pro look: gold rim, gold flame and a PRO pill. */
+    val isPremium: Boolean = false
 ) {
     val mood: PikachuMood get() = status.mood()
     val days: Int get() = status.days()
     val look: PikachuLook get() = PikachuLook.forStreak(days)
 
     companion object {
-        fun from(profile: UserProfile, now: Calendar) = StreakSnapshot(
+        fun from(profile: UserProfile, now: Calendar, isPremium: Boolean = false) = StreakSnapshot(
             status = StreakStatus.from(profile.lastDailyXpDate, profile.dailyStreak, now),
-            restedXp = profile.restedXp
+            restedXp = profile.restedXp,
+            week = WeekStrip.build(profile.lastDailyXpDate, profile.dailyStreak, now),
+            isPremium = isPremium
         )
 
-        val Empty = StreakSnapshot(StreakStatus.NotStarted, restedXp = 0)
+        val Empty = StreakSnapshot(StreakStatus.NotStarted, restedXp = 0, week = WeekStrip.build("", 0, Calendar.getInstance()))
     }
 }
 
@@ -82,11 +92,23 @@ class StreakWidget : GlanceAppWidget() {
         // A widget must never crash the launcher: any read failure renders the sleeping state.
         val snapshot = runCatching {
             val profile = GlobalContext.get().get<UserProfileRepository>().profileFlow.first()
-            StreakSnapshot.from(profile, Calendar.getInstance())
+            StreakSnapshot.from(profile, Calendar.getInstance(), isPremium = isPremium())
         }.getOrDefault(StreakSnapshot.Empty)
 
         provideContent { StreakWidgetContent(snapshot) }
     }
+
+    /**
+     * Pro status for the signed-in account. A widget update can start the app process cold, so
+     * give billing a moment to settle (its per-account cache usually answers instantly); if it
+     * doesn't, show the standard look rather than guessing.
+     */
+    private suspend fun isPremium(): Boolean = runCatching {
+        val billing = GlobalContext.get().get<IBillingManager>()
+        withTimeoutOrNull(3_000) {
+            billing.subscriptionState.first { it !is SubscriptionState.Loading }
+        } is SubscriptionState.Premium
+    }.getOrDefault(false)
 
 }
 
@@ -105,6 +127,7 @@ private object WidgetColors {
     val Sleep = Color(0xFF9CC4FF)
     val BubbleText = Color(0xFF1F1A2E)
     val Silhouette = Color(0xFF2A2438)
+    val ProInk = Color(0xFF3E2A00)
 }
 
 private fun color(c: Color) = ColorProvider(c)
@@ -119,12 +142,13 @@ private fun PikachuMood.background(): Int = when (this) {
     PikachuMood.Sleeping -> R.drawable.widget_bg_sleep
 }
 
-/** The little effect floating by Pikachu's head. */
-private fun PikachuMood.effect(): String = when (this) {
-    PikachuMood.Happy -> "✨"
-    PikachuMood.Waiting -> "❔"
-    PikachuMood.Panicking -> "💦"
-    PikachuMood.Sleeping -> "💤"
+/** The little effect floating by Pikachu's head (vector art, no emoji). */
+@DrawableRes
+private fun PikachuMood.effect(): Int = when (this) {
+    PikachuMood.Happy -> R.drawable.ic_widget_sparkle
+    PikachuMood.Waiting -> R.drawable.ic_widget_question
+    PikachuMood.Panicking -> R.drawable.ic_widget_sweat
+    PikachuMood.Sleeping -> R.drawable.ic_widget_zzz
 }
 
 private fun PikachuMood.accent(): Color = when (this) {
@@ -179,11 +203,29 @@ private sealed interface WidgetLayout {
     val scale: Float
     val artSize: Dp
 
-    /** Narrow (e.g. 2×2, 2×3): stacked. */
-    data class Compact(override val scale: Float, override val artSize: Dp) : WidgetLayout
+    /**
+     * Narrow (e.g. 2×2, 2×3): stacked. The week strip only joins when Pikachu still keeps a
+     * decent size, and its circles are sized from the real width so all seven fit.
+     */
+    data class Compact(
+        override val scale: Float,
+        override val artSize: Dp,
+        val showWeek: Boolean,
+        val weekDot: Dp,
+        val weekGap: Dp
+    ) : WidgetLayout
 
-    /** Short and wide (e.g. 4×1, 4×2): Pikachu beside the details. [slim] = count + status only. */
-    data class Wide(override val scale: Float, override val artSize: Dp, val slim: Boolean) : WidgetLayout
+    /**
+     * Short and wide (e.g. 4×1, 4×2): Pikachu beside the details. [slim] = count + status only.
+     * Lower-priority lines drop first when it's short, so nothing gets clipped mid-line.
+     */
+    data class Wide(
+        override val scale: Float,
+        override val artSize: Dp,
+        val slim: Boolean,
+        val showNext: Boolean,
+        val showRested: Boolean
+    ) : WidgetLayout
 
     /** Big (e.g. 4×3, 4×4): hero Pikachu plus the outfit collection. */
     data class Large(override val scale: Float, override val artSize: Dp, val thumbSize: Dp) : WidgetLayout
@@ -193,27 +235,49 @@ private sealed interface WidgetLayout {
             val w = size.width.value
             val h = size.height.value
             // Art gets whatever is left after the text it shares the space with (heights in dp,
-            // pre-scale: bubble ≈ 22, count row ≈ 30, details block ≈ 115) plus 24 dp of padding.
+            // pre-scale: bubble ≈ 22, count row ≈ 30, week strip ≈ 34, details block ≈ 150)
+            // plus 24 dp of padding.
             return when {
                 w < 200f -> {
                     val scale = minOf(w / 130f, h / 140f).coerceIn(0.85f, 1.45f)
-                    Compact(scale, artSize = minOf(w - 24f, h - 24f - scale * (22f + 30f)).coerceIn(36f, 180f).dp)
+                    val padding = 24f * scale
+                    // Pikachu comes first: the strip only joins when the art keeps >= 80 dp.
+                    val artWithoutWeek = h - padding - scale * (22f + 30f)
+                    val showWeek = artWithoutWeek - scale * 34f >= 80f
+                    val slot = (w - padding) / 7f
+                    val dot = minOf(13f * scale, slot * 0.74f)
+                    Compact(
+                        scale,
+                        artSize = minOf(w - padding, artWithoutWeek - if (showWeek) scale * 34f else 0f).coerceIn(36f, 180f).dp,
+                        showWeek = showWeek,
+                        weekDot = dot.dp,
+                        weekGap = (slot - dot).coerceAtLeast(2f).dp
+                    )
                 }
                 h < 260f -> {
                     // Under ~130 dp tall (e.g. 4×1) only the count + status fit, and Pikachu loses the bubble.
                     val slim = h < 130f
-                    val detailsHeight = if (slim) 54f else 115f
+                    // Measured on device: count + week + pill ≈ 115 dp; next outfit +22; rested +20.
+                    val showNext = !slim && h >= 170f
+                    val showRested = !slim && h >= 205f
+                    val detailsHeight = if (slim) 54f else 115f + (if (showNext) 22f else 0f) + (if (showRested) 20f else 0f)
                     val scale = minOf(w / 260f, (h - 24f) / detailsHeight).coerceIn(0.7f, 1.4f)
                     val bubble = if (slim) 0f else scale * 22f
                     // Capped by width too, so the details column keeps room for its text.
-                    Wide(scale, artSize = minOf(h - 24f - bubble, w * 0.36f).coerceIn(40f, 150f).dp, slim = slim)
+                    Wide(
+                        scale,
+                        artSize = minOf(h - 24f - bubble, w * 0.36f).coerceIn(40f, 150f).dp,
+                        slim = slim,
+                        showNext = showNext,
+                        showRested = showRested
+                    )
                 }
                 else -> {
                     val scale = minOf(w / 280f, h / 300f).coerceIn(0.9f, 1.5f)
                     val thumb = ((w - 40f) / PikachuLook.entries.size - 6f).coerceIn(22f, 44f)
                     Large(
                         scale = scale,
-                        artSize = minOf(w * 0.5f, h - 24f - scale * (22f + 115f + 10f) - thumb).coerceIn(64f, 220f).dp,
+                        artSize = minOf(w * 0.5f, h - 24f - scale * (22f + 150f + 10f) - thumb).coerceIn(64f, 220f).dp,
                         thumbSize = thumb.dp
                     )
                 }
@@ -234,12 +298,17 @@ private fun StreakWidgetContent(snapshot: StreakSnapshot) {
             .fillMaxSize()
             .background(ImageProvider(snapshot.mood.background()))
             .clickable(actionStartActivity(launchIntent(context)))
-            .padding((12 * layout.scale).dp)
     ) {
-        when (layout) {
-            is WidgetLayout.Compact -> CompactLayout(snapshot, layout)
-            is WidgetLayout.Wide -> WideLayout(snapshot, layout)
-            is WidgetLayout.Large -> LargeLayout(snapshot, layout)
+        Box(modifier = GlanceModifier.fillMaxSize().padding((12 * layout.scale).dp)) {
+            when (layout) {
+                is WidgetLayout.Compact -> CompactLayout(snapshot, layout)
+                is WidgetLayout.Wide -> WideLayout(snapshot, layout)
+                is WidgetLayout.Large -> LargeLayout(snapshot, layout)
+            }
+        }
+        // Pro: a double gold rim over the card, edge to edge.
+        if (snapshot.isPremium) {
+            Box(modifier = GlanceModifier.fillMaxSize().background(ImageProvider(R.drawable.widget_frame_pro))) {}
         }
     }
 }
@@ -253,6 +322,10 @@ private fun CompactLayout(snapshot: StreakSnapshot, layout: WidgetLayout) {
         SpeechBubble(LocalContext.current.speech(snapshot), layout.scale)
         PikachuStage(snapshot, layout, modifier = GlanceModifier.defaultWeight().fillMaxWidth())
         StreakCount(snapshot, numberSize = 22f, scale = layout.scale)
+        if ((layout as WidgetLayout.Compact).showWeek) {
+            Spacer(GlanceModifier.height((4 * layout.scale).dp))
+            WeekStripRow(snapshot, layout.scale, dot = layout.weekDot, gap = layout.weekGap)
+        }
     }
 }
 
@@ -274,7 +347,7 @@ private fun WideLayout(snapshot: StreakSnapshot, layout: WidgetLayout.Wide) {
                 Spacer(GlanceModifier.height((4 * layout.scale).dp))
                 StatusPill(snapshot.status, layout.scale)
             } else {
-                Details(snapshot, layout.scale, numberSize = 34f)
+                Details(snapshot, layout.scale, numberSize = 34f, showNext = layout.showNext, showRested = layout.showRested)
             }
         }
     }
@@ -294,24 +367,40 @@ private fun LargeLayout(snapshot: StreakSnapshot, layout: WidgetLayout.Large) {
 
 /** Title, count, status, next outfit and rested XP — shared by the wide and large layouts. */
 @Composable
-private fun Details(snapshot: StreakSnapshot, scale: Float, numberSize: Float, centered: Boolean = false) {
+private fun Details(
+    snapshot: StreakSnapshot,
+    scale: Float,
+    numberSize: Float,
+    centered: Boolean = false,
+    showNext: Boolean = true,
+    showRested: Boolean = true
+) {
     val context = LocalContext.current
     Column(horizontalAlignment = if (centered) Alignment.CenterHorizontally else Alignment.Start) {
-        Text(
-            text = context.getString(R.string.widget_streak_title),
-            style = TextStyle(color = color(snapshot.mood.accent()), fontSize = 10f.sp(scale), fontWeight = FontWeight.Bold)
-        )
         StreakCount(snapshot, numberSize = numberSize, scale = scale)
         Spacer(GlanceModifier.height((4 * scale).dp))
-        StatusPill(snapshot.status, scale)
+        // The Duolingo-style row: this week's days, today's circle waiting to be filled.
+        WeekStripRow(snapshot, scale, dot = (16 * scale).dp, gap = (4 * scale).dp)
         Spacer(GlanceModifier.height((6 * scale).dp))
-        NextLookLine(snapshot, scale)
-        if (snapshot.restedXp > 0 && snapshot.mood != PikachuMood.Sleeping) {
+        StatusPill(snapshot.status, scale)
+        if (showNext) {
+            Spacer(GlanceModifier.height((6 * scale).dp))
+            NextLookLine(snapshot, scale)
+        }
+        if (showRested && snapshot.restedXp > 0 && snapshot.mood != PikachuMood.Sleeping) {
             Spacer(GlanceModifier.height((4 * scale).dp))
-            Text(
-                text = context.getString(R.string.widget_streak_rested),
-                style = TextStyle(color = color(WidgetColors.Sleep), fontSize = 10f.sp(scale))
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    provider = ImageProvider(R.drawable.ic_widget_rested),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size((11 * scale).dp)
+                )
+                Spacer(GlanceModifier.width(4.dp))
+                Text(
+                    text = context.getString(R.string.widget_streak_rested),
+                    style = TextStyle(color = color(WidgetColors.Sleep), fontSize = 10f.sp(scale))
+                )
+            }
         }
     }
 }
@@ -324,10 +413,16 @@ private fun PikachuStage(snapshot: StreakSnapshot, layout: WidgetLayout, modifie
             provider = ImageProvider(pikachuArt(snapshot)),
             contentDescription = LocalContext.current.getString(snapshot.look.nameRes()),
             contentScale = ContentScale.Fit,
-            modifier = GlanceModifier.size(layout.artSize)
+            // Fill the stage's real (weighted) slot and scale to fit, rather than a size computed
+            // from estimated text heights: the estimate drifted at some sizes and clipped Pikachu.
+            modifier = GlanceModifier.fillMaxSize()
         )
         Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.TopEnd) {
-            Text(text = snapshot.mood.effect(), style = TextStyle(fontSize = 16f.sp(layout.scale)))
+            Image(
+                provider = ImageProvider(snapshot.mood.effect()),
+                contentDescription = null,
+                modifier = GlanceModifier.size((20 * layout.scale).dp)
+            )
         }
     }
 }
@@ -341,14 +436,14 @@ private fun OutfitCollection(snapshot: StreakSnapshot, thumbSize: Dp) {
     val context = LocalContext.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         PikachuLook.entries.forEachIndexed { index, look ->
-            if (index > 0) Spacer(GlanceModifier.width(6.dp))
             val unlocked = snapshot.days >= look.minDays && snapshot.mood != PikachuMood.Sleeping
             Image(
                 provider = ImageProvider(look.art()),
                 contentDescription = context.getString(look.nameRes()),
                 contentScale = ContentScale.Fit,
                 colorFilter = if (unlocked) null else ColorFilter.tint(color(WidgetColors.Silhouette)),
-                modifier = GlanceModifier.size(thumbSize)
+                // Gap as padding, not a Spacer: a Glance Row keeps at most 10 children.
+                modifier = GlanceModifier.padding(start = if (index > 0) 6.dp else 0.dp).size(thumbSize + if (index > 0) 6.dp else 0.dp)
             )
         }
     }
@@ -374,7 +469,17 @@ private fun StreakCount(snapshot: StreakSnapshot, numberSize: Float, scale: Floa
     val context = LocalContext.current
     val alive = snapshot.days > 0
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = if (alive) "🔥" else "🌙", style = TextStyle(fontSize = (numberSize * 0.7f).sp(scale)))
+        Image(
+            provider = ImageProvider(
+                when {
+                    !alive -> R.drawable.ic_widget_flame_off
+                    snapshot.isPremium -> R.drawable.ic_widget_flame_gold
+                    else -> R.drawable.ic_widget_flame
+                }
+            ),
+            contentDescription = null,
+            modifier = GlanceModifier.size((numberSize * 0.85f * scale).dp)
+        )
         Spacer(GlanceModifier.width(3.dp))
         Text(
             text = snapshot.days.toString(),
@@ -391,6 +496,19 @@ private fun StreakCount(snapshot: StreakSnapshot, numberSize: Float, scale: Floa
             text = context.resources.getQuantityString(R.plurals.widget_streak_days, if (snapshot.days == 0) 2 else snapshot.days),
             style = TextStyle(color = color(WidgetColors.Muted), fontSize = 12f.sp(scale))
         )
+        if (snapshot.isPremium) {
+            Spacer(GlanceModifier.width((6 * scale).dp))
+            Box(
+                modifier = GlanceModifier
+                    .background(ImageProvider(R.drawable.widget_pill_pro))
+                    .padding(horizontal = (6 * scale).dp, vertical = (1.5f * scale).dp)
+            ) {
+                Text(
+                    text = context.getString(R.string.leaderboard_pro_chip),
+                    style = TextStyle(color = color(WidgetColors.ProInk), fontSize = 8f.sp(scale), fontWeight = FontWeight.Bold)
+                )
+            }
+        }
     }
 }
 
@@ -399,12 +517,14 @@ private fun StatusPill(status: StreakStatus, scale: Float) {
     val context = LocalContext.current
     when (status) {
         is StreakStatus.SafeToday -> Pill(
-            context.getString(R.string.widget_streak_safe), R.drawable.widget_pill_safe, WidgetColors.Safe, scale
+            context.getString(R.string.widget_streak_safe), R.drawable.widget_pill_safe, WidgetColors.Safe, scale,
+            icon = R.drawable.ic_widget_check
         )
         is StreakStatus.AtRisk ->
             if (status.isUrgent) Pill(
                 context.getString(R.string.widget_streak_hours_left, status.hoursLeft),
-                R.drawable.widget_pill_urgent, WidgetColors.Urgent, scale
+                R.drawable.widget_pill_urgent, WidgetColors.Urgent, scale,
+                icon = R.drawable.ic_widget_clock
             )
             else Pill(context.getString(R.string.widget_streak_at_risk), R.drawable.widget_pill_risk, WidgetColors.Gold, scale)
         StreakStatus.NotStarted -> Pill(
@@ -414,17 +534,65 @@ private fun StatusPill(status: StreakStatus, scale: Float) {
 }
 
 @Composable
-private fun Pill(text: String, @DrawableRes background: Int, textColor: Color, scale: Float) {
-    Box(
+private fun Pill(text: String, @DrawableRes background: Int, textColor: Color, scale: Float, @DrawableRes icon: Int? = null) {
+    Row(
         modifier = GlanceModifier
             .background(ImageProvider(background))
-            .padding(horizontal = (10 * scale).dp, vertical = (3 * scale).dp)
+            .padding(horizontal = (10 * scale).dp, vertical = (3 * scale).dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
+        if (icon != null) {
+            Image(provider = ImageProvider(icon), contentDescription = null, modifier = GlanceModifier.size((12 * scale).dp))
+            Spacer(GlanceModifier.width((4 * scale).dp))
+        }
         Text(
             text = text,
             maxLines = 1,
             style = TextStyle(color = color(textColor), fontSize = 11f.sp(scale), fontWeight = FontWeight.Medium)
         )
+    }
+}
+
+/**
+ * This week as seven circles (locale order): gold with a check for played days, a faint ring for
+ * missed ones, today's ring (red in the last hours) waiting to be filled, dim dots ahead.
+ */
+@Composable
+private fun WeekStripRow(snapshot: StreakSnapshot, scale: Float, dot: Dp, gap: Dp) {
+    val urgent = (snapshot.status as? StreakStatus.AtRisk)?.isUrgent == true
+    val initials = SimpleDateFormat("EEEEE", Locale.getDefault())
+    val cal = Calendar.getInstance()
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        snapshot.week.forEachIndexed { index, day ->
+            // Gap as padding, not a Spacer: a Glance Row keeps at most 10 children.
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = GlanceModifier.padding(start = if (index > 0) gap else 0.dp)
+            ) {
+                cal.set(Calendar.DAY_OF_WEEK, day.dayOfWeek)
+                Text(
+                    text = initials.format(cal.time),
+                    style = TextStyle(
+                        color = color(if (day.isToday) snapshot.mood.accent() else WidgetColors.Muted),
+                        fontSize = 9f.sp(scale),
+                        fontWeight = if (day.isToday) FontWeight.Bold else FontWeight.Normal
+                    )
+                )
+                Spacer(GlanceModifier.height((2 * scale).dp))
+                Image(
+                    provider = ImageProvider(
+                        when (day.state) {
+                            DayState.Played -> R.drawable.widget_day_played
+                            DayState.Missed -> R.drawable.widget_day_missed
+                            DayState.TodayOpen -> if (urgent) R.drawable.widget_day_today_urgent else R.drawable.widget_day_today
+                            DayState.Future -> R.drawable.widget_day_future
+                        }
+                    ),
+                    contentDescription = null,
+                    modifier = GlanceModifier.size(dot)
+                )
+            }
+        }
     }
 }
 
@@ -438,7 +606,18 @@ private fun NextLookLine(snapshot: StreakSnapshot, scale: Float) {
         val (look, daysAway) = next
         context.resources.getQuantityString(R.plurals.widget_next_look, daysAway, daysAway, context.getString(look.nameRes()))
     }
-    Text(text = text, maxLines = 1, style = TextStyle(color = color(WidgetColors.Muted), fontSize = 10f.sp(scale)))
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        // The goal you can see: the next outfit as a locked silhouette (a crown once all are won).
+        Image(
+            provider = ImageProvider(next?.first?.art() ?: R.drawable.ic_widget_crown),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            colorFilter = if (next != null) ColorFilter.tint(color(WidgetColors.Silhouette)) else null,
+            modifier = GlanceModifier.size((18 * scale).dp)
+        )
+        Spacer(GlanceModifier.width((4 * scale).dp))
+        Text(text = text, maxLines = 1, style = TextStyle(color = color(WidgetColors.Muted), fontSize = 10f.sp(scale)))
+    }
 }
 
 /** Opens the app's launcher activity — no hard dependency on a flavor-specific Activity class. */

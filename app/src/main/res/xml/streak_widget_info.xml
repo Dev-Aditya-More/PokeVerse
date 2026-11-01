@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  updatePeriodMillis (30 min, the platform minimum) keeps date-driven states fresh
+  while the app is closed: midnight rollover and the "hours left" countdown.
+  Profile changes refresh it immediately via StreakWidgetSync.
+  No max resize: the layout adapts (compact / wide / large) to any size.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_streak_description"
+    android:previewImage="@drawable/widget_streak_preview"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="110dp"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Week strip: today, not played, last hours of the day. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#33FF6B6B" />
+    <stroke android:width="2dp" android:color="#FFFF6B6B" />
+</shape>
