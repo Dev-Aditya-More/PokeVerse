@@ -17,6 +17,7 @@ import com.aditya1875.pokeverse.utils.Haptics
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.google.gson.Gson
 import org.koin.android.ext.koin.androidContext
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionRepository
 import org.koin.dsl.module
 
 val Context.billingDataStore by preferencesDataStore("billing_prefs")
@@ -27,7 +28,9 @@ val billingModule = module {
 
     single { UserProfileRepository(androidContext()) }
 
-    single { XPManager(get()) }
+    single { ProgressionRepository(androidContext()) }
+
+    single { XPManager(get(), get()) }
 
     single { androidContext().billingDataStore }
 

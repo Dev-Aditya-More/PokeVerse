@@ -92,7 +92,7 @@ private val PikachuClassicDark = darkColorScheme(
     onTertiaryContainer = Color(0xFFFFCA28),
 
     background = Color(0xFF121006),        // Warm dark background
-    onBackground = Color(0xFFFFFFFF),      // Pure white — max readability
+    onBackground = Color(0xFFFFFFFF),      // Pure white, max readability
 
     surface = Color(0xFF1C1A0D),
     onSurface = Color(0xFFFFFFFF),
@@ -108,7 +108,7 @@ private val PikachuClassicDark = darkColorScheme(
 )
 
 val DarkraiDark = darkColorScheme(
-    primary = Color(0xFF9B59B6),           // Shadow Purple — Darkrai's aura
+    primary = Color(0xFF9B59B6),           // Shadow Purple. Darkrai's aura
     onPrimary = Color(0xFFF5EEFF),
 
     primaryContainer = Color(0xFF4A235A),   // Deep void purple
@@ -165,7 +165,7 @@ private val MewtwoClassicDark = darkColorScheme(
     onTertiaryContainer = Color(0xFFFFD9E4),
 
     background = Color(0xFF080010),        // Deep psychic void
-    onBackground = Color(0xFFF3E5FF),      // Light lavender — readable and on-brand
+    onBackground = Color(0xFFF3E5FF),      // Light lavender, readable and on-brand
 
     surface = Color(0xFF0F0020),
     onSurface = Color(0xFFF3E5FF),
@@ -202,7 +202,7 @@ private val UmbreonClassicDark = darkColorScheme(
     tertiaryContainer = Color(0xFF004D49),
     onTertiaryContainer = Color(0xFFB2DFDB),
 
-    background = Color(0xFF060606),        // Moonlit night — true black
+    background = Color(0xFF060606),        // Moonlit night, true black
     onBackground = Color(0xFFF5F0FF),      // Near-white cool tint
 
     surface = Color(0xFF0E0E10),
@@ -338,7 +338,7 @@ private val GengarDark = darkColorScheme(
     tertiaryContainer = Color(0xFF4A0022),
     onTertiaryContainer = Color(0xFFFFD1E3),
 
-    background = Color(0xFF0A0612),        // Shadowy purple-black — Gengar hides here
+    background = Color(0xFF0A0612),        // Shadowy purple-black. Gengar hides here
     onBackground = Color(0xFFF0E5FF),
 
     surface = Color(0xFF130A22),
@@ -428,7 +428,7 @@ private val SylveonDark = darkColorScheme(
     outlineVariant = Color(0xFF35192E),
 )
 
-// LUGIA THEME (Psychic/Flying — deep-sea guardian)
+// LUGIA THEME (Psychic/Flying, deep-sea guardian)
 
 private val LugiaDark = darkColorScheme(
     primary = Color(0xFFB8CCEB),           // Silver-white plumage
@@ -459,7 +459,7 @@ private val LugiaDark = darkColorScheme(
     outlineVariant = Color(0xFF16263D),
 )
 
-// LUCARIO THEME (Fighting/Steel — aura)
+// LUCARIO THEME (Fighting/Steel, aura)
 
 private val LucarioDark = darkColorScheme(
     primary = Color(0xFF42A5F5),           // Aura blue
@@ -490,7 +490,7 @@ private val LucarioDark = darkColorScheme(
     outlineVariant = Color(0xFF1B2433),
 )
 
-// GRENINJA THEME (Water/Dark — shinobi)
+// GRENINJA THEME (Water/Dark, shinobi)
 
 private val GreninjaDark = darkColorScheme(
     primary = Color(0xFF4F7FE0),           // Ninja-frog blue
@@ -521,7 +521,7 @@ private val GreninjaDark = darkColorScheme(
     outlineVariant = Color(0xFF172139),
 )
 
-// MIMIKYU THEME (Ghost/Fairy — the disguise)
+// MIMIKYU THEME (Ghost/Fairy, the disguise)
 
 private val MimikyuDark = darkColorScheme(
     primary = Color(0xFFF2D45C),           // Homemade Pikachu costume
@@ -552,7 +552,7 @@ private val MimikyuDark = darkColorScheme(
     outlineVariant = Color(0xFF241F15),
 )
 
-// HO-OH THEME (Fire/Flying — rainbow phoenix)
+// HO-OH THEME (Fire/Flying, rainbow phoenix)
 
 private val HoOhDark = darkColorScheme(
     primary = Color(0xFFFFB300),           // Sacred-fire gold
@@ -585,7 +585,7 @@ private val HoOhDark = darkColorScheme(
 
 // THEME ENUM
 
-/** Every selectable theme. [isPremium] is the single source of truth for gating — selector and app shell both read it. */
+/** Every selectable theme. [isPremium] is the single source of truth for gating, selector and app shell both read it. */
 enum class AppTheme(val isPremium: Boolean) {
     DEXVERSE(isPremium = false),
     PIKACHU(isPremium = true),
@@ -769,7 +769,7 @@ private fun ThemeSwitchWave(
         // Soft full-screen flash in the new accent, gone quickly
         drawRect(accent.copy(alpha = 0.10f * fade * fade))
 
-        // Expanding ring — a band of accent glow with transparent core
+        // Expanding ring, a band of accent glow with transparent core
         drawCircle(
             brush = Brush.radialGradient(
                 colorStops = arrayOf(

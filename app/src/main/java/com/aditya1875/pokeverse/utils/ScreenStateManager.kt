@@ -23,6 +23,8 @@ object ScreenStateManager {
     val WIDGET_PROMPT_LAST_MS = longPreferencesKey("widget_prompt_last_ms")
 
     val ASSETS_SHOWN = booleanPreferencesKey("assets_shown")
+    val COINS_INTRO_SEEN = booleanPreferencesKey("coins_intro_seen")
+    val BATTLE_TUTORIAL_SEEN = booleanPreferencesKey("battle_tutorial_seen")
     val RATING_SHOWN = booleanPreferencesKey("rating_shown")
     val PREMIUM_SHOWN = booleanPreferencesKey("premium_shown")
     val LAST_POPUP_SHOWN_AT_MINUTES = longPreferencesKey("last_popup_shown_at_minutes")
@@ -84,6 +86,23 @@ object ScreenStateManager {
         }
     }
 
+    suspend fun markBattleTutorialSeen(context: Context) {
+        context.dataStore.edit { it[BATTLE_TUTORIAL_SEEN] = true }
+    }
+
+    suspend fun isBattleTutorialSeen(context: Context): Boolean {
+        return context.dataStore.data.first()[BATTLE_TUTORIAL_SEEN] ?: false
+    }
+
+    /** The one-time "Poké Coins are here" announcement. */
+    suspend fun markCoinsIntroSeen(context: Context) {
+        context.dataStore.edit { it[COINS_INTRO_SEEN] = true }
+    }
+
+    suspend fun isCoinsIntroSeen(context: Context): Boolean {
+        return context.dataStore.data.first()[COINS_INTRO_SEEN] ?: false
+    }
+
     suspend fun markAssetsShown(context: Context) {
         context.dataStore.edit { it[ASSETS_SHOWN] = true }
     }
@@ -124,7 +143,7 @@ object ScreenStateManager {
         context.dataStore.edit { it[CHASE_GUIDE_SEEN] = true }
     }
 
-    /** The user's Shiny Dex choice. Only takes effect while premium — see LocalShinyDex. */
+    /** The user's Shiny Dex choice. Only takes effect while premium, see LocalShinyDex. */
     fun shinyDexEnabledFlow(context: Context): Flow<Boolean> =
         context.dataStore.data.map { it[SHINY_DEX_ENABLED] ?: false }
 

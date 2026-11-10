@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -59,7 +60,6 @@ import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOv
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.screens.LeaderboardScreen
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.screens.PokemonDetailScreen
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens.HomeScreen
-import com.aditya1875.pokeverse.feature.pokemon.onboarding.IntroScreen
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components.EditProfileDialog
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.screens.ProfileScreen
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
@@ -70,6 +70,9 @@ import com.aditya1875.pokeverse.feature.pokemon.theme_selector.ThemeSelectorScre
 import com.aditya1875.pokeverse.feature.pokemon.theme_selector.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.feature.team.presentation.screens.DreamTeam
 import com.aditya1875.pokeverse.ui.theme.AppTheme
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionRepository
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionState
+import com.aditya1875.pokeverse.feature.progression.domain.Cosmetics
 import com.aditya1875.pokeverse.ui.theme.PokeverseTheme
 import com.aditya1875.pokeverse.utils.LocaleHelper
 import com.aditya1875.pokeverse.utils.NotificationUtils
@@ -99,18 +102,36 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalAnimationApi::class, ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Must run before super.onCreate: swaps the launch theme for the app theme.
+        installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        // Debug builds only: `adb shell am start -n <pkg>/.MainActivity --es debug_seed evo` hands out test shards
+        // and a few evolvable Pokémon so the Evolve card and cinematic can be tried.
+        if (BuildConfig.DEBUG && intent?.getStringExtra("debug_seed") == "evo") {
+            val dex by inject<com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository>()
+            lifecycleScope.launch {
+                dex.grantTestShards(200)
+                listOf(1, 4, 7, 133, 172).forEach { dex.markCaught(it) }
+            }
+        }
 
         val billingManager by inject<IBillingManager>()
         billingManager.startConnection()
 
-        // Google's guidance: initialize off the main thread — it does disk I/O and adapter
+        // Google's guidance: initialize off the main thread, it does disk I/O and adapter
         // setup that otherwise lands on the cold-start critical path. Ad loads queue until ready.
         lifecycleScope.launch(Dispatchers.IO) { MobileAds.initialize(this@MainActivity) }
 
         enableEdgeToEdge()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) requestNotificationPermission()
+        // First-run users are asked by Professor Dex during onboarding, in context. Everyone
+        // who has already been through it keeps the original prompt-on-launch behaviour.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            lifecycleScope.launch {
+                if (ScreenStateManager.isIntroSeen(this@MainActivity)) requestNotificationPermission()
+            }
+        }
 
         NotificationUtils.createNotificationChannel(this)
 
@@ -141,10 +162,13 @@ class MainActivity : ComponentActivity() {
             }
 
             // A lapsed subscription drops back to the default look everywhere, not just
-            // once the theme screen is reopened. Only a confirmed Free state downgrades —
+            // once the theme screen is reopened. Only a confirmed Free state downgrades -
             // Loading/Pending keep the chosen theme so premium users never see a flash.
             val subscriptionState by billingManager.subscriptionState.collectAsState()
-            val appliedTheme = if (currentTheme.isPremium && subscriptionState is SubscriptionState.Free) {
+            // Themes bought with Poké Coins stay available on Free, so they're exempt from the downgrade.
+            val progressionState by koinInject<ProgressionRepository>().state.collectAsState(initial = ProgressionState())
+            val coinThemes = Cosmetics.themeUnlockedBy(progressionState.owned)
+            val appliedTheme = if (currentTheme.isPremium && subscriptionState is SubscriptionState.Free && currentTheme.name !in coinThemes) {
                 AppTheme.DEXVERSE
             } else currentTheme
 
@@ -159,7 +183,7 @@ class MainActivity : ComponentActivity() {
                 when (subscriptionState) {
                     is SubscriptionState.Premium -> profileViewModel.publishPremiumStatus(true)
                     SubscriptionState.Free -> profileViewModel.publishPremiumStatus(false)
-                    else -> Unit // still resolving — don't publish a guess
+                    else -> Unit // still resolving, don't publish a guess
                 }
             }
 

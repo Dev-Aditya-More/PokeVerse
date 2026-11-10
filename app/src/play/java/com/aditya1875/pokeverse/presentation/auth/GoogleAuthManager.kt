@@ -135,12 +135,12 @@ class AuthManager(
             GoogleIdTokenCredential.createFrom(result.credential.data).idToken
 
         } catch (e: GetCredentialCancellationException) {
-            throw e   // user cancelled — stop both passes immediately
+            throw e   // user cancelled, stop both passes immediately
         } catch (e: NoCredentialException) {
             Log.d("AuthManager", "Pass filterAuthorized=$filterByAuthorizedAccounts: no credentials, trying next")
-            null      // no accounts in this pass — let the outer block try pass 2
+            null      // no accounts in this pass, let the outer block try pass 2
         } catch (e: GetCredentialException) {
-            throw e   // real error — propagate up
+            throw e   // real error, propagate up
         }
     }
 

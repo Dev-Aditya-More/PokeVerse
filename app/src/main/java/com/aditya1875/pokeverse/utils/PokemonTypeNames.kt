@@ -7,7 +7,7 @@ import com.aditya1875.pokeverse.R
 
 /**
  * Display names for the 18 types, in the user's language (official localized names,
- * e.g. "Fogo" / "Feu" for fire). Type ids from PokeAPI stay English everywhere else —
+ * e.g. "Fogo" / "Feu" for fire). Type ids from PokeAPI stay English everywhere else
  * only what's shown goes through here.
  */
 @StringRes

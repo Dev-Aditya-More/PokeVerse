@@ -1,11 +1,15 @@
 package com.aditya1875.pokeverse.di
 
+import com.aditya1875.pokeverse.feature.evolution.presentation.EvolutionViewModel
+import com.aditya1875.pokeverse.feature.game.battle.presentation.BattleViewModel
+import com.aditya1875.pokeverse.feature.game.battle.presentation.OnlineBattleViewModel
 import com.aditya1875.pokeverse.feature.battlestats.presentation.viewmodels.StatCalculatorViewModel
 import com.aditya1875.pokeverse.feature.compare.presentation.viewmodels.CompareViewModel
 import com.aditya1875.pokeverse.feature.game.cardclash.presentation.CardClashViewModel
 import com.aditya1875.pokeverse.feature.game.survivor.presentation.viewmodels.SurvivorViewModel
 import com.aditya1875.pokeverse.feature.game.chase.presentation.viewmodels.ChaseViewModel
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.viewmodels.WildCatchViewModel
+import com.aditya1875.pokeverse.feature.challenges.presentation.ChallengesViewModel
 import com.aditya1875.pokeverse.feature.badges.presentation.viewmodels.BadgesViewModel
 import com.aditya1875.pokeverse.feature.characters.presentation.viewmodels.CharactersViewModel
 // TODO(friends): re-add when the feature ships
@@ -21,6 +25,7 @@ import com.aditya1875.pokeverse.feature.item.presentation.viewmodels.ItemViewMod
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.viewmodels.LeaderboardViewModel
 import com.aditya1875.pokeverse.feature.pokemon.detail.presentation.viewmodels.PokemonDetailsViewModel
 import com.aditya1875.pokeverse.feature.dexdaily.presentation.DexDailyViewModel
+import com.aditya1875.pokeverse.feature.progression.presentation.RewardsViewModel
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.SearchViewModel
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
@@ -49,6 +54,7 @@ val viewModelModule = module {
     viewModelOf(::LeaderboardViewModel)
     viewModelOf(::BillingViewModel)
     viewModelOf(::DexDailyViewModel)
+    viewModelOf(::RewardsViewModel)
     viewModelOf(::ItemViewModel)
     viewModelOf(::BerryViewModel)
     viewModelOf(::PokeGuessViewModel)
@@ -58,6 +64,10 @@ val viewModelModule = module {
     viewModelOf(::CardClashViewModel)
     viewModelOf(::InboxViewModel)
     viewModelOf(::WildCatchViewModel)
+    viewModelOf(::ChallengesViewModel)
+    viewModelOf(::BattleViewModel)
+    viewModelOf(::OnlineBattleViewModel)
+    viewModelOf(::EvolutionViewModel)
     viewModelOf(::SurvivorViewModel)
     viewModelOf(::ChaseViewModel)
     viewModelOf(::CompareViewModel)

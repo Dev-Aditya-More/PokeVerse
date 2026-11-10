@@ -1,7 +1,7 @@
 package com.aditya1875.pokeverse.utils
 
 /**
- * A small, explicitly curated set of iconic/anime-recognizable Pokémon —
+ * A small, explicitly curated set of iconic/anime-recognizable Pokémon
  * mascots, starters' final evolutions, and well-known legendaries. This is
  * NOT real popularity data (no such dataset exists here); it exists purely
  * to add a lighthearted "fan-favorite" flavor to the Compare tool's edge

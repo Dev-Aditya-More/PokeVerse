@@ -32,7 +32,7 @@ class PokeVerseApp : Application(), ImageLoaderFactory {
         AppCheckSetup.install()
 
         // Billing (direct Play Billing Library, or RevenueCat when that's back in play) is
-        // configured inside the play-flavor BillingManager's init{} — this class is compiled
+        // configured inside the play-flavor BillingManager's init{}, this class is compiled
         // for every flavor, so referencing billing SDK classes here would break other flavors.
         val koin = startKoin {
             androidContext(this@PokeVerseApp)

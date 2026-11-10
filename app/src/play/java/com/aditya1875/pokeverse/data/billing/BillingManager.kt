@@ -171,7 +171,7 @@ class BillingManager(
 
     // ─── IBillingManager ─────────────────────────────────────────────────────
 
-    /** Idempotent and cheap — called from several places; only does work that's still missing. */
+    /** Idempotent and cheap, called from several places; only does work that's still missing. */
     override fun startConnection() {
         coroutineScope.launch {
             refreshCustomerInfo()
@@ -326,7 +326,7 @@ class BillingManager(
             offerings = loaded
             val current = loaded.current
             if (current == null) {
-                Log.e(TAG, "No current Offering — set one as 'Current' in the RevenueCat dashboard")
+                Log.e(TAG, "No current Offering, set one as 'Current' in the RevenueCat dashboard")
                 _billingError.value = "Plans are unavailable right now."
                 return
             }

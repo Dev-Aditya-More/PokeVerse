@@ -35,7 +35,10 @@ class SoundManager(
 
         RUSH_CLICK,
 
-        PIKACHU_CRY
+        PIKACHU_CRY,
+
+        /** Plays as a Pokémon finishes evolving. */
+        POKEMON_EVOLVE
     }
 
     init {
@@ -72,6 +75,7 @@ class SoundManager(
         soundMap[Sound.LEVEL_UP] = loadSound(R.raw.level_up)
         soundMap[Sound.RUSH_CLICK] = loadSound(R.raw.click_rush)
         soundMap[Sound.PIKACHU_CRY] = loadSound(R.raw.pikachu_cry)
+        soundMap[Sound.POKEMON_EVOLVE] = loadSound(R.raw.pokemon_evolve)
         // Add more mappings when you have custom sound files
     }
 
@@ -81,7 +85,7 @@ class SoundManager(
 
     /**
      * Plays [sound] and, unless [haptic] is false, its matching vibration. Haptics fire even
-     * when sound is muted — they follow the system touch-feedback setting instead.
+     * when sound is muted, they follow the system touch-feedback setting instead.
      */
     fun play(sound: Sound, volume: Float = 1.0f, haptic: Boolean = true) {
         if (haptic) hapticFor(sound)?.let { haptics?.play(it) }
@@ -107,7 +111,7 @@ class SoundManager(
         Sound.GAME_WIN -> Haptics.Haptic.SUCCESS
         Sound.GAME_LOSE -> Haptics.Haptic.HEAVY
         Sound.TIMER_UP -> Haptics.Haptic.WARNING
-        Sound.LEVEL_UP -> Haptics.Haptic.LEVEL_UP
+        Sound.LEVEL_UP, Sound.POKEMON_EVOLVE -> Haptics.Haptic.LEVEL_UP
         Sound.PIKACHU_CRY -> Haptics.Haptic.RUMBLE
         Sound.WHOS_THAT_POKEMON -> Haptics.Haptic.POP
     }
@@ -117,7 +121,7 @@ class SoundManager(
     }
 
     /**
-     * Plays the app's startup jingle as music (MediaPlayer, not SoundPool — it's too long
+     * Plays the app's startup jingle as music (MediaPlayer, not SoundPool, it's too long
      * for a pooled SFX clip). Returns the track's duration in ms, or -1 if it couldn't load.
      */
     fun playIntroMusic(): Int {

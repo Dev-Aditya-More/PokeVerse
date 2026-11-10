@@ -25,7 +25,7 @@ object BannerAdUnitIds {
 }
 
 /**
- * Anchored banner ad. Premium users never see one — this is the single choke
+ * Anchored banner ad. Premium users never see one, this is the single choke
  * point every banner goes through, so gating it here covers every screen.
  */
 @Composable

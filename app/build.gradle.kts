@@ -196,7 +196,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.foundation)
 
-    // On-device face detection for the "which Pokémon do you look like" feature — bundles its
+    // On-device face detection for the "which Pokémon do you look like" feature, bundles its
     // own model (no Play Services download step), works in both flavors.
     implementation(libs.mlkit.face.detection)
     implementation(libs.installreferrer)
@@ -235,7 +235,7 @@ dependencies {
     add("playImplementation", libs.firebase.database)
     add("playImplementation", libs.firebase.functions)
     add("playImplementation", libs.firebase.storage)
-    // Gemini Flash via Firebase AI Logic — powers the team "Coach's Read" (no API key in the app)
+    // Gemini Flash via Firebase AI Logic, powers the team "Coach's Read" (no API key in the app)
     add("playImplementation", libs.firebase.ai)
     // App Check: the AI API rejects requests without a valid token. Debug builds use the debug
     // provider (register its token in the console); release builds attest through Play Integrity.

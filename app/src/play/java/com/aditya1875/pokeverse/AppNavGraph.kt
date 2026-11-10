@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse
 
+import com.aditya1875.pokeverse.feature.game.battle.presentation.BattleScreen
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexRepository
 import android.content.Context
 import android.content.Intent
@@ -76,6 +78,7 @@ import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.screens.Se
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
 import com.aditya1875.pokeverse.feature.pokemon.splash.SplashScreen
 import com.aditya1875.pokeverse.feature.pokemon.theme_selector.ThemeSelectorScreen
+import com.aditya1875.pokeverse.feature.progression.presentation.RewardsScreen
 import com.aditya1875.pokeverse.feature.pokemon.theme_selector.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.feature.team.presentation.screens.DreamTeam
 import com.aditya1875.pokeverse.utils.ScreenStateManager
@@ -145,6 +148,39 @@ fun AppNavGraph(
     // Set by SplashScreen once its reveal animation + intro music hold have played out.
     var splashFinished by remember { mutableStateOf(false) }
 
+    // Where to go after the splash. Resolved while the splash plays, so the splash can wait on
+    // real readiness and the hand-off is instant instead of doing this work afterwards.
+    var startRoute by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(Unit) {
+        startRoute = try {
+            // Debug builds only: `adb shell run-as <pkg> touch files/replay_intro` replays the professor once.
+            val replay = com.aditya1875.pokeverse.BuildConfig.DEBUG &&
+                java.io.File(context.filesDir, "replay_intro").let { it.exists() && it.delete() }
+            val introSeen = !replay && ScreenStateManager.isIntroSeen(context)
+            // Existing installs never saw the professor, so they get the default starter here.
+            if (introSeen) pokedexRepository.ensureDefaultStarter()
+            val lastRoute = ScreenStateManager.getLastRoute(context)
+
+            val validRoutes = setOf(
+                Route.BottomBar.Home.route,
+                Route.BottomBar.Team.route,
+                Route.BottomBar.Game.route,
+                Route.BottomBar.Profile.route
+            )
+            when {
+                !introSeen -> Route.Onboarding.route
+                lastRoute in validRoutes -> lastRoute ?: Route.BottomBar.Home.route
+                else -> Route.BottomBar.Home.route
+            }
+        } catch (e: kotlin.coroutines.cancellation.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Never leave the splash waiting on a startup lookup that failed.
+            Route.BottomBar.Home.route
+        }
+    }
+
     LaunchedEffect(currentRoute) {
         selectedRoute = when (currentRoute) {
             Route.BottomBar.Home.route -> Route.BottomBar.Home
@@ -159,24 +195,11 @@ fun AppNavGraph(
     LaunchedEffect(splashFinished) {
         if (!splashFinished) return@LaunchedEffect
 
-        val introSeen = ScreenStateManager.isIntroSeen(context)
-        // Existing installs never saw the professor, so they get the default starter here.
-        if (introSeen) pokedexRepository.ensureDefaultStarter()
-        val lastRoute = ScreenStateManager.getLastRoute(context)
-
-        val validRoutes = setOf(
-            Route.BottomBar.Home.route,
-            Route.BottomBar.Team.route,
-            Route.BottomBar.Game.route,
-            Route.BottomBar.Profile.route
-        )
-
-        val safeRoute = if (lastRoute in validRoutes) lastRoute else Route.BottomBar.Home.route
-        val targetRoute = if (!introSeen) Route.Onboarding.route else safeRoute
+        val targetRoute = startRoute ?: Route.BottomBar.Home.route
 
         val navigated = withTimeoutOrNull(3000) {
             try {
-                navController.navigate(targetRoute ?: Route.BottomBar.Home.route) {
+                navController.navigate(targetRoute) {
                     popUpTo(Route.Splash.route) { inclusive = true }
                     launchSingleTop = true
                 }
@@ -205,7 +228,7 @@ fun AppNavGraph(
             startDestination = Route.Splash.route,
         ) {
             composable(Route.Splash.route) {
-                SplashScreen(onFinish = { splashFinished = true })
+                SplashScreen(ready = startRoute != null, onFinish = { splashFinished = true })
             }
 
             composable(Route.Onboarding.route) {
@@ -280,6 +303,7 @@ fun AppNavGraph(
                                 "pokequiz" -> navController.navigate(Route.QuizDifficulty.route)
                                 "pokeguess" -> navController.navigate(Route.GuessDifficulty.route)
                                 "wildcatch" -> navController.navigate(Route.WildCatchPlay.route)
+                                "battle" -> navController.navigate(Route.BattlePlay.route)
                                 "survivor" -> navController.navigate(Route.SurvivorPlay.route)
                                 "chase" -> navController.navigate(Route.ChasePlay.route)
                             }
@@ -309,11 +333,21 @@ fun AppNavGraph(
                         onSettingsClick = {
                             navController.navigate(Route.Settings.route)
                         },
+                        onRewardsClick = {
+                            navController.navigate(Route.Rewards.route)
+                        },
                         onEditName = {
                             navController.navigate(Route.EditProfile.route)
                         },
                         onPlayWildCatch = {
                             navController.navigate(Route.WildCatchPlay.route)
+                        },
+                        onOpenDexList = {
+                            navController.navigate(Route.BottomBar.Home.route) {
+                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     )
                 }
@@ -486,6 +520,13 @@ fun AppNavGraph(
                 )
             }
 
+            composable(Route.BattlePlay.route) {
+                BattleScreen(
+                    onBack = { navController.popBackStack() },
+                    onPlayWildCatch = { navController.navigate(Route.WildCatchPlay.route) }
+                )
+            }
+
             composable(Route.WildCatchPlay.route) {
                 WildCatchScreen(
                     onBack = { navController.popBackStack() }
@@ -537,6 +578,10 @@ fun AppNavGraph(
                         onRetryClick = { navController.navigate(Route.BottomBar.Home.route) }
                     )
                 }
+            }
+
+            composable(Route.Rewards.route) {
+                RewardsScreen(navController = navController)
             }
 
             composable(Route.ThemeSelector.route) {
@@ -607,7 +652,7 @@ fun AppNavGraph(
         modifier = Modifier.align(Alignment.TopCenter)
     )
 
-    // Compulsory update prompt — no dismiss, since a new version is always better.
+    // Compulsory update prompt, no dismiss, since a new version is always better.
     if (showSoftUpdate) {
         UpdateAvailableDialog(
             latestVersionName = latestVersionName,
@@ -615,7 +660,7 @@ fun AppNavGraph(
         )
     }
 
-    // Hard block — app is unusable below minVersionCode (security / API break)
+    // Hard block, app is unusable below minVersionCode (security / API break)
     if (minVersionCode > 0L && BuildConfig.VERSION_CODE.toLong() < minVersionCode) {
         ForceUpdateScreen(
             onUpdate = {

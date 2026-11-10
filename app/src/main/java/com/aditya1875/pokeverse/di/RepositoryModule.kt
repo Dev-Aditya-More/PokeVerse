@@ -72,5 +72,11 @@ val repositoryModule = module {
     single { TeamCoach(androidContext()) }
 
     single { PokedexRepository(androidContext()) }
+    single { com.aditya1875.pokeverse.feature.challenges.data.ChallengeRepository(androidContext()) }
+    single<com.aditya1875.pokeverse.feature.game.battle.data.OnlineBattleRepository> {
+        com.aditya1875.pokeverse.feature.game.battle.data.FirestoreOnlineBattleRepository()
+    }
+    single { com.aditya1875.pokeverse.feature.game.battle.data.OnlineRewardLedger(androidContext()) }
+    single { com.aditya1875.pokeverse.feature.game.battle.data.SavedTeamsRepository(androidContext()) }
 
 }

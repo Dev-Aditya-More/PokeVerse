@@ -112,7 +112,7 @@ class Haptics(context: Context) {
         return if (ok) c.compose() else null
     }
 
-    /** (timings ms, amplitudes 0..255) — first timing is an initial delay. */
+    /** (timings ms, amplitudes 0..255), first timing is an initial delay. */
     @RequiresApi(Build.VERSION_CODES.O)
     private fun waveform(h: Haptic): VibrationEffect? {
         val (t, a) = when (h) {
