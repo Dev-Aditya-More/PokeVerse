@@ -6,6 +6,7 @@ import androidx.glance.appwidget.updateAll
 import com.aditya1875.pokeverse.feature.game.core.data.billing.IBillingManager
 import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionRepository
 import org.koin.core.context.GlobalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,7 +33,8 @@ object StreakWidgetSync {
         val lastDailyXpDate: String,
         val dailyStreak: Int,
         val hasRested: Boolean,
-        val isPremium: Boolean
+        val isPremium: Boolean,
+        val look: String
     )
 
     fun start(context: Context, repository: UserProfileRepository) {
@@ -44,12 +46,16 @@ object StreakWidgetSync {
                 ?.filter { it !is SubscriptionState.Loading }
                 ?.map { it is SubscriptionState.Premium }
                 ?: flowOf(false)
-            combine(repository.profileFlow, premium) { it, isPremium ->
+            val progression = runCatching { GlobalContext.get().get<ProgressionRepository>().state.map { it.widget } }
+                .getOrNull()
+                ?: flowOf("")
+            combine(repository.profileFlow, premium, progression) { it, isPremium, look ->
                     Shown(
                         lastDailyXpDate = it.lastDailyXpDate,
                         dailyStreak = it.dailyStreak,
                         hasRested = it.restedXp > 0,
-                        isPremium = isPremium
+                        isPremium = isPremium,
+                        look = look
                     )
                 }
                 .distinctUntilChanged()

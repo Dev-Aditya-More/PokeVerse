@@ -39,7 +39,7 @@ fun DailyHoppingPokemon(
 
     // Pick today's Pokemon deterministically from the date, so it's the same
     // "mystery" Pokemon all day (even across app restarts) but a different one
-    // tomorrow — rather than a fresh random pick every time this composes.
+    // tomorrow, rather than a fresh random pick every time this composes.
     val pokemonId = remember {
         val ids = listOf(25, 133, 1, 4, 7, 10, 16, 39, 54, 152, 155, 158, 252, 255, 258, 387, 390, 393)
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -52,7 +52,7 @@ fun DailyHoppingPokemon(
 
     // Was pinned just above the bottom bar, which put it in a thin strip that's
     // easy to miss (and easy to confuse with real bottom-bar chrome). Crossing
-    // through the middle of the screen — where the eye is actually looking —
+    // through the middle of the screen, where the eye is actually looking
     // makes it far more likely to actually get noticed. A fresh random band
     // each pass (instead of one fixed height) also keeps it from always
     // cutting the same path.
@@ -94,7 +94,7 @@ fun DailyHoppingPokemon(
     )
 
     LaunchedEffect(Unit) {
-        // Keep giving the user chances to spot it throughout the session —
+        // Keep giving the user chances to spot it throughout the session
         // a single 8-second pass is too easy to miss entirely. It stops for
         // good once clicked (or claimed, which unmounts this composable).
         while (!hasBeenClicked) {
@@ -119,7 +119,7 @@ fun DailyHoppingPokemon(
     if (isVisible && !hasBeenClicked) {
         Box(
             // fillMaxSize() here was the bug: it made this Box as tall as the whole
-            // screen, so the content — centered *within* the box — ended up at
+            // screen, so the content, centered *within* the box, ended up at
             // fixedY + screenHeight/2, off the bottom of the screen on every device.
             // fillMaxWidth() lets the box wrap to just the content's height, so the
             // y-offset lands the sprite where fixedY actually says.

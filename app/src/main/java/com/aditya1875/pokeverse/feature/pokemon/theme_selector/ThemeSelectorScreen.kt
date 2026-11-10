@@ -78,6 +78,10 @@ import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.ProC
 import com.aditya1875.pokeverse.feature.pokemon.theme_selector.data.preferences.ThemePreferences
 import com.aditya1875.pokeverse.presentation.viewmodel.BillingViewModel
 import com.aditya1875.pokeverse.ui.theme.AppTheme
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionRepository
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionState
+import com.aditya1875.pokeverse.feature.progression.domain.Cosmetics
+import com.aditya1875.pokeverse.feature.core.navigation.components.Route
 import com.aditya1875.pokeverse.utils.localizedTypeName
 import com.aditya1875.pokeverse.utils.rememberAdaptiveHPadding
 import kotlinx.coroutines.launch
@@ -103,11 +107,16 @@ fun ThemeSelectorScreen(
     val subscriptionState by billingViewModel.subscriptionState.collectAsStateWithLifecycle()
     val isPremium = subscriptionState is SubscriptionState.Premium
 
+    // Pro themes bought with Poké Coins work for everyone, Pro or not.
+    val progression: ProgressionRepository = koinInject()
+    val progressionState by progression.state.collectAsState(initial = ProgressionState())
+    val coinThemes = Cosmetics.themeUnlockedBy(progressionState.owned)
+
     val themes = remember { getStarterThemes() }
 
     // What's actually applied (mirrors MainActivity). Display-only: the saved choice is never
     // overwritten, so a premium user whose billing is still loading can't lose their theme.
-    val safeTheme = if (currentTheme.isPremium && subscriptionState is SubscriptionState.Free) {
+    val safeTheme = if (currentTheme.isPremium && subscriptionState is SubscriptionState.Free && currentTheme.name !in coinThemes) {
         AppTheme.DEXVERSE
     } else currentTheme
     var showPremiumSheet by remember { mutableStateOf(false) }
@@ -116,7 +125,7 @@ fun ThemeSelectorScreen(
     val (freeThemes, proThemes) = remember(themes) { themes.partition { !it.premium } }
 
     fun choose(theme: StarterTheme) {
-        if (theme.premium && !isPremium) {
+        if (theme.premium && !isPremium && theme.theme.name !in coinThemes) {
             showPremiumSheet = true
             return
         }
@@ -182,7 +191,19 @@ fun ThemeSelectorScreen(
                 )
             }
             items(proThemes, key = { it.theme.name }) { theme ->
-                ThemeArtCard(theme, isSelected = safeTheme == theme.theme, isLocked = !isPremium) { choose(theme) }
+                ThemeArtCard(
+                    theme,
+                    isSelected = safeTheme == theme.theme,
+                    isLocked = !isPremium && theme.theme.name !in coinThemes
+                ) { choose(theme) }
+            }
+
+            if (!isPremium) {
+                item(key = "coin_themes", span = { GridItemSpan(maxLineSpan) }) {
+                    TextButton(onClick = { navController.navigate(Route.Rewards.route) }) {
+                        Text(stringResource(R.string.theme_unlock_with_coins))
+                    }
+                }
             }
         }
     }

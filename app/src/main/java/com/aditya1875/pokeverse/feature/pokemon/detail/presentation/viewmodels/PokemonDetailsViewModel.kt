@@ -16,7 +16,10 @@ import com.aditya1875.pokeverse.feature.pokemon.home.domain.repository.Descripti
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.usecase.GetEvolutionChainUiUseCase
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.usecase.GetPokemonByNameUseCase
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.usecase.GetPokemonDetailUseCase
+import com.aditya1875.pokeverse.utils.LoadErrorKind
 import com.aditya1875.pokeverse.utils.UiError
+import com.aditya1875.pokeverse.utils.toLoadErrorKind
+import com.aditya1875.pokeverse.utils.toUiError
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -39,7 +42,15 @@ class PokemonDetailsViewModel(
     private val _uiState = MutableStateFlow(PokemonDetailUiState())
     val uiState: StateFlow<PokemonDetailUiState> = _uiState
 
+    private var lastName: String? = null
+
+    /** Tries the last Pokémon again (the error screen's Retry, and the auto-retry when back online). */
+    fun retry() {
+        lastName?.let { loadPokemon(it) }
+    }
+
     fun loadPokemon(name: String) {
+        lastName = name
         viewModelScope.launch {
             xpManager.awardGameXP(XPEvent.FirstExplorationOfDay)
             _uiState.update { it.copy(isLoading = true, error = null) }
@@ -53,32 +64,43 @@ class PokemonDetailsViewModel(
                         description = result.description,
                         varieties = result.varieties,
                         flavorTextEntries = result.flavorTextEntries,
-                        isLoading = false
+                        isLoading = false,
+                        evolutionError = null
                     )
                 }
-                if (runCatching { pokedex.markSeen(result.pokemon.id) }.getOrDefault(false)) {
-                    _newEntry.tryEmit(result.pokemon.id)
-                }
 
-            } catch (e: IOException) {
-                _uiState.update {
-                    it.copy(isLoading = false, error = UiError.Network(e.message))
-                }
-                return@launch
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(isLoading = false, error = UiError.Unexpected(e.message))
-                }
+                // Keeps the real reason (offline, slow, server) so the screen can say so.
+                _uiState.update { it.copy(isLoading = false, error = e.toUiError()) }
                 return@launch
             }
 
-            try {
-                val evolution = getEvolutionChainUiUseCase(name)
-                _uiState.update { it.copy(evolutionUi = evolution) }
-            } catch (_: Exception) {
-                // ignore or log → don't break UI
-            }
+            loadEvolution(name)
         }
+    }
+
+    /** The evolution chain is a separate request: if it fails the page stays, with a retry in its place. */
+    private suspend fun loadEvolution(name: String) {
+        try {
+            val evolution = getEvolutionChainUiUseCase(name)
+            _uiState.update { it.copy(evolutionUi = evolution, evolutionError = null) }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            _uiState.update { it.copy(evolutionError = e.toLoadErrorKind()) }
+        }
+    }
+
+    fun retryEvolution() {
+        val name = lastName ?: return
+        _uiState.update { it.copy(evolutionError = null) }
+        viewModelScope.launch { loadEvolution(name) }
+    }
+
+    fun consumeVarietyError() {
+        _uiState.update { it.copy(varietyFailed = false) }
     }
 
     fun loadVarietyPokemon(name: String) {
@@ -87,10 +109,11 @@ class PokemonDetailsViewModel(
             try {
                 val pokemon = getPokemonByNameUseCase(name)
                 _uiState.update { it.copy(pokemon = pokemon, isLoading = false) }
-            } catch (e: IOException) {
-                _uiState.update { it.copy(isLoading = false, error = UiError.Network(e.message)) }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, error = UiError.Unexpected(e.message)) }
+                // The page the player is reading is fine: keep it, and just say the form didn't load.
+                _uiState.update { it.copy(isLoading = false, varietyFailed = true) }
             }
         }
     }
@@ -111,5 +134,9 @@ data class PokemonDetailUiState(
     val error: UiError? = null,
     val varieties: List<PokemonVariety> = emptyList(),
     val evolutionUi: EvolutionChainUi? = null,
-    val flavorTextEntries: List<FlavorTextEntry> = emptyList()
+    val flavorTextEntries: List<FlavorTextEntry> = emptyList(),
+    /** Set when only the evolution chain failed to load; the rest of the page is fine. */
+    val evolutionError: LoadErrorKind? = null,
+    /** Set when switching to another form failed; the current page stays up. */
+    val varietyFailed: Boolean = false
 )

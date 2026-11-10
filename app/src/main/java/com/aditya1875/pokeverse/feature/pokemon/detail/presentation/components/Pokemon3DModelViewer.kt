@@ -76,7 +76,7 @@ fun Pokemon3DModelViewer(
 
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         if (!hasError) {
-            // Shadow ellipse — shrinks and fades as sprite rises
+            // Shadow ellipse, shrinks and fades as sprite rises
             Canvas(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

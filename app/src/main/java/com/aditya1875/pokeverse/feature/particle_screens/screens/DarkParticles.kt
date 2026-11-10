@@ -44,7 +44,7 @@ fun DarkParticles(
                     x = 0.3f + (rnd.nextFloat() - 0.5f) * 0.9f,
                     y = 0.5f + (rnd.nextFloat() - 0.5f) * 0.9f,
 
-                    // bigger base sizes — gentle, wave-like orbs
+                    // bigger base sizes, gentle, wave-like orbs
                     radius = rnd.nextFloat() * 20.dp.toPxCustom(density) + 10.dp.toPxCustom(density),
                     color = listOf(
                         Color(0xFF111111),

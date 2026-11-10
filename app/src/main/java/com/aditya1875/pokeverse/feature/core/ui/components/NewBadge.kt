@@ -30,7 +30,7 @@ private val NewBadgeEnd = Color(0xFF00B8D4)
 /**
  * A small, gently pulsing "NEW" pill for flagging freshly-shipped features so
  * returning users notice them. Deliberately lighter-weight than
- * [LegendaryBadge] — this should read as a quiet nudge, not a big callout.
+ * [LegendaryBadge], this should read as a quiet nudge, not a big callout.
  */
 @Composable
 fun NewBadge(modifier: Modifier = Modifier) {

@@ -255,9 +255,9 @@ fun HydroPumpParticles(
 data class BubbleParticle(
     val x: Float,
     val y: Float,
-    val baseRadius: Float,     // Immutable — prevents compounding mutation bug
+    val baseRadius: Float,     // Immutable, prevents compounding mutation bug
     val velocityY: Float,
-    val driftSign: Float,      // +1 or -1 — determines sway direction
+    val driftSign: Float,      // +1 or -1, determines sway direction
     val phaseOffset: Double,   // Unique wave phase per particle
     val alpha: Float,
     val peakAlpha: Float,      // Max opacity ceiling, varies per particle

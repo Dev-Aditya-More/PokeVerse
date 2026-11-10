@@ -30,7 +30,7 @@ object FactEngine {
             val tmp = indices[i]; indices[i] = indices[j]; indices[j] = tmp
         }
 
-        // Wrap with modulo — no repeat for first facts.size days of the year
+        // Wrap with modulo, no repeat for first facts.size days of the year
         val factIndex = indices[(dayOfYear - 1) % facts.size]
         return facts[factIndex]
     }

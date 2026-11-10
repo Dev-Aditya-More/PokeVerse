@@ -175,7 +175,7 @@ private fun DrawScope.glow(color: Color, alpha: Float, cx: Float, cy: Float, rad
 
 private fun DrawScope.drawAurora(t: Float, par: Float, primary: Color, secondary: Color) {
     val w = size.width
-    // Glows trail the content as it scrolls (slower than 1:1) — the depth cue.
+    // Glows trail the content as it scrolls (slower than 1:1), the depth cue.
     glow(primary, 0.32f, 0.22f + 0.14f * sin(t * 0.13f), 0.16f + 0.06f * cos(t * 0.17f) - par * 0.6f, w * 1.0f)
     glow(secondary, 0.22f, 0.82f + 0.1f * cos(t * 0.11f), 0.48f + 0.08f * sin(t * 0.09f) - par * 0.35f, w * 0.9f)
     glow(primary, 0.15f, 0.35f + 0.18f * sin(t * 0.07f + 2f), 0.92f + 0.04f * cos(t * 0.12f) - par * 0.15f, w * 0.95f)

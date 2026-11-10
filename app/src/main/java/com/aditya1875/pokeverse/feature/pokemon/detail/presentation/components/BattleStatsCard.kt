@@ -183,7 +183,7 @@ private fun IntStepper(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Mainline Stat Calculator — IV / EV / Nature, pure math on PokeAPI base stats
+// Mainline Stat Calculator. IV / EV / Nature, pure math on PokeAPI base stats
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun StatCalculatorCard(pokemon: PokemonResponse, accentColor: Color) {
@@ -392,7 +392,7 @@ fun StatCalculatorCard(pokemon: PokemonResponse, accentColor: Color) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Pokémon GO CP Calculator — uses bundled GO base stats + CP multiplier table
+// Pokémon GO CP Calculator, uses bundled GO base stats + CP multiplier table
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun GoBattlePowerCard(
@@ -549,7 +549,7 @@ private fun GoIvSlider(label: String, value: Int, accentColor: Color, onValueCha
 private fun formatGoLevel(level: Float): String = level.toInt().toString()
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Guide sheets — plain-language explainers opened via "Learn more" on each card
+// Guide sheets, plain-language explainers opened via "Learn more" on each card
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun GuideSection(heading: String, body: String, accentColor: Color) {

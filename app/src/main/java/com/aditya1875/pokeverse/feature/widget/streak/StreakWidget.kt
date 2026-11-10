@@ -49,6 +49,8 @@ import com.aditya1875.pokeverse.feature.game.core.data.billing.SubscriptionState
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.context.GlobalContext
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionRepository
+import com.aditya1875.pokeverse.feature.progression.presentation.widgetAccentArgb
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -59,18 +61,21 @@ data class StreakSnapshot(
     val restedXp: Int,
     val week: List<WeekDay> = emptyList(),
     /** Pro look: gold rim, gold flame and a PRO pill. */
-    val isPremium: Boolean = false
+    val isPremium: Boolean = false,
+    /** Equipped coin-shop look ("widget_ember", ...), or empty for the stock card. A Pro rim wins over it. */
+    val look: String = ""
 ) {
     val mood: PikachuMood get() = status.mood()
     val days: Int get() = status.days()
-    val look: PikachuLook get() = PikachuLook.forStreak(days)
+    val outfit: PikachuLook get() = PikachuLook.forStreak(days)
 
     companion object {
-        fun from(profile: UserProfile, now: Calendar, isPremium: Boolean = false) = StreakSnapshot(
+        fun from(profile: UserProfile, now: Calendar, isPremium: Boolean = false, look: String = "") = StreakSnapshot(
             status = StreakStatus.from(profile.lastDailyXpDate, profile.dailyStreak, now),
             restedXp = profile.restedXp,
             week = WeekStrip.build(profile.lastDailyXpDate, profile.dailyStreak, now),
-            isPremium = isPremium
+            isPremium = isPremium,
+            look = look
         )
 
         val Empty = StreakSnapshot(StreakStatus.NotStarted, restedXp = 0, week = WeekStrip.build("", 0, Calendar.getInstance()))
@@ -81,7 +86,7 @@ data class StreakSnapshot(
  * Home-screen streak widget, starring Pikachu. Its mood (and the card's colour)
  * follows the streak: celebrating, waiting, panicking, or asleep. Its outfit
  * levels up with the streak and is lost with it. Layout and scale follow the
- * widget's actual size — see [WidgetLayout].
+ * widget's actual size, see [WidgetLayout].
  */
 class StreakWidget : GlanceAppWidget() {
 
@@ -92,7 +97,8 @@ class StreakWidget : GlanceAppWidget() {
         // A widget must never crash the launcher: any read failure renders the sleeping state.
         val snapshot = runCatching {
             val profile = GlobalContext.get().get<UserProfileRepository>().profileFlow.first()
-            StreakSnapshot.from(profile, Calendar.getInstance(), isPremium = isPremium())
+            val look = runCatching { GlobalContext.get().get<ProgressionRepository>().current().widget }.getOrDefault("")
+            StreakSnapshot.from(profile, Calendar.getInstance(), isPremium = isPremium(), look = look)
         }.getOrDefault(StreakSnapshot.Empty)
 
         provideContent { StreakWidgetContent(snapshot) }
@@ -132,6 +138,19 @@ private object WidgetColors {
 
 private fun color(c: Color) = ColorProvider(c)
 
+private fun widgetAccent(look: String): Color =
+    widgetAccentArgb(look)?.let { Color(it) } ?: WidgetColors.Text
+
+/** The rim drawable for a coin-shop widget look, or null for the stock card. */
+@DrawableRes
+private fun widgetFrameRes(look: String): Int? = when (look) {
+    "widget_royal" -> R.drawable.widget_frame_royal
+    "widget_ember" -> R.drawable.widget_frame_ember
+    "widget_ocean" -> R.drawable.widget_frame_ocean
+    "widget_mint" -> R.drawable.widget_frame_mint
+    else -> null
+}
+
 // ── Mood → visuals ──────────────────────────────────────────────────────────
 
 @DrawableRes
@@ -160,7 +179,7 @@ private fun PikachuMood.accent(): Color = when (this) {
 
 @DrawableRes
 private fun pikachuArt(snapshot: StreakSnapshot): Int =
-    if (snapshot.mood == PikachuMood.Sleeping) R.drawable.widget_pika_sleepy else snapshot.look.art()
+    if (snapshot.mood == PikachuMood.Sleeping) R.drawable.widget_pika_sleepy else snapshot.outfit.art()
 
 @DrawableRes
 private fun PikachuLook.art(): Int =
@@ -309,6 +328,8 @@ private fun StreakWidgetContent(snapshot: StreakSnapshot) {
         // Pro: a double gold rim over the card, edge to edge.
         if (snapshot.isPremium) {
             Box(modifier = GlanceModifier.fillMaxSize().background(ImageProvider(R.drawable.widget_frame_pro))) {}
+        } else widgetFrameRes(snapshot.look)?.let { frame ->
+            Box(modifier = GlanceModifier.fillMaxSize().background(ImageProvider(frame))) {}
         }
     }
 }
@@ -365,7 +386,7 @@ private fun LargeLayout(snapshot: StreakSnapshot, layout: WidgetLayout.Large) {
     }
 }
 
-/** Title, count, status, next outfit and rested XP — shared by the wide and large layouts. */
+/** Title, count, status, next outfit and rested XP, shared by the wide and large layouts. */
 @Composable
 private fun Details(
     snapshot: StreakSnapshot,
@@ -411,7 +432,7 @@ private fun PikachuStage(snapshot: StreakSnapshot, layout: WidgetLayout, modifie
     Box(modifier = modifier, contentAlignment = Alignment.Center) {
         Image(
             provider = ImageProvider(pikachuArt(snapshot)),
-            contentDescription = LocalContext.current.getString(snapshot.look.nameRes()),
+            contentDescription = LocalContext.current.getString(snapshot.outfit.nameRes()),
             contentScale = ContentScale.Fit,
             // Fill the stage's real (weighted) slot and scale to fit, rather than a size computed
             // from estimated text heights: the estimate drifted at some sizes and clipped Pikachu.
@@ -484,7 +505,13 @@ private fun StreakCount(snapshot: StreakSnapshot, numberSize: Float, scale: Floa
         Text(
             text = snapshot.days.toString(),
             style = TextStyle(
-                color = color(if (alive) WidgetColors.Text else WidgetColors.Muted),
+                color = color(
+                    when {
+                        !alive -> WidgetColors.Muted
+                        snapshot.look.isNotEmpty() && !snapshot.isPremium -> widgetAccent(snapshot.look)
+                        else -> WidgetColors.Text
+                    }
+                ),
                 fontSize = numberSize.sp(scale),
                 fontWeight = FontWeight.Bold
             )
@@ -492,7 +519,7 @@ private fun StreakCount(snapshot: StreakSnapshot, numberSize: Float, scale: Floa
         Spacer(GlanceModifier.width(4.dp))
         Text(
             // The number is drawn separately, so the plural carries no %d. Zero must read as plural
-            // ("0 dias", "0 jours"), but pt/fr/hi put 0 in the "one" category — so ask for "other".
+            // ("0 dias", "0 jours"), but pt/fr/hi put 0 in the "one" category, so ask for "other".
             text = context.resources.getQuantityString(R.plurals.widget_streak_days, if (snapshot.days == 0) 2 else snapshot.days),
             style = TextStyle(color = color(WidgetColors.Muted), fontSize = 12f.sp(scale))
         )
@@ -596,7 +623,7 @@ private fun WeekStripRow(snapshot: StreakSnapshot, scale: Float, dot: Dp, gap: D
     }
 }
 
-/** "Pop Star outfit in 3 days" — the reason to come back tomorrow. */
+/** "Pop Star outfit in 3 days", the reason to come back tomorrow. */
 @Composable
 private fun NextLookLine(snapshot: StreakSnapshot, scale: Float) {
     val context = LocalContext.current
@@ -620,7 +647,7 @@ private fun NextLookLine(snapshot: StreakSnapshot, scale: Float) {
     }
 }
 
-/** Opens the app's launcher activity — no hard dependency on a flavor-specific Activity class. */
+/** Opens the app's launcher activity, no hard dependency on a flavor-specific Activity class. */
 private fun launchIntent(context: Context): Intent =
     context.packageManager.getLaunchIntentForPackage(context.packageName)
         ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)

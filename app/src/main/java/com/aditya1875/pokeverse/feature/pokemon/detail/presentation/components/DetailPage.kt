@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.pokemon.detail.presentation.components
 
+import com.aditya1875.pokeverse.feature.core.ui.components.LoadErrorState
+import com.aditya1875.pokeverse.feature.core.ui.components.LoadErrorInline
+import com.aditya1875.pokeverse.utils.toLoadErrorKind
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
 import com.aditya1875.pokeverse.feature.game.premium.LocalPremium
@@ -165,6 +168,13 @@ fun PokemonDetailPage(
                 mediaPlayer.stop()
             }
             mediaPlayer.release()
+        }
+    }
+
+    LaunchedEffect(uiState.varietyFailed) {
+        if (uiState.varietyFailed) {
+            Toast.makeText(context, context.getString(R.string.load_error_variety), Toast.LENGTH_SHORT).show()
+            viewModel.consumeVarietyError()
         }
     }
 
@@ -780,7 +790,8 @@ fun PokemonDetailPage(
                                     onSpriteLoaded = { loaded ->
                                         showLoader = !loaded
                                     },
-                                    onSpriteError = { /* handle error if needed */ },
+                                    // A sprite that can't load must not leave the spinner up forever.
+                                    onSpriteError = { showLoader = false },
                                     showLoader = showLoader,
                                     show3DModel = show3DModel,
                                     modifier = Modifier
@@ -790,6 +801,26 @@ fun PokemonDetailPage(
                                     settingsViewModel = settingsViewModel
                                 )
                             }
+                        }
+
+                        // Alternate forms (id above the national dex) have no evolution line, so a failed load is not an error.
+                        uiState.evolutionError?.takeIf { pokemon.id in 1..com.aditya1875.pokeverse.feature.pokemon.dex.DexProgress.TOTAL }?.let { kind ->
+                            item {
+                                LoadErrorInline(onRetry = { viewModel.retryEvolution() }, kind = kind)
+                            }
+                        }
+
+                        // Evolve: only shows for a caught Pokémon that has a next form.
+                        item(key = "evolve-${pokemon.name}") {
+                            com.aditya1875.pokeverse.feature.evolution.presentation.EvolveSection(
+                                speciesName = pokemon.name,
+                                pokemonId = pokemon.id,
+                                artUrl = pokemon.sprites.other?.officialArtwork?.frontDefault
+                                    ?: pokemon.sprites.other?.home?.frontDefault
+                                    ?: pokemon.sprites.front_default.orEmpty(),
+                                accent = bgColor,
+                                onOpenShop = { navController.navigate(com.aditya1875.pokeverse.feature.core.navigation.components.Route.Rewards.route) },
+                            )
                         }
 
                         // Basic Info
@@ -1447,14 +1478,14 @@ fun PokemonDetailPage(
                         }
                     ) { innerPadding ->
 
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .padding(innerPadding),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(stringResource(R.string.detail_failed_to_load))
-                        }
+                        // Offline, slow, server or unknown: says which, retries on its own when the
+                        // connection returns, and never leaves the player at a dead end.
+                        LoadErrorState(
+                            kind = uiState.error?.toLoadErrorKind(),
+                            onRetry = { viewModel.retry() },
+                            onBack = { navController.popBackStack() },
+                            modifier = Modifier.padding(innerPadding)
+                        )
                     }
                 }
             }

@@ -14,8 +14,8 @@ const val GO_MAX_IV = 15
 const val GO_MAX_LEVEL = 45f
 
 /**
- * Pokémon GO uses its own base Attack/Defense/Stamina per species — distinct
- * from mainline base stats — plus a per-level CP Multiplier (CPM). Neither is
+ * Pokémon GO uses its own base Attack/Defense/Stamina per species, distinct
+ * from mainline base stats, plus a per-level CP Multiplier (CPM). Neither is
  * derivable from PokeAPI, so both are bundled from community-verified game
  * data (sourced via pogoapi.net, matching in-game values).
  */

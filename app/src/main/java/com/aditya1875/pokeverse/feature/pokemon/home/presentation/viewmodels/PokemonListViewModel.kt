@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels
 
+import com.aditya1875.pokeverse.utils.toUiError
 import com.aditya1875.pokeverse.feature.pokemon.dex.DexProgress
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,7 +83,7 @@ class PokemonListViewModel(
     //   else -> CONTENT
     //
     // The problem: when loadPokemonList() is first called, there is a brief
-    // moment where isLoading=false AND list=[] AND error=null — before
+    // moment where isLoading=false AND list=[] AND error=null, before
     // _isLoading.value = true is set inside the coroutine.
     // This caused the state machine to emit CONTENT with an empty list,
     // making the loading indicator disappear and reappear (the glitch).
@@ -157,14 +158,11 @@ class PokemonListViewModel(
             } catch (e: CancellationException) {
                 wasCancelled = true
                 throw e
-            } catch (e: IOException) {
-                _hasError.value = true
-                _uiState.update { it.copy(error = UiError.Network(e.message)) }
             } catch (e: Exception) {
                 _hasError.value = true
-                _uiState.update { it.copy(error = UiError.Unexpected(e.message)) }
+                _uiState.update { it.copy(error = e.toUiError()) }
             } finally {
-                // Don't reset isLoading if cancelled — setRegionFilter already did it
+                // Don't reset isLoading if cancelled, setRegionFilter already did it
                 if (!wasCancelled) _isLoading.value = false
             }
         }
@@ -318,7 +316,7 @@ class PokemonListViewModel(
     }
 
     // -------------------------
-    // Utils (TEMP — will move later)
+    // Utils (TEMP, will move later)
     // -------------------------
     private fun extractIdFromUrl(url: String): Int {
         return url.trimEnd('/')

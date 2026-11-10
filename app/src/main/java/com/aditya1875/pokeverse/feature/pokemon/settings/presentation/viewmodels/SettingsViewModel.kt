@@ -27,7 +27,6 @@ class SettingsViewModel(
 
     private val supportsShaders = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
-    private val ORIGINAL_ASSETS_KEY = booleanPreferencesKey("original_assets_enabled")
     private val SELECTED_GAME_KEY = stringPreferencesKey("selected_game")
     val ASSETS_BANNER_SEEN = booleanPreferencesKey("assets_banner_seen")
     val RATING_PROMPT_SEEN = booleanPreferencesKey("rating_prompt_seen")
@@ -48,22 +47,6 @@ class SettingsViewModel(
             ScreenStateManager.specialEffectsEnabledFlow(context).collect { persisted ->
                 _specialEffectsEnabled.value = persisted && supportsShaders
             }
-        }
-    }
-
-    // ── FIX: originalAssetsEnabled now reads from DataStore directly ──────────
-    // Before: MutableStateFlow(false) in memory — wiped on every process death.
-    // Now: backed by DataStore → survives process death, app kill, and low-memory kills.
-    val originalAssetsEnabled: StateFlow<Boolean> = context.dataStore.data
-        .map { it[ORIGINAL_ASSETS_KEY] ?: false }
-        .stateIn(viewModelScope, SharingStarted.Companion.Eagerly, false)
-
-    // FIX: toggleOriginalAssetsEnabled now writes to DataStore
-    // Before: only flipped the in-memory MutableStateFlow
-    fun toggleOriginalAssetsEnabled() {
-        viewModelScope.launch {
-            val current = originalAssetsEnabled.value
-            context.dataStore.edit { it[ORIGINAL_ASSETS_KEY] = !current }
         }
     }
 

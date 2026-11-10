@@ -77,7 +77,7 @@ import com.aditya1875.pokeverse.utils.localizedTypeName
 import com.aditya1875.pokeverse.utils.pokemonTypeColor
 import org.koin.compose.koinInject
 
-/** How a trainer likes to play — shown as a chip on the profile. [id] is what gets persisted. */
+/** How a trainer likes to play, shown as a chip on the profile. [id] is what gets persisted. */
 enum class PlayStyle(
     val id: String,
     val emoji: String,
@@ -96,7 +96,7 @@ enum class PlayStyle(
 
 private enum class Step { INTRO, NAME, TYPE, STYLE, PHRASE, CARD }
 
-private val TRAINER_TYPES = listOf(
+internal val TRAINER_TYPE_IDS = listOf(
     "normal", "fire", "water", "electric", "grass", "ice",
     "fighting", "poison", "ground", "flying", "psychic", "bug",
     "rock", "ghost", "dragon", "dark", "steel", "fairy"
@@ -254,7 +254,7 @@ fun TrainerCardSetup(
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier.fillMaxWidth(),
                             ) {
-                                TRAINER_TYPES.forEach { t ->
+                                TRAINER_TYPE_IDS.forEach { t ->
                                     TypePill(
                                         label = localizedTypeName(t),
                                         color = pokemonTypeColor(t),
@@ -431,7 +431,7 @@ private fun ChoiceRow(
     ) { content() }
 }
 
-/** The finished card — used as the last step and reusable anywhere the card should be shown. */
+/** The finished card, used as the last step and reusable anywhere the card should be shown. */
 @Composable
 fun TrainerCardPreview(
     name: String,

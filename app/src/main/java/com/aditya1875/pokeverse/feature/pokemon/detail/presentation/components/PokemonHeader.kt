@@ -90,8 +90,7 @@ fun PokemonDetailHeader(
     modifier: Modifier = Modifier,
     settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
-    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
-        .collectAsStateWithLifecycle()
+    val originalAssetsEnabled = true
 
     val typeList = pokemon?.types?.map { it.type.name } ?: emptyList()
     val context = LocalContext.current
@@ -217,19 +216,6 @@ fun PokemonDetailHeader(
                                 alpha = animatedAlpha
                                 scaleX = pressScale.value
                                 scaleY = pressScale.value
-                                if (!originalAssetsEnabled) {
-                                    colorFilter = when {
-                                        isShinyEnabled -> ColorFilter.tint(
-                                            Color(0xFFFFD700),
-                                            blendMode = BlendMode.SrcAtop
-                                        )
-
-                                        else -> ColorFilter.tint(
-                                            bgColor,
-                                            blendMode = BlendMode.SrcAtop
-                                        )
-                                    }
-                                }
                             }
                             .pointerInput(Unit) {
                                 detectTapGestures(

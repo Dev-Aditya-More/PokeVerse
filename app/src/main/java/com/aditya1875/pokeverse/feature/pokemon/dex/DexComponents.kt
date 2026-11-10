@@ -1,5 +1,10 @@
 package com.aditya1875.pokeverse.feature.pokemon.dex
 
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Icon
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.Spring
@@ -58,6 +63,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.aditya1875.pokeverse.R
+import androidx.compose.foundation.shape.CircleShape
+import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.CatchTier
+import androidx.compose.ui.unit.sp
 import java.text.NumberFormat
 
 private val BallRed = Color(0xFFE53935)
@@ -92,6 +100,10 @@ fun DexProgressStrip(
     progress: DexProgress,
     modifier: Modifier = Modifier,
     onPlayWildCatch: (() -> Unit)? = null,
+    /** The list filter currently applied, so the matching bar reads as selected. */
+    activeFilter: DexFilter = DexFilter.ALL,
+    /** Tapping Seen or Caught asks for that list; null leaves the bars as plain read-outs. */
+    onFilter: ((DexFilter) -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val rattle = remember { Animatable(0f) }
@@ -115,10 +127,39 @@ fun DexProgressStrip(
                     stringResource(R.string.dex_title),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f),
+                )
+                if (progress.loaded) {
+                    // Share of the catchable Pokédex that is filled in (evolved-away forms still count).
+                    val pct = (progress.caught.size * 100 / DexProgress.CATCHABLE).coerceIn(0, 100)
+                    Text(
+                        stringResource(R.string.dex_complete_pct, pct),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = BallRed,
+                    )
+                }
+            }
+            DexBar(
+                "seen", stringResource(R.string.dex_seen), progress.seenCount, DexProgress.TOTAL,
+                MaterialTheme.colorScheme.primary, progress.loaded, onBump,
+                selected = activeFilter == DexFilter.SEEN,
+                onClick = onFilter?.let { f -> { f(DexFilter.SEEN) } },
+            )
+            DexBar(
+                "caught", stringResource(R.string.dex_caught), progress.caughtCount, DexProgress.CATCHABLE,
+                BallRed, progress.loaded, onBump,
+                selected = activeFilter == DexFilter.CAUGHT,
+                onClick = onFilter?.let { f -> { f(DexFilter.CAUGHT) } },
+            )
+            if (progress.loaded) RarityBreakdown(progress.tierCounts)
+            if (onFilter != null && activeFilter == DexFilter.ALL) {
+                Text(
+                    stringResource(R.string.dex_tap_to_filter),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
                 )
             }
-            DexBar("seen", stringResource(R.string.dex_seen), progress.seenCount, DexProgress.TOTAL, MaterialTheme.colorScheme.primary, progress.loaded, onBump)
-            DexBar("caught", stringResource(R.string.dex_caught), progress.caughtCount, DexProgress.CATCHABLE, BallRed, progress.loaded, onBump)
             // Caught only comes from Wild Catch, so say so (and offer the shortcut).
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -137,6 +178,58 @@ fun DexProgressStrip(
     }
 }
 
+/**
+ * How many different species of each category are in the Pokédex, rarest first: one tile per category with a
+ * glowing gem in its colour, the count, and the name. The tiles share the row, so they scale with the screen.
+ */
+@Composable
+fun RarityBreakdown(counts: Map<CatchTier, Int>, modifier: Modifier = Modifier) {
+    val entries = listOf(
+        Triple(CatchTier.LEGENDARY, R.string.legendary, Color(0xFFFFB300)),
+        Triple(CatchTier.EPIC, R.string.wildcatch_tier_epic, Color(0xFFAB47BC)),
+        Triple(CatchTier.RARE, R.string.wildcatch_tier_rare, Color(0xFF42A5F5)),
+        Triple(CatchTier.UNCOMMON, R.string.wildcatch_tier_uncommon, Color(0xFF66BB6A)),
+        Triple(CatchTier.COMMON, R.string.wildcatch_tier_common, Color(0xFF9E9E9E)),
+    )
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        entries.forEach { (tier, label, color) ->
+            val count = counts[tier] ?: 0
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+                border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = if (count > 0) 0.55f else 0.2f)),
+                modifier = Modifier.weight(1f),
+            ) {
+                Column(
+                    Modifier.padding(vertical = 8.dp, horizontal = 2.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    // A small gem: a soft halo under a solid dot.
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(18.dp)) {
+                        Box(Modifier.size(18.dp).clip(CircleShape).background(color.copy(alpha = if (count > 0) 0.28f else 0.1f)))
+                        Box(Modifier.size(9.dp).clip(CircleShape).background(color.copy(alpha = if (count > 0) 1f else 0.4f)))
+                    }
+                    Text(
+                        NumberFormat.getIntegerInstance().format(count),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = if (count > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    )
+                    Text(
+                        stringResource(label),
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
 /** Count each bar showed the last time it was on screen, for the lifetime of the process. */
 private val lastShownCounts = mutableMapOf<String, Int>()
 
@@ -149,6 +242,8 @@ private fun DexBar(
     color: Color,
     loaded: Boolean,
     onBump: () -> Unit,
+    selected: Boolean = false,
+    onClick: (() -> Unit)? = null,
 ) {
     // Start from where this bar stood last time, so a Pokémon found on another screen animates in
     // when you come back instead of simply being there.
@@ -198,9 +293,30 @@ private fun DexBar(
         label = "dexBar",
     )
     val nf = NumberFormat.getIntegerInstance()
-    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+    // The whole bar is the button: a plain progress read-out gave nobody a reason to tap it.
+    val rowShape = RoundedCornerShape(12.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(rowShape)
+            .then(if (selected) Modifier.background(color.copy(alpha = 0.14f)) else Modifier)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            .padding(horizontal = 6.dp, vertical = 5.dp),
+        verticalArrangement = Arrangement.spacedBy(3.dp)
+    ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (selected) {
+                    Text(
+                        "  ·  " + stringResource(R.string.dex_showing),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = color,
+                    )
+                }
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
             Box(contentAlignment = Alignment.Center) {
                 Text(
                     nf.format(shown),
@@ -220,6 +336,15 @@ private fun DexBar(
                         },
                     )
                 }
+            }
+            if (onClick != null) {
+                Icon(
+                    if (selected) Icons.Default.Check else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = if (selected) color else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
             }
         }
         Row(

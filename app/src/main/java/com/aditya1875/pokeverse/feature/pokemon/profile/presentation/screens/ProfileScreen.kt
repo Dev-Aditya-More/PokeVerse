@@ -23,18 +23,26 @@ import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.
 import com.aditya1875.pokeverse.presentation.auth.AuthState
 import com.aditya1875.pokeverse.utils.rememberAdaptiveHPaddingProfile
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionRepository
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionState
+import com.aditya1875.pokeverse.feature.progression.presentation.RewardsEntryCard
 
 @Composable
 fun ProfileScreen(
     onSettingsClick: () -> Unit,
+    onRewardsClick: () -> Unit,
     onEditName: () -> Unit,
     onPlayWildCatch: () -> Unit,
+    /** Opens Home showing only the Pokémon behind the tapped Seen or Caught card. */
+    onOpenDexList: () -> Unit = {},
     viewModel: ProfileViewModel = koinViewModel()
 ) {
     val profile by viewModel.userProfile.collectAsStateWithLifecycle()
     val authState by viewModel.authState.collectAsStateWithLifecycle()
     val currentUser by viewModel.currentUser.collectAsStateWithLifecycle()
     val photoUploading by viewModel.photoUploading.collectAsStateWithLifecycle()
+    val progression by koinInject<ProgressionRepository>().state.collectAsStateWithLifecycle(ProgressionState())
     val dexViewModel: PokedexViewModel = koinViewModel()
     val dexProgress by dexViewModel.progress.collectAsStateWithLifecycle()
 
@@ -71,6 +79,7 @@ fun ProfileScreen(
             Spacer(Modifier.height(8.dp))
             ProfileHeader(
                 profile = profile,
+                progression = progression,
                 currentUser = currentUser,
                 onEditName = onEditName,
                 photoUploading = photoUploading,
@@ -92,7 +101,20 @@ fun ProfileScreen(
                     item { StatsSection(profile = profile) }
                 }
 
-                item { DexProgressStrip(dexProgress, onPlayWildCatch = onPlayWildCatch) }
+                if (!profile.isGuest) {
+                    item { RewardsEntryCard(progression = progression, onClick = onRewardsClick) }
+                }
+
+                item {
+                    DexProgressStrip(
+                        dexProgress,
+                        onPlayWildCatch = onPlayWildCatch,
+                        onFilter = { picked ->
+                            dexViewModel.requestFilter(picked)
+                            onOpenDexList()
+                        }
+                    )
+                }
 
                 item { FactOfTheDayCard(onRevealed = viewModel::claimDailyFactXp) }
 

@@ -1,6 +1,6 @@
 package com.aditya1875.pokeverse.feature.widget.streak
 
-/** How Pikachu feels about your streak right now — drives the art, card colour and speech bubble. */
+/** How Pikachu feels about your streak right now, drives the art, card colour and speech bubble. */
 enum class PikachuMood { Happy, Waiting, Panicking, Sleeping }
 
 fun StreakStatus.mood(): PikachuMood = when (this) {
@@ -18,7 +18,7 @@ fun StreakStatus.days(): Int = when (this) {
 
 /**
  * Costumes Pikachu unlocks as the streak grows. Losing the streak takes the
- * outfit away — the reason the widget is worth glancing at every day.
+ * outfit away, the reason the widget is worth glancing at every day.
  * Ordered by [minDays].
  */
 enum class PikachuLook(val minDays: Int) {

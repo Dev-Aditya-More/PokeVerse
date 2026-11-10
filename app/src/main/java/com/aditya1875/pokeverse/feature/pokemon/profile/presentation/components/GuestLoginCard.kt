@@ -46,7 +46,7 @@ fun GuestLoginCard(viewModel: ProfileViewModel = koinViewModel()) {
         else -> {
             val raw = (authState as AuthState.Error).message.lowercase()
             when {
-                "cancelled" in raw -> null  // user dismissed — no message
+                "cancelled" in raw -> null  // user dismissed, no message
                 "no_credentials" in raw -> context.getString(R.string.profile_error_no_credentials)
                 "network" in raw ||
                         "internet" in raw -> context.getString(R.string.profile_error_no_internet)
@@ -118,7 +118,7 @@ fun GuestLoginCard(viewModel: ProfileViewModel = koinViewModel()) {
                 }
             }
 
-            // Only show error when it's actionable — never show "cancelled"
+            // Only show error when it's actionable, never show "cancelled"
             if (friendlyError != null) {
                 Spacer(Modifier.height(8.dp))
                 Text(

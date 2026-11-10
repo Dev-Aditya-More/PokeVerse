@@ -65,6 +65,7 @@ sealed class Route(val route: String) {
     object DuelPlay : Route("duel/play")
 
     object WildCatchPlay : Route("wildcatch/play")
+    object BattlePlay : Route("battle/play")
 
     object SurvivorPlay : Route("survivor/play")
 
@@ -76,6 +77,8 @@ sealed class Route(val route: String) {
     }
 
     object ThemeSelector : Route("theme_selector")
+
+    object Rewards : Route("rewards")
 
     object FaceMatch : Route("face_match")
 

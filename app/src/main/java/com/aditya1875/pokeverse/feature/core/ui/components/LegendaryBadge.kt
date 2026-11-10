@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.core.ui.components
 
+import androidx.compose.ui.draw.drawBehind
 import com.aditya1875.pokeverse.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -72,12 +73,66 @@ private fun CalmLegendaryBadge(modifier: Modifier) {
 }
 
 /**
+ * A glowing but readable badge: the same dark pill and gold text as the calm one (so the words keep their
+ * contrast), with a slow pulsing gold halo around it. For spots where a Legendary should feel special
+ * without a shimmer sweeping across the text.
+ */
+@Composable
+private fun GlowLegendaryBadge(modifier: Modifier) {
+    val glow by rememberInfiniteTransition(label = "legendary_glow")
+        .animateFloat(
+            initialValue = 0.05f, targetValue = 0.16f,
+            animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
+            label = "glow"
+        )
+    Row(
+        modifier = modifier
+            // The halo is drawn first and outside the pill, so it never sits behind the text.
+            .drawBehind {
+                drawRoundRect(
+                    brush = Brush.radialGradient(
+                        listOf(LegendaryGold.copy(alpha = glow), Color.Transparent),
+                        center = center,
+                        radius = size.maxDimension * 0.7f
+                    ),
+                    topLeft = Offset(-size.width * 0.12f, -size.height * 0.4f),
+                    size = androidx.compose.ui.geometry.Size(size.width * 1.24f, size.height * 1.8f),
+                )
+            }
+            .clip(RoundedCornerShape(50))
+            .background(Color(0xFF2E2200))
+            .border(1.dp, LegendaryGold.copy(alpha = 0.5f + glow * 0.8f), RoundedCornerShape(50))
+            .padding(horizontal = 12.dp, vertical = 5.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        Icon(
+            Icons.Default.Star,
+            contentDescription = stringResource(R.string.legendary),
+            tint = LegendaryGold,
+            modifier = Modifier.size(13.dp)
+        )
+        Text(
+            stringResource(R.string.legendary_badge),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFFFFE08A),
+            letterSpacing = 0.6.sp
+        )
+    }
+}
+
+/**
  * Eye-catching pill marking a Pokémon as Legendary/Mythical: a solid gold
  * gradient, a twinkling rotating star, a light-sweep shimmer, and a soft
  * pulsing glow halo behind it.
  */
 @Composable
-fun LegendaryBadge(modifier: Modifier = Modifier, calm: Boolean = false) {
+fun LegendaryBadge(modifier: Modifier = Modifier, calm: Boolean = false, glow: Boolean = false) {
+    if (glow) {
+        GlowLegendaryBadge(modifier)
+        return
+    }
     if (calm) {
         CalmLegendaryBadge(modifier)
         return

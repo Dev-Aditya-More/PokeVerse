@@ -17,7 +17,7 @@ sealed interface StreakStatus {
 
     /** Streak alive from yesterday but today isn't claimed yet. */
     data class AtRisk(val days: Int, val hoursLeft: Int) : StreakStatus {
-        /** Last few hours of the day — the widget switches to an urgent look. */
+        /** Last few hours of the day, the widget switches to an urgent look. */
         val isUrgent: Boolean get() = hoursLeft <= URGENT_HOURS
     }
 

@@ -113,13 +113,8 @@ fun SettingsScreen(
     var isAboutExpanded by remember { mutableStateOf(false) }
     var isSpecialEffectsExpanded by remember { mutableStateOf(!supportsShaders) }
 
-    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
-        .collectAsStateWithLifecycle()
-
-    var showOriginalAssetsDialog by remember { mutableStateOf(false) }
     var isPrivacyPolicyExpanded by remember { mutableStateOf(false) }
     var isHelpExpanded by remember { mutableStateOf(false) }
-    var isAssetsExpanded by remember { mutableStateOf(false) }
 
     val selectedLanguage by settingsViewModel.selectedLanguage.collectAsStateWithLifecycle()
     var showLanguageDialog by remember { mutableStateOf(false) }
@@ -313,30 +308,6 @@ fun SettingsScreen(
                     )
                 }
 
-                // Original Assets
-                SettingsCard(
-                    title = stringResource(R.string.settings_original_assets),
-                    icon = Icons.Default.PhotoLibrary,
-                    iconTint = MaterialTheme.colorScheme.onSurface,
-                    expanded = isAssetsExpanded,
-                    onExpandToggle = { isAssetsExpanded = !isAssetsExpanded },
-                    trailing = {
-                        ResponsiveMetaballSwitch(
-                            checked = originalAssetsEnabled,
-                            onCheckedChange = { checked ->
-                                if (checked) showOriginalAssetsDialog = true
-                                else settingsViewModel.toggleOriginalAssetsEnabled()
-                            }
-                        )
-                    }
-                ) {
-                    Text(
-                        stringResource(R.string.settings_original_assets_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    )
-                }
-
                 val mysterySilhouettes by settingsViewModel.mysterySilhouettes.collectAsStateWithLifecycle()
                 var isMysteryExpanded by remember { mutableStateOf(false) }
                 SettingsCard(
@@ -381,27 +352,6 @@ fun SettingsScreen(
                     )
                 }
 
-                if (showOriginalAssetsDialog) {
-                    AlertDialog(
-                        onDismissRequest = { showOriginalAssetsDialog = false },
-                        title = { Text(stringResource(R.string.settings_original_assets)) },
-                        text = { Text(stringResource(R.string.settings_original_assets_dialog_body)) },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                settingsViewModel.toggleOriginalAssetsEnabled()
-                                showOriginalAssetsDialog = false
-                            }) {
-                                Text(stringResource(R.string.settings_understand_enable))
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = { showOriginalAssetsDialog = false }) {
-                                Text(stringResource(R.string.cancel))
-                            }
-                        }
-                    )
-                }
-
                 // Special Effects
                 SettingsCard(
                     title = stringResource(R.string.settings_special_effects),
@@ -432,7 +382,7 @@ fun SettingsScreen(
                     )
                 }
 
-                // Home-screen streak widget — always reachable here, even for people who said "not now"
+                // Home-screen streak widget, always reachable here, even for people who said "not now"
                 SettingsCard(
                     title = stringResource(R.string.settings_widget),
                     icon = Icons.Default.Widgets,
@@ -467,7 +417,7 @@ fun SettingsScreen(
                 }
                 if (showWidgetSteps) StreakWidgetManualStepsDialog(onDismiss = { showWidgetSteps = false })
 
-                // Shiny Dex (premium) — non-premium users get the upsell instead of the switch flipping
+                // Shiny Dex (premium), non-premium users get the upsell instead of the switch flipping
                 val isPremium = subscriptionState is SubscriptionState.Premium
                 SettingsCard(
                     title = stringResource(R.string.settings_shiny_dex),

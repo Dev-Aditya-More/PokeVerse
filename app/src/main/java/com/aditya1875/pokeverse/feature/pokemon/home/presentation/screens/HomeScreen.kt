@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.pokemon.home.presentation.screens
 
+import androidx.compose.runtime.mutableIntStateOf
+import com.aditya1875.pokeverse.feature.core.ui.components.LoadErrorState
+import com.aditya1875.pokeverse.utils.toLoadErrorKind
 import com.aditya1875.pokeverse.feature.pokemon.dex.DexFilter
 import androidx.compose.ui.text.style.TextAlign
 import android.app.Activity
@@ -235,20 +238,36 @@ fun SharedTransitionScope.HomeScreen(
         onRefresh = { viewModel.refreshList() }
     )
 
-    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
+    val originalAssetsEnabled = true
     val mysteryMode by settingsViewModel.mysterySilhouettes.collectAsStateWithLifecycle()
     val dexViewModel: PokedexViewModel = koinViewModel()
+    val challengesViewModel: com.aditya1875.pokeverse.feature.challenges.presentation.ChallengesViewModel = koinViewModel()
+    val challengesUi by challengesViewModel.ui.collectAsStateWithLifecycle()
+    var challengesOpen by rememberSaveable { mutableStateOf(false) }
+    var rewardBurst by remember { mutableStateOf<com.aditya1875.pokeverse.feature.challenges.domain.BallReward?>(null) }
+    androidx.compose.runtime.LaunchedEffect(Unit) { challengesViewModel.paid.collect { rewardBurst = it } }
     val dexProgress by dexViewModel.progress.collectAsStateWithLifecycle()
     var dexFilter by rememberSaveable { mutableStateOf(DexFilter.ALL) }
     // Seen/Caught need the whole region in memory, not just the pages scrolled so far.
     LaunchedEffect(dexFilter, isLoading, viewModel.endReached) {
         if (dexFilter != DexFilter.ALL && !isLoading) viewModel.loadRemaining()
     }
+    // A request from another screen (Profile's Seen/Caught cards) to open the list filtered.
+    var dexScrollTick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(Unit) {
+        dexViewModel.requestedFilter.collect { requested ->
+            if (requested != null) {
+                dexFilter = requested
+                dexViewModel.consumeRequestedFilter()
+                dexScrollTick++
+            }
+        }
+    }
     val visiblePokemon = remember(pokemonList, dexFilter, dexProgress) {
         when (dexFilter) {
             DexFilter.ALL -> pokemonList
             DexFilter.SEEN -> pokemonList.filter { pokemonIdFromUrl(it.url) in dexProgress.seen }
-            DexFilter.CAUGHT -> pokemonList.filter { pokemonIdFromUrl(it.url) in dexProgress.caught }
+            DexFilter.CAUGHT -> pokemonList.filter { pokemonIdFromUrl(it.url) in dexProgress.roster }
         }
     }
 
@@ -257,6 +276,13 @@ fun SharedTransitionScope.HomeScreen(
     var showFilters by rememberSaveable { mutableStateOf(false) }
 
     val pokemonGridState = rememberLazyGridState()
+    // After a filter is chosen, bring the matching Pokémon into view right under the cards.
+    LaunchedEffect(dexScrollTick) {
+        if (dexScrollTick == 0) return@LaunchedEffect
+        kotlinx.coroutines.delay(80)
+        val strip = pokemonGridState.layoutInfo.visibleItemsInfo.firstOrNull { it.key == "dex_progress" }
+        pokemonGridState.animateScrollToItem(strip?.index ?: 0)
+    }
     val itemGridState = rememberLazyGridState()
     val berryGridState = rememberLazyGridState()
 
@@ -402,12 +428,10 @@ fun SharedTransitionScope.HomeScreen(
     val dexModeDiscovered by dexModeStore.discovered.collectAsStateWithLifecycle()
 
     HomePopupOrchestrator(
-        originalAssetsEnabled = originalAssetsEnabled,
         totalSessionMinutes = totalSessionMinutes,
         isGuest = profile.isGuest,
         isPremium = isPremium,
         dailyStreak = profile.dailyStreak,
-        onEnableAssets = { settingsViewModel.toggleOriginalAssetsEnabled() },
         onRateNow = {
             activity?.let { reviewManager.requestReview(it) }
         },
@@ -420,6 +444,7 @@ fun SharedTransitionScope.HomeScreen(
             showInviteSheet = true
         },
         onOpenFeedback = { showFeedbackSheet = true },
+        onOpenRewards = { navController.navigate(Route.Rewards.route) },
     )
 
     if (showPremiumSheet) {
@@ -573,7 +598,6 @@ fun SharedTransitionScope.HomeScreen(
                                     leadingIcon = {
                                         Icon(Icons.Default.PhoneAndroid, contentDescription = null, tint = Color(0xFFE53935))
                                     },
-                                    trailingIcon = { NewBadge() },
                                     onClick = {
                                         navController.navigate(Route.DexMode.route)
                                         showMenu = false
@@ -596,7 +620,6 @@ fun SharedTransitionScope.HomeScreen(
                                     leadingIcon = {
                                         Icon(Icons.Default.CompareArrows, contentDescription = null)
                                     },
-                                    trailingIcon = { NewBadge() },
                                     onClick = {
                                         navController.navigate(Route.ComparePokemon.route)
                                         showMenu = false
@@ -608,7 +631,6 @@ fun SharedTransitionScope.HomeScreen(
                                     leadingIcon = {
                                         Icon(Icons.Default.Calculate, contentDescription = null)
                                     },
-                                    trailingIcon = { NewBadge() },
                                     onClick = {
                                         navController.navigate(Route.StatCalculator.route)
                                         showMenu = false
@@ -633,8 +655,10 @@ fun SharedTransitionScope.HomeScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.Bottom
                 ) {
-                    // Dex Daily moved to a card at the top of the list; keeps the Clash button in place.
-                    Spacer(Modifier.size(52.dp))
+                    com.aditya1875.pokeverse.feature.challenges.presentation.ChallengesFab(
+                        waiting = challengesUi.waiting,
+                        onClick = { challengesOpen = true },
+                    )
 
                     Box(contentAlignment = Alignment.Center) {
                         // Sonar ring 1
@@ -687,6 +711,19 @@ fun SharedTransitionScope.HomeScreen(
         ) { paddingValues ->
 
             val focusManager = LocalFocusManager.current
+
+            if (challengesOpen) {
+                com.aditya1875.pokeverse.feature.challenges.presentation.ChallengesSheet(
+                    ui = challengesUi,
+                    onClaim = challengesViewModel::claim,
+                    onClaimSweep = challengesViewModel::claimSweep,
+                    onClaimAll = challengesViewModel::claimAll,
+                    onDismiss = { challengesOpen = false },
+                )
+            }
+            rewardBurst?.let { r ->
+                com.aditya1875.pokeverse.feature.challenges.presentation.RewardBurst(r) { rewardBurst = null }
+            }
 
             dexDailyOpen?.let { date ->
                 DexDailySheet(dexDailyViewModel, date, onDismiss = { dexDailyViewModel.close() })
@@ -931,39 +968,11 @@ fun SharedTransitionScope.HomeScreen(
                             }
                         }
 
-                        ScreenState.ERROR -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.background),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(15.dp)
-                                ) {
-                                    Image(
-                                        painter = painterResource(R.drawable.nointrnet),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(260.dp),
-                                        contentScale = ContentScale.Fit
-                                    )
-
-                                    val (title, subtitle) = when (uiState.error) {
-                                        is UiError.Network -> stringResource(R.string.error_no_internet_title) to stringResource(R.string.error_no_internet_subtitle)
-                                        is UiError.Unexpected -> stringResource(R.string.error_unexpected_title) to stringResource(R.string.error_unexpected_subtitle)
-                                        else -> stringResource(R.string.error_unknown_title) to stringResource(R.string.error_unknown_subtitle)
-                                    }
-
-                                    Text(title)
-                                    Text(subtitle)
-
-                                    Button(onClick = { viewModel.retry() }) {
-                                        Text(stringResource(R.string.action_retry))
-                                    }
-                                }
-                            }
-                        }
+                        ScreenState.ERROR -> LoadErrorState(
+                            kind = uiState.error?.toLoadErrorKind(),
+                            onRetry = { viewModel.retry() },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                        )
 
                         ScreenState.CONTENT ->
                             Box(modifier = Modifier.fillMaxSize()) {
@@ -1002,7 +1011,13 @@ fun SharedTransitionScope.HomeScreen(
                                             item(key = "dex_progress", span = { GridItemSpan(maxLineSpan) }) {
                                                 DexProgressStrip(
                                                     dexProgress,
-                                                    onPlayWildCatch = { navController.navigate(Route.WildCatchPlay.route) }
+                                                    onPlayWildCatch = { navController.navigate(Route.WildCatchPlay.route) },
+                                                    activeFilter = dexFilter,
+                                                    // Tapping the active card again clears the filter.
+                                                    onFilter = { picked ->
+                                                        dexFilter = if (dexFilter == picked) DexFilter.ALL else picked
+                                                        dexScrollTick++
+                                                    }
                                                 )
                                             }
 
@@ -1032,11 +1047,7 @@ fun SharedTransitionScope.HomeScreen(
 
                                                 val dexId = pokemonIdFromUrl(pokemon.url)
                                                 val inDexSeen = dexId in dexProgress.seen
-                                                val inDexCaught = dexId in dexProgress.caught
-                                                // Whatever is already on a team / favourited is seen, so the dex catches up as you browse.
-                                                LaunchedEffect(isInTeam, isFavorite, inDexSeen) {
-                                                    if ((isInTeam || isFavorite) && !inDexSeen) dexViewModel.markSeen(dexId)
-                                                }
+                                                val inDexCaught = dexId in dexProgress.roster
 
                                                 ImprovedPokemonCard(
                                                     pokemon = pokemon,
@@ -1252,7 +1263,7 @@ fun SharedTransitionScope.HomeScreen(
                                         HomeContentMode.POKEMON -> isLoading
                                         HomeContentMode.ITEMS -> itemListState is ItemListState.Loading
                                         HomeContentMode.BERRIES -> berryListState is BerryListState.Loading
-                                        // Badges & characters are bundled data — never loading
+                                        // Badges & characters are bundled data, never loading
                                         else -> false
                                     },
                                     state = pullRefreshState,

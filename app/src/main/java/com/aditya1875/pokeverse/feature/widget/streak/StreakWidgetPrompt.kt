@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.R
 
 /**
- * "Put your streak on your home screen?" — the only way most people ever find the
+ * "Put your streak on your home screen?", the only way most people ever find the
  * widget. When the launcher can't pin widgets, it explains the manual steps instead.
  */
 @Composable

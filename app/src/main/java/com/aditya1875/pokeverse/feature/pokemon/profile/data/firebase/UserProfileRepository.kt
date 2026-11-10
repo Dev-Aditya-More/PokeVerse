@@ -46,12 +46,17 @@ class UserProfileRepository(private val context: Context) {
         val BEST_WILDCATCH = intPreferencesKey("best_wildcatch")
         val BEST_SURVIVOR = intPreferencesKey("best_survivor")
         val BEST_CHASE = intPreferencesKey("best_chase")
+        val BEST_BATTLE = intPreferencesKey("best_battle")
+        val BATTLES_PLAYED = intPreferencesKey("battles_played")
         val IS_GUEST = booleanPreferencesKey("is_guest")
         val LAST_DAILY_DATE = stringPreferencesKey("last_daily_date")
         val DAILY_STREAK = intPreferencesKey("daily_streak")
         val LAST_EXPLORATION_DATE = stringPreferencesKey("last_exploration_date")
         val LAST_FIRST_GAME_DATE = stringPreferencesKey("last_first_game_date")
         val LAST_EASTER_EGG_DATE = stringPreferencesKey("last_easter_egg_date")
+        val LAST_DAILY_FACT_DATE = stringPreferencesKey("last_daily_fact_date")
+        val LAST_DEX_DAILY_DATE = stringPreferencesKey("last_dex_daily_date")
+        val FEEDBACK_THANKS = booleanPreferencesKey("feedback_thanks_claimed")
         val DAILY_GAME_XP = intPreferencesKey("daily_game_xp")
         val DAILY_GAME_XP_DATE = stringPreferencesKey("daily_game_xp_date")
         val RESTED_XP = intPreferencesKey("rested_xp")
@@ -96,10 +101,15 @@ class UserProfileRepository(private val context: Context) {
             bestWildCatchScore = p[K.BEST_WILDCATCH] ?: 0,
             bestSurvivorScore = p[K.BEST_SURVIVOR] ?: 0,
             bestChaseScore = p[K.BEST_CHASE] ?: 0,
+            bestBattleScore = p[K.BEST_BATTLE] ?: 0,
+            battlesPlayed = p[K.BATTLES_PLAYED] ?: 0,
             isGuest = p[K.IS_GUEST] ?: true,
             lastDailyXpDate = p[K.LAST_DAILY_DATE] ?: "",
             lastFirstGameXpDate = p[K.LAST_FIRST_GAME_DATE] ?: "",
             lastEasterEggXpDate = p[K.LAST_EASTER_EGG_DATE] ?: "",
+            lastDailyFactXpDate = p[K.LAST_DAILY_FACT_DATE] ?: "",
+            lastDexDailyXpDate = p[K.LAST_DEX_DAILY_DATE] ?: "",
+            feedbackThanksClaimed = p[K.FEEDBACK_THANKS] ?: false,
             dailyGameXp = p[K.DAILY_GAME_XP] ?: 0,
             dailyGameXpDate = p[K.DAILY_GAME_XP_DATE] ?: "",
             restedXp = p[K.RESTED_XP] ?: 0,
@@ -136,9 +146,14 @@ class UserProfileRepository(private val context: Context) {
             p[K.BEST_WILDCATCH] = profile.bestWildCatchScore
             p[K.BEST_SURVIVOR] = profile.bestSurvivorScore
             p[K.BEST_CHASE] = profile.bestChaseScore
+            p[K.BEST_BATTLE] = profile.bestBattleScore
+            p[K.BATTLES_PLAYED] = profile.battlesPlayed
             p[K.IS_GUEST] = profile.isGuest
             p[K.LAST_EXPLORATION_DATE] = profile.lastExplorationXpDate
             p[K.LAST_FIRST_GAME_DATE] = profile.lastFirstGameXpDate
+            p[K.LAST_DAILY_FACT_DATE] = profile.lastDailyFactXpDate
+            p[K.LAST_DEX_DAILY_DATE] = profile.lastDexDailyXpDate
+            p[K.FEEDBACK_THANKS] = profile.feedbackThanksClaimed
             p[K.LAST_EASTER_EGG_DATE] = profile.lastEasterEggXpDate
             p[K.DAILY_GAME_XP] = profile.dailyGameXp
             p[K.DAILY_GAME_XP_DATE] = profile.dailyGameXpDate
@@ -163,7 +178,7 @@ class UserProfileRepository(private val context: Context) {
             if (!doc.exists()) return null
             val totalXp = (doc.getLong("totalXp") ?: 0L).toInt()
             val (level, currentXp, nextLevelXp) = LevelConfig.computeLevel(totalXp)
-            // Cloud Function writes Timestamps; the app writes Longs — handle both
+            // Cloud Function writes Timestamps; the app writes Longs, handle both
             val lastWeeklyReset = when (val raw = doc.get("lastWeeklyReset")) {
                 is Long -> raw
                 is Number -> raw.toLong()
@@ -174,6 +189,10 @@ class UserProfileRepository(private val context: Context) {
                 uid = uid,
                 username = doc.getString("username") ?: "Trainer",
                 bio = doc.getString("bio") ?: "",
+                // Blank when the account predates cloud Trainer Cards; callers decide what to fall back to.
+                starter = doc.getString("starter") ?: "",
+                favoriteType = doc.getString("favoriteType") ?: "",
+                playStyle = doc.getString("playStyle") ?: "",
                 totalXp = totalXp,
                 weeklyXp = if (WeeklyReset.isStale(lastWeeklyReset)) 0
                            else (doc.getLong("weeklyXp") ?: 0L).toInt(),
@@ -190,11 +209,16 @@ class UserProfileRepository(private val context: Context) {
                 bestWildCatchScore = (doc.getLong("bestWildCatchScore") ?: 0L).toInt(),
                 bestSurvivorScore = (doc.getLong("bestSurvivorScore") ?: 0L).toInt(),
                 bestChaseScore = (doc.getLong("bestChaseScore") ?: 0L).toInt(),
+                bestBattleScore = (doc.getLong("bestBattleScore") ?: 0L).toInt(),
+                battlesPlayed = (doc.getLong("battlesPlayed") ?: 0L).toInt(),
                 isGuest = false,
                 lastDailyXpDate = doc.getString("lastDailyXpDate") ?: "",
                 lastExplorationXpDate = doc.getString("lastExplorationXpDate") ?: "",
                 lastFirstGameXpDate = doc.getString("lastFirstGameXpDate") ?: "",
                 lastEasterEggXpDate = doc.getString("lastEasterEggXpDate") ?: "",
+                lastDailyFactXpDate = doc.getString("lastDailyFactXpDate") ?: "",
+                lastDexDailyXpDate = doc.getString("lastDexDailyXpDate") ?: "",
+                feedbackThanksClaimed = doc.getBoolean("feedbackThanksClaimed") ?: false,
                 dailyGameXp = (doc.getLong("dailyGameXp") ?: 0L).toInt(),
                 dailyGameXpDate = doc.getString("dailyGameXpDate") ?: "",
                 restedXp = (doc.getLong("restedXp") ?: 0L).toInt(),
@@ -216,7 +240,7 @@ class UserProfileRepository(private val context: Context) {
 
     suspend fun syncToFirestore(profile: UserProfile) {
         val uid = auth.currentUser?.uid ?: return
-        // Never upload weekly XP from before the Monday boundary — it would
+        // Never upload weekly XP from before the Monday boundary, it would
         // overwrite the Cloud Function's weekly reset with last week's value.
         val p = if (WeeklyReset.isStale(profile.lastWeeklyReset)) {
             profile.copy(weeklyXp = 0, lastWeeklyReset = WeeklyReset.startOfCurrentWeekMillis())
@@ -231,6 +255,10 @@ class UserProfileRepository(private val context: Context) {
                     "uid" to uid,
                     "username" to p.username,
                     "bio" to p.bio.take(60),
+                    // The Trainer Card lives with the account, so signing in on a new phone brings it back.
+                    "starter" to p.starter,
+                    "favoriteType" to p.favoriteType,
+                    "playStyle" to p.playStyle,
                     "photoUrl" to photoUrl,
                     "email" to p.email,
                     "totalXp" to p.totalXp,
@@ -246,11 +274,16 @@ class UserProfileRepository(private val context: Context) {
                     "bestWildCatchScore" to p.bestWildCatchScore,
                     "bestSurvivorScore" to p.bestSurvivorScore,
                     "bestChaseScore" to p.bestChaseScore,
+                    "bestBattleScore" to p.bestBattleScore,
+                    "battlesPlayed" to p.battlesPlayed,
                     "dailyStreak" to p.dailyStreak,
                     "lastDailyXpDate" to p.lastDailyXpDate,
                     "lastExplorationXpDate" to p.lastExplorationXpDate,
                     "lastFirstGameXpDate" to p.lastFirstGameXpDate,
                     "lastEasterEggXpDate" to p.lastEasterEggXpDate,
+                    "lastDailyFactXpDate" to p.lastDailyFactXpDate,
+                    "lastDexDailyXpDate" to p.lastDexDailyXpDate,
+                    "feedbackThanksClaimed" to p.feedbackThanksClaimed,
                     "dailyGameXp" to p.dailyGameXp,
                     "dailyGameXpDate" to p.dailyGameXpDate,
                     "restedXp" to p.restedXp,
@@ -279,6 +312,9 @@ class UserProfileRepository(private val context: Context) {
                     "level" to p.level,
                     "updatedAt" to Timestamp.now(),
                     "weeklyActive" to (p.weeklyXp > 0),
+                    // Shown on this trainer's row: partner Pokémon and favorite type.
+                    "starter" to p.starter,
+                    "favoriteType" to p.favoriteType,
                 ),
                 SetOptions.merge()
             ).await()
@@ -288,7 +324,7 @@ class UserProfileRepository(private val context: Context) {
 
     /**
      * Publishes the signed-in user's premium status for the leaderboard flair.
-     * Purely cosmetic — ranking never reads it. One merge write of a single field.
+     * Purely cosmetic, ranking never reads it. One merge write of a single field.
      */
     suspend fun publishPremiumFlag(isPremium: Boolean) {
         val uid = auth.currentUser?.uid ?: return
@@ -313,6 +349,7 @@ class UserProfileRepository(private val context: Context) {
                 "wildcatch" -> K.BEST_WILDCATCH
                 "survivor" -> K.BEST_SURVIVOR
                 "chase" -> K.BEST_CHASE
+                "battle" -> K.BEST_BATTLE
                 else -> return@edit
             }
             if (score > (p[key] ?: 0)) {
@@ -333,11 +370,27 @@ class UserProfileRepository(private val context: Context) {
             "wildcatch" -> "bestWildCatchScore"
             "survivor" -> "bestSurvivorScore"
             "chase" -> "bestChaseScore"
+            "battle" -> "bestBattleScore"
             else -> return
         }
         try {
             firestore.collection("users").document(uid)
                 .set(mapOf(field to score), SetOptions.merge()).await()
+        } catch (_: Exception) {
+        }
+    }
+
+    /** One more Team Battle finished, win or lose. Feeds the profile's "wins · played" record. */
+    suspend fun incrementBattlesPlayed() {
+        var newCount = 0
+        ds.edit { p ->
+            newCount = (p[K.BATTLES_PLAYED] ?: 0) + 1
+            p[K.BATTLES_PLAYED] = newCount
+        }
+        val uid = auth.currentUser?.uid ?: return
+        try {
+            firestore.collection("users").document(uid)
+                .set(mapOf("battlesPlayed" to newCount), SetOptions.merge()).await()
         } catch (_: Exception) {
         }
     }

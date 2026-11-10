@@ -6,7 +6,7 @@ const val MAX_EV_TOTAL = 510
 
 /**
  * Standard mainline-game stat formulas (Gen III onward). Pure math over the
- * base stats PokeAPI already provides — no external dataset needed.
+ * base stats PokeAPI already provides, no external dataset needed.
  */
 object StatCalculator {
 

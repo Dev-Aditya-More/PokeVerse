@@ -30,6 +30,9 @@ import com.aditya1875.pokeverse.feature.dexmode.data.DexModeStore
 import com.aditya1875.pokeverse.feature.dexmode.presentation.DexModeAnnouncementDialog
 import org.koin.compose.koinInject
 import com.aditya1875.pokeverse.feature.referral.data.ReferralRepository
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionRepository
+import com.aditya1875.pokeverse.feature.progression.presentation.CoinsIntroDialog
+import com.aditya1875.pokeverse.feature.progression.presentation.WeeklyRewardDialog
 import com.aditya1875.pokeverse.feature.feedback.data.FeedbackRepository
 import com.aditya1875.pokeverse.feature.referral.presentation.ReferralClaimDialog
 import com.aditya1875.pokeverse.feature.referral.presentation.InvitePromptDialog
@@ -52,38 +55,35 @@ private const val FEEDBACK_MIN_MINUTES = 25L
 private const val FEEDBACK_MAX_ASKS = 2
 private const val FEEDBACK_REASK_GAP_MS = 21L * 24 * 60 * 60 * 1000
 
-enum class HomePopup { None, Assets, DexMode, ReferralClaim, Widget, Rating, Invite, Feedback, Premium }
+enum class HomePopup { None, WeeklyReward, CoinsIntro, DexMode, ReferralClaim, Widget, Rating, Invite, Feedback, Premium }
 
 // Single dialog visible at a time. Priority:
-//   1. Assets  — first-ever launch only, shows after DataStore is ready
-//   1b. DexMode — one-time announcement of Dex Mode (skipped once the user has opened it)
-//   1c. ReferralClaim — installed via a friend's invite link; signed in and not yet redeemed
-//   2. Widget  — streak ≥ 2 days and the widget isn't on the home screen yet; asked at
+//   1b. DexMode, one-time announcement of Dex Mode (skipped once the user has opened it)
+//   1c. ReferralClaim, installed via a friend's invite link; signed in and not yet redeemed
+//   2. Widget , streak ≥ 2 days and the widget isn't on the home screen yet; asked at
 //                most twice (5+ days apart). Android never surfaces widgets on its own.
-//   3. Rating  — signed-in users only; asks "enjoying it?" after RATING_MIN_MINUTES,
+//   3. Rating , signed-in users only; asks "enjoying it?" after RATING_MIN_MINUTES,
 //                only launching Play In-App Review if they say yes
-//   3b. Invite  — signed-in users after INVITE_MIN_MINUTES; at most twice, 10+ days apart
-//   3c. Feedback — "what should we build next?" after FEEDBACK_MIN_MINUTES; twice max, 21+ days apart
-//   4. Premium — after PREMIUM_MIN_MINUTES, 30-min gap since last popup
+//   3b. Invite , signed-in users after INVITE_MIN_MINUTES; at most twice, 10+ days apart
+//   3c. Feedback, "what should we build next?" after FEEDBACK_MIN_MINUTES; twice max, 21+ days apart
+//   4. Premium, after PREMIUM_MIN_MINUTES, 30-min gap since last popup
 
 @Composable
 fun HomePopupOrchestrator(
-    originalAssetsEnabled: Boolean,
     totalSessionMinutes: Long,
     isGuest: Boolean,
     isPremium: Boolean,
     dailyStreak: Int,
-    onEnableAssets: () -> Unit,
     onRateNow: () -> Unit,
     onGoPremium: () -> Unit,
     onOpenDexMode: () -> Unit,
     onOpenInvite: (prefillCode: String?) -> Unit,
     onOpenFeedback: () -> Unit,
+    onOpenRewards: () -> Unit,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    var assetsShown by remember { mutableStateOf(false) }
     var ratingShown by remember { mutableStateOf(false) }
     var premiumShown by remember { mutableStateOf(false) }
     var lastPopupAtMinutes by remember { mutableLongStateOf(0L) }
@@ -91,9 +91,12 @@ fun HomePopupOrchestrator(
     var slowPopupsUnlocked by remember { mutableStateOf(false) }
     var widgetAsks by remember { mutableStateOf(0) }
     var widgetLastAskMs by remember { mutableLongStateOf(0L) }
-    var widgetOnHomeScreen by remember { mutableStateOf(true) } // assume yes until checked — never ask by mistake
+    var widgetOnHomeScreen by remember { mutableStateOf(true) } // assume yes until checked, never ask by mistake
     val widgetPinSupported = remember { StreakWidgetPinning.isPinSupported(context) }
     var showWidgetManualSteps by remember { mutableStateOf(false) }
+    val progressionRepository: ProgressionRepository = koinInject()
+    val weeklyReward by progressionRepository.unseenWeeklyReward.collectAsStateWithLifecycle()
+    var coinsIntroSeen by remember { mutableStateOf(true) } // assume seen until read, so it never flashes up by mistake
     val dexModeStore: DexModeStore = koinInject()
     var dexAnnounced by remember { mutableStateOf(true) }
     val referralRepository: ReferralRepository = koinInject()
@@ -107,9 +110,9 @@ fun HomePopupOrchestrator(
     var feedbackSubmitted by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        assetsShown = ScreenStateManager.isAssetsShown(context)
         ratingShown = ScreenStateManager.isRatingShown(context)
         premiumShown = ScreenStateManager.isPremiumShown(context)
+        coinsIntroSeen = ScreenStateManager.isCoinsIntroSeen(context)
         lastPopupAtMinutes = ScreenStateManager.getLastPopupShownAtMinutes(context)
         ScreenStateManager.widgetPromptHistory(context).let { (asks, lastMs) ->
             widgetAsks = asks
@@ -136,8 +139,8 @@ fun HomePopupOrchestrator(
 
     LaunchedEffect(
         isReady,
-        assetsShown,
-        originalAssetsEnabled,
+        coinsIntroSeen,
+        weeklyReward,
         ratingShown,
         premiumShown,
         totalSessionMinutes,
@@ -163,7 +166,11 @@ fun HomePopupOrchestrator(
             (widgetAsks < WIDGET_MAX_ASKS && System.currentTimeMillis() - widgetLastAskMs >= WIDGET_REASK_GAP_MS)
 
         activePopup = when {
-            !assetsShown && !originalAssetsEnabled -> HomePopup.Assets
+            // Last Monday's leaderboard prize: the first thing to tell a player who just got paid.
+            weeklyReward != null && !isGuest -> HomePopup.WeeklyReward
+
+            // The coin system, introduced once to everyone (guests too: it tells them why to sign in).
+            !coinsIntroSeen && slowPopupsUnlocked -> HomePopup.CoinsIntro
 
             // A brand-new mode: announced once, without waiting out the popup cooldown.
             !dexAnnounced && slowPopupsUnlocked -> HomePopup.DexMode
@@ -209,18 +216,31 @@ fun HomePopupOrchestrator(
     }
 
     when (activePopup) {
-        HomePopup.Assets -> AssetsOnboardingDialog(
-            onEnable = {
+        HomePopup.WeeklyReward -> weeklyReward?.let { won ->
+            WeeklyRewardDialog(
+                rank = won.rank,
+                coins = won.coins,
+                onSeeRewards = {
+                    dismissPopup { progressionRepository.markWeeklyRewardSeen() }
+                    onOpenRewards()
+                },
+                onDismiss = { dismissPopup { progressionRepository.markWeeklyRewardSeen() } }
+            )
+        }
+
+        HomePopup.CoinsIntro -> CoinsIntroDialog(
+            isGuest = isGuest,
+            onSeeRewards = {
                 dismissPopup {
-                    ScreenStateManager.markAssetsShown(context)
-                    assetsShown = true
+                    ScreenStateManager.markCoinsIntroSeen(context)
+                    coinsIntroSeen = true
                 }
-                onEnableAssets()
+                onOpenRewards()
             },
-            onDismiss = {
+            onLater = {
                 dismissPopup {
-                    ScreenStateManager.markAssetsShown(context)
-                    assetsShown = true
+                    ScreenStateManager.markCoinsIntroSeen(context)
+                    coinsIntroSeen = true
                 }
             }
         )
@@ -351,7 +371,7 @@ private fun askDue(asks: Int, lastAskMs: Long, maxAsks: Int, gapMs: Long): Boole
     asks == 0 || (asks < maxAsks && System.currentTimeMillis() - lastAskMs >= gapMs)
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Force update screen — non-dismissible, blocks the entire app
+// Force update screen, non-dismissible, blocks the entire app
 // Shown when BuildConfig.VERSION_CODE < minVersionCode from Firestore
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
@@ -361,7 +381,7 @@ fun UpdateAvailableDialog(
 ) {
     val context = LocalContext.current
 
-    // Compulsory — no dismiss button, and back/outside-tap are no-ops. New
+    // Compulsory, no dismiss button, and back/outside-tap are no-ops. New
     // versions always carry improvements, so there's no "maybe later" here.
     AlertDialog(
         onDismissRequest = {},
@@ -478,56 +498,6 @@ fun ForceUpdateScreen(onUpdate: () -> Unit = {}) {
             }
         }
     }
-}
-
-@Composable
-fun AssetsOnboardingDialog(onEnable: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        shape = RoundedCornerShape(24.dp),
-        icon = { Text("🎨", fontSize = 36.sp) },
-        title = {
-            Text(
-                stringResource(R.string.popup_assets_title),
-                fontWeight = FontWeight.Black, textAlign = TextAlign.Center
-            )
-        },
-        text = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(
-                    stringResource(R.string.popup_assets_body),
-                    style = MaterialTheme.typography.bodyMedium, textAlign = TextAlign.Center
-                )
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                ) {
-                    Text(
-                        stringResource(R.string.popup_assets_disclaimer),
-                        modifier = Modifier.padding(12.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
-                Text(
-                    stringResource(R.string.popup_assets_change_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        },
-        confirmButton = {
-            Button(onClick = onEnable, shape = RoundedCornerShape(12.dp)) {
-                Text(stringResource(R.string.settings_understand_enable), fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_not_now)) } }
-    )
 }
 
 @Composable

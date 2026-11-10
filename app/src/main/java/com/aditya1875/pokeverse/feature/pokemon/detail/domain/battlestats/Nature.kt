@@ -2,7 +2,7 @@ package com.aditya1875.pokeverse.feature.pokemon.detail.domain.battlestats
 
 /**
  * The 25 mainline-game natures. Each boosts one stat by 10% and lowers
- * another by 10% — except the five neutral natures, which do nothing.
+ * another by 10%, except the five neutral natures, which do nothing.
  * `boosts`/`lowers` use PokeAPI's stat name convention (e.g. "special-attack")
  * so they line up directly with [com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.Stat.name].
  */

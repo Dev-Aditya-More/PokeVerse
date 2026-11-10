@@ -4,7 +4,7 @@ data class UserProfile(
     val uid: String = "",
     val username: String = "Trainer",
     val bio: String = "",
-    // Trainer Card — device-local on purpose (not synced), so no Firestore rules change is needed.
+    // Trainer Card, device-local on purpose (not synced), so no Firestore rules change is needed.
     val favoriteType: String = "",
     val playStyle: String = "",
     // Pikachu unless the professor intro picked another one (also covers anyone who skipped it).
@@ -24,6 +24,10 @@ data class UserProfile(
     val bestWildCatchScore: Int = 0,
     val bestSurvivorScore: Int = 0,
     val bestChaseScore: Int = 0,
+    /** Team Battle: battles won. */
+    val bestBattleScore: Int = 0,
+    /** Team Battles finished (won or lost), so a record exists even before the first win. */
+    val battlesPlayed: Int = 0,
     val isGuest: Boolean = true,
 
     // XP tracking
@@ -33,8 +37,13 @@ data class UserProfile(
     val lastExplorationXpDate: String = "",
     val lastFirstGameXpDate: String = "",   // deduplicates FirstGameOfDay per calendar day
     val lastEasterEggXpDate: String = "",
+    // Once-a-day / once-ever XP gates. They live on the account, not in a device-local store, so
+    // reinstalling or signing in on a second phone can't pay the same reward twice.
+    val lastDailyFactXpDate: String = "",
+    val lastDexDailyXpDate: String = "",
+    val feedbackThanksClaimed: Boolean = false,
 
-    // XP economy — see XPEconomy
+    // XP economy, see XPEconomy
     val dailyGameXp: Int = 0,          // raw game XP earned on dailyGameXpDate (drives the daily rate tiers)
     val dailyGameXpDate: String = "",
     val restedXp: Int = 0,             // comeback bonus pool
@@ -44,7 +53,7 @@ data class UserProfile(
     val photoUrl: String = "",
     val email: String = "",
 
-    // Daily Duel — async ranked mode
+    // Daily Duel, async ranked mode
     val duelPoints: Int = 1000,
     val duelWins: Int = 0,
     val duelLosses: Int = 0,

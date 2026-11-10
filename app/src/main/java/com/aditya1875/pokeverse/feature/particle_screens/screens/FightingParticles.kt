@@ -111,14 +111,14 @@ fun FightingParticles(
             val t = (age / p.lifetime.toFloat()).coerceIn(0f, 1f)
             val fade = (1f - t * t).coerceIn(0f, 1f)
 
-            // inner core glow — brighter like impact sparks
+            // inner core glow, brighter like impact sparks
             drawCircle(
                 color = p.color.copy(alpha = fade * 0.9f),
                 radius = p.size * (0.6f - 0.3f * t),
                 center = Offset(p.x * w, p.y * h)
             )
 
-            // outer glowing aura — like shockwave ring
+            // outer glowing aura, like shockwave ring
             drawCircle(
                 brush = Brush.radialGradient(
                     colors = listOf(

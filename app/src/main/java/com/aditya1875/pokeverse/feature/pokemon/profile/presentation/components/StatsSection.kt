@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
@@ -100,7 +102,14 @@ private fun countUp(target: Int) = run {
     animateIntAsState(start, tween(900, easing = FastOutSlowInEasing), label = "count")
 }
 
-private data class GameBest(val icon: ImageVector, val title: Int, val score: Int, val color: Color)
+private data class GameBest(
+    val icon: ImageVector, val title: Int, val score: Int, val color: Color,
+    val isWinCount: Boolean = false,
+    /** Battles finished, for the Team Battle record: a loss still counts as played. */
+    val battlesPlayed: Int = 0,
+) {
+    val hasPlayed: Boolean get() = score > 0 || battlesPlayed > 0
+}
 
 /** Personal bests as a compact two-column grid, played games first. */
 @Composable
@@ -108,25 +117,30 @@ fun GameStatsSection(profile: UserProfile) {
     val games = listOf(
         GameBest(Icons.AutoMirrored.Filled.DirectionsRun, R.string.game_name_chase_title, profile.bestChaseScore, Color(0xFFFFD54F)),
         GameBest(Icons.Default.Bolt, R.string.game_name_survivor_title, profile.bestSurvivorScore, Color(0xFFFFC107)),
+        GameBest(Icons.Default.Shield, R.string.game_name_battle_title, profile.bestBattleScore, Color(0xFF7C4DFF), isWinCount = true, battlesPlayed = profile.battlesPlayed),
         GameBest(Icons.Default.RadioButtonUnchecked, R.string.game_name_wildcatch_title, profile.bestWildCatchScore, Color(0xFFEF5350)),
         GameBest(Icons.Default.FlashOn, R.string.game_name_pokeduel_title, profile.bestDuelScore, Color(0xFFFF9800)),
         GameBest(Icons.Default.SportsEsports, R.string.typerush_game_title, profile.bestTypeRushScore, Color(0xFF7986CB)),
         GameBest(Icons.Default.Quiz, R.string.game_name_pokequiz_title, profile.bestQuizScore, Color(0xFF42A5F5)),
         GameBest(Icons.Default.GridView, R.string.game_name_pokematch_title, profile.bestMatchScore, Color(0xFF66BB6A)),
         GameBest(Icons.Default.Visibility, R.string.game_name_pokeguess_title, profile.bestGuessScore, Color(0xFFBA68C8))
-    ).sortedByDescending { it.score > 0 }
-    val topScore = games.maxOf { it.score }
+    ).sortedByDescending { it.hasPlayed }
+    // Battle wins are a count, not a score, so they never take the crown from the high scores.
+    val topScore = games.filter { !it.isWinCount }.maxOf { it.score }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            "🏆 " + stringResource(R.string.profile_personal_bests),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.ExtraBold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Icon(Icons.Default.EmojiEvents, contentDescription = null, tint = Color(0xFFFFC24B), modifier = Modifier.size(18.dp))
+            Text(
+                stringResource(R.string.profile_personal_bests),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
         games.chunked(2).forEach { row ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                row.forEach { BestTile(it, isTop = topScore > 0 && it.score == topScore, modifier = Modifier.weight(1f)) }
+                row.forEach { BestTile(it, isTop = !it.isWinCount && topScore > 0 && it.score == topScore, modifier = Modifier.weight(1f)) }
                 if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
@@ -135,7 +149,7 @@ fun GameStatsSection(profile: UserProfile) {
 
 @Composable
 private fun BestTile(game: GameBest, isTop: Boolean, modifier: Modifier) {
-    val played = game.score > 0
+    val played = game.hasPlayed
     val shown by countUp(game.score)
     Surface(
         shape = RoundedCornerShape(14.dp),
@@ -161,7 +175,8 @@ private fun BestTile(game: GameBest, isTop: Boolean, modifier: Modifier) {
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (played) 1f else 0.6f)
                 )
                 Text(
-                    if (played) (if (isTop) "👑 " else "") + NumberFormat.getIntegerInstance().format(shown)
+                    if (played && game.isWinCount) stringResource(R.string.profile_battle_record, shown, (game.battlesPlayed - game.score).coerceAtLeast(0))
+                    else if (played) NumberFormat.getIntegerInstance().format(shown)
                     else stringResource(R.string.profile_not_played),
                     style = if (played) MaterialTheme.typography.titleSmall else MaterialTheme.typography.labelSmall,
                     fontWeight = if (played) FontWeight.Black else FontWeight.Normal,

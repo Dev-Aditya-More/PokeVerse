@@ -23,44 +23,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+/**
+ * Kept for the many screens that call it: it is now the shared [LoadErrorState] in its offline form,
+ * so every "no internet" in the app looks the same and recovers by itself when the connection returns.
+ */
 @Composable
 fun NoInternetScreen(
     modifier: Modifier = Modifier,
     onRetry: (() -> Unit)? = null
 ) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.WifiOff,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = stringResource(R.string.error_no_internet_title),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = stringResource(R.string.no_internet_play),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            if (onRetry != null) {
-                Spacer(Modifier.height(8.dp))
-                Button(onClick = onRetry) {
-                    Text(stringResource(R.string.action_retry))
-                }
-            }
-        }
-    }
+    LoadErrorState(
+        kind = com.aditya1875.pokeverse.utils.LoadErrorKind.OFFLINE,
+        onRetry = onRetry ?: {},
+        modifier = modifier
+    )
 }

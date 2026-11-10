@@ -1,5 +1,7 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 
+import com.aditya1875.pokeverse.utils.rememberGenericBio
+import com.aditya1875.pokeverse.feature.pokemon.onboarding.Partner
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -8,6 +10,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -50,9 +54,13 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.core.ui.components.NewBadge
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionState
+import com.aditya1875.pokeverse.feature.progression.presentation.TitleChip
+import com.aditya1875.pokeverse.feature.progression.presentation.ProfileShowcase
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.feature.pokemon.onboarding.Starter
@@ -70,9 +78,11 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.res.pluralStringResource
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ProfileHeader(
     profile: UserProfile,
+    progression: ProgressionState = ProgressionState(),
     currentUser: FirebaseUser? = null,
     onEditName: () -> Unit,
     onEditPhoto: () -> Unit,
@@ -81,11 +91,12 @@ fun ProfileHeader(
     viewModel: ProfileViewModel = koinViewModel(),
     settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
-    val assetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
+    val assetsEnabled = true
     var prevLevel by remember { mutableIntStateOf(profile.level) }
     var levelChanged by remember { mutableStateOf(false) }
 
     var showTrainerCard by remember { mutableStateOf(false) }
+    var showPartnerPicker by remember { mutableStateOf(false) }
 
     LaunchedEffect(profile.level) {
         if (profile.level != prevLevel) {
@@ -95,11 +106,21 @@ fun ProfileHeader(
     }
 
     if (showTrainerCard) {
-        TrainerCardSetup(
-            profile = profile,
-            onSave = viewModel::saveTrainerCard,
-            onDismiss = { showTrainerCard = false }
-        )
+        val hasName = profile.username.isNotBlank() &&
+            profile.username != "Trainer" && profile.username != "Guest Trainer"
+        if (hasName) {
+            TrainerCardEditor(
+                profile = profile,
+                onSave = viewModel::saveTrainerCard,
+                onDismiss = { showTrainerCard = false }
+            )
+        } else {
+            TrainerCardSetup(
+                profile = profile,
+                onSave = viewModel::saveTrainerCard,
+                onDismiss = { showTrainerCard = false }
+            )
+        }
     }
 
     val levelScale by animateFloatAsState(
@@ -120,6 +141,24 @@ fun ProfileHeader(
     val ringColor = MaterialTheme.colorScheme.primary
     val ringTrack = MaterialTheme.colorScheme.surfaceVariant
 
+    // The partner is official franchise art, so it follows the Original Assets setting like the old avatar fallback did.
+    val partner = if (assetsEnabled) (Partner.from(profile.starter) ?: Partner.of(Starter.PIKACHU)) else null
+
+    if (showPartnerPicker) {
+        PartnerPickerSheet(
+            current = profile.starter,
+            onPick = viewModel::setPartner,
+            onDismiss = { showPartnerPicker = false }
+        )
+    }
+
+    ProfileShowcase(
+        partner = partner,
+        onChangePartner = { showPartnerPicker = true },
+        backdropId = progression.backdrop,
+        frameId = progression.frame
+    ) {
+    Column(Modifier.fillMaxWidth()) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
@@ -138,7 +177,7 @@ fun ProfileHeader(
                 .size(74.dp)
                 .clip(CircleShape)
                 .background(
-                    if (profile.photoUrl.isNotEmpty() || currentUser?.photoUrl != null || (assetsEnabled && profile.starter.isNotEmpty()))
+                    if (profile.photoUrl.isNotEmpty() || currentUser?.photoUrl != null)
                         Color.Transparent
                     else
                         MaterialTheme.colorScheme.surfaceVariant
@@ -157,8 +196,6 @@ fun ProfileHeader(
             val photo = when {
                 profile.photoUrl.isNotEmpty() -> profile.photoUrl
                 currentUser?.photoUrl != null -> currentUser.photoUrl.toString()
-                // Franchise art only when Original Assets is on; otherwise the initial, as before.
-                assetsEnabled -> Starter.fromId(profile.starter)?.artworkUrl
                 else -> null
             }
 
@@ -173,7 +210,7 @@ fun ProfileHeader(
                 )
             } else {
                 Text(
-                    text = profile.username.firstOrNull()?.uppercase() ?: "—",
+                    text = profile.username.firstOrNull()?.uppercase() ?: "-",
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -214,74 +251,44 @@ fun ProfileHeader(
 
         Spacer(Modifier.width(14.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.weight(1f)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.clickable { showTrainerCard = true }
-            ) {
-                Text(
-                    text = profile.username,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1
-                )
-
-                Spacer(Modifier.width(2.dp))
-
-                Icon(
-                    Icons.Default.Edit,
-                    contentDescription = stringResource(R.string.a11y_edit_name),
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
+        Column(
+            verticalArrangement = Arrangement.spacedBy(5.dp),
+            modifier = Modifier.weight(1f)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.clickable { showTrainerCard = true }
             ) {
                 Text(
-                    text = profile.bio.ifBlank { stringResource(R.string.profile_bio_empty_hint) },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (profile.bio.isBlank()) 0.5f else 0.85f),
-                    maxLines = 2
+                    text = profile.username,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
-                if (profile.bio.isBlank()) {
-                    NewBadge()
-                }
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = stringResource(R.string.a11y_edit_name),
+                    modifier = Modifier.size(16.dp),
+                    tint = Color.White.copy(alpha = 0.7f)
+                )
             }
 
-            val style = PlayStyle.fromId(profile.playStyle)
-            if (profile.favoriteType.isNotEmpty() || style != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (profile.favoriteType.isNotEmpty()) {
-                        TrainerChip(localizedTypeName(profile.favoriteType), pokemonTypeColor(profile.favoriteType))
-                    }
-                    if (style != null) {
-                        TrainerChip("${style.emoji} ${stringResource(style.label)}", MaterialTheme.colorScheme.primary)
-                    }
-                }
+            if (progression.title.isNotEmpty()) {
+                TitleChip(progression.title)
             }
 
             if (!profile.isGuest) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Text(
-                        text = stringResource(R.string.xp_progress, profile.currentXp, profile.nextLevelXp),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    if (profile.dailyStreak > 0) {
-                        Text(
-                            text = "🔥 " + pluralStringResource(R.plurals.profile_day_streak, profile.dailyStreak, profile.dailyStreak),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFFFF8A3D)
-                        )
-                    }
-                }
+                Text(
+                    text = stringResource(R.string.xp_progress, profile.currentXp, profile.nextLevelXp),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.White.copy(alpha = 0.85f),
+                    maxLines = 1
+                )
             }
         }
 
@@ -290,9 +297,49 @@ fun ProfileHeader(
                 Icon(
                     Icons.Default.Settings,
                     contentDescription = stringResource(R.string.profile_settings),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = Color.White.copy(alpha = 0.85f)
                 )
             }
         }
+    }
+
+        Spacer(Modifier.height(14.dp))
+
+        // Bio and trainer chips sit left of the partner, so they wrap instead of fighting it for width.
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(if (partner != null) 0.6f else 1f)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.clickable { showTrainerCard = true }
+            ) {
+                Text(
+                    text = profile.bio.ifBlank { rememberGenericBio(profile.uid.ifBlank { profile.username }) },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = if (profile.bio.isBlank()) 0.6f else 0.92f),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+            }
+
+            val style = PlayStyle.fromId(profile.playStyle)
+            if (profile.favoriteType.isNotEmpty() || style != null) {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    if (profile.favoriteType.isNotEmpty()) {
+                        TrainerChip(localizedTypeName(profile.favoriteType), pokemonTypeColor(profile.favoriteType))
+                    }
+                    if (style != null) {
+                        TrainerChip("${style.emoji} ${stringResource(style.label)}", MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+        }
+    }
     }
 }
