@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -30,22 +32,27 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.aditya1875.pokeverse.feature.team.data.local.entity.FavouriteEntity
 
-@Composable
-fun FavoritesContent(
+/** The favorites tab as list items, so it scrolls with the page instead of sitting under pinned headers. */
+fun LazyListScope.favoriteContentItems(
     favorites: List<FavouriteEntity>,
     navController: NavController,
     onRemove: (FavouriteEntity) -> Unit,
     assetsEnabled: Boolean
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        if (favorites.isEmpty()) {
+    if (favorites.isEmpty()) {
+        item(key = "empty") {
             EmptyStateCard(
-                icon = Icons.Default.Star,
-                title = stringResource(R.string.favorites_empty_title),
-                subtitle = stringResource(R.string.favorites_empty_subtitle),
-                color = MaterialTheme.colorScheme.secondary
-            )
-        } else {
+        icon = Icons.Default.Star,
+        title = stringResource(R.string.favorites_empty_title),
+        subtitle = stringResource(R.string.favorites_empty_subtitle),
+        color = MaterialTheme.colorScheme.secondary
+    )
+        }
+        return
+    }
+
+    item(key = "count") {
+        Column {
             // Favorites count card
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -78,22 +85,17 @@ fun FavoritesContent(
             }
 
             Spacer(Modifier.height(16.dp))
+        }
+    }
 
-            // Favorites List
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                itemsIndexed(favorites, key = { index, it -> "${it.name}_$index" }) { _, favorite ->
-                    ImprovedFavoriteCard(
-                        favorite = favorite,
-                        navController = navController,
-                        onRemove = onRemove,
-                        assetsEnabled = assetsEnabled
-                    )
-                }
-            }
+    itemsIndexed(favorites, key = { index, it -> "${it.name}_$index" }) { _, favorite ->
+        Box(Modifier.padding(bottom = 12.dp)) {
+            ImprovedFavoriteCard(
+                favorite = favorite,
+                navController = navController,
+                onRemove = onRemove,
+                assetsEnabled = assetsEnabled
+            )
         }
     }
 }

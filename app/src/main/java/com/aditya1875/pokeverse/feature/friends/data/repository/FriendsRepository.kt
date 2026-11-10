@@ -14,8 +14,8 @@ import kotlinx.coroutines.tasks.await
 
 /**
  * Firestore layout:
- *  - friend_requests/{fromUid}_{toUid}  — pending requests; deleted on accept/decline/cancel
- *  - friendships/{pairId}               — pairId is the two uids sorted + joined with "_";
+ *  - friend_requests/{fromUid}_{toUid} , pending requests; deleted on accept/decline/cancel
+ *  - friendships/{pairId}              , pairId is the two uids sorted + joined with "_";
  *                                         `members` array enables whereArrayContains queries
  *  - Trainer search reads the public `leaderboard` collection (displayNameLower prefix)
  */

@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.feature.characters.domain.PokeCharacter
 
-/** Accent color per character role — used for card tint, chips and avatar ring */
+/** Accent color per character role, used for card tint, chips and avatar ring */
 fun characterRoleColor(role: String): Color = when (role.lowercase()) {
     "professor" -> Color(0xFF00897B)
     "champion" -> Color(0xFFFFB300)

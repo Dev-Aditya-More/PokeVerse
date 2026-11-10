@@ -148,7 +148,7 @@ private fun AskButton(label: String, accent: Color, onClick: () -> Unit) {
 @Composable
 private fun RemainingLabel(remaining: Int) {
     Text(
-        stringResource(R.string.coach_left, remaining),
+        if (remaining < 0) stringResource(R.string.coach_unlimited) else stringResource(R.string.coach_left, remaining),
         style = MaterialTheme.typography.labelSmall,
         color = Color.White.copy(alpha = 0.45f),
     )

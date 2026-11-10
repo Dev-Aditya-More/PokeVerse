@@ -1,7 +1,7 @@
 package com.aditya1875.pokeverse.feature.friends.data.model
 
 /**
- * Public trainer info projected from the `leaderboard` collection —
+ * Public trainer info projected from the `leaderboard` collection
  * used for search results, friends list, and stat comparison.
  */
 data class FriendProfile(

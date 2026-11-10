@@ -1,5 +1,9 @@
 package com.aditya1875.pokeverse.feature.analysis.presentation.screens
 
+import com.aditya1875.pokeverse.feature.core.ui.components.LoadErrorState
+import com.aditya1875.pokeverse.utils.LoadErrorKind
+import com.aditya1875.pokeverse.utils.toLoadErrorKind
+import androidx.compose.runtime.mutableIntStateOf
 import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexViewModel
 import com.aditya1875.pokeverse.feature.pokemon.dex.isTrainersParty
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
@@ -93,7 +97,7 @@ fun TeamAnalysisScreen(
 ) {
     val coachState by coachViewModel.state.collectAsStateWithLifecycle()
     val settingsViewModel: SettingsViewModel = koinViewModel()
-    val assetsEnabled by settingsViewModel.originalAssetsEnabled.collectAsStateWithLifecycle()
+    val assetsEnabled = true
     val dexViewModel: PokedexViewModel = koinViewModel()
     val dexProgress by dexViewModel.progress.collectAsStateWithLifecycle()
 
@@ -134,10 +138,11 @@ fun TeamAnalysisScreen(
     var teamWithTypes by remember { mutableStateOf<List<TeamMemberWithTypes>>(emptyList()) }
     var analysis by remember { mutableStateOf<TeamAnalysis?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var errorKind by remember { mutableStateOf<LoadErrorKind?>(null) }
+    var retryTick by remember { mutableIntStateOf(0) }
 
-    // Fetch types when team changes
-    LaunchedEffect(team) {
+    // Fetch types when team changes (or the player taps Retry)
+    LaunchedEffect(team, retryTick) {
         if (team.isEmpty()) {
             teamWithTypes = emptyList()
             analysis = null
@@ -145,10 +150,11 @@ fun TeamAnalysisScreen(
         }
 
         isLoading = true
-        errorMessage = null
+        errorKind = null
 
         try {
             val withTypes = mutableListOf<TeamMemberWithTypes>()
+            var firstFailure: Exception? = null
 
             team.forEach { member ->
                 try {
@@ -163,27 +169,29 @@ fun TeamAnalysisScreen(
                             id = pokemon.id
                         )
                     )
+                } catch (e: kotlinx.coroutines.CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Log.e("TeamAnalysis", "Failed to fetch data for ${member.name}", e)
-                    withTypes.add(
-                        TeamMemberWithTypes(
-                            name = member.name,
-                            types = listOf("normal"),
-                            imageUrl = member.imageUrl
-                        )
-                    )
+                    if (firstFailure == null) firstFailure = e
                 }
             }
 
+            // Guessing "normal" for a Pokémon whose types didn't load gave a confident but wrong
+            // analysis (and the Coach would have been asked about it). Say it failed instead.
+            firstFailure?.let { throw it }
+
             teamWithTypes = withTypes
             analysis = TeamAnalyzer.analyzeTeam(withTypes)
-            coachViewModel.load(withTypes)
+            coachViewModel.load(withTypes, premium = isPremium)
 
             Log.d("TeamAnalysis", "Analysis complete: score=${analysis?.coverageScore}")
 
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e("TeamAnalysis", "Failed to analyze team", e)
-            errorMessage = "Failed to analyze team: ${e.message}"
+            errorKind = e.toLoadErrorKind()
         } finally {
             isLoading = false
         }
@@ -237,18 +245,23 @@ fun TeamAnalysisScreen(
 
                 isLoading -> LoadingView()
 
-                errorMessage != null -> ErrorView(errorMessage!!, navController)
+                errorKind != null -> LoadErrorState(
+                    kind = errorKind,
+                    onRetry = { retryTick++ },
+                    onBack = { navController.popBackStack() },
+                    modifier = Modifier.background(AnalysisColors.BG)
+                )
 
                 analysis != null -> AnalysisContent(
                     analysis = analysis!!,
                     teamWithTypes = teamWithTypes,
                     coachState = coachState,
                     onAskCoach = {
-                        val party = isTrainersParty(teamWithTypes.map { it.id }, dexProgress.caught)
-                        coachViewModel.ask(teamWithTypes, analysis!!, allCaught = party)
+                        val party = isTrainersParty(teamWithTypes.map { it.id }, dexProgress.roster)
+                        coachViewModel.ask(teamWithTypes, analysis!!, allCaught = party, premium = isPremium)
                     },
                     assetsEnabled = assetsEnabled,
-                    caughtIds = dexProgress.caught
+                    caughtIds = dexProgress.roster
                 )
             }
         }

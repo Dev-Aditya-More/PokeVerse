@@ -56,7 +56,7 @@ fun CoverageSection(coverage: Map<String, Int>, teamSize: Int) {
                 LegendDot(GREEN.copy(alpha = 0.8f), "3+")
             }
 
-            // Grid — 3 columns
+            // Grid, 3 columns
             val sortedCoverage = coverage.entries
                 .sortedByDescending { it.value }
                 .toList()
@@ -119,7 +119,7 @@ private fun CoverageCell(modifier: Modifier, type: String, count: Int, teamSize:
                 textAlign = TextAlign.Center, maxLines = 1
             )
             Text(
-                if (count == 0) "—" else count.toString(),
+                if (count == 0) "-" else count.toString(),
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.Black,
                 color = textColor

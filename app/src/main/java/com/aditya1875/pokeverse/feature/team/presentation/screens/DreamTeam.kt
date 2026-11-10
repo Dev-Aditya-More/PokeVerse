@@ -1,5 +1,11 @@
 package com.aditya1875.pokeverse.feature.team.presentation.screens
 
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.PaddingValues
+import com.aditya1875.pokeverse.feature.pokemon.dex.PokedexViewModel
+import com.aditya1875.pokeverse.feature.team.presentation.components.teamContentItems
+import com.aditya1875.pokeverse.feature.team.presentation.components.favoriteContentItems
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -75,9 +81,7 @@ import com.aditya1875.pokeverse.feature.team.presentation.components.CreateTeamD
 import com.aditya1875.pokeverse.feature.team.presentation.components.TeamShareDialog
 import com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels.ProfileViewModel
 import com.aditya1875.pokeverse.feature.team.presentation.components.EmptyTeamView
-import com.aditya1875.pokeverse.feature.team.presentation.components.FavoritesContent
 import com.aditya1875.pokeverse.feature.team.presentation.components.TabButton
-import com.aditya1875.pokeverse.feature.team.presentation.components.TeamContent
 import com.aditya1875.pokeverse.feature.team.presentation.viewmodels.FavouritesViewModel
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.viewmodels.PokemonListViewModel
 import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
@@ -133,10 +137,7 @@ fun DreamTeam(
 
     val analysisLimit = 10
 
-    val originalAssetsEnabled by settingsViewModel.originalAssetsEnabled
-        .collectAsStateWithLifecycle()
-
-    var showOriginalAssetsDialog by remember { mutableStateOf(false) }
+    val originalAssetsEnabled = true
 
 
     LaunchedEffect(currentTeam) {
@@ -164,6 +165,9 @@ fun DreamTeam(
         }
     ) { padding ->
 
+        val teamProgressColor = MaterialTheme.colorScheme.primary
+        val dexProgress by koinViewModel<PokedexViewModel>().progress.collectAsStateWithLifecycle()
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -182,11 +186,16 @@ fun DreamTeam(
                 }
 
                 else -> {
-                    Column(
+                    // One scrolling page: the team selector and the progress cards move out of the way
+                    // as you scroll, and only the Team / Favorites tabs stay pinned.
+                    LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = adaptiveHPadding)
+                            .padding(horizontal = adaptiveHPadding),
+                        contentPadding = PaddingValues(bottom = 96.dp)
                     ) {
+                        item(key = "selector") {
+                        Column {
                         Spacer(Modifier.height(32.dp))
 
                         // Team Selector Card
@@ -356,7 +365,16 @@ fun DreamTeam(
                         }
 
                         Spacer(Modifier.height(20.dp))
+                        }
+                        }
 
+                        stickyHeader(key = "tabs") {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(bottom = 12.dp)
+                        ) {
                         // Tab Selector
                         Card(
                             modifier = Modifier.fillMaxWidth(),
@@ -392,46 +410,40 @@ fun DreamTeam(
                             }
                         }
 
-                        Spacer(Modifier.height(16.dp))
+                        }
+                        }
 
-                        // Content based on selected tab
-                        AnimatedContent(
-                            targetState = selectedTab,
-                            transitionSpec = {
-                                fadeIn(animationSpec = tween(300)) togetherWith
-                                        fadeOut(animationSpec = tween(300))
-                            },
-                            label = "tab_content"
-                        ) { tab ->
-                            when (tab) {
-                                0 -> TeamContent(
-                                    team = currentTeamMembers,
-                                    navController = navController,
-                                    onRemove = { viewModel.removeFromTeam(it) },
-                                    accentColor = MaterialTheme.colorScheme.primary,
-                                    assetsEnabled = originalAssetsEnabled,
-                                    onAnalyze = {
-                                        if (!isPremium && analysisUseCount >= analysisLimit) {
-                                            showPremiumSheet = true
-                                            Toast.makeText(
-                                                context, context.getString(R.string.team_analysis_max_reached), Toast.LENGTH_SHORT
-                                            ).show()
-                                        } else {
-                                            settingsViewModel.incrementAnalysisCount()
-                                            navController.navigate(Route.Analysis.createRoute(currentTeam?.teamId.toString()))
-                                        }
-                                    },
-                                    onShare = if (currentTeamMembers.isNotEmpty()) {
-                                        { showShareDialog = true }
-                                    } else null
-                                )
-                                1 -> FavoritesContent(
-                                    favorites = favorites,
-                                    navController = navController,
-                                    onRemove = { favouritesViewModel.removeFromFavorites(it) },
-                                    assetsEnabled = originalAssetsEnabled
-                                )
-                            }
+                        // The selected tab's cards are plain list items, so they scroll with everything above.
+                        if (selectedTab == 0) {
+                            teamContentItems(
+                                team = currentTeamMembers,
+                                navController = navController,
+                                onRemove = { viewModel.removeFromTeam(it) },
+                                progressColor = teamProgressColor,
+                                caughtIds = dexProgress.roster,
+                                assetsEnabled = originalAssetsEnabled,
+                                onAnalyze = {
+                                    if (!isPremium && analysisUseCount >= analysisLimit) {
+                                        showPremiumSheet = true
+                                        Toast.makeText(
+                                            context, context.getString(R.string.team_analysis_max_reached), Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        settingsViewModel.incrementAnalysisCount()
+                                        navController.navigate(Route.Analysis.createRoute(currentTeam?.teamId.toString()))
+                                    }
+                                },
+                                onShare = if (currentTeamMembers.isNotEmpty()) {
+                                    { showShareDialog = true }
+                                } else null
+                            )
+                        } else {
+                            favoriteContentItems(
+                                favorites = favorites,
+                                navController = navController,
+                                onRemove = { favouritesViewModel.removeFromFavorites(it) },
+                                assetsEnabled = originalAssetsEnabled
+                            )
                         }
                     }
                 }

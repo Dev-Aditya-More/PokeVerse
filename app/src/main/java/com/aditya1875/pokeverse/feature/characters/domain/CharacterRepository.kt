@@ -16,7 +16,7 @@ data class PokeCharacter(
 
 /**
  * Notable trainers/characters are a fixed dataset (no PokeAPI endpoint exists),
- * bundled as JSON — loaded once and cached for the process.
+ * bundled as JSON, loaded once and cached for the process.
  */
 class CharacterRepository(private val context: Context) {
 

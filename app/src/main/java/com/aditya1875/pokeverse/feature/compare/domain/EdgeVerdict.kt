@@ -6,7 +6,7 @@ import com.aditya1875.pokeverse.utils.pokemonTypeEffectiveness
 import com.aditya1875.pokeverse.utils.typeEffectivenessMultiplier
 
 /**
- * A soft, non-authoritative "who edges ahead" read on two Pokémon — combining
+ * A soft, non-authoritative "who edges ahead" read on two Pokémon, combining
  * their type matchup with the curated fan-favorite list. Deliberately never a
  * hard "wins/loses" declaration: [leaningTo] is a lean, not a verdict, and can
  * be null ("too close to call").
@@ -46,16 +46,16 @@ fun computeEdgeVerdict(left: PokemonResponse, right: PokemonResponse): EdgeVerdi
     return when {
         typeLean != null && typeLean == favoriteLean -> {
             val name = if (typeLean == EdgeVerdict.Side.LEFT) leftName else rightName
-            EdgeVerdict(typeLean, "$name edges ahead here — type advantage and fan-favorite energy")
+            EdgeVerdict(typeLean, "$name edges ahead here, type advantage and fan-favorite energy")
         }
         typeLean != null -> {
             val name = if (typeLean == EdgeVerdict.Side.LEFT) leftName else rightName
-            EdgeVerdict(typeLean, "$name edges ahead here — type advantage")
+            EdgeVerdict(typeLean, "$name edges ahead here, type advantage")
         }
         favoriteLean != null -> {
             val name = if (favoriteLean == EdgeVerdict.Side.LEFT) leftName else rightName
-            EdgeVerdict(favoriteLean, "$name edges ahead here — fan-favorite energy")
+            EdgeVerdict(favoriteLean, "$name edges ahead here, fan-favorite energy")
         }
-        else -> EdgeVerdict(null, "Too close to call — evenly matched")
+        else -> EdgeVerdict(null, "Too close to call, evenly matched")
     }
 }

@@ -13,7 +13,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 
 /**
  * A one-shot confetti burst (reuses the same Lottie asset [ConfettiOverlay]
- * uses for top-3 leaderboard finishes) for the Compare tool's edge reveal —
+ * uses for top-3 leaderboard finishes) for the Compare tool's edge reveal
  * plays once instead of looping, triggered by [visible] rather than a rank.
  */
 @Composable

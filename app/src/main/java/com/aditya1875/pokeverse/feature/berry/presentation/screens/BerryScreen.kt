@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.berry.presentation.screens
 
+import com.aditya1875.pokeverse.feature.core.ui.components.LoadErrorState
 import com.aditya1875.pokeverse.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.RepeatMode
@@ -150,15 +151,5 @@ fun BerryGridSkeleton() {
 
 @Composable
 fun BerryListError(message: String, onRetry: () -> Unit) {
-    Column(
-        Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text("⚠️", fontSize = 40.sp)
-        Spacer(Modifier.height(8.dp))
-        Text(stringResource(R.string.berry_load_failed), style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onRetry) { Text(stringResource(R.string.action_retry)) }
-    }
+    LoadErrorState(onRetry = onRetry)
 }

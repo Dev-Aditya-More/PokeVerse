@@ -124,6 +124,11 @@ fun ComparePokemonScreen(
     val rewardedAdManager: IRewardedAdManager = koinInject()
     val adState by rewardedAdManager.adState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.pickFailed.collect {
+            Toast.makeText(context, context.getString(R.string.load_error_pick), Toast.LENGTH_SHORT).show()
+        }
+    }
     val activity = context as? Activity
 
     var adUnlocked by rememberSaveable { mutableStateOf(isPremium) }
@@ -312,7 +317,7 @@ private fun CompareContent(
             val showVs = leftPokemon != null && rightPokemon != null
 
             if (isWideScreen) {
-                // Plenty of room — side by side with the VS badge floating between them.
+                // Plenty of room, side by side with the VS badge floating between them.
                 Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -346,7 +351,7 @@ private fun CompareContent(
                     if (showVs) VsBadge()
                 }
             } else {
-                // Phone-width — side-by-side text fields don't leave room for the
+                // Phone-width, side-by-side text fields don't leave room for the
                 // labels (they end up wrapping letter-by-letter), so stack instead.
                 Column(
                     modifier = Modifier.fillMaxWidth(),

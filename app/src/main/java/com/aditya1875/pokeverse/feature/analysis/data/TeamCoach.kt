@@ -52,15 +52,22 @@ class TeamCoach(context: Context) {
         )
     }
 
-    fun remainingToday(): Int = (DAILY_LIMIT - usedToday()).coerceAtLeast(0)
+    /** Reads left today, or [UNLIMITED] for Pro. */
+    fun remainingToday(premium: Boolean = false): Int =
+        if (premium) UNLIMITED else (DAILY_LIMIT - usedToday()).coerceAtLeast(0)
 
     /** A previously generated read for this exact team, in the current language, or null. */
     fun cached(team: List<TeamMemberWithTypes>): String? =
         prefs.getString(cacheKey(team), null)
 
-    suspend fun read(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis, allCaught: Boolean = false): CoachResult {
-        cached(team)?.let { return CoachResult.Success(it, remainingToday()) }
-        if (remainingToday() <= 0) return CoachResult.LimitReached
+    suspend fun read(
+        team: List<TeamMemberWithTypes>,
+        analysis: TeamAnalysis,
+        allCaught: Boolean = false,
+        premium: Boolean = false,
+    ): CoachResult {
+        cached(team)?.let { return CoachResult.Success(it, remainingToday(premium)) }
+        if (!premium && remainingToday() <= 0) return CoachResult.LimitReached
 
         return try {
             val text = withContext(Dispatchers.IO) {
@@ -70,9 +77,9 @@ class TeamCoach(context: Context) {
             }
             if (text.isNullOrBlank()) return failed(IllegalStateException("Empty response from the model"), network = false)
             val clean = text.replace("**", "").replace("*", "")
-            spendOne()
+            if (!premium) spendOne()
             remember(team, clean)
-            CoachResult.Success(clean, remainingToday())
+            CoachResult.Success(clean, remainingToday(premium))
         } catch (e: TimeoutCancellationException) {
             Log.w(TAG, "Coach request timed out", e)
             failed(e, network = true)
@@ -155,7 +162,9 @@ class TeamCoach(context: Context) {
 
     companion object {
         private const val TAG = "TeamCoach"
-        const val DAILY_LIMIT = 5
+        /** Free reads per day. Pro has no limit. */
+        const val DAILY_LIMIT = 3
+        const val UNLIMITED = -1
 
         // Stable (not a short-term-availability) Flash model; see Firebase AI Logic "supported models".
         private const val MODEL = "gemini-3.5-flash"

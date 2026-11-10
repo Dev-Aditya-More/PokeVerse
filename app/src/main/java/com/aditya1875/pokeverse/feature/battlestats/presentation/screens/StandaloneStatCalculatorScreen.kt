@@ -83,6 +83,11 @@ fun StandaloneStatCalculatorScreen(
     val rewardedAdManager: IRewardedAdManager = koinInject()
     val adState by rewardedAdManager.adState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    LaunchedEffect(Unit) {
+        viewModel.pickFailed.collect {
+            Toast.makeText(context, context.getString(R.string.load_error_pick), Toast.LENGTH_SHORT).show()
+        }
+    }
     val activity = context as? Activity
 
     var adUnlocked by rememberSaveable { mutableStateOf(isPremium) }

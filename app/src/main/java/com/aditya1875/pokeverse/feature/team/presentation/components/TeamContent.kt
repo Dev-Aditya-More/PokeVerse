@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -49,34 +51,40 @@ import com.aditya1875.pokeverse.feature.team.data.local.entity.TeamMemberEntity
 
 private const val MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE = 3
 
-@Composable
-fun TeamContent(
+/**
+ * The team tab as list items, so the progress card and action buttons scroll away with the rest of
+ * the page instead of sitting pinned above the Pokémon (which left almost no room to scroll them).
+ */
+fun LazyListScope.teamContentItems(
     onAnalyze: () -> Unit,
     team: List<TeamMemberEntity>,
     navController: NavController,
     onRemove: (TeamMemberEntity) -> Unit,
-    accentColor: Color? = null,
+    progressColor: Color,
+    caughtIds: Set<Int>,
     assetsEnabled: Boolean,
     onShare: (() -> Unit)? = null,
     analysisUsesLeft: Int? = null
 ) {
-    val progressColor = accentColor ?: MaterialTheme.colorScheme.primary
     val meetsMinimumForAnalysisOrShare = team.size >= MIN_TEAM_SIZE_FOR_ANALYSIS_OR_SHARE
-    val dexProgress by koinViewModel<PokedexViewModel>().progress.collectAsStateWithLifecycle()
     val isCaught: (TeamMemberEntity) -> Boolean = { m ->
-        pokemonIdFromSpriteUrl(m.imageUrl)?.let { it in dexProgress.caught } == true
+        pokemonIdFromSpriteUrl(m.imageUrl)?.let { it in caughtIds } == true
     }
-    val partyCaught = isTrainersParty(team.map { pokemonIdFromSpriteUrl(it.imageUrl) ?: 0 }, dexProgress.caught)
+    val partyCaught = isTrainersParty(team.map { pokemonIdFromSpriteUrl(it.imageUrl) ?: 0 }, caughtIds)
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        if (team.isEmpty()) {
+    if (team.isEmpty()) {
+        item(key = "empty") {
             EmptyStateCard(
-                icon = Icons.Default.Star,
-                title = stringResource(R.string.team_empty_title),
-                subtitle = stringResource(R.string.team_empty_subtitle),
-                color = MaterialTheme.colorScheme.secondary
-            )
-        } else {
+        icon = Icons.Default.Star,
+        title = stringResource(R.string.team_empty_title),
+        subtitle = stringResource(R.string.team_empty_subtitle),
+        color = MaterialTheme.colorScheme.secondary
+    )
+        }
+        return
+    }
+
+    item(key = "progress") {
             // Progress Section
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -140,8 +148,11 @@ fun TeamContent(
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+    }
 
+    item(key = "actions") {
+        Column {
+            Spacer(Modifier.height(16.dp))
             // Action buttons row
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -243,23 +254,18 @@ fun TeamContent(
             }
 
             Spacer(Modifier.height(16.dp))
+        }
+    }
 
-            // Team List
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 32.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                itemsIndexed(team, key = { index, it -> "${it.name}_$index" }) { _, pokemon ->
-                    ImprovedTeamCard(
-                        pokemon = pokemon,
-                        navController = navController,
-                        onRemove = onRemove,
-                        assetsEnabled = assetsEnabled,
-                        caught = isCaught(pokemon)
-                    )
-                }
-            }
+    itemsIndexed(team, key = { index, it -> "${it.name}_$index" }) { _, pokemon ->
+        Box(Modifier.padding(bottom = 12.dp)) {
+            ImprovedTeamCard(
+                pokemon = pokemon,
+                navController = navController,
+                onRemove = onRemove,
+                assetsEnabled = assetsEnabled,
+                caught = isCaught(pokemon)
+            )
         }
     }
 }

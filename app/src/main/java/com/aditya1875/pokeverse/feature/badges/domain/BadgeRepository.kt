@@ -15,7 +15,7 @@ data class GymBadge(
 
 /**
  * Gym badges are a small, fixed dataset (PokeAPI has no badges endpoint),
- * so they ship as bundled JSON — loaded once and cached for the process.
+ * so they ship as bundled JSON, loaded once and cached for the process.
  */
 class BadgeRepository(private val context: Context) {
 

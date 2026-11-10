@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.compare.presentation.components
 
+import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import com.aditya1875.pokeverse.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.Animatable
@@ -49,7 +52,7 @@ import com.aditya1875.pokeverse.utils.SearchUiState
 import com.aditya1875.pokeverse.utils.pokemonTypeColor
 
 /**
- * One side of the compare tool's Pokémon picker — a search field with a
+ * One side of the compare tool's Pokémon picker, a search field with a
  * suggestion dropdown before a pick is made, or a glowing type-tinted card
  * (with a way to swap the pick) afterward.
  */
@@ -146,6 +149,26 @@ fun ComparePickerField(
                 ),
                 modifier = Modifier.fillMaxWidth()
             )
+            if (searchState.errorKind != null) {
+                // Searching needs the network: say so rather than showing an empty, silent list.
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 6.dp, top = 6.dp)
+                ) {
+                    Icon(
+                        Icons.Default.WifiOff,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        stringResource(R.string.load_error_search),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
             if (searchState.showSuggestions) {
                 Surface(
                     shape = RoundedCornerShape(14.dp),

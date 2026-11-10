@@ -1,5 +1,9 @@
 package com.aditya1875.pokeverse.feature.battlestats.presentation.viewmodels
 
+import com.aditya1875.pokeverse.utils.toLoadErrorKind
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.model.PokemonResponse
@@ -19,7 +23,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * Single-Pokémon collapse of [com.aditya1875.pokeverse.feature.compare.presentation.viewmodels.CompareViewModel] —
+ * Single-Pokémon collapse of [com.aditya1875.pokeverse.feature.compare.presentation.viewmodels.CompareViewModel]
  * same debounced search pattern, just one side instead of two, for the
  * standalone Stat Calculator tool.
  */
@@ -51,11 +55,16 @@ class StatCalculatorViewModel(
                     val results = searchPokemonUseCase(cleaned)
                     emit(SearchUiState(query = cleaned, suggestions = results, showSuggestions = results.isNotEmpty()))
                 } catch (e: Exception) {
-                    emit(SearchUiState(query = cleaned, error = "Search failed"))
+                    emit(SearchUiState(query = cleaned, error = "Search failed", errorKind = e.toLoadErrorKind()))
                 }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SearchUiState())
+
+    private val _pickFailed = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    /** Fires when choosing a Pokémon failed to load, so the screen can say so instead of doing nothing. */
+    val pickFailed: SharedFlow<Unit> = _pickFailed.asSharedFlow()
 
     fun onQueryChange(query: String) {
         _query.value = query
@@ -67,8 +76,11 @@ class StatCalculatorViewModel(
             try {
                 _pokemon.value = pokemonRepo.getPokemonByName(name)
                 _query.value = ""
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (_: Exception) {
-                // Leave the previous selection (if any) in place on failure.
+                // The previous selection (if any) stays in place; the player is told it didn't load.
+                _pickFailed.tryEmit(Unit)
             } finally {
                 _loading.value = false
             }

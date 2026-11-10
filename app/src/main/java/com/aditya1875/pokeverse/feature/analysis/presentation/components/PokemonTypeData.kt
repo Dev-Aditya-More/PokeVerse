@@ -17,7 +17,7 @@ object PokemonTypeData {
      * Key: Attacking type
      * Value: Map of defending type to effectiveness multiplier
      *
-     * Derived from the shared [pokemonTypeEffectiveness] chart (utils) — kept as
+     * Derived from the shared [pokemonTypeEffectiveness] chart (utils), kept as
      * Double here since that's what every consumer below already expects.
      */
     val typeEffectiveness: Map<String, Map<String, Double>> =

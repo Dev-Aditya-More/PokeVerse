@@ -21,28 +21,29 @@ sealed interface CoachUiState {
 
 class TeamCoachViewModel(private val coach: TeamCoach) : ViewModel() {
 
-    private val _state = MutableStateFlow<CoachUiState>(CoachUiState.Idle(coach.remainingToday()))
+    private val _state = MutableStateFlow<CoachUiState>(CoachUiState.Idle(coach.remainingToday(premium = false)))
     val state: StateFlow<CoachUiState> = _state.asStateFlow()
 
     /** Shows a saved read for this team if there is one (free), otherwise the ask button. */
-    fun load(team: List<TeamMemberWithTypes>) {
+    fun load(team: List<TeamMemberWithTypes>, premium: Boolean = false) {
         if (_state.value is CoachUiState.Loading) return
         val saved = coach.cached(team)
+        val left = coach.remainingToday(premium)
         _state.value = when {
-            saved != null -> CoachUiState.Ready(saved, coach.remainingToday(), fresh = false)
-            coach.remainingToday() <= 0 -> CoachUiState.Limit
-            else -> CoachUiState.Idle(coach.remainingToday())
+            saved != null -> CoachUiState.Ready(saved, left, fresh = false)
+            !premium && left <= 0 -> CoachUiState.Limit
+            else -> CoachUiState.Idle(left)
         }
     }
 
-    fun ask(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis, allCaught: Boolean = false) {
+    fun ask(team: List<TeamMemberWithTypes>, analysis: TeamAnalysis, allCaught: Boolean = false, premium: Boolean = false) {
         if (_state.value is CoachUiState.Loading) return
         _state.value = CoachUiState.Loading
         viewModelScope.launch {
-            _state.value = when (val result = coach.read(team, analysis, allCaught)) {
+            _state.value = when (val result = coach.read(team, analysis, allCaught, premium)) {
                 is CoachResult.Success -> CoachUiState.Ready(result.text, result.remaining, fresh = true)
                 CoachResult.LimitReached -> CoachUiState.Limit
-                is CoachResult.Failed -> CoachUiState.Error(coach.remainingToday(), result.network, result.detail)
+                is CoachResult.Failed -> CoachUiState.Error(coach.remainingToday(premium), result.network, result.detail)
             }
         }
     }

@@ -77,7 +77,7 @@ class ReferralRepository(private val context: Context) {
                     if (e.message == "own-code") RedeemResult.OwnCode else RedeemResult.UnknownCode
                 else -> RedeemResult.Failed
             }
-            // A link code the server rejected will never work — stop offering it on every launch.
+            // A link code the server rejected will never work, stop offering it on every launch.
             if (result != RedeemResult.Failed && code == _pendingInstallCode.value) clearPendingCode()
             result
         } catch (e: Exception) {

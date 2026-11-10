@@ -50,7 +50,7 @@ class FeedbackRepository(context: Context) {
         false
     }
 
-    /** True the first time only — the thank-you XP is a one-off. */
+    /** True the first time only, the thank-you XP is a one-off. */
     fun claimThanksOnce(): Boolean {
         if (prefs.getBoolean(KEY_THANKED, false)) return false
         prefs.edit().putBoolean(KEY_THANKED, true).apply()
