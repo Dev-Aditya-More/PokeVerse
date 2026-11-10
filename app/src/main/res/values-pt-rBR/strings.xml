@@ -33,9 +33,6 @@
     <string name="settings_about">Sobre</string>
     <string name="settings_about_crafted">Feito com ❤ usando Jetpack Compose</string>
     <string name="settings_about_version">Versão %1$s</string>
-    <string name="settings_original_assets">Recursos Originais</string>
-    <string name="settings_original_assets_desc">Ativar visuais e mídia originais da franquia.</string>
-    <string name="settings_original_assets_dialog_body">Este recurso ativa visuais e áudio originais da franquia. Esses recursos podem ser protegidos por leis de propriedade intelectual. Este aplicativo é não oficial e não é afiliado a nenhum dono de franquia.</string>
     <string name="settings_special_effects">Efeitos Especiais</string>
     <string name="settings_special_effects_requires">Efeitos visuais aprimorados requerem Android 13 ou mais recente.</string>
     <string name="settings_special_effects_desc">Você verá efeitos visuais aprimorados nos detalhes do Pokémon.</string>
@@ -44,7 +41,7 @@
     <string name="settings_theme_change">Mudar tema</string>
     <string name="settings_share">Compartilhar Dexverse</string>
     <string name="settings_share_desc">Conte aos seus amigos sobre o Dexverse!</string>
-    <string name="settings_share_message">Olá! Confira o Dexverse — um app de Pokédex para fãs de Pokémon:\nhttps://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="settings_share_message">Olá! Confira o Dexverse, um app de Pokédex para fãs de Pokémon:\nhttps://play.google.com/store/apps/details?id=%1$s</string>
     <string name="settings_share_chooser">Compartilhar Dexverse via</string>
     <string name="settings_rate">Avaliar no Google Play</string>
     <string name="settings_rate_desc">Se você gosta do Dexverse, avalie-o na Play Store. Isso realmente ajuda.</string>
@@ -65,17 +62,6 @@
     <string name="language_french">Français</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_brand">DEXVERSE</string>
-    <string name="onboarding_cta">Começar</string>
-    <string name="onboarding_slide_1_badge">Pokédex</string>
-    <string name="onboarding_slide_1_headline">Seu companheiro\nPokémon definitivo</string>
-    <string name="onboarding_slide_1_subtitle">Explore a Pokédex completa com estatísticas, movimentos e histórias.</string>
-    <string name="onboarding_slide_2_badge">Mini Jogos</string>
-    <string name="onboarding_slide_2_headline">Jogue. Compita.\nDomine.</string>
-    <string name="onboarding_slide_2_subtitle">Teste seu conhecimento com PokeGuess, PokeQuiz, PokeMatch e muito mais.</string>
-    <string name="onboarding_slide_3_badge">Classificação</string>
-    <string name="onboarding_slide_3_headline">Suba entre os\nmelhores treinadores</string>
-    <string name="onboarding_slide_3_subtitle">Ganhe XP, suba de nível e compita com treinadores do mundo todo.</string>
 
     <!-- Filter Bar -->
     <string name="filter_all_regions">Todas as Regiões</string>
@@ -99,10 +85,6 @@
     <string name="popup_update_tip">Atualize agora para a melhor experiência.</string>
     <string name="force_update_title">Atualização Necessária</string>
     <string name="force_update_body">Esta versão do Dexverse não é mais suportada. Atualize para continuar jogando.</string>
-    <string name="popup_assets_title">Visuais Originais Disponíveis</string>
-    <string name="popup_assets_body">O Dexverse pode mostrar sprites originais da franquia e reproduzir áudio autêntico para uma experiência mais rica.</string>
-    <string name="popup_assets_disclaimer">⚠️  Esses recursos pertencem aos seus respectivos donos. Este app é não oficial e não é afiliado.</string>
-    <string name="popup_assets_change_hint">Você pode mudar isso em Configurações → Recursos Originais.</string>
     <string name="popup_premium_title">Pokeverse Premium</string>
     <string name="popup_premium_subtitle">Desbloqueie a experiência completa</string>
     <string name="popup_premium_feature_hard_mode">Modo difícil em todos os 4 jogos</string>
@@ -110,7 +92,7 @@
     <string name="popup_premium_feature_themes">Temas e emblemas exclusivos</string>
     <string name="popup_premium_feature_support">Apoie o crescimento do Dexverse</string>
     <string name="popup_rating_title">Está gostando do Dexverse até agora?</string>
-    <string name="popup_rating_body">Adoraríamos saber sua opinião — leva só alguns segundos e nos ajuda muito!</string>
+    <string name="popup_rating_body">Adoraríamos saber sua opinião, leva só alguns segundos e nos ajuda muito!</string>
     <string name="action_rating_yes">Sim, eu adoro!</string>
     <string name="action_rating_no">Não muito</string>
 
@@ -147,7 +129,7 @@
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->
-    <string name="ad_not_ready_toast">O anúncio ainda está carregando — tente novamente em instantes.</string>
+    <string name="ad_not_ready_toast">O anúncio ainda está carregando, tente novamente em instantes.</string>
 
     <!-- Result / Game Over -->
     <string name="result_play_again">Jogar novamente</string>
@@ -447,12 +429,12 @@
     <string name="stat_calc_subtitle">Status reais em qualquer Nível, IV, EV e Natureza</string>
     <string name="stat_calc_level">Nível</string>
     <string name="stat_calc_nature">Natureza</string>
-    <string name="stat_calc_nature_neutral">Neutra — sem bônus ou redução</string>
+    <string name="stat_calc_nature_neutral">Neutra, sem bônus ou redução</string>
     <string name="stat_calc_nature_boost_lower">+%1$s · −%2$s</string>
     <string name="stat_calc_iv">IV</string>
     <string name="stat_calc_ev">EV</string>
     <string name="stat_calc_ev_total">EVs usados: %1$d / %2$d</string>
-    <string name="stat_calc_ev_over_limit">Acima do limite de %1$d EVs totais — os pontos extras são ignorados</string>
+    <string name="stat_calc_ev_over_limit">Acima do limite de %1$d EVs totais, os pontos extras são ignorados</string>
     <string name="stat_calc_max_ivs">IVs Máximos</string>
     <string name="stat_calc_reset">Redefinir</string>
     <string name="ev_yield_badge">+%1$d EV</string>
@@ -469,7 +451,7 @@
     <string name="go_cp_iv_percent">IV %1$d%%</string>
     <string name="go_cp_perfect_ivs">IVs Perfeitos</string>
     <string name="go_cp_max_note">CP máximo no Nível %1$s com IVs perfeitos (15 / 15 / 15)</string>
-    <string name="go_cp_raid_note">Capturas de Raids, Ovos e Pesquisa de Campo garantem um piso mínimo de IV (geralmente 10/15 ou mais) — verifique a Avaliação no jogo para ver os IVs exatos de um Pokémon capturado.</string>
+    <string name="go_cp_raid_note">Capturas de Raids, Ovos e Pesquisa de Campo garantem um piso mínimo de IV (geralmente 10/15 ou mais), verifique a Avaliação no jogo para ver os IVs exatos de um Pokémon capturado.</string>
     <string name="go_cp_unavailable">Os dados de batalha do GO ainda não estão disponíveis para este Pokémon ou forma.</string>
     <string name="battle_calc_expand">Mostrar calculadora</string>
     <string name="battle_calc_collapse">Ocultar calculadora</string>
@@ -478,29 +460,27 @@
     <!-- Stat Guide (explicação de IV / EV / Natureza dos jogos principais) -->
     <string name="stat_guide_title">Entendendo IVs e EVs</string>
     <string name="stat_guide_iv_heading">O que são IVs?</string>
-    <string name="stat_guide_iv_body">Individual Values (IVs) são números ocultos de 0 a 31 para cada status, definidos aleatoriamente quando um Pokémon é gerado. Pense neles como potencial genético — dois Pokémon da mesma espécie no mesmo nível podem ter status diferentes só por causa dos IVs. Um Pokémon com 31 de IV em todos os status é chamado de \"perfeito\" ou \"6IV.\"</string>
+    <string name="stat_guide_iv_body">Individual Values (IVs) são números ocultos de 0 a 31 para cada status, definidos aleatoriamente quando um Pokémon é gerado. Pense neles como potencial genético, dois Pokémon da mesma espécie no mesmo nível podem ter status diferentes só por causa dos IVs. Um Pokémon com 31 de IV em todos os status é chamado de \"perfeito\" ou \"6IV.\"</string>
     <string name="stat_guide_ev_heading">O que são EVs?</string>
-    <string name="stat_guide_ev_body">Effort Values (EVs) são pontos extras que um Pokémon ganha ao batalhar. A cada 4 EVs investidos em um status, ele ganha aproximadamente +1 ponto nesse status no Nível 100. Você pode colocar até 252 EVs em um único status, e 510 no total entre os seis — a maioria dos jogadores competitivos foca os EVs em apenas dois ou três status em vez de espalhá-los.</string>
+    <string name="stat_guide_ev_body">Effort Values (EVs) são pontos extras que um Pokémon ganha ao batalhar. A cada 4 EVs investidos em um status, ele ganha aproximadamente +1 ponto nesse status no Nível 100. Você pode colocar até 252 EVs em um único status, e 510 no total entre os seis, a maioria dos jogadores competitivos foca os EVs em apenas dois ou três status em vez de espalhá-los.</string>
     <string name="stat_guide_nature_heading">Natureza</string>
-    <string name="stat_guide_nature_body">Todo Pokémon também tem uma Natureza, que aumenta um status em 10%% e reduz outro em 10%% — ou não faz nada, no caso de cinco naturezas neutras. Combinar a Natureza certa com o investimento em EVs é uma parte essencial para deixar um Pokémon forte.</string>
+    <string name="stat_guide_nature_body">Todo Pokémon também tem uma Natureza, que aumenta um status em 10%% e reduz outro em 10%%, ou não faz nada, no caso de cinco naturezas neutras. Combinar a Natureza certa com o investimento em EVs é uma parte essencial para deixar um Pokémon forte.</string>
     <string name="stat_guide_together_heading">Juntando tudo</string>
     <string name="stat_guide_together_body">O status final de um Pokémon vem do Status Base da espécie, do IV e EV escolhidos, do Nível e da Natureza. Use a calculadora acima para ver o quanto um único status pode variar entre o pior caso (0 IV, 0 EV, Natureza negativa) e o melhor caso (31 IV, 252 EV, Natureza positiva) de um Pokémon da mesma espécie.</string>
 
     <!-- GO CP Guide (explicação de CP / IV do Pokémon GO) -->
     <string name="go_guide_title">Entendendo CP e IVs do GO</string>
     <string name="go_guide_cp_heading">O que é CP?</string>
-    <string name="go_guide_cp_body">Combat Power (CP) é o número único do Pokémon GO que resume o quão forte um Pokémon é no momento. É calculado a partir do Ataque, Defesa e Resistência da espécie, do Nível e dos IVs individuais — um CP mais alto geralmente indica um Pokémon mais forte em batalha.</string>
+    <string name="go_guide_cp_body">Combat Power (CP) é o número único do Pokémon GO que resume o quão forte um Pokémon é no momento. É calculado a partir do Ataque, Defesa e Resistência da espécie, do Nível e dos IVs individuais, um CP mais alto geralmente indica um Pokémon mais forte em batalha.</string>
     <string name="go_guide_iv_heading">O que são IVs no Pokémon GO?</string>
     <string name="go_guide_iv_body">Diferente dos jogos principais (0–31), os IVs do Pokémon GO variam de 0 a 15 por status (Ataque, Defesa, Resistência). Eles são definidos aleatoriamente quando você captura ou choca um Pokémon e nunca mudam depois disso. Um Pokémon com 15/15/15 é chamado de \"Perfeito\" ou \"100%.\"</string>
     <string name="go_guide_appraisal_heading">Verificando os IVs reais do seu Pokémon</string>
-    <string name="go_guide_appraisal_body">Este app não consegue ler os dados salvos da sua conta, então só pode estimar. Para ver os IVs exatos de um Pokémon que você capturou, use a Avaliação dentro do jogo — toque no Pokémon, abra o menu ⋮ e depois Avaliar.</string>
+    <string name="go_guide_appraisal_body">Este app não consegue ler os dados salvos da sua conta, então só pode estimar. Para ver os IVs exatos de um Pokémon que você capturou, use a Avaliação dentro do jogo, toque no Pokémon, abra o menu ⋮ e depois Avaliar.</string>
     <string name="go_guide_raid_heading">Piso de IV em Raids, Ovos e Pesquisas</string>
-    <string name="go_guide_raid_body">Pokémon capturados em Raids, chocados de Ovos ou obtidos por Pesquisa de Campo têm garantido um piso mínimo de IV em todos os status (geralmente 10/15 ou mais) — por isso tendem a ser mais fortes, em média, do que uma captura selvagem aleatória.</string>
+    <string name="go_guide_raid_body">Pokémon capturados em Raids, chocados de Ovos ou obtidos por Pesquisa de Campo têm garantido um piso mínimo de IV em todos os status (geralmente 10/15 ou mais), por isso tendem a ser mais fortes, em média, do que uma captura selvagem aleatória.</string>
 
     <!-- Asset Onboarding Banner -->
     <string name="banner_original_visuals">Visuais Originais</string>
-    <string name="banner_original_assets_desc">Ative sprites e áudio originais da franquia para uma experiência mais rica. Esses recursos pertencem aos seus respectivos donos — este app é não oficial e não é afiliado.</string>
-    <string name="banner_enable_original_assets">Ativar recursos originais</string>
     <string name="banner_settings_change_hint">Você pode alterar isso nas Configurações.</string>
 
     <!-- FAB badges -->
@@ -513,15 +493,15 @@
     <string name="clash_exit">Sair</string>
     <string name="clash_claim_win">Reivindicar Vitória</string>
     <string name="clash_wait_opponent">Aguardar Oponente</string>
-    <string name="clash_pick_card_hint">Escolha uma carta — você não pode ver o que está dentro!</string>
-    <string name="clash_locked_waiting">Confirmado — Aguardando oponente...</string>
+    <string name="clash_pick_card_hint">Escolha uma carta, você não pode ver o que está dentro!</string>
+    <string name="clash_locked_waiting">Confirmado. Aguardando oponente...</string>
     <string name="clash_lock_in">Confirmar</string>
 
     <!-- Card Clash Lobby -->
     <string name="clash_lobby_title">PokeCard Clash</string>
-    <string name="clash_lobby_desc">6 cartas misteriosas. 6 rodadas.\nSorte pura — nenhum jogador vê suas cartas!</string>
+    <string name="clash_lobby_desc">6 cartas misteriosas. 6 rodadas.\nSorte pura, nenhum jogador vê suas cartas!</string>
     <string name="clash_lobby_play_random">Jogar Aleatório</string>
-    <string name="clash_lobby_or">— ou —</string>
+    <string name="clash_lobby_or">ou</string>
     <string name="clash_lobby_play_friend">Jogar com Amigo</string>
     <string name="clash_lobby_create_room">Criar Sala e Compartilhar Código</string>
     <string name="clash_lobby_enter_code">ou insira um código de sala</string>
@@ -536,7 +516,7 @@
     <string name="clash_quick_match">Partida Rápida</string>
     <string name="clash_quick_match_desc">Entre em uma partida com um jogador aleatório</string>
     <string name="clash_searching">Procurando jogadores…</string>
-    <string name="clash_queue_hint">Você está na fila — convide amigos para aumentar o pool de jogadores!</string>
+    <string name="clash_queue_hint">Você está na fila, convide amigos para aumentar o pool de jogadores!</string>
     <string name="clash_invite_friends">Convidar Amigos</string>
     <string name="clash_waiting_friend">Aguardando seu amigo…</string>
     <string name="clash_room_code">Código da Sala</string>
@@ -567,7 +547,7 @@
     <string name="clash_guide_step_count">%1$d de %2$d</string>
     <string name="clash_guide_confirm">Vamos jogar!</string>
     <string name="clash_guide_step1_title">Você recebe 6 cartas misteriosas</string>
-    <string name="clash_guide_step1_body">Cada jogador começa com 6 Pokémon virados para baixo. Você não pode ver suas cartas até escolher uma — é tudo instinto.</string>
+    <string name="clash_guide_step1_body">Cada jogador começa com 6 Pokémon virados para baixo. Você não pode ver suas cartas até escolher uma, é tudo instinto.</string>
     <string name="clash_guide_step2_title">Escolha uma por rodada</string>
     <string name="clash_guide_step2_body">A cada rodada, ambos os jogadores escolhem uma carta em segredo. Quando os dois confirmam, as cartas são reveladas ao mesmo tempo.</string>
     <string name="clash_guide_step3_title">A vantagem de tipo decide o vencedor</string>
@@ -575,7 +555,7 @@
     <string name="clash_guide_step4_title">Primeiro a 4 rodadas vence</string>
     <string name="clash_guide_step4_body">São 6 rodadas. Vença 4 para ganhar a partida. Um empate é possível se ambos terminarem com 3.</string>
     <string name="clash_guide_step5_title">Cartas usadas são descartadas</string>
-    <string name="clash_guide_step5_body">Uma vez que você joga um Pokémon, ele é removido da sua mão — escolha com cuidado, especialmente nas rodadas finais.</string>
+    <string name="clash_guide_step5_body">Uma vez que você joga um Pokémon, ele é removido da sua mão, escolha com cuidado, especialmente nas rodadas finais.</string>
 
     <!-- Analysis ad gate -->
     <string name="analysis_ad_title">Analisar Seu Time</string>
@@ -602,11 +582,11 @@
     <string name="chase_title">Fuga da Equipe Rocket</string>
     <string name="chase_loading">A Equipe Rocket está enchendo o balão…</string>
     <string name="chase_tap_to_run">Toque para correr!</string>
-    <string name="chase_controls_hint">Toque numa pista para correr até ela — arraste para guiar</string>
+    <string name="chase_controls_hint">Toque numa pista para correr até ela, arraste para guiar</string>
     <string name="chase_thunderbolt">Trovão</string>
     <string name="chase_agility_ad_loading">Preparando a Agilidade…</string>
     <string name="chase_revive_ad_loading">Preparando seu retorno…</string>
-    <string name="ad_loading_paused">Sua corrida está pausada — nada atinge o Pikachu enquanto você espera.</string>
+    <string name="ad_loading_paused">Sua corrida está pausada, nada atinge o Pikachu enquanto você espera.</string>
     <string name="ad_unavailable">Nenhum anúncio disponível agora. Tente de novo daqui a pouco!</string>
     <string name="ad_unavailable_ok">Entendi</string>
     <string name="chase_agility">Agilidade</string>
@@ -627,9 +607,9 @@
     <string name="chase_stat_distance">Distância</string>
     <string name="chase_stat_berries">Frutas</string>
     <string name="chase_guide_title">Como Escapar</string>
-    <string name="chase_guide_lanes">Toque numa pista e o Pikachu corre até ela — arraste para desviar de Koffing, Ekans e Wobbuffet.</string>
-    <string name="chase_guide_nets">Um alvo vermelho significa que a Equipe Rocket lançou uma rede. Saia dessa pista! Se ela cair em você, o Pikachu fica preso — toque rápido para se soltar antes que eles o puxem.</string>
-    <string name="chase_guide_berries">Frutas Oran carregam o 🌩️ Trovão (uma Pedra do Trovão enche na hora) — toque para limpar a tela. ⚡ Agilidade é sua salvação grátis uma vez por corrida: um sprint de 10 segundos que derruba os atacantes um a um e faz chover frutas. Assista a um anúncio para mais.</string>
+    <string name="chase_guide_lanes">Toque numa pista e o Pikachu corre até ela, arraste para desviar de Koffing, Ekans e Wobbuffet.</string>
+    <string name="chase_guide_nets">Um alvo vermelho significa que a Equipe Rocket lançou uma rede. Saia dessa pista! Se ela cair em você, o Pikachu fica preso, toque rápido para se soltar antes que eles o puxem.</string>
+    <string name="chase_guide_berries">Frutas Oran carregam o 🌩️ Trovão (uma Pedra do Trovão enche na hora), toque para limpar a tela. ⚡ Agilidade é sua salvação grátis uma vez por corrida: um sprint de 10 segundos que derruba os atacantes um a um e faz chover frutas. Assista a um anúncio para mais.</string>
     <string name="chase_guide_lives">3 acertos e você é capturado. Corra 400 m sem ser atingido para despistá-los e recuperar um coração.</string>
     <string name="chase_guide_go">Vamos lá!</string>
     <string name="chase_leave_title">Sair da fuga?</string>
@@ -639,7 +619,7 @@
 
     <!-- Streak widget -->
     <string name="widget_streak_name">Sequência Dexverse</string>
-    <string name="widget_streak_description">O Pikachu mantém sua sequência viva — e troca de roupa conforme ela cresce</string>
+    <string name="widget_streak_description">O Pikachu mantém sua sequência viva, e troca de roupa conforme ela cresce</string>
     <string name="widget_streak_title">SEQUÊNCIA DIÁRIA</string>
     <plurals name="widget_streak_days" xmlns:tools="http://schemas.android.com/tools" tools:ignore="ImpliedQuantity">
         <item quantity="one">dia</item>
@@ -669,7 +649,7 @@
 
     <!-- Filled translations -->
     <string name="game_name_survivor_title">Sobrevivente Pokémon</string>
-    <string name="game_name_survivor_desc">Um Pokémon selvagem aparece — escolha o tipo que o vence antes que o tempo acabe!</string>
+    <string name="game_name_survivor_desc">Um Pokémon selvagem aparece, escolha o tipo que o vence antes que o tempo acabe!</string>
     <string name="premium_best_value">MELHOR VALOR</string>
     <string name="premium_prices_unavailable">Não foi possível carregar os planos. Verifique sua conexão e tente de novo.</string>
     <string name="premium_retry">Tentar de novo</string>
@@ -706,9 +686,9 @@
     <string name="game_score_label_points">pontos</string>
     <string name="survivor_loading">Um Pokémon selvagem está chegando…</string>
     <string name="survivor_guide_title">Como sobreviver</string>
-    <string name="survivor_guide_types">Um Pokémon selvagem aparece — toque no tipo que é super efetivo contra ele.</string>
-    <string name="survivor_guide_weather">Fique de olho no clima — Chuva fortalece Água e enfraquece Fogo, o Sol faz o contrário.</string>
-    <string name="survivor_guide_timer">O tempo começa quando o Pokémon aparece — se o tempo acabar, conta como erro.</string>
+    <string name="survivor_guide_types">Um Pokémon selvagem aparece, toque no tipo que é super efetivo contra ele.</string>
+    <string name="survivor_guide_weather">Fique de olho no clima. Chuva fortalece Água e enfraquece Fogo, o Sol faz o contrário.</string>
+    <string name="survivor_guide_timer">O tempo começa quando o Pokémon aparece, se o tempo acabar, conta como erro.</string>
     <string name="survivor_guide_lives">Você tem 3 vidas. Acerte em sequência para ganhar bônus de streak e XP.</string>
     <string name="survivor_guide_go">Vamos lá!</string>
     <string name="survivor_wild_appeared">Um %1$s selvagem apareceu!</string>
@@ -967,7 +947,7 @@
     <string name="compare_unlock_body">Assista a um anúncio rápido para comparar atributos e tipos de Pokémon lado a lado nesta sessão.</string>
     <string name="ad_unavailable_short">Anúncio indisponível, tente em instantes</string>
     <string name="go_premium">Seja Premium</string>
-    <string name="compare_empty_hint">Escolha dois Pokémon para ver como se comparam — sem vencedores, só os fatos.</string>
+    <string name="compare_empty_hint">Escolha dois Pokémon para ver como se comparam, sem vencedores, só os fatos.</string>
     <string name="compare_vs">VS</string>
     <string name="compare_stats_header">ATRIBUTOS</string>
     <string name="compare_bst">Total %1$d</string>
@@ -975,7 +955,7 @@
     <string name="compare_weak_to">Fraco contra</string>
     <string name="compare_edge_header">A VANTAGEM</string>
     <string name="compare_reveal_edge">Revelar a vantagem</string>
-    <string name="compare_edge_disclaimer">Só por diversão — cálculo de tipos + uma lista de favoritos dos fãs, não um previsor de batalhas.</string>
+    <string name="compare_edge_disclaimer">Só por diversão, cálculo de tipos + uma lista de favoritos dos fãs, não um previsor de batalhas.</string>
     <string name="compare_change_pick">Trocar escolha</string>
     <string name="stat_calc_pick_hint">Escolha um Pokémon para calcular IV/EV e o PC do GO.</string>
     <string name="stat_calc_unlock_title">Desbloqueie a Calculadora de atributos</string>
@@ -1020,17 +1000,15 @@
     <string name="theme_desc_charizard">Feroz e ousado como um dragão que cospe fogo</string>
     <string name="theme_desc_venusaur">Fresco e vibrante como um jardim florido</string>
     <string name="theme_desc_blastoise">Frio e calmo como o oceano profundo</string>
-    <string name="theme_desc_gengar">Travesso e assustador — roxo sombrio com um sorriso verde malvado</string>
-    <string name="theme_desc_rayquaza">Serpente lendária do céu — escamas esmeralda e marcas douradas acima das nuvens</string>
-    <string name="theme_desc_sylveon">Suave e doce — fitas em tons pastel e calor gentil</string>
-    <string name="theme_desc_lugia">Guardião dos mares — plumagem prateada sobre o azul do oceano à meia-noite</string>
-    <string name="theme_desc_lucario">Mestre da aura — azul brilhante sobre o preto aço</string>
-    <string name="theme_desc_greninja">Shinobi silencioso — noite azul profunda com um toque de rosa do cachecol</string>
-    <string name="theme_desc_mimikyu">Só quer ser amado — um disfarce amarelo caseiro sobre algo mais sombrio</string>
-    <string name="theme_desc_hooh">Fênix arco-íris — fogo dourado sagrado com asas carmim e esmeralda</string>
-    <string name="wildcatch_hint_perfect">✨  Perfeito!</string>
-    <string name="wildcatch_hint_great">🎯  Ótimo</string>
-    <string name="wildcatch_hint_nice">👍  Legal</string>
+    <string name="theme_desc_gengar">Travesso e assustador, roxo sombrio com um sorriso verde malvado</string>
+    <string name="theme_desc_rayquaza">Serpente lendária do céu, escamas esmeralda e marcas douradas acima das nuvens</string>
+    <string name="theme_desc_sylveon">Suave e doce, fitas em tons pastel e calor gentil</string>
+    <string name="theme_desc_lugia">Guardião dos mares, plumagem prateada sobre o azul do oceano à meia-noite</string>
+    <string name="theme_desc_lucario">Mestre da aura, azul brilhante sobre o preto aço</string>
+    <string name="theme_desc_greninja">Shinobi silencioso, noite azul profunda com um toque de rosa do cachecol</string>
+    <string name="theme_desc_mimikyu">Só quer ser amado, um disfarce amarelo caseiro sobre algo mais sombrio</string>
+    <string name="theme_desc_hooh">Fênix arco-íris, fogo dourado sagrado com asas carmim e esmeralda</string>
+    <string name="wildcatch_hint_great">Ótimo!</string>
     <string name="wildcatch_hint_wait">Espere o anel...</string>
     <string name="wildcatch_swipe_to_throw">Deslize para cima para lançar!</string>
     <string name="wildcatch_gotcha_life">Peguei! ❤️ +1 vida!</string>
@@ -1041,12 +1019,10 @@
     <string name="wildcatch_over">Fim da Captura Selvagem!</string>
     <string name="wildcatch_catch_rate">Taxa de captura: %1$d%%</string>
     <string name="action_back_to_games">Voltar aos jogos</string>
-    <string name="throw_perfect">Perfeito!</string>
     <string name="throw_great">Ótimo!</string>
-    <string name="throw_nice">Legal!</string>
     <string name="throw_miss">Errou...</string>
     <string name="face_match_title">Com qual Pokémon eu me pareço?</string>
-    <string name="face_match_intro_body">Tire uma selfie e descubra! Só por diversão — sua foto nunca sai do seu aparelho.</string>
+    <string name="face_match_intro_body">Tire uma selfie e descubra! Só por diversão, sua foto nunca sai do seu aparelho.</string>
     <string name="face_match_take_selfie">Tirar selfie</string>
     <string name="face_match_no_camera">Nenhuma câmera encontrada neste aparelho.</string>
     <string name="face_match_phrase_reading">Analisando seus traços...</string>
@@ -1242,6 +1218,8 @@
     <string name="tc_phrase_own">Escrever o meu</string>
     <string name="tc_phrase_own_hint">Seu bordão</string>
     <string name="tc_phrase_count">%1$d/%2$d</string>
+    <string name="tc_edit_fav_type">Tipo favorito</string>
+    <string name="tc_edit_play_style">Estilo de jogo</string>
     <string name="coach_title">Visão do Treinador</string>
     <string name="coach_subtitle">Uma opinião personalizada sobre seu time</string>
     <string name="coach_ask">Pedir ao Treinador</string>
@@ -1265,21 +1243,32 @@
     <string name="pro_skip">Pular</string>
     <string name="pro_yes">Sim!</string>
     <string name="pro_begin">Vamos lá!</string>
+    <string name="pro_name_tag">PROFESSOR DEX</string>
+    <string name="pro_tour_dex">Esta é a sua Pokédex! Cada Pokémon que você abre é marcado como visto, e os que você captura são preenchidos. %1$s já é a sua primeira entrada!</string>
+    <string name="pro_tour_games">Precisa de uma pausa? Os minijogos são cheios de diversão: adivinhe a silhueta, mande bem nos quizzes, combine cartas e até fuja da Equipe Rocket.</string>
+    <string name="pro_tour_rank">Cada jogo rende XP. Suba de nível, escale o ranking e mostre ao mundo que tipo de treinador %1$s é!</string>
+    <string name="pro_tour_style">Deixe com a sua cara! Desbloqueie temas, junte Poké Coins e mantenha sua sequência diária acesa.</string>
+    <string name="pro_tour_seen">Vistos</string>
+    <string name="pro_tour_caught">Capturados</string>
+    <string name="pro_ask_notify">Uma última coisa! Posso te enviar uma mensagem rápida quando sua sequência estiver em risco ou chegar algo novo?</string>
+    <string name="pro_notify_allow">Sim, me avise</string>
+    <string name="pro_notify_later">Agora não</string>
+    <string name="pro_cd_progress">Passo %1$d de %2$d</string>
 
     <!-- Pokédex progress -->
     <string name="dex_title">Pokédex</string>
     <string name="dex_seen">Vistos</string>
     <string name="dex_caught">Capturados</string>
-    <string name="dex_catch_hint">Pokémon capturados vêm de jogar Wild Catch.</string>
+    <string name="dex_catch_hint">Vistos e capturados vêm do Wild Catch: um Pokémon é visto quando aparece lá.</string>
     <string name="dex_play">Jogar</string>
     <string name="wildcatch_tier_uncommon">Incomum</string>
     <string name="wildcatch_tier_rare">Raro</string>
-    <string name="wildcatch_tier_epic">Épico</string>
+    <string name="wildcatch_tier_epic">Ultra raro</string>
     <string name="wildcatch_new_catch">Nova captura!</string>
     <string name="settings_auto_cry">Tocar gritos automaticamente</string>
     <string name="settings_auto_cry_desc">Toca o grito do Pokémon ao abrir a página dele.</string>
     <string name="dex_filter_all">Todos</string>
-    <string name="dex_empty_seen">Nada visto aqui ainda. Abra um Pokémon para registrá-lo.</string>
+    <string name="dex_empty_seen">Nada visto ainda. Os Pokémon que você encontra no Wild Catch aparecem aqui.</string>
     <string name="dex_empty_caught">Nenhuma captura aqui ainda. Jogue Wild Catch para capturar Pokémon!</string>
     <string name="dex_party_badge">Time do Treinador</string>
     <string name="dex_lcd_caught">◓ CAPTURADO</string>
@@ -1345,4 +1334,477 @@
     <string name="dex_daily_no_hints">Sem dicas</string>
     <string name="dex_daily_with_hints">Com dicas</string>
     <string name="xp_dex_daily">Dex Daily</string>
+
+    <!-- Poké Coins, shop and level rewards -->
+    <string name="cosmetic_frame_pokeball">Moldura Poké Ball</string>
+    <string name="cosmetic_frame_ultra">Moldura Ultra</string>
+    <string name="cosmetic_frame_master">Moldura Master</string>
+    <string name="cosmetic_frame_legend">Moldura Lendária</string>
+    <string name="cosmetic_frame_mythic">Moldura Mítica</string>
+    <string name="cosmetic_frame_flame">Moldura de Chamas</string>
+    <string name="cosmetic_frame_tide">Moldura da Maré</string>
+    <string name="cosmetic_frame_leaf">Moldura de Folhas</string>
+    <string name="cosmetic_frame_volt">Moldura Volt</string>
+    <string name="cosmetic_frame_shiny">Moldura Shiny</string>
+    <string name="cosmetic_title_rookie">Treinador Novato</string>
+    <string name="cosmetic_title_ace">Treinador Ás</string>
+    <string name="cosmetic_title_veteran">Veterano</string>
+    <string name="cosmetic_title_elite">Treinador de Elite</string>
+    <string name="cosmetic_title_champion">Campeão</string>
+    <string name="cosmetic_title_legend">Lenda Viva</string>
+    <string name="cosmetic_title_master">Mestre Pokémon</string>
+    <string name="cosmetic_title_bugcatcher">Caçador de Insetos</string>
+    <string name="cosmetic_title_fan">Pokéfã</string>
+    <string name="cosmetic_title_challenger">Desafiante de Ginásio</string>
+    <string name="cosmetic_backdrop_aurora">Aurora</string>
+    <string name="cosmetic_backdrop_cosmos">Cosmos</string>
+    <string name="cosmetic_widget_royal">Violeta Real</string>
+    <string name="cosmetic_widget_ember">Laranja Brasa</string>
+    <string name="cosmetic_widget_ocean">Azul Oceano</string>
+    <string name="cosmetic_widget_mint">Verde Menta</string>
+    <string name="cosmetic_theme_sylveon">Tema Sylveon</string>
+    <string name="cosmetic_theme_lucario">Tema Lucario</string>
+    <string name="cosmetic_theme_greninja">Tema Greninja</string>
+    <string name="rewards_title">Recompensas</string>
+    <string name="rewards_tab_shop">Loja</string>
+    <string name="rewards_tab_path">Caminho de níveis</string>
+    <string name="rewards_guest_banner">Entre na conta para ganhar Poké Coins e liberar recompensas ao subir de nível.</string>
+    <string name="rewards_freeze_title">Congelar sequência</string>
+    <string name="rewards_freeze_desc">Salva sua sequência se você perder um dia. Usado automaticamente.</string>
+    <string name="rewards_freeze_held">%1$d / %2$d guardados</string>
+    <string name="rewards_buy">Comprar</string>
+    <string name="rewards_equip">Equipar</string>
+    <string name="rewards_equipped">Equipado</string>
+    <string name="rewards_owned">Adquirido</string>
+    <string name="rewards_cancel">Cancelar</string>
+    <string name="rewards_level_locked">Nível %1$d</string>
+    <string name="rewards_section_frames">Molduras de perfil</string>
+    <string name="rewards_section_titles">Títulos</string>
+    <string name="rewards_section_backdrops">Fundos</string>
+    <string name="rewards_section_widgets">Visuais do widget</string>
+    <string name="rewards_section_themes">Temas</string>
+    <string name="rewards_confirm_title">Comprar %1$s?</string>
+    <string name="rewards_confirm_body">Custa %1$d Poké Coins. Você tem %2$d.</string>
+    <string name="rewards_msg_bought">%1$s desbloqueado e equipado!</string>
+    <string name="rewards_msg_bought_theme">%1$s desbloqueado. Aplique em Temas.</string>
+    <string name="rewards_msg_freeze_bought">Congelamento de sequência adicionado!</string>
+    <string name="rewards_msg_freeze_full">Você já tem o máximo.</string>
+    <string name="rewards_msg_not_enough">Poké Coins insuficientes por enquanto.</string>
+    <string name="rewards_path_level">Nível %1$d</string>
+    <string name="rewards_path_here">Você está aqui</string>
+    <string name="rewards_entry_title">Recompensas e loja</string>
+    <string name="rewards_entry_subtitle">Gaste Poké Coins em molduras, fundos e títulos</string>
+    <string name="rewards_new_count">%1$d novo(s)</string>
+    <string name="xp_note_coins">🪙 +%1$d</string>
+    <string name="xp_note_streak_milestone">🏆 Sequência de %1$d dias! +%2$d 🪙</string>
+    <string name="xp_note_streak_saved">🛡️ Sequência salva por um Congelamento</string>
+    <string name="levelup_rewards_title">Recompensas desbloqueadas</string>
+    <string name="levelup_reward_coins">+%1$d Poké Coins</string>
+    <string name="levelup_reward_item">Desbloqueado: %1$s</string>
+    <string name="theme_unlock_with_coins">Ou desbloqueie temas selecionados com Poké Coins</string>
+    <string name="cosmetic_backdrop_twilight">Crepúsculo</string>
+    <string name="cosmetic_backdrop_night">Céu Noturno</string>
+    <string name="cosmetic_backdrop_deepsea">Mar Profundo</string>
+    <string name="cosmetic_backdrop_forge">Forja</string>
+    <string name="guide_title">Como ganhar Poké Coins</string>
+    <string name="guide_intro">As moedas vêm de aparecer e concluir coisas, nunca de farmar respostas. Elas só compram visuais, então nunca mudam seu XP, nível ou ranking.</string>
+    <string name="guide_section_daily">Todo dia</string>
+    <string name="guide_row_login">Abrir o Dexverse (check-in diário)</string>
+    <string name="guide_row_first_game">Jogar sua primeira partida</string>
+    <string name="guide_row_explore">Explorar seu primeiro Pokémon</string>
+    <string name="guide_row_fact">Raspar a Curiosidade do Dia</string>
+    <string name="guide_row_dex">Resolver o Dex Daily (+%1$d se errar)</string>
+    <string name="guide_row_games">Concluir uma partida (as primeiras %1$d por dia)</string>
+    <string name="guide_section_streak">Bônus de sequência</string>
+    <string name="guide_streak_days">Sequência de %1$d dias</string>
+    <string name="guide_amount">+%1$d 🪙</string>
+    <string name="guide_section_levels">Subir de nível</string>
+    <string name="guide_levels_body">Cada novo nível rende moedas, e todo 5º nível rende mais e libera algo para usar. Veja a aba Caminho de níveis para saber o próximo.</string>
+    <string name="guide_section_tips">Bom saber</string>
+    <string name="guide_tip_cap">Os bônus diários somam no máximo %1$d moedas por dia.</string>
+    <string name="guide_tip_freeze">Um Congelamento de sequência custa %1$d moedas e salva sua sequência se você perder um dia.</string>
+    <string name="guide_tip_guest">Entre na conta para ganhar moedas. Convidados não podem coletá-las.</string>
+    <string name="guide_got_it">Entendi</string>
+    <string name="coach_unlimited">Ilimitado com Pro</string>
+    <string name="coins_intro_title">As Poké Coins chegaram!</string>
+    <string name="coins_intro_earn">Ganhe moedas todo dia: entre, jogue, resolva a Dex Daily e mantenha sua sequência.</string>
+    <string name="coins_intro_weekly">Toda segunda o ranking paga moedas. Todos que jogaram ganham %1$d, o top 10 ganha %2$d, o top 3 ganha %3$d e o #1 leva %4$d.</string>
+    <string name="coins_intro_levels">Suba de nível para ganhar mais, e desbloqueie molduras, títulos e fundos.</string>
+    <string name="coins_intro_spend">Gaste moedas em Recompensas com cosméticos. Elas nunca mudam seu XP ou ranking.</string>
+    <string name="coins_intro_guest">Entre na sua conta para começar a ganhar.</string>
+    <string name="coins_intro_cta">Ver recompensas</string>
+    <string name="weekly_reward_title_first">Você liderou o ranking! 👑</string>
+    <string name="weekly_reward_title_podium">Você chegou ao pódio! 🏆</string>
+    <string name="weekly_reward_title_top10">Top 10! ⭐</string>
+    <string name="weekly_reward_title_played">Obrigado por jogar na semana passada!</string>
+    <string name="weekly_reward_body">Você terminou em #%1$d na semana passada e ganhou %2$d Poké Coins.</string>
+    <string name="weekly_reward_body_played">Você ganhou %1$d Poké Coins por jogar na semana passada. Suba mais para ganhar mais!</string>
+    <string name="weekly_reward_nice">Legal!</string>
+    <string name="guide_section_weekly">Prêmios semanais do ranking</string>
+    <string name="guide_weekly_1">Terminar em #1</string>
+    <string name="guide_weekly_2">Terminar em #2</string>
+    <string name="guide_weekly_3">Terminar em #3</string>
+    <string name="guide_weekly_top10">Terminar de #4 a #10</string>
+    <string name="guide_weekly_played">Jogar na semana (50+ XP)</string>
+    <string name="guide_weekly_note">Pago toda segunda, com base no XP da semana anterior, para todos no ranking.</string>
+    <string name="cosmetic_title_trailblazer">Desbravador</string>
+    <string name="cosmetic_title_rival">Rival</string>
+    <string name="cosmetic_title_regionhero">Herói da Região</string>
+    <string name="cosmetic_title_halloffame">Hall da Fama</string>
+    <string name="cosmetic_title_dexmaster">Mestre da Dex</string>
+    <string name="weekly_reward_amount">+%1$d Poké Coins</string>
+    <string name="load_error_offline_title">Você está offline</string>
+    <string name="load_error_offline_body">Verifique sua conexão. Tentaremos de novo sozinhos assim que você voltar a ficar online.</string>
+    <string name="load_error_timeout_title">Está demorando demais</string>
+    <string name="load_error_timeout_body">Sua conexão parece lenta. Tente de novo.</string>
+    <string name="load_error_server_title">Os servidores da Pokédex estão com problemas</string>
+    <string name="load_error_server_body">Não é você. Tente de novo daqui a pouco.</string>
+    <string name="load_error_section">Não foi possível carregar esta parte</string>
+    <string name="load_error_variety">Não foi possível carregar essa forma. Verifique sua conexão e tente de novo.</string>
+    <string name="load_error_search">Não foi possível pesquisar agora. Verifique sua conexão.</string>
+    <string name="load_error_pick">Não foi possível carregar esse Pokémon. Verifique sua conexão e tente de novo.</string>
+    <string name="dex_tap_to_filter">Toque em Vistos ou Capturados para ver esses Pokémon</string>
+    <string name="dex_showing">Mostrando</string>
+    <string name="wildcatch_end_run">Encerrar e ver resultados</string>
+    <string name="wildcatch_dex_total">Pokédex: %1$d capturados</string>
+    <string name="wildcatch_streak">%1$d seguidos!</string>
+    <string name="game_name_battle_title">Batalha de equipe</string>
+    <string name="game_name_battle_desc">Leve seus Pokémon capturados para a batalha. Escolha até seis e vença o bot.</string>
+    <string name="xp_battle_complete">Batalha de equipe</string>
+    <string name="battle_pick_title">Escolha sua equipe</string>
+    <string name="battle_pick_hint">Escolha de 1 a 6 Pokémon que você capturou.</string>
+    <string name="battle_pick_more">Capture mais no Wild Catch para formar uma equipe maior.</string>
+    <string name="battle_play_wild">Jogar Wild Catch</string>
+    <string name="battle_tier_rookie">Novato</string>
+    <string name="battle_tier_trainer">Treinador</string>
+    <string name="battle_tier_champion">Campeão</string>
+    <string name="battle_tier_bonus">+%1$d XP na vitória</string>
+    <string name="battle_start">Batalhar!</string>
+    <string name="battle_scouting">Procurando um oponente…</string>
+    <string name="battle_attack">Atacar</string>
+    <string name="battle_special">Especial</string>
+    <string name="battle_guard">Defender</string>
+    <string name="battle_switch">Trocar</string>
+    <string name="battle_special_locked">Precisa de energia total</string>
+    <string name="battle_choose_next">Escolha seu próximo Pokémon</string>
+    <string name="battle_opponent">Oponente</string>
+    <string name="battle_your_turn">O que você vai fazer?</string>
+    <string name="battle_log_attack">%1$s ataca! %2$d de dano.</string>
+    <string name="battle_log_special">%1$s libera seu Especial! %2$d de dano.</string>
+    <string name="battle_log_super">É super efetivo!</string>
+    <string name="battle_log_resisted">Não é muito efetivo…</string>
+    <string name="battle_log_immune">Não teve efeito…</string>
+    <string name="battle_log_crit">Acerto crítico!</string>
+    <string name="battle_log_guard">%1$s se prepara para o impacto.</string>
+    <string name="battle_log_switch">%1$s entra em campo!</string>
+    <string name="battle_log_faint">%1$s desmaiou!</string>
+    <string name="battle_log_energy">A energia de %1$s está cheia!</string>
+    <string name="battle_victory">Vitória!</string>
+    <string name="battle_defeat">Derrota</string>
+    <string name="battle_victory_body">Sua equipe venceu em %1$d turnos.</string>
+    <string name="battle_defeat_body">Confira as vantagens de tipos e tente de novo.</string>
+    <string name="battle_rematch">Revanche</string>
+    <string name="battle_change_team">Mudar de equipe</string>
+    <string name="battle_help_button">Como batalhar</string>
+    <string name="battle_help_title">Como batalhar</string>
+    <string name="battle_help_goal">Derrote o time rival antes que ele derrote o seu.</string>
+    <string name="battle_help_attack_title">Atacar</string>
+    <string name="battle_help_attack">Golpe rápido. Carrega sua energia.</string>
+    <string name="battle_help_special_title">Especial</string>
+    <string name="battle_help_special">Golpe forte. Precisa da barra ESPECIAL cheia, que enche ao atacar (+35), defender (+40) e apanhar (+10).</string>
+    <string name="battle_help_guard_title">Defender</string>
+    <string name="battle_help_guard">Recebe metade do dano e carrega rápido a barra ESPECIAL. Cada lado só tem 3 Defesas por batalha.</string>
+    <string name="battle_help_switch_title">Trocar</string>
+    <string name="battle_help_switch">Troque por um colega. Ele leva o golpe.</string>
+    <string name="battle_help_types_title">Use os tipos!</string>
+    <string name="battle_help_types">Tipos importam. Alguns batem mais forte.</string>
+    <string name="battle_help_speed_title">Velocidade</string>
+    <string name="battle_help_speed">O Pokémon mais rápido ataca primeiro e pode vencer antes de o outro se mexer.</string>
+    <string name="battle_help_got_it">Vamos batalhar!</string>
+    <string name="battle_hint_attack">Carrega energia</string>
+    <string name="battle_hint_special">Golpe forte</string>
+    <string name="battle_hint_guard">Metade do dano</string>
+    <string name="battle_hint_switch">Trocar Pokémon</string>
+    <string name="battle_eff_super">Super efetivo</string>
+    <string name="battle_eff_resisted">Resistido</string>
+    <string name="battle_eff_none">Sem efeito</string>
+    <string name="battle_special_ready">ESPECIAL PRONTO!</string>
+    <string name="battle_adv_good">Você tem vantagem</string>
+    <string name="battle_adv_even">Confronto equilibrado</string>
+    <string name="battle_adv_bad">Desvantagem de tipo</string>
+    <string name="battle_intro_vs">VS</string>
+    <string name="battle_intro_foe_sends">%1$s aparece!</string>
+    <string name="evo_title">Evoluir</string>
+    <string name="evo_subtitle">Evoluir consome este Pokémon: a nova forma ocupa o lugar dele no seu time. A entrada da Pokédex continua. Algumas formas pedem uma pedra ou item; as outras custam Fragmentos de Evolução.</string>
+    <string name="evo_unknown_form">\?\?\?</string>
+    <string name="evo_cost">%1$d Fragmentos de Evolução</string>
+    <string name="evo_in_dex">Na sua Pokédex</string>
+    <string name="evo_button">Evoluir</string>
+    <string name="evo_how_to_earn">Ganhe Fragmentos de Evolução capturando Pokémon no Wild Catch e jogando Team Battle.</string>
+    <string name="evo_err_not_enough">Ainda não há Fragmentos de Evolução suficientes.</string>
+    <string name="evo_err_have">Você já tem esta forma.</string>
+    <string name="evo_err_not_caught">Capture este Pokémon primeiro.</string>
+    <string name="evo_in_progress">%1$s está evoluindo…</string>
+    <string name="evo_result">%1$s evoluiu para %2$s!</string>
+    <string name="evo_continue">Continuar</string>
+    <string name="evo_shards_gained">+%1$d Fragmentos de Evolução</string>
+    <string name="evo_help_title">Sobre os Fragmentos de Evolução</string>
+    <string name="evo_help_what">Os Fragmentos de Evolução permitem evoluir os Pokémon que você capturou. Evoluir consome a forma antiga e a nova ocupa o lugar dela no seu elenco do Team Battle; a Pokédex mantém as duas entradas. Evoluções que pedem pedra ou item custam esse item da loja de recompensas, não fragmentos.</string>
+    <string name="evo_help_earn_title">Como ganhar</string>
+    <string name="evo_help_earn_catch">Capture qualquer Pokémon no Wild Catch. Encontrar um que você já tem paga mais (5 fragmentos), um novo paga 3. Arremessos precisos e Pokémon raros somam um pouco mais.</string>
+    <string name="evo_help_earn_battle">Termine um Team Battle. Uma vitória paga mais, mas uma derrota ainda paga um pouco.</string>
+    <string name="evo_help_cap">Você pode ganhar até %1$d fragmentos por dia. O limite reinicia todo dia.</string>
+    <string name="evo_help_use">Abra um Pokémon capturado e toque em Evoluir. A primeira evolução custa %1$d fragmentos, as seguintes custam mais.</string>
+    <string name="evo_help_got_it">Entendi</string>
+    <string name="evo_help_button">Como funcionam os Fragmentos de Evolução</string>
+    <string name="evo_capped">Limite diário de fragmentos atingido</string>
+    <string name="throw_broke_free">Quase! Ele escapou</string>
+    <string-array name="generic_bios">
+        <item>Pegar todos, um arremesso por vez.</item>
+        <item>Treinando pesado e petiscando mais ainda.</item>
+        <item>Movido a berries e esperança teimosa.</item>
+        <item>Atrás do próximo shiny, nunca pelo caminho fácil.</item>
+        <item>Meu time sempre me apoia.</item>
+        <item>Longas caminhadas pela grama alta.</item>
+        <item>Mais uma captura e vou dormir. Talvez.</item>
+        <item>Confrontos de tipos são minha linguagem do amor.</item>
+        <item>Treinador de fim de semana, fã de Pokémon pra vida toda.</item>
+        <item>Ainda procurando meu primeiro lendário.</item>
+        <item>Vim pela Pokédex, fiquei pelos amigos.</item>
+        <item>Todo Pokémon tem uma história. Eu coleciono todas.</item>
+    </string-array>
+    <string-array name="partner_reactions">
+        <item>Bora, parceiro!</item>
+        <item>Pronto quando você quiser!</item>
+        <item>Estou aqui com você.</item>
+        <item>Mais um dia, mais uma aventura!</item>
+        <item>Isso faz cócegas!</item>
+        <item>Trouxe petiscos?</item>
+    </string-array>
+    <string name="partner_pick_title">Escolha seu parceiro</string>
+    <string name="partner_pick_hint">Seus iniciais e todos os Pokémon que você capturou.</string>
+    <string name="partner_set_failed">Não foi possível definir seu parceiro. Verifique a conexão e tente de novo.</string>
+    <string name="partner_change">Trocar parceiro</string>
+    <string name="battle_tier_title">Dificuldade</string>
+    <string name="battle_tier_rookie_desc">Joga aleatório com frequência. Time mais fraco.</string>
+    <string name="battle_tier_trainer_desc">Joga bem às vezes. Time equilibrado.</string>
+    <string name="battle_tier_champion_desc">Joga bem com frequência. Time mais forte.</string>
+    <string name="wildcatch_run">Fugir</string>
+    <string name="profile_battle_wins">%1$d vitórias</string>
+
+    <!-- Items: stones, evolution items, balls, lure (coin shop) -->
+    <string name="evo_needs_item">Precisa de %1$s · você tem %2$d</string>
+    <string name="evo_in_roster">No seu time</string>
+    <string name="evo_get_item">Conseguir</string>
+    <string name="evo_err_no_item">Você precisa do item certo para esta evolução. Compre na loja de recompensas.</string>
+    <string name="rewards_tab_items">Itens</string>
+    <string name="rewards_section_balls">Bolas e bônus</string>
+    <string name="rewards_section_stones">Pedras de evolução</string>
+    <string name="rewards_section_evo_items">Itens de evolução</string>
+    <string name="rewards_msg_item_bought">%1$s adicionado à sua mochila!</string>
+    <string name="rewards_msg_item_full">Sua mochila não comporta mais %1$s.</string>
+    <string name="rewards_item_held">Na mochila: %1$d</string>
+    <string name="rewards_item_full">Mochila cheia</string>
+    <string name="item_poke_ball">Poké Bola</string>
+    <string name="item_great_ball">Great Ball</string>
+    <string name="item_ultra_ball">Ultra Ball</string>
+    <string name="item_master_ball">Master Ball</string>
+    <string name="item_rare_lure">Isca rara</string>
+    <string name="item_shard_pouch">Bolsa de fragmentos</string>
+    <string name="item_fire_stone">Pedra do Fogo</string>
+    <string name="item_water_stone">Pedra da Água</string>
+    <string name="item_thunder_stone">Pedra do Trovão</string>
+    <string name="item_leaf_stone">Pedra da Folha</string>
+    <string name="item_ice_stone">Pedra do Gelo</string>
+    <string name="item_moon_stone">Pedra da Lua</string>
+    <string name="item_sun_stone">Pedra do Sol</string>
+    <string name="item_shiny_stone">Pedra Brilhante</string>
+    <string name="item_dusk_stone">Pedra do Anoitecer</string>
+    <string name="item_dawn_stone">Pedra do Amanhecer</string>
+    <string name="item_desc_stone">Evolui um Pokémon que precisa desta pedra. É consumida na evolução.</string>
+    <string name="item_desc_evo_item">Evolui um Pokémon que precisa deste item. É consumido na evolução.</string>
+    <string name="item_desc_great_ball">Chances melhores na Captura Selvagem. Um pacote de bolas.</string>
+    <string name="item_desc_ultra_ball">Chances bem melhores, e Pokémon fortes resistem menos. Um pacote de bolas.</string>
+    <string name="item_desc_master_ball">Nunca falha. Perfeita para um lendário.</string>
+    <string name="item_desc_rare_lure">Pokémon lendários e místicos aparecem bem mais nos próximos 5 encontros.</string>
+    <string name="item_desc_shard_pouch">%1$d Fragmentos de Evolução, na hora. Sem limite diário.</string>
+    <string name="item_metal_coat">Metal Coat</string>
+    <string name="item_kings_rock">King\'s Rock</string>
+    <string name="item_dragon_scale">Dragon Scale</string>
+    <string name="item_up_grade">Up-Grade</string>
+    <string name="item_dubious_disc">Dubious Disc</string>
+    <string name="item_protector">Protector</string>
+    <string name="item_electirizer">Electirizer</string>
+    <string name="item_magmarizer">Magmarizer</string>
+    <string name="item_reaper_cloth">Reaper Cloth</string>
+    <string name="item_razor_claw">Razor Claw</string>
+    <string name="item_razor_fang">Razor Fang</string>
+    <string name="item_deep_sea_tooth">Deep Sea Tooth</string>
+    <string name="item_deep_sea_scale">Deep Sea Scale</string>
+    <string name="item_prism_scale">Prism Scale</string>
+    <string name="item_sachet">Sachet</string>
+    <string name="item_whipped_dream">Whipped Dream</string>
+
+    <!-- Online Team Battle -->
+    <string name="battle_mode_practice">Treino</string>
+    <string name="battle_mode_online">Online</string>
+    <string name="battle_online_title">Enfrente treinadores de verdade</string>
+    <string name="battle_online_desc">Escolha seu time e enfrente outro treinador ao vivo. Cada turno acontece ao mesmo tempo, então pense rápido.</string>
+    <string name="battle_online_pill_shards">Fragmentos de Evolução</string>
+    <string name="battle_online_pill_xp">XP bônus</string>
+    <string name="battle_online_bot_note">Ninguém por perto? Depois de %1$d segundos um bot entra em campo, para você nunca ficar esperando.</string>
+    <string name="battle_online_find">Encontrar partida</string>
+    <string name="battle_online_friend">Jogar com um amigo</string>
+    <string name="battle_online_friend_title">Jogar com um amigo</string>
+    <string name="battle_online_friend_desc">Crie uma sala e compartilhe o código, ou digite o código do seu amigo para entrar na sala dele.</string>
+    <string name="battle_online_create_room">Criar uma sala</string>
+    <string name="battle_online_enter_code">Digite um código de sala</string>
+    <string name="battle_online_code_placeholder">ABC123</string>
+    <string name="battle_online_join">Entrar</string>
+    <string name="battle_online_searching">Procurando um treinador…</string>
+    <string name="battle_online_searching_sub">Conectando você a alguém que está online agora.</string>
+    <string name="battle_online_bot_in">Um bot entra em %1$ds</string>
+    <string name="battle_online_connecting">Conectando…</string>
+    <string name="battle_online_waiting_friend">Esperando seu amigo</string>
+    <string name="battle_online_waiting_friend_sub">Compartilhe o código abaixo. A batalha começa assim que ele entrar.</string>
+    <string name="battle_online_room_code">Código da sala</string>
+    <string name="battle_online_copy">Copiar</string>
+    <string name="battle_online_share">Compartilhar</string>
+    <string name="battle_online_share_text">Entre no meu Team Battle no Dexverse!\nCódigo da sala: %1$s</string>
+    <string name="battle_online_cancel">Cancelar</string>
+    <string name="battle_online_found">Treinador encontrado!</string>
+    <string name="battle_online_found_sub">Preparando o campo de batalha…</string>
+    <string name="battle_online_failed_title">Não foi possível iniciar a batalha</string>
+    <string name="battle_online_back_to_team">Voltar ao time</string>
+    <string name="battle_online_err_signin">Entre na sua conta para batalhar online.</string>
+    <string name="battle_online_err_room">Sala não encontrada, ou já está cheia.</string>
+    <string name="battle_online_err_generic">Não foi possível acessar o servidor de batalha. Verifique sua conexão e tente de novo.</string>
+    <string name="battle_online_err_prep">Seu rival não chegou ao campo de batalha. Tente outra partida.</string>
+    <string name="battle_online_bot_notice">Nenhum treinador online agora, então aqui vai uma batalha de treino.</string>
+    <string name="battle_online_exit_title">Sair da batalha?</string>
+    <string name="battle_online_exit_body">Sair conta como desistência e seu rival vence.</string>
+    <string name="battle_online_waiting">Esperando %1$s…</string>
+    <string name="battle_online_opponent_ready">%1$s já escolheu. Sua vez!</string>
+    <string name="battle_online_opponent_choosing">%1$s está escolhendo o próximo Pokémon…</string>
+    <string name="battle_online_away">%1$s parece estar offline…</string>
+    <string name="battle_online_away_chip">Rival offline?</string>
+    <string name="battle_online_ready_chip">%1$s está pronto</string>
+    <string name="battle_online_clock">%1$ds</string>
+    <string name="battle_online_victory_body">Você venceu %1$s em %2$d turnos!</string>
+    <string name="battle_online_won_left">%1$s saiu da batalha. A vitória é sua.</string>
+    <string name="battle_online_defeat_body">%1$s levou essa. Quer a revanche?</string>
+    <string name="battle_online_again">Encontrar outra partida</string>
+    <string name="battle_online_xp">+%1$d XP</string>
+    <string name="battle_online_rewards_limited">Sem recompensas desta vez: a batalha foi curta demais, ou você já ganhou algumas vezes deste treinador hoje.</string>
+    <string name="xp_online_battle">Batalha online</string>
+
+    <!-- Wild Catch spawn categories, battle meters and tips -->
+    <string name="wildcatch_tier_common">Comum</string>
+    <string name="battle_energy_label">Especial</string>
+    <string name="battle_special_charging">Carregando %1$d%%</string>
+    <string name="battle_hint_guard_left">Metade do dano · restam %1$d</string>
+    <string name="battle_guard_none">Sem Defesas restantes</string>
+    <string name="battle_guards_left">Defesas restantes: %1$d</string>
+    <string name="tip_label">Dica</string>
+    <string name="tip_catch_categories">Os Pokémon são Comuns, Incomuns, Raros, Ultra raros ou Lendários. Quanto mais raros, mais difíceis de capturar.</string>
+    <string name="tip_catch_balls">Great Balls e Ultra Balls estão na loja de recompensas. Bolas melhores deixam os Pokémon Raros e Ultra raros bem mais fáceis de capturar.</string>
+    <string name="tip_catch_master">A Master Ball nunca falha. Guarde-a para um Lendário.</string>
+    <string name="tip_catch_timing">Lance quando o anel estiver menor e mais verde para um lançamento Perfeito.</string>
+    <string name="tip_catch_lure">Uma Isca rara faz Pokémon lendários e místicos aparecerem bem mais vezes por 5 encontros.</string>
+    <string name="tip_catch_repeat">Capturar um Pokémon que você já tem rende mais Fragmentos de Evolução.</string>
+    <string name="tip_catch_run">Fugir não custa coração, mas encerra a sua sequência de capturas.</string>
+    <string name="tip_catch_streak">A cada 5 capturas seguidas você recupera um coração.</string>
+    <string name="tip_catch_dart">Pokémon Ultra raros e Lendários se movem rápido. Espere eles se acalmarem antes de lançar.</string>
+    <string name="tip_catch_evolve">Fragmentos de Evolução e pedras evoluem os Pokémon que você captura. Evoluir consome a forma antiga, então escolha bem.</string>
+    <string name="tip_battle_special">Fique de olho na barra ESPECIAL. Ela enche ao atacar, defender e apanhar, e o golpe forte libera em 100%.</string>
+    <string name="tip_battle_guards">Cada lado só tem 3 Defesas por batalha, não importa quantos Pokémon use. Guarde-as para os golpes grandes.</string>
+    <string name="tip_battle_types">Tipos importam: um golpe super efetivo causa o dobro de dano.</string>
+    <string name="tip_battle_speed">O Pokémon mais rápido ataca primeiro e pode vencer antes de o outro agir.</string>
+    <string name="tip_battle_switch">O Pokémon que você troca leva o golpe, então coloque um que resista ao que vem.</string>
+    <string name="tip_battle_evolve">Pokémon evoluídos saem do seu elenco, então monte o time com os que você realmente tem.</string>
+    <string name="tip_battle_clock">Online, você tem 30 segundos por turno. Se o tempo acabar, uma jogada sensata é feita por você.</string>
+    <string name="tip_battle_online_rewards">Batalhas online rendem mais Fragmentos de Evolução e XP que as contra o bot.</string>
+
+    <!-- Team collection, battle record, disqualification -->
+    <string name="profile_battle_record">%1$d V · %2$d D</string>
+    <string name="battle_online_missed_chip">%1$d/%2$d turnos perdidos</string>
+    <string name="battle_online_dq_you">Você foi desclassificado por perder %1$d turnos.</string>
+    <string name="battle_online_dq_rival">%1$s foi desclassificado por perder %2$d turnos. A vitória é sua.</string>
+    <string name="battle_teams_title">Meus times</string>
+    <string name="battle_team_save">Salvar time</string>
+    <string name="battle_teams_empty">Escolha até 6 Pokémon e salve aqui para carregar o time inteiro com um toque.</string>
+    <string name="battle_teams_full">Você pode salvar até %1$d times. Exclua um para salvar outro.</string>
+    <string name="battle_team_save_title">Salvar este time</string>
+    <string name="battle_team_name_hint">Nome do time</string>
+    <string name="battle_team_save_confirm">Salvar</string>
+    <string name="battle_team_default_name">Time %1$d</string>
+    <string name="battle_team_delete">Excluir %1$s</string>
+    <string name="battle_team_ready">%1$d prontos</string>
+    <string name="battle_team_partly">%1$d de %2$d prontos</string>
+
+    <!-- Wild Catch throw names, details drawer, run limit -->
+    <string name="wildcatch_hint_excellent">Excelente!</string>
+    <string name="wildcatch_hint_good">Bom</string>
+    <string name="throw_excellent">Excelente!</string>
+    <string name="throw_good">Bom!</string>
+    <string name="wildcatch_details">Detalhes</string>
+    <string name="wildcatch_details_chance">Chance de captura com a %1$s</string>
+    <string name="wildcatch_zone_good">Bom</string>
+    <string name="wildcatch_zone_great">Ótimo</string>
+    <string name="wildcatch_zone_excellent">Excelente</string>
+    <string name="wildcatch_details_run">Encontro nº%1$d · %2$d capturados</string>
+    <string name="wildcatch_run_left">%1$d grátis</string>
+    <string name="wildcatch_run_ad">Ver anúncio</string>
+
+    <!-- Team building and the Legendary limit -->
+    <string name="battle_team_quickfill">Preencher</string>
+    <string name="battle_team_clear">Limpar</string>
+    <string name="battle_team_update">Atualizar %1$s</string>
+    <string name="battle_legendary_limit">Um time pode levar até %1$d Pokémon lendários ou místicos.</string>
+    <string name="battle_legendary_count">Lendários %1$d/%2$d</string>
+    <string name="battle_ready_short">PRONTO</string>
+
+    <!-- Bag upgrades and more Rocket Chase places -->
+    <string name="rewards_bag_title">Mochila</string>
+    <string name="rewards_bag_level">Nível %1$d de %2$d · carrega ×%3$d</string>
+    <string name="rewards_bag_desc">Carregue mais de cada item. Bolas, pedras e iscas dividem a mochila.</string>
+    <string name="rewards_bag_upgrade">Melhorar</string>
+    <string name="rewards_bag_max">No máximo</string>
+    <string name="rewards_bag_upgrade_action">Melhorar mochila</string>
+    <string name="rewards_item_held_cap">Na mochila: %1$d/%2$d</string>
+    <string name="rewards_bag_full_hint">Mochila cheia. Melhore a mochila para carregar mais.</string>
+    <string name="rewards_bag_full_max">Mochila cheia.</string>
+    <string name="rewards_msg_bag_full">Sua mochila está cheia de %1$s (%2$d/%3$d).</string>
+    <string name="rewards_msg_bag_upgraded">Mochila melhorada para o nível %1$d!</string>
+    <string name="rewards_msg_bag_maxed">Sua mochila já está no nível máximo.</string>
+    <string name="rewards_confirm_bag_title">Melhorar sua mochila?</string>
+    <string name="rewards_confirm_bag_body">Nível %1$d: carregue ×%2$d de cada item. Custa %3$d Poké Coins. Você tem %4$d.</string>
+    <string name="chase_biome_coast">Cerulean Shore</string>
+    <string name="chase_biome_forest">Ilex Forest</string>
+    <string name="chase_biome_snow">Snowpoint Pass</string>
+    <string name="chase_biome_cave">Mt. Moon Cave</string>
+
+    <!-- A catch that beat a missed ring -->
+    <string name="throw_lucky">Captura de sorte!</string>
+    <string name="throw_master">Master Ball!</string>
+    <string name="challenges_title">Desafios</string>
+    <string name="challenges_today">%1$d de %2$d concluídos hoje</string>
+    <string name="challenges_claim">Resgatar</string>
+    <string name="challenges_claim_all">Resgatar %1$d</string>
+    <string name="challenges_claimed">Resgatado</string>
+    <string name="challenges_goals">Metas da Pokédex</string>
+    <string name="challenges_goals_hint">Metas de longo prazo. Pedem Pokémon diferentes: Comuns e Raros valem tanto quanto Lendários.</string>
+    <string name="challenges_sweep">Tudo feito hoje</string>
+    <string name="challenges_sweep_desc">Conclua os três para ganhar um bônus.</string>
+    <string name="challenges_got_great">Great Ball x%1$d</string>
+    <string name="challenges_got_ultra">Ultra Ball x%1$d</string>
+    <string name="challenge_catch_any">Capture %1$d Pokémon</string>
+    <string name="challenge_catch_new">Capture %1$d Pokémon novos</string>
+    <string name="challenge_catch_tier">Capture %1$d Pokémon %2$s ou mais raros</string>
+    <string name="challenge_streak">Capture %1$d seguidos</string>
+    <string name="challenge_dex_total">Tenha %1$d Pokémon na Pokédex</string>
+    <string name="challenge_dex_tier">Capture %1$d Pokémon %2$s diferentes</string>
+    <string name="dex_complete_pct">%1$d%% completa</string>
+    <string name="challenges_daily">Hoje</string>
+    <string name="challenges_reward_title">Recompensas!</string>
 </resources>

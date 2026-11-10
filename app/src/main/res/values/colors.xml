@@ -10,4 +10,5 @@
     <color name="transparent">#00000000</color>
 
     <color name="Gray">#FF808080</color>
+    <color name="splash_background">#FF060D1F</color>
 </resources>

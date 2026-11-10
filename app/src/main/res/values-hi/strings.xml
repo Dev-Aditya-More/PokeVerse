@@ -33,9 +33,6 @@
     <string name="settings_about">About</string>
     <string name="settings_about_crafted">Jetpack Compose से ❤ के साथ बनाया</string>
     <string name="settings_about_version">Version %1$s</string>
-    <string name="settings_original_assets">Original Visuals</string>
-    <string name="settings_original_assets_desc">Franchise के असली visuals और media चालू करें।</string>
-    <string name="settings_original_assets_dialog_body">यह feature franchise के original visuals और audio चालू करता है। ये assets intellectual property laws के तहत protected हो सकती हैं। यह app unofficial है और किसी भी franchise owner से affiliated नहीं है।</string>
     <string name="settings_special_effects">Special Effects</string>
     <string name="settings_special_effects_requires">बेहतर visual effects के लिए Android 13 या उससे नया चाहिए।</string>
     <string name="settings_special_effects_desc">Pokémon की details में cool visual effects दिखेंगे।</string>
@@ -44,17 +41,17 @@
     <string name="settings_theme_change">Theme बदलें</string>
     <string name="settings_share">Dexverse शेयर करें</string>
     <string name="settings_share_desc">अपने दोस्तों को Dexverse के बारे में बताएं!</string>
-    <string name="settings_share_message">यार! Dexverse try करो — Pokémon fans के लिए एक बढ़िया Pokédex app:\nhttps://play.google.com/store/apps/details?id=%1$s</string>
+    <string name="settings_share_message">यार! Dexverse try करो. Pokémon fans के लिए एक बढ़िया Pokédex app:\nhttps://play.google.com/store/apps/details?id=%1$s</string>
     <string name="settings_share_chooser">Dexverse शेयर करें</string>
     <string name="settings_rate">Google Play पर Rate करें</string>
-    <string name="settings_rate_desc">अगर Dexverse पसंद आया, तो Play Store पर rate ज़रूर करें — सच में फर्क पड़ता है।</string>
+    <string name="settings_rate_desc">अगर Dexverse पसंद आया, तो Play Store पर rate ज़रूर करें, सच में फर्क पड़ता है।</string>
     <string name="settings_privacy">Privacy Policy</string>
     <string name="settings_privacy_desc">हमारी privacy policy पढ़ें</string>
     <string name="settings_help">Help और Support</string>
     <string name="settings_help_desc">Support से बात करें या कोई दिक्कत report करें</string>
     <string name="settings_socials">Social Media</string>
     <string name="settings_attribution_title">Content और Credits</string>
-    <string name="settings_attribution_1">Dexverse एक independent app है — किसी भी franchise owner से affiliated या endorsed नहीं है।</string>
+    <string name="settings_attribution_1">Dexverse एक independent app है, किसी भी franchise owner से affiliated या endorsed नहीं है।</string>
     <string name="settings_attribution_2">सभी trademarks उनके respective owners की property हैं।</string>
     <string name="settings_copyright">© Dexverse 2026</string>
     <string name="settings_language">भाषा</string>
@@ -65,17 +62,6 @@
     <string name="language_french">Français</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_brand">DEXVERSE</string>
-    <string name="onboarding_cta">चलो शुरू करें</string>
-    <string name="onboarding_slide_1_badge">Pokédex</string>
-    <string name="onboarding_slide_1_headline">आपका अल्टीमेट\nPokémon साथी</string>
-    <string name="onboarding_slide_1_subtitle">पूरी Pokédex explore करें — stats, moves और history के साथ।</string>
-    <string name="onboarding_slide_2_badge">Mini Games</string>
-    <string name="onboarding_slide_2_headline">खेलो। जीतो।\nMaster बनो।</string>
-    <string name="onboarding_slide_2_subtitle">PokeGuess, PokeQuiz, PokeMatch और भी बहुत कुछ से अपना knowledge test करो।</string>
-    <string name="onboarding_slide_3_badge">Leaderboard</string>
-    <string name="onboarding_slide_3_headline">Best Trainers में\nजगह बनाओ</string>
-    <string name="onboarding_slide_3_subtitle">XP कमाओ, level up करो और दुनियाभर के trainers से compete करो।</string>
 
     <!-- Filter Bar -->
     <string name="filter_all_regions">सभी Regions</string>
@@ -95,12 +81,8 @@
 
     <!-- Home Popups -->
     <string name="popup_update_title">नया Update आया है</string>
-    <string name="popup_update_body">Dexverse का नया version आ गया है — bug fixes और नए features के साथ।</string>
+    <string name="popup_update_body">Dexverse का नया version आ गया है, bug fixes और नए features के साथ।</string>
     <string name="popup_update_tip">Best experience के लिए अभी update कर लो।</string>
-    <string name="popup_assets_title">Original Visuals मिल सकते हैं</string>
-    <string name="popup_assets_body">Dexverse franchise के original sprites दिखा सकता है और authentic audio चला सकता है।</string>
-    <string name="popup_assets_disclaimer">⚠️  ये assets उनके respective owners की हैं। यह app unofficial और unaffiliated है।</string>
-    <string name="popup_assets_change_hint">इसे Settings → Original Assets में कभी भी बदल सकते हो।</string>
     <string name="popup_premium_title">Pokeverse Premium</string>
     <string name="popup_premium_subtitle">पूरा experience unlock करो</string>
     <string name="popup_premium_feature_hard_mode">चारों games में Hard Mode</string>
@@ -108,7 +90,7 @@
     <string name="popup_premium_feature_themes">Exclusive themes और badges</string>
     <string name="popup_premium_feature_support">Dexverse को support करो</string>
     <string name="popup_rating_title">क्या आपको Dexverse अच्छा लग रहा है?</string>
-    <string name="popup_rating_body">हमें आपकी राय जानना अच्छा लगेगा — इसमें बस कुछ सेकंड लगेंगे और यह हमारी बहुत मदद करता है!</string>
+    <string name="popup_rating_body">हमें आपकी राय जानना अच्छा लगेगा, इसमें बस कुछ सेकंड लगेंगे और यह हमारी बहुत मदद करता है!</string>
     <string name="action_rating_yes">हाँ, मुझे पसंद है!</string>
     <string name="action_rating_no">ज़्यादा नहीं</string>
 
@@ -141,11 +123,11 @@
     <string name="game_name_pokeguess_title">यह monster कौन है?</string>
     <string name="game_name_pokeguess_desc">Silhouette देखकर monster पहचानो!</string>
     <string name="game_name_wildcatch_title">Wild Catch</string>
-    <string name="game_name_wildcatch_desc">सही समय पर tap करके wild Pokémon पकड़ो। सिर्फ timing — कोई knowledge नहीं चाहिए!</string>
+    <string name="game_name_wildcatch_desc">सही समय पर tap करके wild Pokémon पकड़ो। सिर्फ timing, कोई knowledge नहीं चाहिए!</string>
     <string name="label_premium">Premium</string>
 
     <!-- Ad Unlock Dialog -->
-    <string name="ad_not_ready_toast">Ad अभी भी load हो रही है — थोड़ी देर में फिर कोशिश करें।</string>
+    <string name="ad_not_ready_toast">Ad अभी भी load हो रही है, थोड़ी देर में फिर कोशिश करें।</string>
 
     <!-- Result / Game Over -->
     <string name="result_play_again">फिर खेलें</string>
@@ -392,8 +374,6 @@
 
     <!-- Asset Onboarding Banner -->
     <string name="banner_original_visuals">Original Visuals</string>
-    <string name="banner_original_assets_desc">बेहतर experience के लिए franchise के original sprites और audio चालू करो। ये assets उनके respective owners की हैं — यह app unofficial और unaffiliated है।</string>
-    <string name="banner_enable_original_assets">Original Assets चालू करें</string>
     <string name="banner_settings_change_hint">इसे Settings से कभी भी बदल सकते हो।</string>
 
     <!-- FAB badges -->
@@ -406,15 +386,15 @@
     <string name="clash_exit">निकलें</string>
     <string name="clash_claim_win">जीत claim करें</string>
     <string name="clash_wait_opponent">Opponent का इंतज़ार करें</string>
-    <string name="clash_pick_card_hint">एक card चुनो — अंदर क्या है देख नहीं सकते!</string>
-    <string name="clash_locked_waiting">Lock हो गया — opponent का इंतज़ार है…</string>
+    <string name="clash_pick_card_hint">एक card चुनो, अंदर क्या है देख नहीं सकते!</string>
+    <string name="clash_locked_waiting">Lock हो गया, opponent का इंतज़ार है…</string>
     <string name="clash_lock_in">Lock करो</string>
 
     <!-- Card Clash Lobby -->
     <string name="clash_lobby_title">PokeCard Clash</string>
-    <string name="clash_lobby_desc">6 mystery cards। 6 rounds।\nPure luck — कोई भी अपने cards नहीं देख सकता!</string>
+    <string name="clash_lobby_desc">6 mystery cards। 6 rounds।\nPure luck, कोई भी अपने cards नहीं देख सकता!</string>
     <string name="clash_lobby_play_random">Random खेलो</string>
-    <string name="clash_lobby_or">— या —</string>
+    <string name="clash_lobby_or">या</string>
     <string name="clash_lobby_play_friend">दोस्त के साथ खेलो</string>
     <string name="clash_lobby_create_room">Room बनाओ और code share करो</string>
     <string name="clash_lobby_enter_code">या room code डालो</string>
@@ -429,7 +409,7 @@
     <string name="clash_quick_match">Quick Match</string>
     <string name="clash_quick_match_desc">किसी random online player से match करो</string>
     <string name="clash_searching">Player ढूंढ रहे हैं…</string>
-    <string name="clash_queue_hint">तुम queue में हो — player pool बढ़ाने के लिए दोस्तों को invite करो!</string>
+    <string name="clash_queue_hint">तुम queue में हो, player pool बढ़ाने के लिए दोस्तों को invite करो!</string>
     <string name="clash_invite_friends">दोस्तों को invite करो</string>
     <string name="clash_waiting_friend">दोस्त का इंतज़ार है…</string>
     <string name="clash_room_code">Room Code</string>
@@ -450,7 +430,7 @@
     <string name="clash_guide_step_count">%1$d / %2$d</string>
     <string name="clash_guide_confirm">चलो खेलते हैं!</string>
     <string name="clash_guide_step1_title">तुम्हें 6 mystery cards मिलते हैं</string>
-    <string name="clash_guide_step1_body">हर player 6 उल्टे Pokémon cards से शुरू करता है। जब तक कोई card चुनो नहीं, देख नहीं सकते — सब instinct पर है।</string>
+    <string name="clash_guide_step1_body">हर player 6 उल्टे Pokémon cards से शुरू करता है। जब तक कोई card चुनो नहीं, देख नहीं सकते, सब instinct पर है।</string>
     <string name="clash_guide_step2_title">हर round में एक चुनो</string>
     <string name="clash_guide_step2_body">हर round में दोनों players चुपके से एक card चुनते हैं। दोनों के lock होने पर cards एक साथ flip होते हैं।</string>
     <string name="clash_guide_step3_title">Type matchup winner तय करता है</string>
@@ -458,7 +438,7 @@
     <string name="clash_guide_step4_title">पहले 4 rounds जीतने वाला winner</string>
     <string name="clash_guide_step4_body">कुल 6 rounds होते हैं। जीतने के लिए 4 जीतने होंगे। अगर दोनों 3–3 पर खत्म करें तो draw भी हो सकता है।</string>
     <string name="clash_guide_step5_title">इस्तेमाल किए cards हट जाते हैं</string>
-    <string name="clash_guide_step5_body">एक बार Pokémon खेलने के बाद वो hand से चला जाता है — बाद के rounds में सोच-समझकर चुनो।</string>
+    <string name="clash_guide_step5_body">एक बार Pokémon खेलने के बाद वो hand से चला जाता है, बाद के rounds में सोच-समझकर चुनो।</string>
 
     <!-- Analysis ad gate -->
     <string name="analysis_ad_title">अपनी Team analyze करो</string>
@@ -487,7 +467,7 @@
     <string name="force_update_title">Update ज़रूरी है</string>
     <string name="force_update_body">Dexverse का यह version अब support नहीं होता। खेलते रहने के लिए update करो।</string>
     <string name="game_name_survivor_title">Pokémon Survivor</string>
-    <string name="game_name_survivor_desc">एक wild Pokémon आया है — time खत्म होने से पहले वो type चुनो जो उसे हराए!</string>
+    <string name="game_name_survivor_desc">एक wild Pokémon आया है, time खत्म होने से पहले वो type चुनो जो उसे हराए!</string>
     <string name="leaderboard_tab_last_week">पिछला हफ्ता</string>
     <string name="leaderboard_last_week_title">पिछले हफ्ते के Champions</string>
     <string name="leaderboard_last_week_week_of">%1$s का हफ्ता</string>
@@ -539,12 +519,12 @@
     <string name="stat_calc_subtitle">किसी भी Level, IV, EV और Nature पर असली stats</string>
     <string name="stat_calc_level">Level</string>
     <string name="stat_calc_nature">Nature</string>
-    <string name="stat_calc_nature_neutral">Neutral — न boost, न drop</string>
+    <string name="stat_calc_nature_neutral">Neutral, न boost, न drop</string>
     <string name="stat_calc_nature_boost_lower">+%1$s · −%2$s</string>
     <string name="stat_calc_iv">IV</string>
     <string name="stat_calc_ev">EV</string>
     <string name="stat_calc_ev_total">इस्तेमाल हुए EVs: %1$d / %2$d</string>
-    <string name="stat_calc_ev_over_limit">%1$d EV की total limit से ज़्यादा — extra points गिने नहीं जाएँगे</string>
+    <string name="stat_calc_ev_over_limit">%1$d EV की total limit से ज़्यादा, extra points गिने नहीं जाएँगे</string>
     <string name="stat_calc_max_ivs">Max IVs</string>
     <string name="stat_calc_reset">Reset</string>
     <string name="ev_yield_badge">+%1$d EV</string>
@@ -559,29 +539,29 @@
     <string name="go_cp_iv_percent">IV %1$d%%</string>
     <string name="go_cp_perfect_ivs">Perfect IVs</string>
     <string name="go_cp_max_note">Perfect IVs (15 / 15 / 15) के साथ Level %1$s पर Max CP</string>
-    <string name="go_cp_raid_note">Raid, Egg और Field Research से मिले Pokémon में कम से कम एक तय IV मिलता है (आमतौर पर 10/15 या ज़्यादा) — पकड़े गए Pokémon के असली IVs देखने के लिए in-game Appraisal check करो।</string>
+    <string name="go_cp_raid_note">Raid, Egg और Field Research से मिले Pokémon में कम से कम एक तय IV मिलता है (आमतौर पर 10/15 या ज़्यादा), पकड़े गए Pokémon के असली IVs देखने के लिए in-game Appraisal check करो।</string>
     <string name="go_cp_unavailable">इस Pokémon या form का GO battle data अभी उपलब्ध नहीं है।</string>
     <string name="battle_calc_expand">Calculator दिखाओ</string>
     <string name="battle_calc_collapse">Calculator छुपाओ</string>
     <string name="battle_calc_learn_more">और जानो</string>
     <string name="stat_guide_title">IVs और EVs को समझो</string>
     <string name="stat_guide_iv_heading">IVs क्या हैं?</string>
-    <string name="stat_guide_iv_body">Individual Values (IVs) हर stat के लिए 0–31 तक के छुपे हुए numbers हैं, जो Pokémon बनते ही random तय होते हैं। इन्हें genetic potential समझो — एक ही species और level के दो Pokémon के stats सिर्फ IVs की वजह से अलग हो सकते हैं। जिस Pokémon के हर stat में 31 IV हो उसे \"perfect\" या \"6IV\" कहते हैं।</string>
+    <string name="stat_guide_iv_body">Individual Values (IVs) हर stat के लिए 0–31 तक के छुपे हुए numbers हैं, जो Pokémon बनते ही random तय होते हैं। इन्हें genetic potential समझो, एक ही species और level के दो Pokémon के stats सिर्फ IVs की वजह से अलग हो सकते हैं। जिस Pokémon के हर stat में 31 IV हो उसे \"perfect\" या \"6IV\" कहते हैं।</string>
     <string name="stat_guide_ev_heading">EVs क्या हैं?</string>
-    <string name="stat_guide_ev_body">Effort Values (EVs) वो extra points हैं जो Pokémon battle करके कमाता है। किसी stat में हर 4 EVs लगाने से Level 100 पर उस stat में लगभग +1 point बढ़ता है। एक stat में 252 तक और सभी छह stats में कुल 510 EVs लगा सकते हो — ज़्यादातर competitive players EVs को फैलाने की बजाय दो-तीन stats में ही लगाते हैं।</string>
+    <string name="stat_guide_ev_body">Effort Values (EVs) वो extra points हैं जो Pokémon battle करके कमाता है। किसी stat में हर 4 EVs लगाने से Level 100 पर उस stat में लगभग +1 point बढ़ता है। एक stat में 252 तक और सभी छह stats में कुल 510 EVs लगा सकते हो, ज़्यादातर competitive players EVs को फैलाने की बजाय दो-तीन stats में ही लगाते हैं।</string>
     <string name="stat_guide_nature_heading">Nature</string>
-    <string name="stat_guide_nature_body">हर Pokémon की एक Nature भी होती है, जो एक stat को 10%% बढ़ाती है और दूसरे को 10%% घटाती है — या पाँच neutral natures में कुछ नहीं करती। सही Nature को EV investment के साथ मिलाना एक strong Pokémon बनाने का अहम हिस्सा है।</string>
+    <string name="stat_guide_nature_body">हर Pokémon की एक Nature भी होती है, जो एक stat को 10%% बढ़ाती है और दूसरे को 10%% घटाती है, या पाँच neutral natures में कुछ नहीं करती। सही Nature को EV investment के साथ मिलाना एक strong Pokémon बनाने का अहम हिस्सा है।</string>
     <string name="stat_guide_together_heading">सब एक साथ</string>
     <string name="stat_guide_together_body">Pokémon का final stat उसकी species के Base Stat, तुम्हारे चुने IV और EV, उसके Level और उसकी Nature से बनता है। ऊपर calculator try करके देखो कि एक ही species के worst case (0 IV, 0 EV, negative Nature) और best case (31 IV, 252 EV, positive Nature) Pokémon में एक stat कितना बदल सकता है।</string>
     <string name="go_guide_title">CP और GO IVs को समझो</string>
     <string name="go_guide_cp_heading">CP क्या है?</string>
-    <string name="go_guide_cp_body">Combat Power (CP) Pokémon GO का एक number है जो बताता है कि Pokémon अभी कितना strong है। यह species के Attack, Defense और Stamina, उसके Level और उसके IVs से निकलता है — ज़्यादा CP का मतलब आमतौर पर battle में ज़्यादा strong Pokémon।</string>
+    <string name="go_guide_cp_body">Combat Power (CP) Pokémon GO का एक number है जो बताता है कि Pokémon अभी कितना strong है। यह species के Attack, Defense और Stamina, उसके Level और उसके IVs से निकलता है, ज़्यादा CP का मतलब आमतौर पर battle में ज़्यादा strong Pokémon।</string>
     <string name="go_guide_iv_heading">Pokémon GO में IVs क्या हैं?</string>
     <string name="go_guide_iv_body">Main games (0–31) के उलट, Pokémon GO में IVs हर stat (Attack, Defense, Stamina) के लिए 0–15 होते हैं। ये Pokémon पकड़ते या hatch करते समय random तय होते हैं और बाद में कभी नहीं बदलते। 15/15/15 वाले Pokémon को \"Perfect\" या \"100%\" कहते हैं।</string>
     <string name="go_guide_appraisal_heading">अपने Pokémon के असली IVs check करो</string>
-    <string name="go_guide_appraisal_body">यह app तुम्हारा save data नहीं पढ़ सकता, इसलिए सिर्फ अंदाज़ा लगा सकता है। पकड़े गए Pokémon के exact IVs देखने के लिए in-game Appraisal use करो — Pokémon पर tap करो, ⋮ menu खोलो, फिर Appraise करो।</string>
+    <string name="go_guide_appraisal_body">यह app तुम्हारा save data नहीं पढ़ सकता, इसलिए सिर्फ अंदाज़ा लगा सकता है। पकड़े गए Pokémon के exact IVs देखने के लिए in-game Appraisal use करो. Pokémon पर tap करो, ⋮ menu खोलो, फिर Appraise करो।</string>
     <string name="go_guide_raid_heading">Raid, Egg और Research IV floors</string>
-    <string name="go_guide_raid_body">Raids से पकड़े, Eggs से hatch हुए या Field Research से मिले Pokémon में हर stat में कम से कम एक तय IV मिलता है (आमतौर पर 10/15 या ज़्यादा) — इसलिए ये औसतन random wild catch से ज़्यादा strong होते हैं।</string>
+    <string name="go_guide_raid_body">Raids से पकड़े, Eggs से hatch हुए या Field Research से मिले Pokémon में हर stat में कम से कम एक तय IV मिलता है (आमतौर पर 10/15 या ज़्यादा), इसलिए ये औसतन random wild catch से ज़्यादा strong होते हैं।</string>
     <string name="clash_matchmaking_soon">पास में कोई trainer नहीं · %1$ds में AI match</string>
     <string name="clash_searching_msg1">इलाके की खोज हो रही है…</string>
     <string name="clash_searching_msg2">पास के gyms check हो रहे हैं…</string>
@@ -600,11 +580,11 @@
     <string name="chase_title">Rocket Chase</string>
     <string name="chase_loading">Team Rocket balloon फुला रहा है…</string>
     <string name="chase_tap_to_run">दौड़ने के लिए tap करो!</string>
-    <string name="chase_controls_hint">किसी lane को छुओ और वहाँ दौड़ो — drag करके मोड़ो</string>
+    <string name="chase_controls_hint">किसी lane को छुओ और वहाँ दौड़ो, drag करके मोड़ो</string>
     <string name="chase_thunderbolt">Thunder</string>
     <string name="chase_agility_ad_loading">Agility तैयार हो रहा है…</string>
     <string name="chase_revive_ad_loading">तुम्हारा revive तैयार हो रहा है…</string>
-    <string name="ad_loading_paused">तुम्हारी run रुकी हुई है — इंतज़ार के दौरान Pikachu को कुछ नहीं लगेगा।</string>
+    <string name="ad_loading_paused">तुम्हारी run रुकी हुई है, इंतज़ार के दौरान Pikachu को कुछ नहीं लगेगा।</string>
     <string name="ad_unavailable">अभी कोई ad उपलब्ध नहीं। थोड़ी देर बाद try करो!</string>
     <string name="ad_unavailable_ok">ठीक है</string>
     <string name="chase_agility">Agility</string>
@@ -625,9 +605,9 @@
     <string name="chase_stat_distance">दूरी</string>
     <string name="chase_stat_berries">Berries</string>
     <string name="chase_guide_title">कैसे बचें</string>
-    <string name="chase_guide_lanes">किसी lane को छुओ और Pikachu वहाँ दौड़ेगा — drag करके Koffing, Ekans और Wobbuffet से बचो।</string>
-    <string name="chase_guide_nets">लाल निशान का मतलब है Team Rocket ने जाल फेंका। उस lane से निकलो! अगर जाल गिर गया तो Pikachu फँस जाएगा — खींचे जाने से पहले जल्दी-जल्दी tap करके छूटो।</string>
-    <string name="chase_guide_berries">Oran Berries से 🌩️ Thunderbolt charge होता है (Thunder Stone से पूरा भर जाता है) — screen साफ़ करने के लिए tap करो। ⚡ Agility हर run में एक बार free lifeline है: 10 सेकंड की dash जो attackers को एक-एक करके हटाती है और berries बरसाती है। और चाहिए? Ad देखो।</string>
+    <string name="chase_guide_lanes">किसी lane को छुओ और Pikachu वहाँ दौड़ेगा, drag करके Koffing, Ekans और Wobbuffet से बचो।</string>
+    <string name="chase_guide_nets">लाल निशान का मतलब है Team Rocket ने जाल फेंका। उस lane से निकलो! अगर जाल गिर गया तो Pikachu फँस जाएगा, खींचे जाने से पहले जल्दी-जल्दी tap करके छूटो।</string>
+    <string name="chase_guide_berries">Oran Berries से 🌩️ Thunderbolt charge होता है (Thunder Stone से पूरा भर जाता है), screen साफ़ करने के लिए tap करो। ⚡ Agility हर run में एक बार free lifeline है: 10 सेकंड की dash जो attackers को एक-एक करके हटाती है और berries बरसाती है। और चाहिए? Ad देखो।</string>
     <string name="chase_guide_lives">3 hits और तुम पकड़े गए। बिना hit 400 m दौड़ो तो उनसे पीछा छूटेगा और एक दिल वापस मिलेगा।</string>
     <string name="chase_guide_go">चलो चलें!</string>
     <string name="chase_leave_title">Chase छोड़ना है?</string>
@@ -635,7 +615,7 @@
     <string name="chase_leave">छोड़ो</string>
     <string name="chase_keep_running">दौड़ते रहो</string>
     <string name="widget_streak_name">Dexverse Streak</string>
-    <string name="widget_streak_description">Pikachu तुम्हारी daily streak ज़िंदा रखता है — और streak बढ़ने पर नए कपड़े पहनता है</string>
+    <string name="widget_streak_description">Pikachu तुम्हारी daily streak ज़िंदा रखता है, और streak बढ़ने पर नए कपड़े पहनता है</string>
     <string name="widget_streak_title">DAILY STREAK</string>
     <plurals name="widget_streak_days" xmlns:tools="http://schemas.android.com/tools" tools:ignore="ImpliedQuantity">
         <item quantity="one">दिन</item>
@@ -692,9 +672,9 @@
     <string name="game_score_label_points">points</string>
     <string name="survivor_loading">एक wild Pokémon आ रहा है…</string>
     <string name="survivor_guide_title">कैसे बचें</string>
-    <string name="survivor_guide_types">एक wild Pokémon आता है — उस type पर tap करो जो उस पर super effective हो।</string>
-    <string name="survivor_guide_weather">Weather पर ध्यान दो — Rain से Water मज़बूत और Fire कमज़ोर होता है, Sun से उल्टा।</string>
-    <string name="survivor_guide_timer">Pokémon दिखते ही clock शुरू होता है — time खत्म होना miss गिना जाता है।</string>
+    <string name="survivor_guide_types">एक wild Pokémon आता है, उस type पर tap करो जो उस पर super effective हो।</string>
+    <string name="survivor_guide_weather">Weather पर ध्यान दो. Rain से Water मज़बूत और Fire कमज़ोर होता है, Sun से उल्टा।</string>
+    <string name="survivor_guide_timer">Pokémon दिखते ही clock शुरू होता है, time खत्म होना miss गिना जाता है।</string>
     <string name="survivor_guide_lives">तुम्हारे पास 3 lives हैं। लगातार सही जवाब दो और streak bonus व XP पाओ।</string>
     <string name="survivor_guide_go">चलो चलें!</string>
     <string name="survivor_wild_appeared">एक wild %1$s आया!</string>
@@ -953,7 +933,7 @@
     <string name="compare_unlock_body">इस session में Pokémon के stats और types साथ-साथ compare करने के लिए एक छोटा ad देखो।</string>
     <string name="ad_unavailable_short">Ad उपलब्ध नहीं, थोड़ी देर में try करो</string>
     <string name="go_premium">Premium लो</string>
-    <string name="compare_empty_hint">दो Pokémon चुनो और देखो वो कैसे compare होते हैं — कोई winner नहीं, बस facts।</string>
+    <string name="compare_empty_hint">दो Pokémon चुनो और देखो वो कैसे compare होते हैं, कोई winner नहीं, बस facts।</string>
     <string name="compare_vs">VS</string>
     <string name="compare_stats_header">STATS</string>
     <string name="compare_bst">BST %1$d</string>
@@ -961,7 +941,7 @@
     <string name="compare_weak_to">इनसे कमज़ोर</string>
     <string name="compare_edge_header">THE EDGE</string>
     <string name="compare_reveal_edge">Edge दिखाओ</string>
-    <string name="compare_edge_disclaimer">बस मज़े के लिए — type math + fans की पसंदीदा list, battle predictor नहीं।</string>
+    <string name="compare_edge_disclaimer">बस मज़े के लिए, type math + fans की पसंदीदा list, battle predictor नहीं।</string>
     <string name="compare_change_pick">Choice बदलो</string>
     <string name="stat_calc_pick_hint">IV/EV stats और GO combat power निकालने के लिए एक Pokémon चुनो।</string>
     <string name="stat_calc_unlock_title">Stat Calculator unlock करो</string>
@@ -1006,17 +986,15 @@
     <string name="theme_desc_charizard">आग उगलते dragon जैसा तेज़ और दमदार</string>
     <string name="theme_desc_venusaur">खिलते बगीचे जैसा ताज़ा और रंगीन</string>
     <string name="theme_desc_blastoise">गहरे समंदर जैसा cool और शांत</string>
-    <string name="theme_desc_gengar">शरारती और डरावना — shadow purple और शैतानी हरी मुस्कान</string>
-    <string name="theme_desc_rayquaza">बादलों के ऊपर legendary sky serpent — emerald scales और सुनहरे निशान</string>
-    <string name="theme_desc_sylveon">नरम और प्यारा — pastel ribbons और हल्की गर्माहट</string>
-    <string name="theme_desc_lugia">समंदरों का रक्षक — आधी रात के नीले समंदर पर चाँदी जैसे पंख</string>
-    <string name="theme_desc_lucario">Aura का master — steel black पर चमकता नीला</string>
-    <string name="theme_desc_greninja">खामोश shinobi — गहरी नीली रात और scarf का गुलाबी झलक</string>
-    <string name="theme_desc_mimikyu">बस प्यार चाहता है — किसी अंधेरी चीज़ पर घर का बना पीला disguise</string>
-    <string name="theme_desc_hooh">इंद्रधनुषी phoenix — पवित्र सुनहरी आग और लाल-हरे पंख</string>
-    <string name="wildcatch_hint_perfect">✨  Perfect!</string>
-    <string name="wildcatch_hint_great">🎯  Great</string>
-    <string name="wildcatch_hint_nice">👍  Nice</string>
+    <string name="theme_desc_gengar">शरारती और डरावना, shadow purple और शैतानी हरी मुस्कान</string>
+    <string name="theme_desc_rayquaza">बादलों के ऊपर legendary sky serpent, emerald scales और सुनहरे निशान</string>
+    <string name="theme_desc_sylveon">नरम और प्यारा, pastel ribbons और हल्की गर्माहट</string>
+    <string name="theme_desc_lugia">समंदरों का रक्षक, आधी रात के नीले समंदर पर चाँदी जैसे पंख</string>
+    <string name="theme_desc_lucario">Aura का master, steel black पर चमकता नीला</string>
+    <string name="theme_desc_greninja">खामोश shinobi, गहरी नीली रात और scarf का गुलाबी झलक</string>
+    <string name="theme_desc_mimikyu">बस प्यार चाहता है, किसी अंधेरी चीज़ पर घर का बना पीला disguise</string>
+    <string name="theme_desc_hooh">इंद्रधनुषी phoenix, पवित्र सुनहरी आग और लाल-हरे पंख</string>
+    <string name="wildcatch_hint_great">बढ़िया!</string>
     <string name="wildcatch_hint_wait">Ring का इंतज़ार करो...</string>
     <string name="wildcatch_swipe_to_throw">Throw करने के लिए कहीं भी ऊपर swipe करो!</string>
     <string name="wildcatch_gotcha_life">पकड़ लिया! ❤️ +1 Life!</string>
@@ -1027,12 +1005,10 @@
     <string name="wildcatch_over">Wild Catch खत्म!</string>
     <string name="wildcatch_catch_rate">Catch rate: %1$d%%</string>
     <string name="action_back_to_games">Games पर वापस</string>
-    <string name="throw_perfect">Perfect!</string>
-    <string name="throw_great">Great!</string>
-    <string name="throw_nice">Nice!</string>
+    <string name="throw_great">बढ़िया!</string>
     <string name="throw_miss">चूक गए...</string>
     <string name="face_match_title">मैं किस Pokémon जैसा दिखता हूँ?</string>
-    <string name="face_match_intro_body">Selfie लो और पता करो! बस मज़े के लिए — तुम्हारी photo तुम्हारे device से बाहर नहीं जाती।</string>
+    <string name="face_match_intro_body">Selfie लो और पता करो! बस मज़े के लिए, तुम्हारी photo तुम्हारे device से बाहर नहीं जाती।</string>
     <string name="face_match_take_selfie">Selfie लो</string>
     <string name="face_match_no_camera">इस device में कोई camera नहीं मिला।</string>
     <string name="face_match_phrase_reading">तुम्हारे features पढ़ रहे हैं...</string>
@@ -1228,6 +1204,8 @@
     <string name="tc_phrase_own">अपना ख़ुद लिखो</string>
     <string name="tc_phrase_own_hint">तुम्हारा catchphrase</string>
     <string name="tc_phrase_count">%1$d/%2$d</string>
+    <string name="tc_edit_fav_type">पसंदीदा type</string>
+    <string name="tc_edit_play_style">खेलने का style</string>
     <string name="coach_title">Coach की राय</string>
     <string name="coach_subtitle">तुम्हारी Team पर एक पर्सनल राय</string>
     <string name="coach_ask">Coach से पूछो</string>
@@ -1251,21 +1229,32 @@
     <string name="pro_skip">Skip करो</string>
     <string name="pro_yes">हाँ!</string>
     <string name="pro_begin">चलो!</string>
+    <string name="pro_name_tag">PROFESSOR DEX</string>
+    <string name="pro_tour_dex">ये है तुम्हारा Pokédex! जो भी Pokémon तुम खोलते हो वो seen mark हो जाता है, और जिन्हें पकड़ते हो वो भर जाते हैं। %1$s तुम्हारी पहली entry बन चुका है!</string>
+    <string name="pro_tour_games">Break चाहिए? Mini games में खूब मज़ा है: silhouette पहचानो, quiz में कमाल करो, cards match करो, और Team Rocket से बचकर भी दिखाओ।</string>
+    <string name="pro_tour_rank">हर game से XP मिलता है। Level up करो, leaderboard पर चढ़ो, और दुनिया को दिखाओ कि %1$s कैसा trainer है!</string>
+    <string name="pro_tour_style">इसे अपना बनाओ! Themes unlock करो, Poké Coins जमा करो, और अपनी daily streak जलती रखो।</string>
+    <string name="pro_tour_seen">देखे</string>
+    <string name="pro_tour_caught">पकड़े</string>
+    <string name="pro_ask_notify">आख़िरी बात! जब तुम्हारी streak ख़तरे में हो या कुछ नया आए, तो क्या मैं तुम्हें एक छोटा message भेजूँ?</string>
+    <string name="pro_notify_allow">हाँ, बताओ</string>
+    <string name="pro_notify_later">अभी नहीं</string>
+    <string name="pro_cd_progress">Step %1$d / %2$d</string>
 
     <!-- Pokédex progress -->
     <string name="dex_title">Pokédex</string>
     <string name="dex_seen">देखे</string>
     <string name="dex_caught">पकड़े</string>
-    <string name="dex_catch_hint">Pokémon पकड़ने के लिए Wild Catch खेलो।</string>
+    <string name="dex_catch_hint">देखे और पकड़े दोनों Wild Catch से आते हैं: Pokémon वहाँ दिखने पर देखा गया माना जाता है।</string>
     <string name="dex_play">खेलो</string>
     <string name="wildcatch_tier_uncommon">Uncommon</string>
     <string name="wildcatch_tier_rare">Rare</string>
-    <string name="wildcatch_tier_epic">Epic</string>
+    <string name="wildcatch_tier_epic">अल्ट्रा रेयर</string>
     <string name="wildcatch_new_catch">नया catch!</string>
     <string name="settings_auto_cry">Cry अपने आप बजाओ</string>
     <string name="settings_auto_cry_desc">Pokémon का page खोलते ही उसकी cry बजाओ।</string>
     <string name="dex_filter_all">सब</string>
-    <string name="dex_empty_seen">यहाँ अभी कुछ नहीं देखा। रजिस्टर करने के लिए कोई Pokémon खोलो।</string>
+    <string name="dex_empty_seen">अभी कुछ नहीं देखा। Wild Catch में मिले Pokémon यहाँ दिखेंगे।</string>
     <string name="dex_empty_caught">यहाँ अभी कोई catch नहीं। Pokémon पकड़ने के लिए Wild Catch खेलो!</string>
     <string name="dex_party_badge">Trainer की Party</string>
     <string name="dex_lcd_caught">◓ पकड़ा</string>
@@ -1331,4 +1320,477 @@
     <string name="dex_daily_no_hints">बिना हिंट</string>
     <string name="dex_daily_with_hints">हिंट के साथ</string>
     <string name="xp_dex_daily">Dex Daily</string>
+
+    <!-- Poké Coins, shop and level rewards -->
+    <string name="cosmetic_frame_pokeball">पोके बॉल फ्रेम</string>
+    <string name="cosmetic_frame_ultra">अल्ट्रा फ्रेम</string>
+    <string name="cosmetic_frame_master">मास्टर फ्रेम</string>
+    <string name="cosmetic_frame_legend">लीजेंड फ्रेम</string>
+    <string name="cosmetic_frame_mythic">मिथिक फ्रेम</string>
+    <string name="cosmetic_frame_flame">फ्लेम फ्रेम</string>
+    <string name="cosmetic_frame_tide">टाइड फ्रेम</string>
+    <string name="cosmetic_frame_leaf">लीफ फ्रेम</string>
+    <string name="cosmetic_frame_volt">वोल्ट फ्रेम</string>
+    <string name="cosmetic_frame_shiny">शाइनी फ्रेम</string>
+    <string name="cosmetic_title_rookie">रूकी ट्रेनर</string>
+    <string name="cosmetic_title_ace">ऐस ट्रेनर</string>
+    <string name="cosmetic_title_veteran">वेटरन</string>
+    <string name="cosmetic_title_elite">एलीट ट्रेनर</string>
+    <string name="cosmetic_title_champion">चैंपियन</string>
+    <string name="cosmetic_title_legend">लिविंग लीजेंड</string>
+    <string name="cosmetic_title_master">पोकेमॉन मास्टर</string>
+    <string name="cosmetic_title_bugcatcher">बग कैचर</string>
+    <string name="cosmetic_title_fan">पोकेफैन</string>
+    <string name="cosmetic_title_challenger">जिम चैलेंजर</string>
+    <string name="cosmetic_backdrop_aurora">अरोरा</string>
+    <string name="cosmetic_backdrop_cosmos">कॉसमॉस</string>
+    <string name="cosmetic_widget_royal">रॉयल वायलेट</string>
+    <string name="cosmetic_widget_ember">एम्बर ऑरेंज</string>
+    <string name="cosmetic_widget_ocean">ओशन ब्लू</string>
+    <string name="cosmetic_widget_mint">मिंट ग्रीन</string>
+    <string name="cosmetic_theme_sylveon">सिल्वियन थीम</string>
+    <string name="cosmetic_theme_lucario">लुकारियो थीम</string>
+    <string name="cosmetic_theme_greninja">ग्रेनिंजा थीम</string>
+    <string name="rewards_title">रिवॉर्ड्स</string>
+    <string name="rewards_tab_shop">शॉप</string>
+    <string name="rewards_tab_path">लेवल पाथ</string>
+    <string name="rewards_guest_banner">पोके कॉइन्स कमाने और लेवल बढ़ने पर रिवॉर्ड्स अनलॉक करने के लिए साइन इन करें।</string>
+    <string name="rewards_freeze_title">स्ट्रीक फ्रीज़</string>
+    <string name="rewards_freeze_desc">एक दिन छूटने पर आपकी स्ट्रीक बचाता है। अपने आप इस्तेमाल होता है।</string>
+    <string name="rewards_freeze_held">%1$d / %2$d मौजूद</string>
+    <string name="rewards_buy">खरीदें</string>
+    <string name="rewards_equip">पहनें</string>
+    <string name="rewards_equipped">पहना हुआ</string>
+    <string name="rewards_owned">आपके पास है</string>
+    <string name="rewards_cancel">रद्द करें</string>
+    <string name="rewards_level_locked">लेवल %1$d</string>
+    <string name="rewards_section_frames">प्रोफ़ाइल फ्रेम</string>
+    <string name="rewards_section_titles">टाइटल</string>
+    <string name="rewards_section_backdrops">बैकड्रॉप</string>
+    <string name="rewards_section_widgets">विजेट लुक</string>
+    <string name="rewards_section_themes">थीम</string>
+    <string name="rewards_confirm_title">%1$s खरीदें?</string>
+    <string name="rewards_confirm_body">इसकी कीमत %1$d पोके कॉइन्स है। आपके पास %2$d हैं।</string>
+    <string name="rewards_msg_bought">%1$s अनलॉक और पहन लिया गया!</string>
+    <string name="rewards_msg_bought_theme">%1$s अनलॉक हो गया। इसे थीम्स से लगाएँ।</string>
+    <string name="rewards_msg_freeze_bought">स्ट्रीक फ्रीज़ जुड़ गया!</string>
+    <string name="rewards_msg_freeze_full">आपके पास पहले से अधिकतम हैं।</string>
+    <string name="rewards_msg_not_enough">अभी पर्याप्त पोके कॉइन्स नहीं हैं।</string>
+    <string name="rewards_path_level">लेवल %1$d</string>
+    <string name="rewards_path_here">आप यहाँ हैं</string>
+    <string name="rewards_entry_title">रिवॉर्ड्स और शॉप</string>
+    <string name="rewards_entry_subtitle">पोके कॉइन्स से फ्रेम, बैकड्रॉप और टाइटल पाएँ</string>
+    <string name="rewards_new_count">%1$d नया</string>
+    <string name="xp_note_coins">🪙 +%1$d</string>
+    <string name="xp_note_streak_milestone">🏆 %1$d-दिन की स्ट्रीक! +%2$d 🪙</string>
+    <string name="xp_note_streak_saved">🛡️ फ्रीज़ ने स्ट्रीक बचा ली</string>
+    <string name="levelup_rewards_title">रिवॉर्ड्स अनलॉक</string>
+    <string name="levelup_reward_coins">+%1$d पोके कॉइन्स</string>
+    <string name="levelup_reward_item">अनलॉक: %1$s</string>
+    <string name="theme_unlock_with_coins">या चुनी हुई थीम पोके कॉइन्स से अनलॉक करें</string>
+    <string name="cosmetic_backdrop_twilight">गोधूलि</string>
+    <string name="cosmetic_backdrop_night">रात का आसमान</string>
+    <string name="cosmetic_backdrop_deepsea">गहरा समुद्र</string>
+    <string name="cosmetic_backdrop_forge">भट्टी</string>
+    <string name="guide_title">पोके कॉइन्स कैसे कमाएँ</string>
+    <string name="guide_intro">कॉइन्स रोज़ आने और चीज़ें पूरी करने से मिलते हैं, जवाब घिसने से नहीं। ये सिर्फ़ लुक्स खरीदते हैं, इसलिए आपका XP, लेवल या रैंक नहीं बदलते।</string>
+    <string name="guide_section_daily">हर दिन</string>
+    <string name="guide_row_login">Dexverse खोलें (डेली चेक-इन)</string>
+    <string name="guide_row_first_game">अपना पहला गेम खेलें</string>
+    <string name="guide_row_explore">अपना पहला पोकेमॉन देखें</string>
+    <string name="guide_row_fact">आज का फ़ैक्ट खुरचें</string>
+    <string name="guide_row_dex">डेक्स डेली हल करें (चूकने पर +%1$d)</string>
+    <string name="guide_row_games">एक गेम पूरा करें (रोज़ के पहले %1$d)</string>
+    <string name="guide_section_streak">स्ट्रीक बोनस</string>
+    <string name="guide_streak_days">%1$d-दिन की स्ट्रीक</string>
+    <string name="guide_amount">+%1$d 🪙</string>
+    <string name="guide_section_levels">लेवल बढ़ाएँ</string>
+    <string name="guide_levels_body">हर नए लेवल पर कॉइन्स मिलते हैं, और हर 5वें लेवल पर ज़्यादा कॉइन्स और पहनने के लिए कुछ नया अनलॉक होता है। आगे क्या है, यह लेवल पाथ टैब में देखें।</string>
+    <string name="guide_section_tips">ज़रूरी बातें</string>
+    <string name="guide_tip_cap">रोज़ के बोनस मिलाकर ज़्यादा से ज़्यादा %1$d कॉइन्स प्रतिदिन होते हैं।</string>
+    <string name="guide_tip_freeze">स्ट्रीक फ्रीज़ की कीमत %1$d कॉइन्स है और एक दिन छूटने पर आपकी स्ट्रीक बचाता है।</string>
+    <string name="guide_tip_guest">कॉइन्स कमाने के लिए साइन इन करें। गेस्ट उन्हें जमा नहीं कर सकते।</string>
+    <string name="guide_got_it">समझ गया</string>
+    <string name="coach_unlimited">Pro के साथ unlimited</string>
+    <string name="coins_intro_title">Poké Coins आ गए हैं!</string>
+    <string name="coins_intro_earn">हर दिन coins कमाओ: login करो, games खेलो, Dex Daily solve करो और streak बचाकर रखो।</string>
+    <string name="coins_intro_weekly">हर Monday leaderboard से coins मिलते हैं। जिसने भी खेला उसे %1$d, top 10 को %2$d, top 3 को %3$d, और #1 को %4$d coins।</string>
+    <string name="coins_intro_levels">Level up करो और बड़े rewards के साथ frames, titles और backdrops unlock करो।</string>
+    <string name="coins_intro_spend">Coins को Rewards में cosmetics पर खर्च करो। ये तुम्हारे XP या rank पर कोई असर नहीं डालते।</string>
+    <string name="coins_intro_guest">कमाना शुरू करने के लिए sign in करो।</string>
+    <string name="coins_intro_cta">Rewards देखो</string>
+    <string name="weekly_reward_title_first">तुम leaderboard में #1 रहे! 👑</string>
+    <string name="weekly_reward_title_podium">तुम podium पर पहुँचे! 🏆</string>
+    <string name="weekly_reward_title_top10">Top 10 में आए! ⭐</string>
+    <string name="weekly_reward_title_played">पिछले हफ़्ते खेलने के लिए धन्यवाद!</string>
+    <string name="weekly_reward_body">तुम पिछले हफ़्ते #%1$d रहे और %2$d Poké Coins कमाए।</string>
+    <string name="weekly_reward_body_played">पिछले हफ़्ते खेलने पर तुमने %1$d Poké Coins कमाए। और ऊपर चढ़ो, और कमाओ!</string>
+    <string name="weekly_reward_nice">बढ़िया!</string>
+    <string name="guide_section_weekly">Weekly leaderboard prizes</string>
+    <string name="guide_weekly_1">#1 पर खत्म करो</string>
+    <string name="guide_weekly_2">#2 पर खत्म करो</string>
+    <string name="guide_weekly_3">#3 पर खत्म करो</string>
+    <string name="guide_weekly_top10">#4 से #10 में खत्म करो</string>
+    <string name="guide_weekly_played">हफ़्ता खेलो (50+ XP)</string>
+    <string name="guide_weekly_note">हर Monday पिछले हफ़्ते के XP के आधार पर, leaderboard पर सभी को मिलता है।</string>
+    <string name="cosmetic_title_trailblazer">ट्रेलब्लेज़र</string>
+    <string name="cosmetic_title_rival">राइवल</string>
+    <string name="cosmetic_title_regionhero">रीजन हीरो</string>
+    <string name="cosmetic_title_halloffame">हॉल ऑफ़ फ़ेमर</string>
+    <string name="cosmetic_title_dexmaster">डेक्स मास्टर</string>
+    <string name="weekly_reward_amount">+%1$d Poké Coins</string>
+    <string name="load_error_offline_title">तुम offline हो</string>
+    <string name="load_error_offline_body">अपना connection check करो। online आते ही हम अपने-आप दोबारा try करेंगे।</string>
+    <string name="load_error_timeout_title">बहुत देर लग गई</string>
+    <string name="load_error_timeout_body">तुम्हारा connection slow लग रहा है। एक बार और try करो।</string>
+    <string name="load_error_server_title">Pokédex servers में दिक्कत है</string>
+    <string name="load_error_server_body">ये तुम्हारी गलती नहीं है। थोड़ी देर बाद फिर try करो।</string>
+    <string name="load_error_section">ये हिस्सा load नहीं हो पाया</string>
+    <string name="load_error_variety">वो form load नहीं हुआ। connection check करके फिर try करो।</string>
+    <string name="load_error_search">अभी search नहीं हो पा रहा। connection check करो।</string>
+    <string name="load_error_pick">वो Pokémon load नहीं हुआ। connection check करके फिर try करो।</string>
+    <string name="dex_tap_to_filter">उन Pokémon को देखने के लिए Seen या Caught पर tap करो</string>
+    <string name="dex_showing">दिख रहे हैं</string>
+    <string name="wildcatch_end_run">Run खत्म करो और results देखो</string>
+    <string name="wildcatch_dex_total">Pokédex: %1$d पकड़े</string>
+    <string name="wildcatch_streak">लगातार %1$d!</string>
+    <string name="game_name_battle_title">Team Battle</string>
+    <string name="game_name_battle_desc">अपने पकड़े हुए पोकेमॉन को लड़ाई में उतारें। छह तक चुनें और बॉट को मात दें।</string>
+    <string name="xp_battle_complete">Team Battle</string>
+    <string name="battle_pick_title">अपनी team चुनो</string>
+    <string name="battle_pick_hint">अपने पकड़े हुए Pokémon में से 1 से 6 चुनो।</string>
+    <string name="battle_pick_more">बड़ी team के लिए Wild Catch में और पकड़ो।</string>
+    <string name="battle_play_wild">Wild Catch खेलो</string>
+    <string name="battle_tier_rookie">Rookie</string>
+    <string name="battle_tier_trainer">Trainer</string>
+    <string name="battle_tier_champion">Champion</string>
+    <string name="battle_tier_bonus">जीत पर +%1$d XP</string>
+    <string name="battle_start">Battle शुरू!</string>
+    <string name="battle_scouting">विरोधी ढूँढ रहे हैं…</string>
+    <string name="battle_attack">Attack</string>
+    <string name="battle_special">Special</string>
+    <string name="battle_guard">Guard</string>
+    <string name="battle_switch">Switch</string>
+    <string name="battle_special_locked">Energy full चाहिए</string>
+    <string name="battle_choose_next">अगला Pokémon चुनो</string>
+    <string name="battle_opponent">विरोधी</string>
+    <string name="battle_your_turn">अब क्या करोगे?</string>
+    <string name="battle_log_attack">%1$s ने attack किया! %2$d damage।</string>
+    <string name="battle_log_special">%1$s ने Special चलाया! %2$d damage।</string>
+    <string name="battle_log_super">ये super effective है!</string>
+    <string name="battle_log_resisted">ये ज़्यादा असरदार नहीं…</string>
+    <string name="battle_log_immune">कोई असर नहीं हुआ…</string>
+    <string name="battle_log_crit">Critical hit!</string>
+    <string name="battle_log_guard">%1$s impact के लिए तैयार है।</string>
+    <string name="battle_log_switch">%1$s मैदान में आया!</string>
+    <string name="battle_log_faint">%1$s बेहोश हो गया!</string>
+    <string name="battle_log_energy">%1$s की energy full है!</string>
+    <string name="battle_victory">जीत!</string>
+    <string name="battle_defeat">हार</string>
+    <string name="battle_victory_body">तुम्हारी team ने %1$d turns में जीता।</string>
+    <string name="battle_defeat_body">types के matchups देखो और फिर try करो।</string>
+    <string name="battle_rematch">Rematch</string>
+    <string name="battle_change_team">Team बदलो</string>
+    <string name="battle_help_button">Battle कैसे करें</string>
+    <string name="battle_help_title">Battle कैसे करें</string>
+    <string name="battle_help_goal">दूसरी टीम को हराइए, इससे पहले कि वह आपकी टीम को हराए।</string>
+    <string name="battle_help_attack_title">Attack</string>
+    <string name="battle_help_attack">तेज़ वार। एनर्जी भरती है।</string>
+    <string name="battle_help_special_title">Special</string>
+    <string name="battle_help_special">बड़ा वार। SPECIAL बार पूरा भरा होना चाहिए, जो हमला (+35), गार्ड (+40) और चोट खाने (+10) से भरता है।</string>
+    <string name="battle_help_guard_title">Guard</string>
+    <string name="battle_help_guard">आधा नुकसान, और SPECIAL बार तेज़ी से भरता है। हर पक्ष को पूरे बैटल में सिर्फ 3 गार्ड मिलते हैं।</string>
+    <string name="battle_help_switch_title">Switch</string>
+    <string name="battle_help_switch">साथी को उतारिए। वही वार झेलता है।</string>
+    <string name="battle_help_types_title">Types का इस्तेमाल करो!</string>
+    <string name="battle_help_types">टाइप मायने रखते हैं। कुछ ज़्यादा असर करते हैं।</string>
+    <string name="battle_help_speed_title">Speed</string>
+    <string name="battle_help_speed">तेज़ Pokémon पहले वार करता है और दूसरे के हिलने से पहले जीत सकता है।</string>
+    <string name="battle_help_got_it">चलो battle करें!</string>
+    <string name="battle_hint_attack">एनर्जी भरे</string>
+    <string name="battle_hint_special">बड़ा वार</string>
+    <string name="battle_hint_guard">आधा नुकसान</string>
+    <string name="battle_hint_switch">Pokémon बदलो</string>
+    <string name="battle_eff_super">Super effective</string>
+    <string name="battle_eff_resisted">कम असर</string>
+    <string name="battle_eff_none">कोई असर नहीं</string>
+    <string name="battle_special_ready">SPECIAL तैयार!</string>
+    <string name="battle_adv_good">तुम्हारा पलड़ा भारी है</string>
+    <string name="battle_adv_even">बराबर की टक्कर</string>
+    <string name="battle_adv_bad">Type में नुकसान</string>
+    <string name="battle_intro_vs">VS</string>
+    <string name="battle_intro_foe_sends">%1$s सामने आया!</string>
+    <string name="evo_title">विकसित करें</string>
+    <string name="evo_subtitle">विकसित करने पर यह पोकेमॉन खर्च हो जाता है: नया रूप आपकी टीम में उसकी जगह लेता है। पोकेडेक्स की एंट्री बनी रहती है। कुछ रूपों के लिए स्टोन या आइटम चाहिए; बाकी के लिए इवो शार्ड लगते हैं।</string>
+    <string name="evo_unknown_form">\?\?\?</string>
+    <string name="evo_cost">%1$d इवो शार्ड</string>
+    <string name="evo_in_dex">आपके पोकेडेक्स में</string>
+    <string name="evo_button">विकसित करें</string>
+    <string name="evo_how_to_earn">वाइल्ड कैच में पोकेमॉन पकड़कर और टीम बैटल खेलकर इवो शार्ड कमाएँ।</string>
+    <string name="evo_err_not_enough">अभी पर्याप्त इवो शार्ड नहीं हैं।</string>
+    <string name="evo_err_have">यह रूप आपके पास पहले से है।</string>
+    <string name="evo_err_not_caught">पहले इस पोकेमॉन को पकड़ें।</string>
+    <string name="evo_in_progress">%1$s विकसित हो रहा है…</string>
+    <string name="evo_result">%1$s विकसित होकर %2$s बन गया!</string>
+    <string name="evo_continue">जारी रखें</string>
+    <string name="evo_shards_gained">+%1$d इवो शार्ड</string>
+    <string name="evo_help_title">इवो शार्ड के बारे में</string>
+    <string name="evo_help_what">इवो शार्ड से आप अपने पकड़े हुए पोकेमॉन को विकसित कर सकते हैं। विकसित करने पर पुराना रूप खर्च हो जाता है और नया रूप आपके टीम बैटल रोस्टर में उसकी जगह लेता है; पोकेडेक्स में दोनों एंट्री रहती हैं। जिन विकासों में स्टोन या आइटम चाहिए, उनमें शार्ड की जगह रिवॉर्ड्स शॉप का वह आइटम लगता है।</string>
+    <string name="evo_help_earn_title">इन्हें कैसे कमाएँ</string>
+    <string name="evo_help_earn_catch">वाइल्ड कैच में कोई भी पोकेमॉन पकड़ें। जो पोकेमॉन आपके पास पहले से है उसे फिर पकड़ने पर सबसे ज़्यादा (5 शार्ड) मिलते हैं, नया पकड़ने पर 3। सटीक थ्रो और दुर्लभ पोकेमॉन से थोड़े और मिलते हैं।</string>
+    <string name="evo_help_earn_battle">एक टीम बैटल पूरा करें। जीत पर ज़्यादा मिलते हैं, पर हार पर भी थोड़े मिलते हैं।</string>
+    <string name="evo_help_cap">आप एक दिन में अधिकतम %1$d शार्ड कमा सकते हैं। सीमा हर दिन रीसेट होती है।</string>
+    <string name="evo_help_use">पकड़ा हुआ पोकेमॉन खोलें और विकसित करें दबाएँ। पहले विकास की कीमत %1$d शार्ड है, आगे के विकास महँगे हैं।</string>
+    <string name="evo_help_got_it">समझ गया</string>
+    <string name="evo_help_button">इवो शार्ड कैसे काम करते हैं</string>
+    <string name="evo_capped">आज की शार्ड सीमा पूरी हो गई</string>
+    <string name="throw_broke_free">बस ज़रा सा! यह छूट निकला</string>
+    <string-array name="generic_bios">
+        <item>सबको पकड़ना है, एक-एक थ्रो में।</item>
+        <item>ट्रेनिंग ज़ोरदार, नाश्ता उससे भी ज़्यादा।</item>
+        <item>बेरीज़ और ज़िद्दी उम्मीद से चलता हूँ।</item>
+        <item>अगला शाइनी ढूँढ रहा हूँ, आसान रास्ते से कभी नहीं।</item>
+        <item>मेरी टीम हमेशा मेरे साथ है।</item>
+        <item>लंबी घास में लंबी सैर।</item>
+        <item>बस एक और कैच, फिर सोऊँगा। शायद।</item>
+        <item>टाइप मैचअप मेरी पसंदीदा भाषा है।</item>
+        <item>वीकेंड ट्रेनर, उम्र भर का पोकेमॉन फ़ैन।</item>
+        <item>अपना पहला लेजेंडरी अब भी ढूँढ रहा हूँ।</item>
+        <item>पोकेडेक्स के लिए आया, दोस्तों के लिए रुका।</item>
+        <item>हर पोकेमॉन की एक कहानी है। मैं उन्हें जमा कर रहा हूँ।</item>
+    </string-array>
+    <string-array name="partner_reactions">
+        <item>चलो, पार्टनर!</item>
+        <item>जब चाहो तैयार हूँ!</item>
+        <item>मैं यहीं तुम्हारे साथ हूँ।</item>
+        <item>नया दिन, नया सफ़र!</item>
+        <item>गुदगुदी हो रही है!</item>
+        <item>कुछ खाने को लाए?</item>
+    </string-array>
+    <string name="partner_pick_title">अपना पार्टनर चुनें</string>
+    <string name="partner_pick_hint">आपके स्टार्टर और आपके पकड़े हुए सभी पोकेमॉन।</string>
+    <string name="partner_set_failed">पार्टनर सेट नहीं हो सका। कनेक्शन जाँचकर फिर कोशिश करें।</string>
+    <string name="partner_change">पार्टनर बदलें</string>
+    <string name="battle_tier_title">कठिनाई</string>
+    <string name="battle_tier_rookie_desc">अक्सर बेतरतीब चलता है। कमज़ोर टीम।</string>
+    <string name="battle_tier_trainer_desc">कभी-कभी समझदारी से चलता है। बराबर की टीम।</string>
+    <string name="battle_tier_champion_desc">अक्सर समझदारी से चलता है। मज़बूत टीम।</string>
+    <string name="wildcatch_run">भागो</string>
+    <string name="profile_battle_wins">%1$d जीत</string>
+
+    <!-- Items: stones, evolution items, balls, lure (coin shop) -->
+    <string name="evo_needs_item">%1$s चाहिए · आपके पास %2$d हैं</string>
+    <string name="evo_in_roster">आपकी टीम में</string>
+    <string name="evo_get_item">पाएँ</string>
+    <string name="evo_err_no_item">इस विकास के लिए सही आइटम चाहिए। इसे रिवॉर्ड्स शॉप से खरीदें।</string>
+    <string name="rewards_tab_items">आइटम</string>
+    <string name="rewards_section_balls">बॉल और बूस्ट</string>
+    <string name="rewards_section_stones">इवोल्यूशन स्टोन</string>
+    <string name="rewards_section_evo_items">इवोल्यूशन आइटम</string>
+    <string name="rewards_msg_item_bought">%1$s आपके बैग में जुड़ गया!</string>
+    <string name="rewards_msg_item_full">आपके बैग में और %1$s नहीं आ सकते।</string>
+    <string name="rewards_item_held">बैग में: %1$d</string>
+    <string name="rewards_item_full">बैग भरा है</string>
+    <string name="item_poke_ball">पोके बॉल</string>
+    <string name="item_great_ball">ग्रेट बॉल</string>
+    <string name="item_ultra_ball">अल्ट्रा बॉल</string>
+    <string name="item_master_ball">मास्टर बॉल</string>
+    <string name="item_rare_lure">रेयर ल्योर</string>
+    <string name="item_shard_pouch">शार्ड पाउच</string>
+    <string name="item_fire_stone">फायर स्टोन</string>
+    <string name="item_water_stone">वॉटर स्टोन</string>
+    <string name="item_thunder_stone">थंडर स्टोन</string>
+    <string name="item_leaf_stone">लीफ स्टोन</string>
+    <string name="item_ice_stone">आइस स्टोन</string>
+    <string name="item_moon_stone">मून स्टोन</string>
+    <string name="item_sun_stone">सन स्टोन</string>
+    <string name="item_shiny_stone">शाइनी स्टोन</string>
+    <string name="item_dusk_stone">डस्क स्टोन</string>
+    <string name="item_dawn_stone">डॉन स्टोन</string>
+    <string name="item_desc_stone">इस स्टोन की ज़रूरत वाले पोकेमॉन को विकसित करता है। विकास पर खर्च हो जाता है।</string>
+    <string name="item_desc_evo_item">इस आइटम की ज़रूरत वाले पोकेमॉन को विकसित करता है। विकास पर खर्च हो जाता है।</string>
+    <string name="item_desc_great_ball">वाइल्ड कैच में बेहतर मौका। बॉल्स का एक पैक।</string>
+    <string name="item_desc_ultra_ball">काफ़ी बेहतर मौका, और मज़बूत पोकेमॉन कम विरोध करते हैं। बॉल्स का एक पैक।</string>
+    <string name="item_desc_master_ball">कभी नहीं चूकती। किसी लेजेंडरी के लिए बिल्कुल सही।</string>
+    <string name="item_desc_rare_lure">अगले 5 मुकाबलों में लेजेंडरी और मिथिकल पोकेमॉन कहीं ज़्यादा दिखते हैं।</string>
+    <string name="item_desc_shard_pouch">%1$d इवो शार्ड, तुरंत। कोई दैनिक सीमा नहीं।</string>
+    <string name="item_metal_coat">Metal Coat</string>
+    <string name="item_kings_rock">King\'s Rock</string>
+    <string name="item_dragon_scale">Dragon Scale</string>
+    <string name="item_up_grade">Up-Grade</string>
+    <string name="item_dubious_disc">Dubious Disc</string>
+    <string name="item_protector">Protector</string>
+    <string name="item_electirizer">Electirizer</string>
+    <string name="item_magmarizer">Magmarizer</string>
+    <string name="item_reaper_cloth">Reaper Cloth</string>
+    <string name="item_razor_claw">Razor Claw</string>
+    <string name="item_razor_fang">Razor Fang</string>
+    <string name="item_deep_sea_tooth">Deep Sea Tooth</string>
+    <string name="item_deep_sea_scale">Deep Sea Scale</string>
+    <string name="item_prism_scale">Prism Scale</string>
+    <string name="item_sachet">Sachet</string>
+    <string name="item_whipped_dream">Whipped Dream</string>
+
+    <!-- Online Team Battle -->
+    <string name="battle_mode_practice">प्रैक्टिस</string>
+    <string name="battle_mode_online">ऑनलाइन</string>
+    <string name="battle_online_title">असली ट्रेनर्स से भिड़ें</string>
+    <string name="battle_online_desc">अपनी टीम चुनें और किसी दूसरे ट्रेनर से लाइव भिड़ें। हर टर्न एक साथ खेला जाता है, इसलिए जल्दी सोचें।</string>
+    <string name="battle_online_pill_shards">इवो शार्ड</string>
+    <string name="battle_online_pill_xp">बोनस XP</string>
+    <string name="battle_online_bot_note">कोई नहीं मिला? %1$d सेकंड बाद एक बॉट आ जाता है, ताकि आपको इंतज़ार न करना पड़े।</string>
+    <string name="battle_online_find">मैच ढूँढें</string>
+    <string name="battle_online_friend">दोस्त के साथ खेलें</string>
+    <string name="battle_online_friend_title">दोस्त के साथ खेलें</string>
+    <string name="battle_online_friend_desc">एक रूम बनाएँ और कोड शेयर करें, या अपने दोस्त का कोड डालकर उसके रूम में जुड़ें।</string>
+    <string name="battle_online_create_room">रूम बनाएँ</string>
+    <string name="battle_online_enter_code">रूम कोड डालें</string>
+    <string name="battle_online_code_placeholder">ABC123</string>
+    <string name="battle_online_join">जुड़ें</string>
+    <string name="battle_online_searching">ट्रेनर ढूँढ रहे हैं…</string>
+    <string name="battle_online_searching_sub">अभी ऑनलाइन किसी से मिलाया जा रहा है।</string>
+    <string name="battle_online_bot_in">%1$d सेकंड में बॉट आएगा</string>
+    <string name="battle_online_connecting">कनेक्ट हो रहा है…</string>
+    <string name="battle_online_waiting_friend">दोस्त का इंतज़ार</string>
+    <string name="battle_online_waiting_friend_sub">नीचे दिया कोड शेयर करें। उनके जुड़ते ही बैटल शुरू हो जाएगा।</string>
+    <string name="battle_online_room_code">रूम कोड</string>
+    <string name="battle_online_copy">कॉपी</string>
+    <string name="battle_online_share">शेयर</string>
+    <string name="battle_online_share_text">Dexverse पर मेरे टीम बैटल में जुड़ें!\nरूम कोड: %1$s</string>
+    <string name="battle_online_cancel">रद्द करें</string>
+    <string name="battle_online_found">ट्रेनर मिल गया!</string>
+    <string name="battle_online_found_sub">बैटलफील्ड तैयार हो रहा है…</string>
+    <string name="battle_online_failed_title">बैटल शुरू नहीं हो सका</string>
+    <string name="battle_online_back_to_team">टीम पर वापस</string>
+    <string name="battle_online_err_signin">ऑनलाइन बैटल के लिए साइन इन करें।</string>
+    <string name="battle_online_err_room">रूम नहीं मिला, या पहले से भरा है।</string>
+    <string name="battle_online_err_generic">बैटल सर्वर तक नहीं पहुँच सके। कनेक्शन जाँचें और फिर कोशिश करें।</string>
+    <string name="battle_online_err_prep">आपका प्रतिद्वंदी बैटलफील्ड तक नहीं पहुँचा। कोई दूसरा मैच आज़माएँ।</string>
+    <string name="battle_online_bot_notice">अभी कोई ट्रेनर ऑनलाइन नहीं है, इसलिए यह प्रैक्टिस बैटल है।</string>
+    <string name="battle_online_exit_title">बैटल छोड़ें?</string>
+    <string name="battle_online_exit_body">छोड़ना हार माना जाएगा और आपका प्रतिद्वंदी जीत जाएगा।</string>
+    <string name="battle_online_waiting">%1$s का इंतज़ार…</string>
+    <string name="battle_online_opponent_ready">%1$s ने चाल चुन ली है। आपकी बारी!</string>
+    <string name="battle_online_opponent_choosing">%1$s अपना अगला पोकेमॉन चुन रहा है…</string>
+    <string name="battle_online_away">%1$s ऑफ़लाइन लगता है…</string>
+    <string name="battle_online_away_chip">प्रतिद्वंदी ऑफ़लाइन?</string>
+    <string name="battle_online_ready_chip">%1$s तैयार है</string>
+    <string name="battle_online_clock">%1$d सेकंड</string>
+    <string name="battle_online_victory_body">आपने %1$s को %2$d टर्न में हराया!</string>
+    <string name="battle_online_won_left">%1$s बैटल छोड़ गया। जीत आपकी है।</string>
+    <string name="battle_online_defeat_body">%1$s जीत गया। रीमैच के लिए तैयार?</string>
+    <string name="battle_online_again">दूसरा मैच ढूँढें</string>
+    <string name="battle_online_xp">+%1$d XP</string>
+    <string name="battle_online_rewards_limited">इस बार कोई इनाम नहीं: बैटल बहुत छोटा था, या आप आज इस ट्रेनर से कई बार इनाम पा चुके हैं।</string>
+    <string name="xp_online_battle">ऑनलाइन बैटल</string>
+
+    <!-- Wild Catch spawn categories, battle meters and tips -->
+    <string name="wildcatch_tier_common">कॉमन</string>
+    <string name="battle_energy_label">स्पेशल</string>
+    <string name="battle_special_charging">चार्ज %1$d%%</string>
+    <string name="battle_hint_guard_left">आधा नुकसान · %1$d बचे</string>
+    <string name="battle_guard_none">कोई गार्ड नहीं बचा</string>
+    <string name="battle_guards_left">बचे गार्ड: %1$d</string>
+    <string name="tip_label">टिप</string>
+    <string name="tip_catch_categories">पोकेमॉन कॉमन, अनकॉमन, रेयर, अल्ट्रा रेयर और लेजेंडरी होते हैं। जितना दुर्लभ, उतना पकड़ना मुश्किल।</string>
+    <string name="tip_catch_balls">ग्रेट बॉल और अल्ट्रा बॉल रिवॉर्ड्स शॉप में मिलती हैं। बेहतर बॉल से रेयर और अल्ट्रा रेयर पोकेमॉन पकड़ना कहीं आसान हो जाता है।</string>
+    <string name="tip_catch_master">मास्टर बॉल कभी नहीं चूकती। इसे किसी लेजेंडरी के लिए बचाकर रखें।</string>
+    <string name="tip_catch_timing">परफेक्ट थ्रो के लिए तब फेंकें जब रिंग सबसे छोटी और सबसे हरी हो।</string>
+    <string name="tip_catch_lure">रेयर ल्योर से अगले 5 मुकाबलों में लेजेंडरी और मिथिकल पोकेमॉन कहीं ज़्यादा दिखते हैं।</string>
+    <string name="tip_catch_repeat">जो पोकेमॉन आपके पास पहले से है उसे पकड़ने पर ज़्यादा इवो शार्ड मिलते हैं।</string>
+    <string name="tip_catch_run">भाग जाने में कोई दिल नहीं कटता, लेकिन आपकी कैच स्ट्रीक टूट जाती है।</string>
+    <string name="tip_catch_streak">लगातार हर 5 कैच पर एक दिल वापस मिलता है।</string>
+    <string name="tip_catch_dart">अल्ट्रा रेयर और लेजेंडरी पोकेमॉन इधर-उधर भागते हैं। फेंकने से पहले उनके रुकने का इंतज़ार करें।</string>
+    <string name="tip_catch_evolve">इवो शार्ड और स्टोन से पकड़े हुए पोकेमॉन विकसित होते हैं। विकास में पुराना रूप खर्च हो जाता है, इसलिए सोचकर चुनें।</string>
+    <string name="tip_battle_special">SPECIAL बार पर नज़र रखें। यह हमला करने, गार्ड करने और चोट खाने से भरता है, और 100% पर बड़ा वार खुलता है।</string>
+    <string name="tip_battle_guards">हर पक्ष को पूरे बैटल में सिर्फ 3 गार्ड मिलते हैं, चाहे कितने भी पोकेमॉन उतारें। इन्हें बड़े वारों के लिए बचाएँ।</string>
+    <string name="tip_battle_types">टाइप मायने रखते हैं: सुपर इफेक्टिव वार दोगुना नुकसान करता है।</string>
+    <string name="tip_battle_speed">तेज़ पोकेमॉन पहले वार करता है और दूसरे के हिलने से पहले ही जीत सकता है।</string>
+    <string name="tip_battle_switch">जिसे आप बदलकर लाते हैं वही वार झेलता है, इसलिए आने वाले वार को सहने वाला पोकेमॉन लाएँ।</string>
+    <string name="tip_battle_evolve">विकसित पोकेमॉन आपकी टीम से हट जाते हैं, इसलिए टीम उन्हीं से बनाएँ जो सच में आपके पास हैं।</string>
+    <string name="tip_battle_clock">ऑनलाइन में हर टर्न के लिए 30 सेकंड मिलते हैं। समय खत्म होने पर आपके लिए समझदारी भरी चाल चल दी जाती है।</string>
+    <string name="tip_battle_online_rewards">ऑनलाइन बैटल बॉट बैटल से ज़्यादा इवो शार्ड और XP देते हैं।</string>
+
+    <!-- Team collection, battle record, disqualification -->
+    <string name="profile_battle_record">%1$d जीत · %2$d हार</string>
+    <string name="battle_online_missed_chip">%1$d/%2$d टर्न छूटे</string>
+    <string name="battle_online_dq_you">%1$d टर्न छोड़ने के कारण आपको अयोग्य घोषित कर दिया गया।</string>
+    <string name="battle_online_dq_rival">%2$d टर्न छोड़ने के कारण %1$s को अयोग्य घोषित कर दिया गया। जीत आपकी है।</string>
+    <string name="battle_teams_title">मेरी टीमें</string>
+    <string name="battle_team_save">टीम सेव करें</string>
+    <string name="battle_teams_empty">6 तक पोकेमॉन चुनें और यहाँ सेव करें, ताकि पूरी टीम एक टैप में लोड हो जाए।</string>
+    <string name="battle_teams_full">आप %1$d टीमें तक सेव कर सकते हैं। नई के लिए एक हटाएँ।</string>
+    <string name="battle_team_save_title">यह टीम सेव करें</string>
+    <string name="battle_team_name_hint">टीम का नाम</string>
+    <string name="battle_team_save_confirm">सेव करें</string>
+    <string name="battle_team_default_name">टीम %1$d</string>
+    <string name="battle_team_delete">%1$s हटाएँ</string>
+    <string name="battle_team_ready">%1$d तैयार</string>
+    <string name="battle_team_partly">%2$d में से %1$d तैयार</string>
+
+    <!-- Wild Catch throw names, details drawer, run limit -->
+    <string name="wildcatch_hint_excellent">बेहतरीन!</string>
+    <string name="wildcatch_hint_good">अच्छा</string>
+    <string name="throw_excellent">बेहतरीन!</string>
+    <string name="throw_good">अच्छा!</string>
+    <string name="wildcatch_details">विवरण</string>
+    <string name="wildcatch_details_chance">%1$s से पकड़ने का मौका</string>
+    <string name="wildcatch_zone_good">अच्छा</string>
+    <string name="wildcatch_zone_great">बढ़िया</string>
+    <string name="wildcatch_zone_excellent">बेहतरीन</string>
+    <string name="wildcatch_details_run">मुकाबला #%1$d · %2$d पकड़े</string>
+    <string name="wildcatch_run_left">%1$d मुफ़्त बचे</string>
+    <string name="wildcatch_run_ad">विज्ञापन देखें</string>
+
+    <!-- Team building and the Legendary limit -->
+    <string name="battle_team_quickfill">तुरंत भरें</string>
+    <string name="battle_team_clear">साफ़ करें</string>
+    <string name="battle_team_update">%1$s अपडेट करें</string>
+    <string name="battle_legendary_limit">एक टीम में अधिकतम %1$d लेजेंडरी या मिथिकल पोकेमॉन हो सकते हैं।</string>
+    <string name="battle_legendary_count">लेजेंडरी %1$d/%2$d</string>
+    <string name="battle_ready_short">तैयार</string>
+
+    <!-- Bag upgrades and more Rocket Chase places -->
+    <string name="rewards_bag_title">बैग</string>
+    <string name="rewards_bag_level">लेवल %1$d / %2$d · ×%3$d तक रखता है</string>
+    <string name="rewards_bag_desc">हर आइटम ज़्यादा रखें। बॉल, स्टोन और ल्योर एक ही बैग में आते हैं।</string>
+    <string name="rewards_bag_upgrade">अपग्रेड</string>
+    <string name="rewards_bag_max">पूरा</string>
+    <string name="rewards_bag_upgrade_action">बैग अपग्रेड करें</string>
+    <string name="rewards_item_held_cap">बैग में: %1$d/%2$d</string>
+    <string name="rewards_bag_full_hint">बैग भरा है। और रखने के लिए बैग अपग्रेड करें।</string>
+    <string name="rewards_bag_full_max">बैग भरा है।</string>
+    <string name="rewards_msg_bag_full">आपका बैग %1$s से भरा है (%2$d/%3$d)।</string>
+    <string name="rewards_msg_bag_upgraded">बैग लेवल %1$d पर अपग्रेड हो गया!</string>
+    <string name="rewards_msg_bag_maxed">आपका बैग पहले से सबसे ऊँचे लेवल पर है।</string>
+    <string name="rewards_confirm_bag_title">बैग अपग्रेड करें?</string>
+    <string name="rewards_confirm_bag_body">लेवल %1$d: हर आइटम ×%2$d तक रखें। कीमत %3$d पोके कॉइन्स। आपके पास %4$d हैं।</string>
+    <string name="chase_biome_coast">Cerulean Shore</string>
+    <string name="chase_biome_forest">Ilex Forest</string>
+    <string name="chase_biome_snow">Snowpoint Pass</string>
+    <string name="chase_biome_cave">Mt. Moon Cave</string>
+
+    <!-- A catch that beat a missed ring -->
+    <string name="throw_lucky">किस्मत से पकड़ा!</string>
+    <string name="throw_master">मास्टर बॉल!</string>
+    <string name="challenges_title">चैलेंज</string>
+    <string name="challenges_today">आज %2$d में से %1$d पूरे</string>
+    <string name="challenges_claim">लो</string>
+    <string name="challenges_claim_all">%1$d लो</string>
+    <string name="challenges_claimed">ले लिया</string>
+    <string name="challenges_goals">Pokédex लक्ष्य</string>
+    <string name="challenges_goals_hint">लंबे लक्ष्य। इनमें अलग-अलग Pokémon चाहिए, इसलिए Common और Rare भी Legendary जितने ही गिने जाते हैं।</string>
+    <string name="challenges_sweep">आज सब पूरा</string>
+    <string name="challenges_sweep_desc">तीनों पूरे करो और बोनस पाओ।</string>
+    <string name="challenges_got_great">Great Ball x%1$d</string>
+    <string name="challenges_got_ultra">Ultra Ball x%1$d</string>
+    <string name="challenge_catch_any">%1$d Pokémon पकड़ो</string>
+    <string name="challenge_catch_new">%1$d नए Pokémon पकड़ो</string>
+    <string name="challenge_catch_tier">%1$d %2$s या उससे दुर्लभ Pokémon पकड़ो</string>
+    <string name="challenge_streak">लगातार %1$d पकड़ो</string>
+    <string name="challenge_dex_total">अपने Pokédex में %1$d Pokémon रखो</string>
+    <string name="challenge_dex_tier">%1$d अलग-अलग %2$s Pokémon पकड़ो</string>
+    <string name="dex_complete_pct">%1$d%% पूरा</string>
+    <string name="challenges_daily">आज</string>
+    <string name="challenges_reward_title">इनाम!</string>
 </resources>

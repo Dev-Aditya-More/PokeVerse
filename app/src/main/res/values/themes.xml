@@ -7,4 +7,13 @@
 
     <style name="Theme.PokeVerse" parent="Theme.Dexverse" />
 
+    <!-- Launch theme: the OS splash is painted in the same night-sky colour the Compose splash opens
+         on, so the hand-off is seamless instead of a white/black flash. installSplashScreen() swaps
+         this for Theme.PokeVerse once the first frame is ready. -->
+    <style name="Theme.PokeVerse.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_empty</item>
+        <item name="postSplashScreenTheme">@style/Theme.PokeVerse</item>
+    </style>
+
 </resources>
