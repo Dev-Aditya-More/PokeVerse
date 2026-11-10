@@ -16,7 +16,7 @@ class GeneratePokeGuessQuestionsUseCase(
     // (1 correct + 3 wrong-option fetches per question, one at a time) before
     // the game even started. Instead we fetch one big batch of unique
     // Pokémon concurrently, then assign correct answers + wrong options from
-    // it locally — same total fetch count, but concurrent instead of serial,
+    // it locally, same total fetch count, but concurrent instead of serial,
     // and wrong-option names are reused across questions instead of being
     // fetched again per question.
     suspend operator fun invoke(
@@ -29,7 +29,7 @@ class GeneratePokeGuessQuestionsUseCase(
         }
 
         val needed = difficulty.questionsPerGame * difficulty.optionCount
-        // Small overfetch buffer — a handful of random IDs 404 or lack a sprite and get dropped
+        // Small overfetch buffer, a handful of random IDs 404 or lack a sprite and get dropped
         val pool = fetchPokemonBatch(maxPokemonId, needed + difficulty.questionsPerGame)
         if (pool.isEmpty()) return@coroutineScope emptyList()
 

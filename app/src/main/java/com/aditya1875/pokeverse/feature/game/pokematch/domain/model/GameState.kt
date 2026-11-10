@@ -11,7 +11,7 @@ sealed class GameState {
         val timeRemaining: Int,
         val score: Int = 0,
         val difficulty: Difficulty,
-        // Brief face-up look at the whole board before play starts — the round timer doesn't
+        // Brief face-up look at the whole board before play starts, the round timer doesn't
         // count down during this window, and card taps are ignored.
         val isPreviewing: Boolean = false,
         val previewSecondsRemaining: Int = 0

@@ -113,7 +113,7 @@ fun QuizGameScreen(
     var skipPending by remember { mutableStateOf(false) }
 
     // The game stays frozen from the moment the ad dialog opens until the
-    // rewarded ad is closed — otherwise the countdown eats a life while the
+    // rewarded ad is closed, otherwise the countdown eats a life while the
     // player is watching the ad
     LaunchedEffect(adState, skipPending) {
         if (skipPending && adState !is RewardedAdState.Showing) {
@@ -402,7 +402,7 @@ private fun QuizAnswerOption(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ANSWER FEEDBACK screen — redesigned with full-bleed colour sweep
+// ANSWER FEEDBACK screen, redesigned with full-bleed colour sweep
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun QuizAnswerFeedbackContent(

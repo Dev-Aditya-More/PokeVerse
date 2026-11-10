@@ -38,7 +38,7 @@ class DynamicQuizRepository(private val repo: PokemonDetailRepo) {
         "liquid-ooze", "rain-dish", "sand-veil", "sand-rush", "thick-fat", "flame-body"
     ).distinct()
 
-    // Used for HARD weakness questions — single-type Pokémon only to guarantee accuracy
+    // Used for HARD weakness questions, single-type Pokémon only to guarantee accuracy
     private val typeWeaknessMap = mapOf(
         "normal"   to listOf("Fighting"),
         "fire"     to listOf("Water", "Ground", "Rock"),
@@ -207,7 +207,7 @@ class DynamicQuizRepository(private val repo: PokemonDetailRepo) {
     }
 
     private fun typeWeaknessQuestion(p: PokemonResponse, id: Int): QuizQuestion? {
-        if (p.types.size != 1) return null  // dual-type weaknesses can be cancelled — skip
+        if (p.types.size != 1) return null  // dual-type weaknesses can be cancelled, skip
         val primary    = p.types[0].type.name
         val weaknesses = typeWeaknessMap[primary] ?: return null
         val correct    = weaknesses.random()

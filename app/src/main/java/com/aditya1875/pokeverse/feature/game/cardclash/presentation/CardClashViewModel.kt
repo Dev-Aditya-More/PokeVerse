@@ -31,8 +31,16 @@ import kotlin.random.Random
 class CardClashViewModel(
     private val repository: CardClashRepository,
     private val duelEngine: DuelGameEngine,
-    private val xpManager: XPManager
+    private val xpManager: XPManager,
+    private val userRepository: com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 ) : ViewModel() {
+
+    /** The name the player set in their Dexverse profile, shown to rivals instead of their email or Google name. */
+    private var profileName: String? = null
+
+    init {
+        viewModelScope.launch { userRepository.profileFlow.collect { profileName = it.username } }
+    }
 
     private val _uiState = MutableStateFlow(ClashUiState())
     val uiState: StateFlow<ClashUiState> = _uiState.asStateFlow()
@@ -46,7 +54,7 @@ class CardClashViewModel(
     private var myId = ""
     private var myName = ""
 
-    // Card chosen this round — kept in ViewModel, not written to Firestore until both lock
+    // Card chosen this round, kept in ViewModel, not written to Firestore until both lock
     private var pendingCard: ClashPokemon? = null
 
     // Cache of fetched Pokémon: id → ClashPokemon
@@ -54,12 +62,12 @@ class CardClashViewModel(
 
     // How many entries of the match's persisted completedRounds have been applied to the UI.
     // Real-match round state (history, used cards, scores, opponent's remaining cards) is rebuilt
-    // ONLY from that persisted history — never from the transient roundRevealed/roundXCardId
+    // ONLY from that persisted history, never from the transient roundRevealed/roundXCardId
     // fields, which the resolver resets immediately and a slow listener can miss entirely. That
     // miss was what left one player with 3 cards and the other with 2.
     private var appliedRounds = 0
 
-    // Latest Firestore snapshot; fed to the reconcile worker (conflated — each snapshot carries
+    // Latest Firestore snapshot; fed to the reconcile worker (conflated, each snapshot carries
     // the full history, so skipping intermediate ones is safe).
     private var latestState: ClashMatchState? = null
     private val roundSync = MutableStateFlow<ClashMatchState?>(null)
@@ -76,7 +84,7 @@ class CardClashViewModel(
     private var heartbeatJob: Job? = null
     private var matchmakingTimerJob: Job? = null
 
-    // Bot match state — only used when isBotMatch = true
+    // Bot match state, only used when isBotMatch = true
     private var isBotMatchActive = false
     private var botHand: List<ClashPokemon> = emptyList()
     private var botUsedIds: Set<Int> = emptySet()
@@ -87,7 +95,7 @@ class CardClashViewModel(
         private const val HEARTBEAT_INTERVAL_MS = 20_000L
         private const val DISCONNECT_THRESHOLD_MS = 60_000L
         // Real players need a real shot at finding each other before we give up on their
-        // behalf — 18s (previously cut down from 30s for a "snappier" fallback) meant two
+        // behalf, 18s (previously cut down from 30s for a "snappier" fallback) meant two
         // humans coordinating a match would routinely both still be tapping through menus
         // when the bot took over. Keep in sync with
         // CardClashRepositoryImpl.STALE_MATCH_THRESHOLD_MS, which must stay comfortably above
@@ -123,7 +131,7 @@ class CardClashViewModel(
                         isPlayer1 = false
                         onJoinedAsPlayer2(matchId)
                     } else {
-                        // No open match — create one and wait; start countdown to bot fallback
+                        // No open match, create one and wait; start countdown to bot fallback
                         isPlayer1 = true
                         runCatching { repository.createMatch(myId, myName) }
                             .onSuccess { newMatchId ->
@@ -183,15 +191,15 @@ class CardClashViewModel(
 
     private suspend fun startBotMatch(waitingMatchId: String) {
         // A real opponent's join can land after our countdown hits zero but before our
-        // snapshot listener observes it (network latency on either side) — check-and-abandon
+        // snapshot listener observes it (network latency on either side), check-and-abandon
         // atomically so we never overwrite a match someone just joined. If this returns
         // false, a real player got there first; bail out and let the normal "dealing"/"active"
-        // Firestore updates (still being observed — see below) carry the match forward.
+        // Firestore updates (still being observed, see below) carry the match forward.
         val claimedForBot = runCatching { repository.cancelWaitingMatchIfUnjoined(waitingMatchId) }
             .getOrDefault(false)
         if (!claimedForBot) return
 
-        // Stop watching Firestore — the bot match runs entirely client-side.
+        // Stop watching Firestore, the bot match runs entirely client-side.
         // Do NOT cancel matchmakingTimerJob here: this function runs inside that job,
         // so cancelling it would abort this function before the hands can be fetched.
         observeJob?.cancel()
@@ -288,11 +296,11 @@ class CardClashViewModel(
         when (state.status) {
 
             "dealing" -> {
-                // A real player joined — cancel the bot countdown
+                // A real player joined, cancel the bot countdown
                 matchmakingTimerJob?.cancel()
                 matchmakingTimerJob = null
 
-                // Player1 was waiting; joiner arrived — now player1 must also deal
+                // Player1 was waiting; joiner arrived, now player1 must also deal
                 if (isPlayer1 && current.myHand.isEmpty() && !state.player1Ready) {
                     viewModelScope.launch { dealHand(matchId) }
                 }
@@ -313,13 +321,13 @@ class CardClashViewModel(
                 val opponentDisconnected = oppHeartbeatMs > 0L &&
                     System.currentTimeMillis() - oppHeartbeatMs > DISCONNECT_THRESHOLD_MS
 
-                // Round number and scores are deliberately NOT taken from the raw snapshot —
+                // Round number and scores are deliberately NOT taken from the raw snapshot
                 // they're derived from applied history in reconcileRounds so they can never
                 // run ahead of (or disagree with) the reveal the player is looking at.
                 // Lock flags are only meaningful for the round currently open for selection.
                 val roundOpen = state.currentRound == appliedRounds + 1
                 // When the doc is already a round ahead of what's been applied, a resolve just
-                // landed and reconcileRounds is about to show its reveal — leave lock flags alone
+                // landed and reconcileRounds is about to show its reveal, leave lock flags alone
                 // so the UI doesn't flicker back to an unlocked state in between.
                 if (current.phase != ClashPhase.REVEALING && roundOpen) {
                     _uiState.update {
@@ -347,7 +355,7 @@ class CardClashViewModel(
                     }
                 }
 
-                // Both locked but cards not yet revealed — write my card
+                // Both locked but cards not yet revealed, write my card
                 if (myLocked && opponentLocked && !state.roundRevealed
                     && revealWrittenRound != state.currentRound
                 ) {
@@ -375,7 +383,7 @@ class CardClashViewModel(
             }
 
             "finished" -> {
-                // Stop timer and heartbeat — no point continuing them after the match ends
+                // Stop timer and heartbeat, no point continuing them after the match ends
                 timerJob?.cancel(); timerJob = null
                 heartbeatJob?.cancel(); heartbeatJob = null
                 // The final reveal + result screen are sequenced by reconcileRounds.
@@ -480,7 +488,7 @@ class CardClashViewModel(
             val myId = if (isPlayer1) entry.p1CardId else entry.p2CardId
             val oppId = if (isPlayer1) entry.p2CardId else entry.p1CardId
             val myCard = resolveCard(myId) ?: run {
-                _uiState.update { it.copy(error = "Card data missing — please reconnect.") }
+                _uiState.update { it.copy(error = "Card data missing, please reconnect.") }
                 break
             }
             val oppCard = resolveCard(oppId) ?: run {
@@ -521,7 +529,7 @@ class CardClashViewModel(
             lastRound = clashRound
         }
 
-        // Show the reveal for the newest round only — if several were missed (e.g. after a
+        // Show the reveal for the newest round only, if several were missed (e.g. after a
         // network blip) they're already in history and don't need replaying one by one.
         lastRound?.let { round ->
             timerJob?.cancel(); timerJob = null
@@ -649,7 +657,7 @@ class CardClashViewModel(
                 roundHistory = s.roundHistory + clashRound
             )
         }
-        // No Firestore writes needed — the bot match is entirely local
+        // No Firestore writes needed, the bot match is entirely local
     }
 
     // ─── In-round actions ─────────────────────────────────────────────────────
@@ -681,7 +689,7 @@ class CardClashViewModel(
         }
     }
 
-    /** Called from the UI once the reveal animation finishes — ready for next round. */
+    /** Called from the UI once the reveal animation finishes, ready for next round. */
     fun acknowledgeReveal() {
         val state = _uiState.value
 
@@ -695,7 +703,7 @@ class CardClashViewModel(
         val handEmpty = state.myUsedIds.size >= state.myHand.size && state.myHand.isNotEmpty()
         if (roundsPlayed >= 6 || handEmpty) {
             if (state.isBotMatch) {
-                // Finish the bot match locally — no Firestore to deliver "finished" status
+                // Finish the bot match locally, no Firestore to deliver "finished" status
                 val outcome = when {
                     state.myScore > state.opponentScore -> MatchOutcome.WIN
                     state.opponentScore > state.myScore -> MatchOutcome.LOSE
@@ -750,7 +758,7 @@ class CardClashViewModel(
             finalizeMatch()
             return
         }
-        // Last round watched but the doc hasn't flipped to "finished" yet — resolveRound writes
+        // Last round watched but the doc hasn't flipped to "finished" yet, resolveRound writes
         // both in one transaction so this is only a transient gap; handleFinished will conclude.
         if (appliedRounds >= TOTAL_ROUNDS) {
             _uiState.update { it.copy(revealMyCard = null, revealOpponentCard = null, revealRound = null) }
@@ -798,24 +806,26 @@ class CardClashViewModel(
     // ─── XP ──────────────────────────────────────────────────────────────────
 
     private fun awardXp(outcome: MatchOutcome, roundsWon: Int) {
+        // A match against another trainer pays double what one against the bot does.
+        val vsBot = _uiState.value.isBotMatch
         viewModelScope.launch {
-            // XP for each round won — emitted individually so the toast fires per round
+            // XP for each round won, emitted individually so the toast fires per round
             repeat(roundsWon) {
-                val r = xpManager.awardGameXP(XPEvent.CardClashRoundWin)
+                val r = xpManager.awardGameXP(XPEvent.CardClashRoundWin(vsBot))
                 if (r.xpGained > 0) _xpResult.emit(r)
             }
             // Match-level XP based on outcome
             when (outcome) {
                 MatchOutcome.WIN -> {
-                    val winResult = xpManager.awardGameXP(XPEvent.CardClashWin)
+                    val winResult = xpManager.awardGameXP(XPEvent.CardClashWin(vsBot))
                     if (winResult.xpGained > 0) _xpResult.emit(winResult)
                     if (roundsWon == 6) {
-                        val perfectResult = xpManager.awardGameXP(XPEvent.CardClashPerfect)
+                        val perfectResult = xpManager.awardGameXP(XPEvent.CardClashPerfect(vsBot))
                         if (perfectResult.xpGained > 0) _xpResult.emit(perfectResult)
                     }
                 }
                 MatchOutcome.DRAW -> {
-                    val drawResult = xpManager.awardGameXP(XPEvent.CardClashDraw)
+                    val drawResult = xpManager.awardGameXP(XPEvent.CardClashDraw(vsBot))
                     if (drawResult.xpGained > 0) _xpResult.emit(drawResult)
                 }
                 MatchOutcome.LOSE -> Unit // losing still earns per-round XP above
@@ -825,7 +835,7 @@ class CardClashViewModel(
 
     /**
      * Called when the user backs out of the waiting screen. Unlike [reset], this also marks
-     * the Firestore room we created as no longer waiting — otherwise it lingers forever as a
+     * the Firestore room we created as no longer waiting, otherwise it lingers forever as a
      * dead entry that a future player can match into and then never hear from again. This was
      * previously the biggest reason matchmaking felt broken: `onCancelWait` only cleared local
      * state, so every abandoned wait (back button, backgrounding, force-close) left a permanent
@@ -921,7 +931,7 @@ class CardClashViewModel(
             return null
         }
         myId = user.uid
-        myName = user.displayName?.takeIf { it.isNotBlank() } ?: "Trainer"
+        myName = (profileName?.takeIf { it.isNotBlank() } ?: user.displayName?.takeIf { it.isNotBlank() } ?: "Trainer").take(30)
         return Unit
     }
 

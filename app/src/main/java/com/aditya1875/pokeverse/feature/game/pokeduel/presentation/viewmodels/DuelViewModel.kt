@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.pokeduel.presentation.viewmodels
 
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPValues
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aditya1875.pokeverse.feature.game.pokeduel.domain.engine.DuelGameEngine
@@ -34,7 +35,11 @@ class DuelViewModel(
 
     private val maxPokemonId = 1010
 
+    /** Right answers this run: only the first few are paid one by one, and the completion bonus follows effort. */
+    private var runCorrect = 0
+
     fun startGame() {
+        runCorrect = 0
         viewModelScope.launch {
             _state.value = DuelGameState.Loading
             val bestScore = userRepository.profileFlow.first().bestDuelScore
@@ -65,8 +70,9 @@ class DuelViewModel(
         )
 
         viewModelScope.launch {
-            // Award XP
-            if (isCorrect) {
+            // Award XP (the first XPValues.ENDLESS_PAID_CAP right answers of a run)
+            if (isCorrect) runCorrect++
+            if (isCorrect && runCorrect <= XPValues.ENDLESS_PAID_CAP) {
                 val xp = xpManager.awardGameXP(XPEvent.DuelCorrect(streak = newStreak))
                 if (xp.xpGained > 0) _xpResult.emit(xp)
             }
@@ -74,7 +80,7 @@ class DuelViewModel(
             delay(2000L) // Show result for 2 seconds
 
             if (newLives <= 0) {
-                val xp = xpManager.awardGameXP(XPEvent.DuelComplete)
+                val xp = xpManager.awardGameXP(XPEvent.DuelComplete(runCorrect))
                 if (xp.xpGained > 0) _xpResult.emit(xp)
                 userRepository.updateBestScore("duel", newScore)
                 userRepository.incrementGamesPlayed()
@@ -95,7 +101,7 @@ class DuelViewModel(
         }
     }
 
-    /** Rewarded-ad perk: skip this matchup — no life lost, streak kept */
+    /** Rewarded-ad perk: skip this matchup, no life lost, streak kept */
     fun skipRound() {
         val current = _state.value as? DuelGameState.Dueling ?: return
         if (current.result != null) return // already answered

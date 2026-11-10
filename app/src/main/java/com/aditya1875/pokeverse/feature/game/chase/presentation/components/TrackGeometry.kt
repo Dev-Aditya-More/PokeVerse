@@ -19,7 +19,7 @@ internal class TrackGeometry(val size: Size, val config: ChaseConfig) {
     fun laneX(lane: Float) = pathLeft + (lane + 0.5f) * laneWidth
     fun y(fraction: Float) = fraction * size.height
 
-    /** Continuous lane position under screen x — e.g. 1.3 is a little right of lane 1's centre. */
+    /** Continuous lane position under screen x, e.g. 1.3 is a little right of lane 1's centre. */
     fun laneAt(x: Float): Float =
         ((x - pathLeft) / laneWidth - 0.5f).coerceIn(0f, (config.laneCount - 1).toFloat())
 

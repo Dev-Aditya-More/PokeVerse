@@ -44,7 +44,7 @@ class ChaseSpriteLoader(
     private val context: Context,
     private val imageLoader: ImageLoader
 ) {
-    /** Never throws — a sprite that can't be fetched is simply absent. */
+    /** Never throws, a sprite that can't be fetched is simply absent. */
     suspend fun load(): ChaseSprites = coroutineScope {
         val loaded = ChaseSprite.entries
             .map { sprite -> async { sprite to loadOne(sprite) } }

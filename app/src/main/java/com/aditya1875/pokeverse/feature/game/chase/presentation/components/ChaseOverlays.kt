@@ -138,7 +138,7 @@ private fun GuideRow(icon: ImageVector, tint: Color, text: String) {
     }
 }
 
-/** Shown over the idle track — the whole screen is the start button. */
+/** Shown over the idle track, the whole screen is the start button. */
 @Composable
 fun ChaseReadyOverlay(bestScore: Int, onStart: () -> Unit) {
     val blink = rememberInfiniteTransition(label = "tap_blink")

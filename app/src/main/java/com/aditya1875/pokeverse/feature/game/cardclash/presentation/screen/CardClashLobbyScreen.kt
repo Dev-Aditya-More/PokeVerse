@@ -116,7 +116,7 @@ fun CardClashLobbyScreen(
                     navigationIcon = {
                         IconButton(
                             // Backing out while a waiting-room doc is live must go through
-                            // onCancelWait so it gets marked cancelled in Firestore — otherwise
+                            // onCancelWait so it gets marked cancelled in Firestore, otherwise
                             // it lingers as a zombie room a future player can match into.
                             onClick = if (state.phase == ClashPhase.WAITING_FOR_OPPONENT) onCancelWait else onBack
                         ) {
@@ -467,7 +467,7 @@ private fun WaitingView(
                             type = "text/plain"
                             putExtra(
                                 Intent.EXTRA_TEXT,
-                                "Check out Dexverse — a Pokédex app with card battles & trivia!\nhttps://play.google.com/store/apps/details?id=${context.packageName}"
+                                "Check out Dexverse, a Pokédex app with card battles & trivia!\nhttps://play.google.com/store/apps/details?id=${context.packageName}"
                             )
                         }
                         context.startActivity(Intent.createChooser(shareIntent, null))

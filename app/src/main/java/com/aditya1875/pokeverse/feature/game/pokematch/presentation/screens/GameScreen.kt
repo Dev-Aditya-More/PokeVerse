@@ -209,7 +209,7 @@ fun GameScreen(
                                     }
                                 }
 
-                                // Progress text — swapped for a memorize prompt during the preview window
+                                // Progress text, swapped for a memorize prompt during the preview window
                                 Text(
                                     text = if (playing.isPreviewing)
                                         stringResource(R.string.match_memorize_prompt, playing.previewSecondsRemaining)

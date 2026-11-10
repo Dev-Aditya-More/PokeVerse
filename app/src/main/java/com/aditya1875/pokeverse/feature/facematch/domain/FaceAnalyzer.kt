@@ -7,7 +7,7 @@ import android.graphics.Rect
 /**
  * Turns a detected face's bounding box into the two simple signals FaceMatcher needs. ML Kit's
  * bounding box can legitimately extend past the bitmap edges (it's estimated, not clipped), so
- * every coordinate here is clamped before touching the bitmap — this is the one place a bad
+ * every coordinate here is clamped before touching the bitmap, this is the one place a bad
  * rect could otherwise crash with an IllegalArgumentException from Bitmap.getPixel.
  */
 object FaceAnalyzer {

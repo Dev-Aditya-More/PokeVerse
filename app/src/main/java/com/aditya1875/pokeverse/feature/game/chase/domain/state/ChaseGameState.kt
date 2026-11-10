@@ -2,7 +2,7 @@ package com.aditya1875.pokeverse.feature.game.chase.domain.state
 
 /**
  * The screen-level phase of a run. Deliberately does NOT carry the per-frame
- * [com.aditya1875.pokeverse.feature.game.chase.domain.model.ChaseWorld] — that
+ * [com.aditya1875.pokeverse.feature.game.chase.domain.model.ChaseWorld], that
  * lives in its own flow so a phase change, not every frame, recomposes the screen.
  */
 sealed interface ChaseGameState {

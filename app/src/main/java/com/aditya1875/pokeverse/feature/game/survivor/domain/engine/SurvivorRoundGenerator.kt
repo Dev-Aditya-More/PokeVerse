@@ -16,16 +16,16 @@ import com.aditya1875.pokeverse.utils.pokemonTypeEffectiveness
  * [fetchDefender] (the slow network part) and [buildRound] (instant, pure) are
  * exposed separately so a caller can prefetch the next defender while the
  * current round is still being played, then build the actual round once the
- * next round's difficulty tier is known — see `SurvivorViewModel`'s prefetch.
+ * next round's difficulty tier is known, see `SurvivorViewModel`'s prefetch.
  *
- * No not-recently-seen weighting yet (pure `.random()`) — acceptable for v1,
+ * No not-recently-seen weighting yet (pure `.random()`), acceptable for v1,
  * flagged as a follow-up once the loop itself is validated.
  */
 class SurvivorRoundGenerator(
     private val pokemonRepo: PokemonDetailRepo
 ) {
 
-    /** The slow part — fetches one random living-dex Pokémon's data over the network. */
+    /** The slow part, fetches one random living-dex Pokémon's data over the network. */
     suspend fun fetchDefender(maxId: Int = 1010, attempts: Int = 5): MatchupPokemon? {
         repeat(attempts) {
             val id = (1..maxId).random()
@@ -47,13 +47,13 @@ class SurvivorRoundGenerator(
         return null
     }
 
-    /** The fast part — pure, no I/O. Returns null if [defender] has no super-effective answer under [tier]. */
+    /** The fast part, pure, no I/O. Returns null if [defender] has no super-effective answer under [tier]. */
     fun buildRound(defender: MatchupPokemon, tier: DifficultyTier): SurvivorRound? {
         val modifiers = rollModifiers(tier)
         val effectiveness = SurvivorRuleEngine.resolve(defender, modifiers)
         val correctTypes = SurvivorRuleEngine.correctAnswers(effectiveness)
 
-        // A round with no super-effective option isn't playable — the caller
+        // A round with no super-effective option isn't playable, the caller
         // should fetch a different defender rather than surface a no-win round.
         if (correctTypes.isEmpty()) return null
 

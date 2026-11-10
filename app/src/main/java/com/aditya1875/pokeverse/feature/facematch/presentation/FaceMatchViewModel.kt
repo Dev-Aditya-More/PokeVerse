@@ -23,7 +23,7 @@ sealed class FaceMatchState {
 }
 
 /** On-device face detection typically resolves in well under this, but a bare instant flash of
- * the "analyzing" state reads as broken rather than as the app doing real work — this floor
+ * the "analyzing" state reads as broken rather than as the app doing real work, this floor
  * gives the scan animation room to land before the result appears. */
 private const val MIN_ANALYZING_MS = 1400L
 
@@ -43,7 +43,7 @@ class FaceMatchViewModel : ViewModel() {
         )
     }
 
-    /** [bitmap] is null when the user backed out of the camera without taking a photo — treated
+    /** [bitmap] is null when the user backed out of the camera without taking a photo, treated
      * as a silent no-op, not an error. */
     fun analyze(bitmap: Bitmap?) {
         if (bitmap == null) {
@@ -72,7 +72,7 @@ class FaceMatchViewModel : ViewModel() {
                     if (face == null) {
                         finish(
                             FaceMatchState.Error(
-                                "No face detected — try again with your whole face in frame and good lighting."
+                                "No face detected, try again with your whole face in frame and good lighting."
                             )
                         )
                         return@addOnSuccessListener

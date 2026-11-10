@@ -19,11 +19,11 @@ class CardClashRepositoryImpl(
     private val matches = firestore.collection("card_battles")
 
     companion object {
-        // A legit waiting room converts to a bot match (or gets cancelled) well before this —
+        // A legit waiting room converts to a bot match (or gets cancelled) well before this
         // see CardClashViewModel.BOT_MATCHMAKING_TIMEOUT (30s). Anything still "waiting" past
         // this age was abandoned without cleanup and should never be matched into. Kept
         // comfortably above the bot-fallback timeout (not equal to it) so a room that's still
-        // legitimately waiting in its final seconds never gets excluded here as "stale" —
+        // legitimately waiting in its final seconds never gets excluded here as "stale"
         // that would just recreate the "matches aren't happening" problem from the other side.
         private const val STALE_MATCH_THRESHOLD_MS = 40_000L
     }
@@ -91,7 +91,7 @@ class CardClashRepositoryImpl(
         // Waiting rooms whose creator bailed (backgrounded, crashed, force-closed) without
         // going through the cancel/bot-fallback flow linger forever with no fix. Without this
         // filter, players increasingly match into these ghost rooms whose "opponent" never
-        // shows up — which is what actually made matchmaking feel broken, not just low player
+        // shows up, which is what actually made matchmaking feel broken, not just low player
         // counts. Anything older than the bot-fallback window is almost certainly abandoned;
         // prefer the freshest candidate among what's left so newer joiners see each other first.
         val target = snapshot.documents
@@ -221,7 +221,7 @@ class CardClashRepositoryImpl(
         isFinalRound: Boolean
     ): Boolean {
         val docRef = matches.document(matchId)
-        // Everything (history entry, running totals, round reset, and — on the last round —
+        // Everything (history entry, running totals, round reset, and, on the last round
         // the finish) happens in ONE transaction, and the totals are derived from the stored
         // document rather than a client's local tally. Either player may call this; whoever
         // lands second sees the round already in completedRounds and becomes a no-op. The
@@ -304,7 +304,7 @@ class CardClashRepositoryImpl(
             val snap = tx.get(docRef)
             if (snap.getString("status") != "waiting") {
                 // Someone already joined (status moved to "dealing") in the gap between the
-                // fallback timer firing and this transaction running — leave the doc alone.
+                // fallback timer firing and this transaction running, leave the doc alone.
                 false
             } else {
                 tx.update(

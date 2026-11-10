@@ -58,7 +58,7 @@ private val GoldDark = Color(0xFFFF8C00)
 private val BgTop = Color(0xFF1A1035)
 private val BgBottom = Color(0xFF0D0D1A)
 
-// Kept in step with the real perk set (see PremiumSheet) — this used to promise leaderboard access, which is free.
+// Kept in step with the real perk set (see PremiumSheet), this used to promise leaderboard access, which is free.
 private val perks = listOf(
     R.string.premium_welcome_perk_ad_free,
     R.string.premium_welcome_perk_themes,

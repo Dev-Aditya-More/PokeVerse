@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * Generic endless-mode state machine — lives, streak, best streak, and the
- * current round — shared by every "endless" mini-game instead of each one
+ * Generic endless-mode state machine, lives, streak, best streak, and the
+ * current round, shared by every "endless" mini-game instead of each one
  * reimplementing the same lives/streak/scoring bookkeeping.
  *
  * Deliberately has zero Compose/Android imports so it stays a plain,
@@ -50,10 +50,10 @@ class EndlessRoundLoop<Round, Answer>(
 
     fun onTimeout() = loseLife()
 
-    /** Regenerates the current round without touching lives/streak — the existing skip perk. */
+    /** Regenerates the current round without touching lives/streak, the existing skip perk. */
     fun skip() = advance()
 
-    /** Recovers from [LoopStatus.GameOver] with [lives] hearts and resumes play — the revive perk. */
+    /** Recovers from [LoopStatus.GameOver] with [lives] hearts and resumes play, the revive perk. */
     fun revive(lives: Int = 1) {
         if (_state.value.status != LoopStatus.GameOver) return
         _state.update { it.copy(lives = lives, status = LoopStatus.Loading) }

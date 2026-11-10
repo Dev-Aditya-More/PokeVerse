@@ -289,6 +289,36 @@ class ChaseEngineTest {
     }
 
     @Test
+    fun `an agility dash covers ground without ramping the difficulty`() {
+        var world = engine.useAgility(engine.newWorld()).world
+        repeat(60) { world = engine.step(world, 16).world }
+        assertTrue("the dash should still earn distance", world.meters > 0f)
+        assertEquals("but the run must not get harder because of it", 0f, world.paceMeters, 0f)
+    }
+
+    @Test
+    fun `pace builds while running normally`() {
+        var world = engine.newWorld()
+        repeat(60) { world = engine.step(world, 16).world }
+        assertTrue(world.paceMeters > 0f)
+        assertEquals(world.meters, world.paceMeters, 0.001f)
+    }
+
+    @Test
+    fun `getting hit eases the pace back`() {
+        val world = worldWith(obstacleAt(1)).copy(paceMeters = 1_000f)
+        val step = engine.step(world, 16)
+        assertTrue(step.events.any { it is ChaseEvent.Hit })
+        assertTrue("pace should drop by about the relief amount", step.world.paceMeters < 1_000f - quietConfig.hitReliefMeters + 5f)
+    }
+
+    @Test
+    fun `pace never goes below zero`() {
+        val world = worldWith(obstacleAt(1)).copy(paceMeters = 10f)
+        assertTrue(engine.step(world, 16).world.paceMeters >= 0f)
+    }
+
+    @Test
     fun `a long frame hitch is clamped`() {
         val step = engine.step(engine.newWorld(), 5_000)
         assertEquals(quietConfig.maxFrameMs, step.world.elapsedMs)

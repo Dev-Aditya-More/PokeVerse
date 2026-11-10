@@ -11,7 +11,7 @@ import com.aditya1875.pokeverse.utils.typeEffectivenessMultiplier
  * those types count as a correct answer.
  *
  * Deliberately free of Android/Compose imports and of any round-generation or
- * scoring concerns — those live in [SurvivorRoundGenerator] and
+ * scoring concerns, those live in [SurvivorRoundGenerator] and
  * `EndlessRoundLoop` respectively, so this class stays trivially unit-testable.
  */
 object SurvivorRuleEngine {
@@ -25,7 +25,7 @@ object SurvivorRuleEngine {
     }
 
     /**
-     * Every type sitting at the max multiplier counts as correct — ties are
+     * Every type sitting at the max multiplier counts as correct, ties are
      * intentional (a round can have more than one right answer once modifiers
      * stack) rather than picking one arbitrary "canonical" answer.
      */

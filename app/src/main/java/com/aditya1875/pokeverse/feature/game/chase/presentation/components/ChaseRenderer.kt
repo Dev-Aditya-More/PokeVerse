@@ -39,7 +39,7 @@ private val ThunderYellow = Color(0xFFFFEB3B)
 
 /**
  * Draws one [ChaseWorld] frame. The world is read inside the draw lambda, so a
- * new frame only re-runs drawing — never composition.
+ * new frame only re-runs drawing, never composition.
  */
 @Composable
 internal fun ChaseTrack(
@@ -49,7 +49,7 @@ internal fun ChaseTrack(
     fx: ChaseFx? = null,
     modifier: Modifier = Modifier
 ) {
-    // Canvas doesn't clip by default — without this the balloon spills under the system nav bar.
+    // Canvas doesn't clip by default, without this the balloon spills under the system nav bar.
     Canvas(modifier = modifier.clipToBounds()) {
         val track = TrackGeometry(size, config)
         if (!track.isUsable) return@Canvas
@@ -75,7 +75,7 @@ internal fun ChaseTrack(
     }
 }
 
-/** A short, decaying shake on hits and Thunderbolts — the camera moves, not the world. */
+/** A short, decaying shake on hits and Thunderbolts, the camera moves, not the world. */
 private fun shakeOffset(world: ChaseWorld, config: ChaseConfig, track: TrackGeometry): Pair<Float, Float> {
     val hit = if (world.invulnerableMs in 1..config.invulnerableMs)
         ((world.invulnerableMs - (config.invulnerableMs - 300)) / 300f).coerceIn(0f, 1f) else 0f
@@ -381,7 +381,7 @@ private fun DrawScope.drawRocketBalloon(track: TrackGeometry, world: ChaseWorld,
     val followX = track.laneX(world.playerX) * 0.6f + size.width / 2 * 0.4f
     val center = Offset(followX, y)
 
-    // While snared, a rope runs from the balloon to the net — Team Rocket reeling Pikachu in.
+    // While snared, a rope runs from the balloon to the net. Team Rocket reeling Pikachu in.
     if (world.isSnared) {
         val pikachu = Offset(track.laneX(world.playerX), track.y(track.config.playerY))
         drawLine(Color(0xFF5D4037), Offset(center.x, center.y - radius), pikachu, strokeWidth = radius * 0.04f)

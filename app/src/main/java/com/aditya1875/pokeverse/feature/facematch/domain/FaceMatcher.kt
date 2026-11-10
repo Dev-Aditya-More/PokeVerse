@@ -4,7 +4,7 @@ import kotlin.math.abs
 import kotlin.random.Random
 
 /**
- * Fun heuristic matching, not real face recognition — scores every Pokémon in the pool by
+ * Fun heuristic matching, not real face recognition, scores every Pokémon in the pool by
  * color closeness (primary signal) plus a bonus for matching face-shape bucket (secondary,
  * lighter-weight tiebreaker), then picks among the closest few with some randomness so
  * re-scanning the same face doesn't always land on the identical result.
@@ -43,7 +43,7 @@ object FaceMatcher {
         }
     }
 
-    /** Weighted pick among the top few ranked matches — mostly the best match, occasionally a
+    /** Weighted pick among the top few ranked matches, mostly the best match, occasionally a
      * close runner-up, so the feature stays a little surprising on repeat tries. */
     fun pickMatch(
         skinColor: RgbColor,

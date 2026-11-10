@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.pokeguess.presentation.viewmodels
 
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPValues
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
@@ -56,6 +57,8 @@ class PokeGuessViewModel(
     val xpResult: SharedFlow<XPResult> = _xpResult.asSharedFlow()
     private var timerJob: Job? = null
     private var currentScore = 0
+    /** Right guesses this run: only the first few are paid one by one, and the completion bonus follows effort. */
+    private var runCorrect = 0
     private var correctAnswers = 0
     private var currentStreak = 0
     private var bestScore = 0
@@ -84,6 +87,7 @@ class PokeGuessViewModel(
     }
 
     fun startGame(difficulty: GuessDifficulty) {
+        runCorrect = 0
         viewModelScope.launch {
             _gameState.value = GuessGameState.Loading
 
@@ -101,7 +105,7 @@ class PokeGuessViewModel(
                 usedPokemonIds.clear()
                 allQuestions.addAll(questions)
                 usedPokemonIds.addAll(questions.map { it.pokemonId })
-                // Warm the image cache for the whole batch now — by the time the
+                // Warm the image cache for the whole batch now, by the time the
                 // player advances past Q1, the rest are already downloading/cached
                 // instead of only starting once each silhouette composes.
                 prefetchSprites(questions.drop(1))
@@ -142,7 +146,7 @@ class PokeGuessViewModel(
     private fun showQuestion(index: Int, difficulty: GuessDifficulty) {
 
         if (index >= allQuestions.size) {
-            // Pool is dry (offline / generation failed) — end the run gracefully
+            // Pool is dry (offline / generation failed), end the run gracefully
             finishGame(difficulty)
             return
         }
@@ -177,7 +181,7 @@ class PokeGuessViewModel(
         }
     }
 
-    /** Rewarded-ad perk: advance without answering — no life lost, combo kept */
+    /** Rewarded-ad perk: advance without answering, no life lost, combo kept */
     fun skipQuestion(difficulty: GuessDifficulty) {
         val current = _gameState.value
         if (current !is GuessGameState.ShowingSilhouette) return
@@ -244,8 +248,9 @@ class PokeGuessViewModel(
             } else 0
             currentScore += 100 + timeBonus
 
-            // ── Award XP for correct guess ────────────────────────────────────
-            viewModelScope.launch {
+            // ── Award XP for correct guess (the first XPValues.ENDLESS_PAID_CAP of a run) ──
+            runCorrect++
+            if (runCorrect <= XPValues.ENDLESS_PAID_CAP) viewModelScope.launch {
                 val result = xpManager.awardGameXP(XPEvent.GuessCorrect(streak = currentStreak))
                 if (result.xpGained > 0) _xpResult.emit(result)
             }
@@ -287,7 +292,7 @@ class PokeGuessViewModel(
     private fun finishGame(difficulty: GuessDifficulty) {
         timerJob?.cancel()
         viewModelScope.launch {
-            val result = xpManager.awardGameXP(XPEvent.GuessComplete)
+            val result = xpManager.awardGameXP(XPEvent.GuessComplete(runCorrect))
             if (result.xpGained > 0) _xpResult.emit(result)
 
             userRepository.updateBestScore("guess", currentScore)

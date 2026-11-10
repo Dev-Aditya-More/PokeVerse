@@ -50,7 +50,7 @@ class ChaseViewModel(
     private val _gameState = MutableStateFlow<ChaseGameState>(ChaseGameState.Idle)
     val gameState: StateFlow<ChaseGameState> = _gameState.asStateFlow()
 
-    /** Updated every frame — kept apart from [gameState] so only the canvas and HUD redraw. */
+    /** Updated every frame, kept apart from [gameState] so only the canvas and HUD redraw. */
     private val _world = MutableStateFlow(engine.newWorld())
     val world: StateFlow<ChaseWorld> = _world.asStateFlow()
 
@@ -117,7 +117,7 @@ class ChaseViewModel(
         val granted = engine.grantAgility(_world.value)
         if (granted == _world.value) return
         _world.value = granted
-        // The ad reward lands while the game is paused behind the ad — fire it on resume
+        // The ad reward lands while the game is paused behind the ad, fire it on resume
         // instead, so the 10 seconds aren't spent while the player can't see them.
         if (isRunning) useAgility() else activateAgilityOnResume = true
     }

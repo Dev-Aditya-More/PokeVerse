@@ -18,6 +18,16 @@ enum class CatchTier(
     EPIC(0.70f, 0.80f, 100),
     LEGENDARY(0.55f, 0.70f, 200);
 
+    /** Extra XP for catching one of this category: the rarer it is, the more the catch is worth. */
+    val xpBonus: Int
+        get() = when (this) {
+            COMMON -> 0
+            UNCOMMON -> 1
+            RARE -> 3
+            EPIC -> 6
+            LEGENDARY -> 12
+        }
+
     companion object {
         fun of(id: Int, baseStatTotal: Int): CatchTier = when {
             LegendaryPokemon.isLegendary(id) -> LEGENDARY

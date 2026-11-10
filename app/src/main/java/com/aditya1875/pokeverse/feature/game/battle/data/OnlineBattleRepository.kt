@@ -1,0 +1,313 @@
+package com.aditya1875.pokeverse.feature.game.battle.data
+
+import com.aditya1875.pokeverse.feature.game.battle.domain.online.ActionLog
+import com.aditya1875.pokeverse.feature.game.battle.domain.online.OnlineAction
+import com.aditya1875.pokeverse.feature.game.battle.domain.online.Seat
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
+import kotlin.random.Random
+
+/** The room document, as the app reads it. */
+data class OnlineMatch(
+    val id: String,
+    val hostId: String,
+    val guestId: String,
+    val hostName: String,
+    val guestName: String,
+    val status: String,
+    val roomCode: String,
+    val mode: String,
+    val seed: Long,
+    val heartbeatHostMs: Long,
+    val heartbeatGuestMs: Long,
+    val quitSeat: Seat?,
+    val abandonedSeat: Seat?,
+) {
+    val hasGuest: Boolean get() = guestId.isNotEmpty()
+    val finished: Boolean get() = status == STATUS_FINISHED
+
+    fun nameOf(seat: Seat) = if (seat == Seat.HOST) hostName else guestName
+    fun heartbeatOf(seat: Seat) = if (seat == Seat.HOST) heartbeatHostMs else heartbeatGuestMs
+
+    companion object {
+        const val STATUS_WAITING = "waiting"
+        const val STATUS_ACTIVE = "active"
+        const val STATUS_FINISHED = "finished"
+        const val MODE_QUICK = "quick"
+        const val MODE_FRIEND = "friend"
+    }
+}
+
+/** Room, both teams (as Pokémon ids, by seat) and every recorded action, kept up to date live. */
+data class OnlineSnapshot(
+    val match: OnlineMatch,
+    val teams: Map<Seat, List<Int>>,
+    val actions: ActionLog,
+)
+
+interface OnlineBattleRepository {
+    /** Opens a room and waits in it as host. [mode] is [OnlineMatch.MODE_QUICK] or [OnlineMatch.MODE_FRIEND]. */
+    suspend fun createRoom(uid: String, name: String, mode: String, team: List<Int>): OnlineMatch
+
+    /** Joins the freshest open quick room, or returns null when there is none. */
+    suspend fun joinQuick(uid: String, name: String, team: List<Int>): String?
+
+    /** Joins a friend's room by its code, or returns null when the code is wrong or the room is taken. */
+    suspend fun joinByCode(code: String, uid: String, name: String, team: List<Int>): String?
+
+    /** Records this seat's choice for [step]. A second write for the same step is ignored: choices are final. */
+    suspend fun submitAction(matchId: String, uid: String, seat: Seat, step: Int, action: OnlineAction)
+
+    suspend fun heartbeat(matchId: String, seat: Seat)
+
+    /**
+     * Closes a room nobody joined. Returns false (and changes nothing) if someone joined in the meantime,
+     * so the caller lets that real match carry on instead of stomping it.
+     */
+    suspend fun cancelWaitingIfUnjoined(matchId: String): Boolean
+
+    /** Marks a battle that ended normally, so the room stops being matched into and gets cleaned up. */
+    suspend fun finish(matchId: String)
+
+    /** This seat leaves mid-battle: the other seat wins. Only ever writes the caller's own seat. */
+    suspend fun quit(matchId: String, seat: Seat)
+
+    /**
+     * Claims the win because [gone] stopped answering. The server only accepts this when [gone]'s last
+     * heartbeat really is that old, so it cannot be used against someone who is still playing.
+     */
+    suspend fun claimAbandoned(matchId: String, gone: Seat)
+
+    fun observe(matchId: String): Flow<OnlineSnapshot>
+}
+
+class FirestoreOnlineBattleRepository : OnlineBattleRepository {
+
+    private val firestore get() = FirebaseFirestore.getInstance()
+    private val matches get() = firestore.collection(COLLECTION)
+
+    companion object {
+        const val COLLECTION = "team_battles"
+        /** A quick room older than this was abandoned; never match into it. Above the 30s queue wait on purpose. */
+        private const val STALE_ROOM_MS = 40_000L
+        private const val CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        const val KIND_READY = "ready"
+    }
+
+    override suspend fun createRoom(uid: String, name: String, mode: String, team: List<Int>): OnlineMatch {
+        val doc = matches.document()
+        val code = (1..6).map { CODE_CHARS.random() }.joinToString("")
+        val seed = Random.nextLong(1L, 1L shl 52)
+        doc.set(
+            mapOf(
+                "hostId" to uid,
+                "guestId" to "",
+                "hostName" to name,
+                "guestName" to "",
+                "status" to OnlineMatch.STATUS_WAITING,
+                "roomCode" to code,
+                "mode" to mode,
+                "seed" to seed,
+                "heartbeatHostAt" to FieldValue.serverTimestamp(),
+                "heartbeatGuestAt" to FieldValue.serverTimestamp(),
+                "createdAt" to Timestamp.now(),
+                "lastUpdated" to Timestamp.now(),
+            )
+        ).await()
+        saveTeam(doc.id, uid, team)
+        return OnlineMatch(doc.id, uid, "", name, "", OnlineMatch.STATUS_WAITING, code, mode, seed, 0L, 0L, null, null)
+    }
+
+    override suspend fun joinQuick(uid: String, name: String, team: List<Int>): String? {
+        // Equality-only filters, so no composite index is needed (same approach as Card Clash).
+        val open = matches
+            .whereEqualTo("status", OnlineMatch.STATUS_WAITING)
+            .whereEqualTo("mode", OnlineMatch.MODE_QUICK)
+            .whereEqualTo("guestId", "")
+            .limit(10)
+            .get()
+            .await()
+
+        val now = System.currentTimeMillis()
+        val candidates = open.documents
+            .filter { it.getString("hostId") != uid }
+            // A host that backgrounded or crashed leaves a room nobody will ever answer in.
+            .filter { now - (it.getTimestamp("createdAt")?.toDate()?.time ?: 0L) < STALE_ROOM_MS }
+            .sortedByDescending { it.getTimestamp("createdAt")?.toDate()?.time ?: 0L }
+
+        for (candidate in candidates) {
+            if (claimSeat(candidate.id, uid, name)) {
+                saveTeam(candidate.id, uid, team)
+                return candidate.id
+            }
+        }
+        return null
+    }
+
+    override suspend fun joinByCode(code: String, uid: String, name: String, team: List<Int>): String? {
+        val found = matches
+            .whereEqualTo("roomCode", code.uppercase())
+            .whereEqualTo("status", OnlineMatch.STATUS_WAITING)
+            .limit(1)
+            .get()
+            .await()
+            .documents.firstOrNull() ?: return null
+        if (found.getString("hostId") == uid) return null
+        if (!claimSeat(found.id, uid, name)) return null
+        saveTeam(found.id, uid, team)
+        return found.id
+    }
+
+    /** Takes the empty seat if it is still empty. Two people racing for one room: exactly one wins. */
+    private suspend fun claimSeat(matchId: String, uid: String, name: String): Boolean {
+        val ref = matches.document(matchId)
+        return runCatching {
+            firestore.runTransaction { tx ->
+                val snap = tx.get(ref)
+                if (snap.getString("status") != OnlineMatch.STATUS_WAITING || snap.getString("guestId").orEmpty().isNotEmpty()) {
+                    return@runTransaction false
+                }
+                tx.update(
+                    ref,
+                    mapOf(
+                        "guestId" to uid,
+                        "guestName" to name,
+                        "status" to OnlineMatch.STATUS_ACTIVE,
+                        "heartbeatGuestAt" to FieldValue.serverTimestamp(),
+                        "lastUpdated" to Timestamp.now(),
+                    )
+                )
+                true
+            }.await()
+        }.getOrDefault(false)
+    }
+
+    private suspend fun saveTeam(matchId: String, uid: String, team: List<Int>) {
+        matches.document(matchId).collection("teams").document(uid).set(mapOf("ids" to team)).await()
+    }
+
+    override suspend fun submitAction(matchId: String, uid: String, seat: Seat, step: Int, action: OnlineAction) {
+        val ref = matches.document(matchId).collection("actions").document("s${step}_${seat.code}")
+        // Choices are final (the rules refuse an overwrite), so a retry after a flaky network is a no-op.
+        if (ref.get().await().exists()) return
+        ref.set(
+            mapOf(
+                "step" to step,
+                "seat" to seat.code,
+                "uid" to uid,
+                "kind" to action.kind,
+                "index" to action.index,
+                "auto" to action.auto,
+            )
+        ).await()
+    }
+
+    override suspend fun heartbeat(matchId: String, seat: Seat) {
+        val field = if (seat == Seat.HOST) "heartbeatHostAt" else "heartbeatGuestAt"
+        runCatching { matches.document(matchId).update(field, FieldValue.serverTimestamp()).await() }
+    }
+
+    override suspend fun cancelWaitingIfUnjoined(matchId: String): Boolean {
+        val ref = matches.document(matchId)
+        return runCatching {
+            firestore.runTransaction { tx ->
+                val snap = tx.get(ref)
+                if (snap.getString("status") != OnlineMatch.STATUS_WAITING) return@runTransaction false
+                tx.update(ref, mapOf("status" to OnlineMatch.STATUS_FINISHED, "lastUpdated" to Timestamp.now()))
+                true
+            }.await()
+        }.getOrDefault(false)
+    }
+
+    override suspend fun finish(matchId: String) {
+        runCatching {
+            matches.document(matchId)
+                .update(mapOf("status" to OnlineMatch.STATUS_FINISHED, "lastUpdated" to Timestamp.now())).await()
+        }
+    }
+
+    override suspend fun quit(matchId: String, seat: Seat) {
+        runCatching {
+            matches.document(matchId).update(
+                mapOf("status" to OnlineMatch.STATUS_FINISHED, "quitSeat" to seat.code, "lastUpdated" to Timestamp.now())
+            ).await()
+        }
+    }
+
+    override suspend fun claimAbandoned(matchId: String, gone: Seat) {
+        runCatching {
+            matches.document(matchId).update(
+                mapOf("status" to OnlineMatch.STATUS_FINISHED, "abandonedSeat" to gone.code, "lastUpdated" to Timestamp.now())
+            ).await()
+        }
+    }
+
+    override fun observe(matchId: String): Flow<OnlineSnapshot> = callbackFlow {
+        val ref = matches.document(matchId)
+        var match: OnlineMatch? = null
+        var teamsByUid: Map<String, List<Int>> = emptyMap()
+        var actions: ActionLog = emptyMap()
+
+        fun push() {
+            val m = match ?: return
+            val teams = buildMap {
+                teamsByUid[m.hostId]?.let { put(Seat.HOST, it) }
+                if (m.hasGuest) teamsByUid[m.guestId]?.let { put(Seat.GUEST, it) }
+            }
+            trySend(OnlineSnapshot(m, teams, actions))
+        }
+
+        val matchReg = ref.addSnapshotListener { snap, _ ->
+            val d = snap?.takeIf { it.exists() }?.data ?: return@addSnapshotListener
+            match = OnlineMatch(
+                id = matchId,
+                hostId = d["hostId"] as? String ?: "",
+                guestId = d["guestId"] as? String ?: "",
+                hostName = d["hostName"] as? String ?: "",
+                guestName = d["guestName"] as? String ?: "",
+                status = d["status"] as? String ?: OnlineMatch.STATUS_WAITING,
+                roomCode = d["roomCode"] as? String ?: "",
+                mode = d["mode"] as? String ?: OnlineMatch.MODE_QUICK,
+                seed = (d["seed"] as? Number)?.toLong() ?: 0L,
+                heartbeatHostMs = (d["heartbeatHostAt"] as? Timestamp)?.toDate()?.time ?: 0L,
+                heartbeatGuestMs = (d["heartbeatGuestAt"] as? Timestamp)?.toDate()?.time ?: 0L,
+                quitSeat = Seat.fromCode(d["quitSeat"] as? String),
+                abandonedSeat = Seat.fromCode(d["abandonedSeat"] as? String),
+            )
+            push()
+        }
+        val teamsReg = ref.collection("teams").addSnapshotListener { snap, _ ->
+            snap ?: return@addSnapshotListener
+            teamsByUid = snap.documents.associate { doc ->
+                doc.id to (doc.get("ids") as? List<*>).orEmpty().mapNotNull { (it as? Number)?.toInt() }
+            }
+            push()
+        }
+        val actionsReg = ref.collection("actions").addSnapshotListener { snap, _ ->
+            snap ?: return@addSnapshotListener
+            val log = HashMap<Int, MutableMap<Seat, OnlineAction>>()
+            for (doc in snap.documents) {
+                // Only the deterministic id counts: "s<step>_<seat>". Anything else is ignored.
+                val m = ACTION_ID.matchEntire(doc.id) ?: continue
+                val step = m.groupValues[1].toIntOrNull() ?: continue
+                val seat = Seat.fromCode(m.groupValues[2]) ?: continue
+                val kind = (doc.getString("kind") ?: continue).take(12)
+                val index = (doc.get("index") as? Number)?.toInt() ?: 0
+                val auto = doc.getBoolean("auto") ?: false
+                log.getOrPut(step) { mutableMapOf() }[seat] = OnlineAction(kind, index, auto)
+            }
+            actions = log
+            push()
+        }
+        awaitClose {
+            matchReg.remove(); teamsReg.remove(); actionsReg.remove()
+        }
+    }
+
+    private val ACTION_ID = Regex("s(\\d{1,3})_([hg])")
+}

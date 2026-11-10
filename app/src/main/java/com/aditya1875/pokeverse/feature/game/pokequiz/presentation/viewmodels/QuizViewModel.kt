@@ -117,7 +117,7 @@ class QuizViewModel(
             if (more.isEmpty()) return@launch
             usedQuestionIds.addAll(more.map { it.id })
 
-            // Append to whatever state we're in now — the pool only ever grows
+            // Append to whatever state we're in now, the pool only ever grows
             when (val s = _uiState.value) {
                 is QuizUiState.Playing ->
                     _uiState.value = QuizUiState.Playing(
@@ -151,7 +151,7 @@ class QuizViewModel(
 
         val gameState = currentState.gameState
         if (gameState.currentQuestionIndex >= gameState.questions.size - 1) {
-            // Pool exhausted and nothing to skip to — treat as finish
+            // Pool exhausted and nothing to skip to, treat as finish
             finishQuiz(gameState)
             return
         }
@@ -227,7 +227,7 @@ class QuizViewModel(
         if (currentState !is QuizUiState.ShowingAnswer) return
 
         val gameState = currentState.gameState
-        // Run ends when the hearts run out — or the question pool is truly dry
+        // Run ends when the hearts run out, or the question pool is truly dry
         if (gameState.lives <= 0 || gameState.currentQuestionIndex >= gameState.questions.size - 1) {
             finishQuiz(gameState)
             return

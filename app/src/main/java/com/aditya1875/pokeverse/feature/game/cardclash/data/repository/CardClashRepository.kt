@@ -24,17 +24,17 @@ interface CardClashRepository {
     /** Marks this player as ready (hand dealt). Match goes active when both are ready. */
     suspend fun markReady(matchId: String, isPlayer1: Boolean)
 
-    /** Fires when a player taps Lock In — just sets the locked flag, card stays in ViewModel. */
+    /** Fires when a player taps Lock In, just sets the locked flag, card stays in ViewModel. */
     suspend fun lockCard(matchId: String, isPlayer1: Boolean)
 
     /**
-     * Called when BOTH players are locked — each player writes their own card ID independently.
+     * Called when BOTH players are locked, each player writes their own card ID independently.
      * Firestore merges the two concurrent writes. Sets roundRevealed = true.
      */
     suspend fun revealMyCard(matchId: String, isPlayer1: Boolean, cardId: Int, roundNumber: Int)
 
     /**
-     * Idempotent, transactional round resolution — safe for BOTH players to call. Appends the
+     * Idempotent, transactional round resolution, safe for BOTH players to call. Appends the
      * round (with both card IDs and running totals) to completedRounds, resets the per-round
      * fields and advances currentRound; on the final round it also sets status = finished and
      * the winner in the same write. Returns false if the round was already resolved.
@@ -52,7 +52,7 @@ interface CardClashRepository {
     suspend fun finishMatch(matchId: String, winner: String, p1Score: Double, p2Score: Double)
 
     /**
-     * Atomically abandons the waiting room for the bot-fallback path — but only if it's
+     * Atomically abandons the waiting room for the bot-fallback path, but only if it's
      * still actually "waiting". Returns false without writing anything if a real opponent
      * already joined (status moved past "waiting") in the window between the fallback timer
      * firing and this call landing, so the caller can let the real match proceed instead of

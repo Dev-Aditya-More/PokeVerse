@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SkipNext
@@ -64,7 +66,7 @@ fun LivesRow(
 }
 
 /**
- * Shared loading state for every game screen — same wavy spinner, spacing
+ * Shared loading state for every game screen, same wavy spinner, spacing
  * and text style everywhere. The color overrides let a game keep its own
  * background contrast (e.g. WildCatch's sky background needs light text)
  * without diverging in layout or spinner style.
@@ -75,7 +77,9 @@ fun GameLoadingContent(
     text: String,
     modifier: Modifier = Modifier,
     textColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    spinnerColor: Color = MaterialTheme.colorScheme.primary
+    spinnerColor: Color = MaterialTheme.colorScheme.primary,
+    /** Tips to rotate underneath (string resources); empty for none. See [GameTips]. */
+    tips: List<Int> = emptyList()
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
@@ -90,13 +94,17 @@ fun GameLoadingContent(
                 style = MaterialTheme.typography.bodyLarge,
                 color = textColor
             )
+            if (tips.isNotEmpty()) {
+                Spacer(Modifier.height(20.dp))
+                TipCard(tips = tips, modifier = Modifier.padding(horizontal = 24.dp))
+            }
         }
     }
 }
 
 /**
  * Skip perk button shown during endless play. Unlocked by watching a
- * rewarded ad (or free for premium users — the caller decides and just
+ * rewarded ad (or free for premium users, the caller decides and just
  * invokes the action).
  */
 @Composable

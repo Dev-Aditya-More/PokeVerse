@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.poketype.presentation.viewmodels
 
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPValues
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -105,7 +106,7 @@ class TypeRushViewModel(
                 val generated = generator.generate(difficulty)
                 questions.addAll(generated)
                 usedPokemonIds.addAll(generated.map { it.pokemonId })
-                // Warm the image cache for the whole batch now — by the time the
+                // Warm the image cache for the whole batch now, by the time the
                 // player advances past round 1, the rest are already downloading/cached
                 // instead of only starting once each round composes.
                 prefetchSprites(generated.drop(1))
@@ -151,7 +152,7 @@ class TypeRushViewModel(
         }
     }
 
-    /** Rewarded-ad perk: advance without answering — no life lost */
+    /** Rewarded-ad perk: advance without answering, no life lost */
     fun skipRound() {
         val current = _state.value as? TypeRushState.Playing ?: return
         timerJob?.cancel()
@@ -267,8 +268,8 @@ class TypeRushViewModel(
         if (result.isFullyCorrect) correctRounds++ else lives--
         roundsPlayed++
 
-        // XP — only fully correct answers earn XP (partial correct = 0 XP, same as before)
-        if (result.isFullyCorrect) {
+        // XP, only fully correct answers earn XP (partial correct = 0 XP, same as before)
+        if (result.isFullyCorrect && correctRounds <= XPValues.ENDLESS_PAID_CAP) {
             val xp = xpManager.awardGameXP(XPEvent.RushCorrect)
             if (xp.xpGained > 0) _xpResult.emit(xp)
         }

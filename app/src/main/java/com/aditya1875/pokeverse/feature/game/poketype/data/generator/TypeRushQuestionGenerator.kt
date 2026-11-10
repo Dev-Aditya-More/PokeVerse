@@ -24,7 +24,7 @@ class TypeRushQuestionGenerator(
             TypeRushDifficulty.HARD   -> 1010
         }
 
-        // Small overfetch buffer — a handful of random IDs 404 or lack a sprite and get dropped
+        // Small overfetch buffer, a handful of random IDs 404 or lack a sprite and get dropped
         val questions = (1..maxId).shuffled().take(difficulty.rounds + 5).map { id ->
             async {
                 try {

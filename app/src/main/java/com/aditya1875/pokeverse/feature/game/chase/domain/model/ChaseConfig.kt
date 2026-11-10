@@ -14,25 +14,31 @@ data class ChaseConfig(
     val despawnY: Float = 1.15f,
     /** How close (vertically) an entity must be to Pikachu to touch it. */
     val hitRangeY: Float = 0.05f,
-    /** How close (in lanes) Pikachu must be — < 0.5 so a half-finished dodge still counts as a dodge. */
+    /** How close (in lanes) Pikachu must be, < 0.5 so a half-finished dodge still counts as a dodge. */
     val laneHitTolerance: Float = 0.42f,
-    /** Top slide speed in lanes per second — caps a far lane jump so it's visibly a dash, not a teleport. */
+    /** Top slide speed in lanes per second, caps a far lane jump so it's visibly a dash, not a teleport. */
     val laneSwitchSpeed: Float = 7f,
     /** How hard Pikachu eases toward its target lane (higher = snappier). ~0.15 s to cover 90% of one lane. */
     val laneEasing: Float = 15f,
 
     // ── Pace ────────────────────────────────────────────────────────────────
     /** Track scroll speed, in screens per second. */
-    val startSpeed: Float = 0.55f,
-    val maxSpeed: Float = 1.35f,
-    /** Distance over which speed and density ramp from start to max. */
-    val rampMeters: Float = 2500f,
+    val startSpeed: Float = 0.5f,
+    val maxSpeed: Float = 1.05f,
+    /**
+     * "Pace" distance over which speed and density ramp from start to max. Pace is not the same as
+     * the distance run: it only advances while running normally (never during an Agility dash) and
+     * falls back by [hitReliefMeters] on every hit, so difficulty follows how cleanly you play.
+     */
+    val rampMeters: Float = 4500f,
+    /** Pace lost per hit: a mistake eases the run off, clean running ramps it back up. */
+    val hitReliefMeters: Float = 350f,
     val metersPerScreen: Float = 20f,
     /** Vertical gap between obstacle rows, shrinking as difficulty ramps. */
     val rowGapStart: Float = 0.45f,
-    val rowGapMin: Float = 0.27f,
+    val rowGapMin: Float = 0.34f,
     /** Chance a row blocks two lanes instead of one, at max difficulty. */
-    val doubleBlockChanceMax: Float = 0.55f,
+    val doubleBlockChanceMax: Float = 0.4f,
 
     // ── Lives ───────────────────────────────────────────────────────────────
     val maxLives: Int = 3,
@@ -43,14 +49,14 @@ data class ChaseConfig(
     val maxRevives: Int = 1,
 
     // ── Team Rocket nets ────────────────────────────────────────────────────
-    val netsStartMeters: Float = 250f,
+    val netsStartMeters: Float = 400f,
     val netIntervalStartMs: Long = 5000L,
-    val netIntervalMinMs: Long = 2400L,
-    val netWarningMs: Long = 1000L,
+    val netIntervalMinMs: Long = 3400L,
+    val netWarningMs: Long = 1100L,
     /** A net that lands on Pikachu snares it: no lane changes until it breaks free or this runs out (-1 life). */
     val snareMs: Long = 2200L,
     /** Taps needed to break out of a net. */
-    val snareStruggles: Int = 5,
+    val snareStruggles: Int = 4,
 
     // ── Pickups & Thunderbolt ───────────────────────────────────────────────
     val pickupChance: Float = 0.45f,
@@ -65,12 +71,12 @@ data class ChaseConfig(
     val agilityMs: Long = 10_000L,
     /** Free uses per run. */
     val agilityFreeCharges: Int = 1,
-    /** Extra uses a run can earn (rewarded ad / premium) — caps it so it can't be spammed. */
+    /** Extra uses a run can earn (rewarded ad / premium), caps it so it can't be spammed. */
     val agilityMaxExtra: Int = 2,
     /** Pikachu zaps one attacker at a time, this often. */
     val agilityStrikeIntervalMs: Long = 280L,
     /** Track runs this much faster during the dash. */
-    val agilitySpeedBoost: Float = 1.6f,
+    val agilitySpeedBoost: Float = 1.35f,
     /** Pickups this close (vertically) are pulled in from any lane. */
     val agilityMagnetRangeY: Float = 0.12f,
     /** During Agility, rows are pickup rain: this many berries per row. */

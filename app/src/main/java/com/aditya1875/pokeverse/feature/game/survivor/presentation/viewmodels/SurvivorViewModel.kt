@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.survivor.presentation.viewmodels
 
+import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPValues
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -45,7 +46,7 @@ class SurvivorViewModel(
 
     companion object {
         private const val REVEAL_DELAY_MS = 800L
-        /** Length of the encounter reveal on screen — must match SurvivorScreen's EncounterStage timings. */
+        /** Length of the encounter reveal on screen, must match SurvivorScreen's EncounterStage timings. */
         const val INTRO_MS = 900L
     }
 
@@ -67,11 +68,14 @@ class SurvivorViewModel(
     private var prefetchJob: Job? = null
     private var prefetchedDefender: MatchupPokemon? = null
     private var score = 0
+    /** Right answers this run: only the first few are paid one by one, and the completion bonus follows effort. */
+    private var runCorrect = 0
     private var roundsPlayed = 0
     private var sessionBestScore = 0
 
     fun startGame() {
         score = 0
+        runCorrect = 0
         roundsPlayed = 0
         _gameState.value = SurvivorGameState.Loading
         viewModelScope.launch {
@@ -114,7 +118,7 @@ class SurvivorViewModel(
             score += 10 + (newStreak * 2).coerceAtMost(40)
         }
 
-        // Show the reveal before mutating the loop — freezes input and lets the
+        // Show the reveal before mutating the loop, freezes input and lets the
         // player see what happened before the next round (or game over) appears.
         _gameState.value = SurvivorGameState.RoundResult(
             round = round,
@@ -127,7 +131,8 @@ class SurvivorViewModel(
         )
 
         viewModelScope.launch {
-            if (wasCorrect) {
+            if (wasCorrect) runCorrect++
+            if (wasCorrect && runCorrect <= XPValues.ENDLESS_PAID_CAP) {
                 val xp = xpManager.awardGameXP(XPEvent.SurvivorCorrect(newStreak))
                 if (xp.xpGained > 0) _xpResult.emit(xp)
             }
@@ -164,7 +169,7 @@ class SurvivorViewModel(
                     startTimer(round.timeBudgetMs)
                 }
                 // Fetch the round-after-next's Pokémon (and warm its sprite into
-                // Coil's cache) while the player is still looking at this one —
+                // Coil's cache) while the player is still looking at this one
                 // without this, every round shows a brief loading flash while its
                 // sprite fetches over the network.
                 prefetchNextRound()
@@ -219,7 +224,7 @@ class SurvivorViewModel(
     private fun finishGame(bestStreak: Int) {
         val isNewBest = score > sessionBestScore
         viewModelScope.launch {
-            val xp = xpManager.awardGameXP(XPEvent.SurvivorComplete)
+            val xp = xpManager.awardGameXP(XPEvent.SurvivorComplete(runCorrect))
             if (xp.xpGained > 0) _xpResult.emit(xp)
 
             userRepository.updateBestScore("survivor", score)

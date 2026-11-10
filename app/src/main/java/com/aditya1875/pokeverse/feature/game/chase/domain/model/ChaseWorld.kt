@@ -4,7 +4,7 @@ enum class EntityKind(val isObstacle: Boolean) {
     KOFFING(isObstacle = true),
     EKANS(isObstacle = true),
     WOBBUFFET(isObstacle = true),
-    /** A net that already landed — purely visual, it scrolls away harmlessly. */
+    /** A net that already landed, purely visual, it scrolls away harmlessly. */
     LANDED_NET(isObstacle = false),
     ORAN_BERRY(isObstacle = false),
     THUNDER_STONE(isObstacle = false);
@@ -62,7 +62,7 @@ data class Strike(
 
 enum class ChaseStatus { Running, Caught }
 
-/** Spawner bookkeeping — kept in the snapshot so the engine itself stays stateless. */
+/** Spawner bookkeeping, kept in the snapshot so the engine itself stays stateless. */
 data class SpawnState(
     val rowProgress: Float = 0f,
     val lastFreeLanes: Set<Int> = emptySet(),
@@ -81,6 +81,8 @@ data class ChaseWorld(
     val playerX: Float,
     val speed: Float,
     val meters: Float = 0f,
+    /** Difficulty progress; see [ChaseConfig.rampMeters]. Separate from [meters] so a dash can't ramp the run. */
+    val paceMeters: Float = 0f,
     val bonusPoints: Int = 0,
     val berries: Int = 0,
     val lives: Int,
@@ -114,7 +116,7 @@ data class ChaseWorld(
 
     /**
      * 0 = Team Rocket far behind, 1 = about to grab Pikachu. Drives the balloon's
-     * position — a snare visibly reels Pikachu one step closer as its timer runs down.
+     * position, a snare visibly reels Pikachu one step closer as its timer runs down.
      */
     val rocketCloseness: Float
         get() {
@@ -124,7 +126,7 @@ data class ChaseWorld(
         }
 }
 
-/** Things that happened during a step — the UI turns these into sound and haptics. */
+/** Things that happened during a step, the UI turns these into sound and haptics. */
 sealed interface ChaseEvent {
     data class Hit(val livesLeft: Int) : ChaseEvent
     data object Caught : ChaseEvent

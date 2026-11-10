@@ -194,7 +194,7 @@ private fun IdleContent(hasCamera: Boolean, onTakePhoto: () -> Unit) {
                     )
             )
 
-            // viewfinder corner brackets — hints "this is a scanner", not just an icon
+            // viewfinder corner brackets, hints "this is a scanner", not just an icon
             Canvas(modifier = Modifier.size(150.dp)) {
                 val len = 22.dp.toPx()
                 val stroke = 3.dp.toPx()
@@ -436,7 +436,7 @@ private fun ResultContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // your selfie, small — grounds the reveal in "you", not just a random Pokémon
+            // your selfie, small, grounds the reveal in "you", not just a random Pokémon
             androidx.compose.foundation.Image(
                 bitmap = result.photo.asImageBitmap(),
                 contentDescription = null,

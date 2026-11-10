@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.core.presentation
 
+import androidx.compose.material.icons.filled.Shield
 import android.app.Activity
 import android.widget.Toast
 import androidx.compose.animation.*
@@ -118,8 +119,7 @@ fun GameHubScreen(
             icon = Icons.AutoMirrored.Filled.DirectionsRun,
             accentColor = Color(0xFFFFD54F),
             tag = "Arcade",
-            stats = "Endless runner",
-            isNew = true
+            stats = "Endless runner"
         ),
         GameEntry(
             id = "survivor",
@@ -128,7 +128,16 @@ fun GameHubScreen(
             icon = Icons.Default.Bolt,
             accentColor = Color(0xFFFFC107),
             tag = "Endless",
-            stats = "3 Lives",
+            stats = "3 Lives"
+        ),
+        GameEntry(
+            id = "battle",
+            title = stringResource(R.string.game_name_battle_title),
+            description = stringResource(R.string.game_name_battle_desc),
+            icon = Icons.Default.Shield,
+            accentColor = Color(0xFF7C4DFF),
+            tag = "Battle",
+            stats = "Your caught team",
             isNew = true
         ),
         GameEntry(
@@ -193,6 +202,9 @@ fun GameHubScreen(
             visibleCardCount = i + 1
         }
     }
+
+    // Two columns on a phone, three on a tablet.
+    val columns = if (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 840) 3 else 2
 
     GameBackdrop(scene = GameScene.Hub) {
         Scaffold(
@@ -267,28 +279,65 @@ fun GameHubScreen(
                             onSubscribe = { showPremiumSheet = true }
                         )
                     }
+                    // Belongs to the banner: left outside the condition it kept a gap (plus the list's
+                    // own item spacing) where the banner used to be once someone went Pro.
+                    item { Spacer(Modifier.height(6.dp)) }
                 }
 
-                item { Spacer(Modifier.height(6.dp)) }
+                // The newest game gets the big card; every other game sits in a grid beneath it, so the hub
+                // is no longer one long column of identical cards.
+                val hero = games.firstOrNull { it.isNew } ?: games.first()
+                val rest = games.filter { it.id != hero.id }
 
-                itemsIndexed(games) { index, game ->
+                item(key = "hero") {
                     AnimatedVisibility(
-                        visible = index < visibleCardCount,
+                        visible = visibleCardCount > 0,
                         enter = slideInVertically(
                             initialOffsetY = { it / 2 },
                             animationSpec = tween(320, easing = FastOutSlowInEasing)
                         ) + fadeIn(tween(280, easing = FastOutSlowInEasing))
                     ) {
                         FeaturedGameCard(
-                            title = game.title,
-                            description = game.description,
-                            icon = game.icon,
-                            accentColor = game.accentColor,
-                            tag = game.tag,
-                            stats = game.stats,
-                            isNew = game.isNew,
-                            onClick = { onGameSelected(game.id) }
+                            title = hero.title,
+                            description = hero.description,
+                            icon = hero.icon,
+                            accentColor = hero.accentColor,
+                            tag = hero.tag,
+                            stats = hero.stats,
+                            isNew = hero.isNew,
+                            onClick = { onGameSelected(hero.id) }
                         )
+                    }
+                }
+
+                rest.chunked(columns).forEachIndexed { rowIndex, rowGames ->
+                    item(key = "row$rowIndex") {
+                        AnimatedVisibility(
+                            visible = rowIndex + 1 < visibleCardCount,
+                            enter = slideInVertically(
+                                initialOffsetY = { it / 2 },
+                                animationSpec = tween(320, easing = FastOutSlowInEasing)
+                            ) + fadeIn(tween(280, easing = FastOutSlowInEasing))
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth().height(androidx.compose.foundation.layout.IntrinsicSize.Min),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                rowGames.forEach { game ->
+                                    CompactGameCard(
+                                        title = game.title,
+                                        description = game.description,
+                                        icon = game.icon,
+                                        accentColor = game.accentColor,
+                                        tag = game.tag,
+                                        isNew = game.isNew,
+                                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                                        onClick = { onGameSelected(game.id) }
+                                    )
+                                }
+                                repeat(columns - rowGames.size) { Spacer(Modifier.weight(1f)) }
+                            }
+                        }
                     }
                 }
 
@@ -495,6 +544,77 @@ fun FeaturedGameCard(
                     )
                 }
             }
+        }
+    }
+}
+
+/** A game in the hub's grid: smaller than the featured card, same look. */
+@Composable
+fun CompactGameCard(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    accentColor: Color,
+    tag: String,
+    isNew: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "scale"
+    )
+    Card(
+        modifier = modifier
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .clickable(interactionSource = interactionSource, indication = null, onClick = onClick),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(4.dp),
+        border = BorderStroke(1.dp, accentColor.copy(alpha = 0.4f))
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Box(
+                    modifier = Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(accentColor.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(imageVector = icon, contentDescription = null, tint = accentColor, modifier = Modifier.size(26.dp))
+                }
+                if (isNew) NewBadge()
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
+            Text(
+                text = tag.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = accentColor,
+                letterSpacing = 1.sp
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+            )
         }
     }
 }

@@ -292,7 +292,7 @@ private fun SilhouetteScreen(
 
         Spacer(Modifier.height(16.dp))
 
-        // Silhouette card — height scales with available width so it fits on small screens
+        // Silhouette card, height scales with available width so it fits on small screens
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(24.dp),
@@ -318,7 +318,7 @@ private fun SilhouetteScreen(
                         .data(state.question.spriteUrl)
                         .memoryCachePolicy(CachePolicy.ENABLED)
                         .diskCachePolicy(CachePolicy.ENABLED)
-                        .crossfade(false) // no fade for silhouettes — faster perceived render
+                        .crossfade(false) // no fade for silhouettes, faster perceived render
                         .size(Size.ORIGINAL)
                         .build()
                 }
@@ -491,7 +491,7 @@ private fun RevealScreen(
 
                 Spacer(Modifier.height(24.dp))
 
-                // Pokémon revealed — circular frame with coloured ring
+                // Pokémon revealed, circular frame with coloured ring
                 Box(
                     modifier = Modifier
                         .size(240.dp)

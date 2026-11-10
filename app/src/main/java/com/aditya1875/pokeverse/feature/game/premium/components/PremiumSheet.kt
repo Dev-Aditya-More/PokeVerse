@@ -98,7 +98,7 @@ private fun Context.findActivity(): Activity? {
  * moment the `dexverse_pro` entitlement becomes active.
  *
  * The per-plan callbacks/prices are the old sheet's plumbing; they're kept (ignored) so existing
- * call sites keep compiling — the sheet now talks to [BillingViewModel] directly.
+ * call sites keep compiling, the sheet now talks to [BillingViewModel] directly.
  */
 @Suppress("UNUSED_PARAMETER")
 @OptIn(ExperimentalMaterial3Api::class)

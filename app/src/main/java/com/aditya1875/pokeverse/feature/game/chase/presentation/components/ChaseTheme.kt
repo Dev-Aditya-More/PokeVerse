@@ -21,8 +21,9 @@ internal data class ChasePalette(
 )
 
 /**
- * The run moves through three biomes, looping every [CYCLE_METERS]. Purely cosmetic —
- * the engine never sees them.
+ * The run passes through seven places, each a different length, and loops every [CYCLE_METERS]. The stretches
+ * are deliberately uneven (450 m of meadow, 800 m in the hideout) so the scenery never changes on a beat you
+ * can predict. Purely cosmetic: the engine never sees them.
  */
 internal enum class ChaseBiome(@param:StringRes val label: Int, val startMeters: Float, val palette: ChasePalette) {
     MEADOW(
@@ -35,8 +36,28 @@ internal enum class ChaseBiome(@param:StringRes val label: Int, val startMeters:
             haze = Color(0xFFCFEAFF), night = 0f
         )
     ),
+    COAST(
+        R.string.chase_biome_coast, 450f,
+        ChasePalette(
+            fieldTop = Color(0xFF2E9FB0), fieldBottom = Color(0xFF63C7D4),
+            path = Color(0xFFF2DDA4), pathShade = Color(0xFFD9BC7A),
+            edge = Color(0xFFB8935A), laneLine = Color(0xFFFFFFFF),
+            foliage = Color(0xFF2E8B57), foliageDark = Color(0xFF1F6B42),
+            haze = Color(0xFFBFEFFF), night = 0f
+        )
+    ),
+    FOREST(
+        R.string.chase_biome_forest, 1050f,
+        ChasePalette(
+            fieldTop = Color(0xFF1F5C2A), fieldBottom = Color(0xFF2F7A3A),
+            path = Color(0xFFB58F5A), pathShade = Color(0xFF8F6B3E),
+            edge = Color(0xFF5A3F22), laneLine = Color(0xFFEAD9A8),
+            foliage = Color(0xFF14451E), foliageDark = Color(0xFF0B2E13),
+            haze = Color(0xFF9FC9A0), night = 0.15f
+        )
+    ),
     SUNSET(
-        R.string.chase_biome_sunset, 700f,
+        R.string.chase_biome_sunset, 1550f,
         ChasePalette(
             fieldTop = Color(0xFF5C4A2E), fieldBottom = Color(0xFF8C7B3A),
             path = Color(0xFFE8A96B), pathShade = Color(0xFFB9714A),
@@ -45,8 +66,28 @@ internal enum class ChaseBiome(@param:StringRes val label: Int, val startMeters:
             haze = Color(0xFFFF8A65), night = 0.35f
         )
     ),
+    SNOW(
+        R.string.chase_biome_snow, 2250f,
+        ChasePalette(
+            fieldTop = Color(0xFF8FB3CC), fieldBottom = Color(0xFFB8D4E6),
+            path = Color(0xFFB5C7D6), pathShade = Color(0xFF93A8BA),
+            edge = Color(0xFF6F8AA3), laneLine = Color(0xFFFFFFFF),
+            foliage = Color(0xFF4F7F8F), foliageDark = Color(0xFF35606E),
+            haze = Color(0xFFDCEBF5), night = 0.1f
+        )
+    ),
+    CAVE(
+        R.string.chase_biome_cave, 2800f,
+        ChasePalette(
+            fieldTop = Color(0xFF2A2433), fieldBottom = Color(0xFF3B3347),
+            path = Color(0xFF6B6275), pathShade = Color(0xFF4F4859),
+            edge = Color(0xFF8E7CC3), laneLine = Color(0xFFD9C9FF),
+            foliage = Color(0xFF3A3050), foliageDark = Color(0xFF241E33),
+            haze = Color(0xFF1A1624), night = 0.7f
+        )
+    ),
     HIDEOUT(
-        R.string.chase_biome_hideout, 1600f,
+        R.string.chase_biome_hideout, 3500f,
         ChasePalette(
             fieldTop = Color(0xFF0D0F24), fieldBottom = Color(0xFF1A1D42),
             path = Color(0xFF2C3058), pathShade = Color(0xFF1E2142),
@@ -57,7 +98,7 @@ internal enum class ChaseBiome(@param:StringRes val label: Int, val startMeters:
     );
 
     companion object {
-        const val CYCLE_METERS = 2400f
+        const val CYCLE_METERS = 4300f
         private const val BLEND_METERS = 140f
 
         fun at(meters: Float): ChaseBiome {

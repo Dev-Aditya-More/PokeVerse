@@ -259,7 +259,7 @@ class MatchViewModel(
                         _gameState.value = updatedState
                     }
                 } else {
-                    // Long enough to actually register and remember the mismatched pair —
+                    // Long enough to actually register and remember the mismatched pair -
                     // 800ms (minus the 400ms flip animation) wasn't giving players a fair
                     // chance to memorize a sprite before it vanished again.
                     delay(MISMATCH_VIEW_DELAY_MS)
@@ -405,7 +405,7 @@ class MatchViewModel(
     fun pauseGame() {
         val current = _gameState.value as? GameState.Playing ?: return
         // Pausing mid-preview would strand the preview coroutine (it can no longer see a
-        // Playing state to update) with cards stuck face-up — just ignore the tap instead.
+        // Playing state to update) with cards stuck face-up, just ignore the tap instead.
         if (current.isPreviewing) return
         timerJob?.cancel()
         _gameState.value = GameState.Paused(current)

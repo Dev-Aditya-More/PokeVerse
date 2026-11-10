@@ -435,7 +435,7 @@ private fun RevealScreen(state: ClashUiState, onContinue: () -> Unit) {
                         Text(stringResource(R.string.clash_next_round), fontWeight = FontWeight.Bold)
                     }
                 } else {
-                    // Last round — auto-advance once Firestore delivers "finished"
+                    // Last round, auto-advance once Firestore delivers "finished"
                     OutlinedButton(
                         onClick = onContinue,
                         modifier = Modifier.fillMaxWidth(),
@@ -533,7 +533,7 @@ private fun MatchResultScreen(state: ClashUiState, onPlayAgain: () -> Unit, onEx
                     ) {
                         Text(text = headline, style = MaterialTheme.typography.displaySmall, fontWeight = FontWeight.Bold, color = color)
                         Text(
-                            text = "${formatScore(state.myScore)}  —  ${formatScore(state.opponentScore)}",
+                            text = "${formatScore(state.myScore)} - ${formatScore(state.opponentScore)}",
                             style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
@@ -656,7 +656,7 @@ private fun SelectableCardBack(position: Int, isSelected: Boolean, isLocked: Boo
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
-                text = "?",  // intentionally universal — not a string resource
+                text = "?",  // intentionally universal, not a string resource
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Black,
                 color = if (isSelected) MaterialTheme.colorScheme.primary

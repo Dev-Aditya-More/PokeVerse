@@ -1,6 +1,6 @@
 package com.aditya1875.pokeverse.feature.facematch.domain
 
-/** Plain 0f..1f RGB triple — kept independent of any Android/Compose Color type so this
+/** Plain 0f..1f RGB triple, kept independent of any Android/Compose Color type so this
  * package has no UI-layer dependency and stays trivially unit-testable. */
 data class RgbColor(val r: Float, val g: Float, val b: Float)
 

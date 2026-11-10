@@ -212,7 +212,7 @@ fun SurvivorScreen(
                         targetState = gameState,
                         // Animate only when the *phase* changes. Keyed on the whole state, every
                         // 100 ms timer tick restarted the fade/scale transition and the screen
-                        // ghosted over itself continuously — the "blurry" look.
+                        // ghosted over itself continuously, the "blurry" look.
                         contentKey = { it::class },
                         transitionSpec = {
                             (fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.95f))
@@ -358,7 +358,7 @@ private fun GuideRow(icon: ImageVector, tint: Color, text: String) {
 }
 
 /**
- * A round's sprite is only as fast as `SurvivorViewModel`'s prefetch — this adds
+ * A round's sprite is only as fast as `SurvivorViewModel`'s prefetch, this adds
  * a crossfade + a light pop-in on top so even a cache-miss doesn't feel like a
  * jarring pop, and a fresh sprite always announces itself with a little life.
  */
@@ -518,7 +518,7 @@ private fun EncounterStage(defender: MatchupPokemon) {
 
 private fun MatchupPokemon.displayName() = name.replaceFirstChar { it.uppercase() }
 
-/** Springs its content in from small — used for type chips and answers appearing. */
+/** Springs its content in from small, used for type chips and answers appearing. */
 @Suppress("EffectKeys")
 @Composable
 private fun PopIn(delayMs: Long = 0L, content: @Composable () -> Unit) {

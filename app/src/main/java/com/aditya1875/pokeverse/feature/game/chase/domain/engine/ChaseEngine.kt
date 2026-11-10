@@ -144,6 +144,8 @@ class ChaseEngine(
         var next = world.copy(
             speed = speed,
             meters = world.meters + metersRun,
+            // A dash covers ground fast but must not make the run harder: pace stands still while it lasts.
+            paceMeters = if (world.isAgile) world.paceMeters else world.paceMeters + metersRun,
             metersSinceHit = world.metersSinceHit + metersRun,
             elapsedMs = world.elapsedMs + dtMs,
             invulnerableMs = (world.invulnerableMs - dtMs).coerceAtLeast(0L),
@@ -211,7 +213,7 @@ class ChaseEngine(
                 next = zap(next, target, events)
                 nextStrike = config.agilityStrikeIntervalMs
             } else {
-                nextStrike = 0L // nothing in range — strike the moment something appears
+                nextStrike = 0L // nothing in range, strike the moment something appears
             }
         }
         return next.copy(agility = agility.copy(remainingMs = remaining, nextStrikeMs = nextStrike))
@@ -231,7 +233,7 @@ class ChaseEngine(
         landed.forEach { net ->
             val caughtInIt = isOnLane(next.playerX, net.lane) && !next.isProtected && !next.isSnared
             if (caughtInIt) {
-                // The net pins Pikachu in place — it stays drawn over Pikachu instead of scrolling away.
+                // The net pins Pikachu in place, it stays drawn over Pikachu instead of scrolling away.
                 next = next.copy(
                     snare = Snare(config.snareMs, config.snareMs, config.snareStruggles),
                     targetLane = net.lane,
@@ -244,8 +246,8 @@ class ChaseEngine(
             }
         }
 
-        // No new net while Pikachu is tangled or dashing — one thing at a time.
-        if (next.meters < config.netsStartMeters || next.isSnared || next.isAgile) return next
+        // No new net while Pikachu is tangled or dashing, one thing at a time.
+        if (next.paceMeters < config.netsStartMeters || next.isSnared || next.isAgile) return next
         val netIn = next.spawn.nextNetInMs - dtMs
         if (netIn > 0L) return next.copy(spawn = next.spawn.copy(nextNetInMs = netIn))
 
@@ -309,7 +311,13 @@ class ChaseEngine(
     private fun hit(world: ChaseWorld, events: MutableList<ChaseEvent>): ChaseWorld {
         val lives = world.lives - 1
         events += ChaseEvent.Hit(livesLeft = lives)
-        return world.copy(lives = lives, invulnerableMs = config.invulnerableMs, metersSinceHit = 0f)
+        return world.copy(
+            lives = lives,
+            invulnerableMs = config.invulnerableMs,
+            metersSinceHit = 0f,
+            // Getting hit eases the pace so a bad moment doesn't snowball.
+            paceMeters = (world.paceMeters - config.hitReliefMeters).coerceAtLeast(0f)
+        )
     }
 
     private fun collect(world: ChaseWorld, kind: EntityKind): ChaseWorld = when (kind) {
@@ -345,7 +353,7 @@ class ChaseEngine(
 
     private fun isOnLane(playerX: Float, lane: Int) = abs(playerX - lane) < config.laneHitTolerance
 
-    private fun difficultyOf(world: ChaseWorld) = (world.meters / config.rampMeters).coerceIn(0f, 1f)
+    private fun difficultyOf(world: ChaseWorld) = (world.paceMeters / config.rampMeters).coerceIn(0f, 1f)
 
     private fun lerp(from: Float, to: Float, t: Float) = from + (to - from) * t
 

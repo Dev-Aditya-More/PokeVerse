@@ -2,8 +2,8 @@ package com.aditya1875.pokeverse.feature.facematch.domain
 
 /**
  * A curated, hand-picked pool of well-known Pokémon tagged with an approximate dominant
- * color and a rough "face shape" bucket. This isn't scientific — it's a fun heuristic match,
- * not real face recognition — so the pool is deliberately small and recognizable rather than
+ * color and a rough "face shape" bucket. This isn't scientific, it's a fun heuristic match,
+ * not real face recognition, so the pool is deliberately small and recognizable rather than
  * exhaustive (all 1000+ Pokémon would need this tagging done by hand too).
  */
 object PokemonLookalikeData {

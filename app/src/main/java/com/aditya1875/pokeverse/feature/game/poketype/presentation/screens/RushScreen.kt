@@ -296,7 +296,7 @@ private fun PlayingContent(
 
             Spacer(Modifier.height(16.dp))
 
-            // Sprite — size scales with available width so it doesn't clip on small screens
+            // Sprite, size scales with available width so it doesn't clip on small screens
             BoxWithConstraints(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center

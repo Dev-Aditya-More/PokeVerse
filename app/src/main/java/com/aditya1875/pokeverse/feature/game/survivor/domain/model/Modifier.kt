@@ -2,11 +2,11 @@ package com.aditya1875.pokeverse.feature.game.survivor.domain.model
 
 /**
  * A pluggable rule that adjusts a round's per-type effectiveness map before the
- * player answers. Each modifier is a pure transform — [SurvivorRuleEngine] folds
+ * player answers. Each modifier is a pure transform, [SurvivorRuleEngine] folds
  * the active list over the base type-chart result.
  *
  * v1 ships only [Weather]. Ability/held-item/status/critical-hit modifiers are
- * deliberately not stubbed here — each is a self-contained follow-up once Weather
+ * deliberately not stubbed here, each is a self-contained follow-up once Weather
  * is validated, not dead scaffolding now.
  */
 sealed interface Modifier {

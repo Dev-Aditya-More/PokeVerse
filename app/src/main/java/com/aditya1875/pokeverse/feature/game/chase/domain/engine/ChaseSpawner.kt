@@ -10,7 +10,7 @@ import kotlin.random.Random
 /**
  * Decides what each new obstacle row looks like. Its one hard rule: a row never
  * blocks every lane, and a two-lane block always leaves its gap within one
- * lane-switch of the previous row's gap — so every run is always survivable.
+ * lane-switch of the previous row's gap, so every run is always survivable.
  */
 class ChaseSpawner(
     private val config: ChaseConfig,
