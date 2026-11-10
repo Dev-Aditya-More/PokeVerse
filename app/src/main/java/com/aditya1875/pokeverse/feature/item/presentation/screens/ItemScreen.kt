@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.item.presentation.screens
 
+import com.aditya1875.pokeverse.feature.core.ui.components.LoadErrorState
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.core.*
@@ -138,11 +139,5 @@ fun ItemGridSkeleton() {
 
 @Composable
 fun ItemListError(message: String, onRetry: () -> Unit) {
-    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center) {
-        Text("⚠️", fontSize = 40.sp); Spacer(Modifier.height(8.dp))
-        Text(stringResource(R.string.item_failed_to_load), style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(16.dp))
-        Button(onClick = onRetry) { Text(stringResource(R.string.action_retry)) }
-    }
+    LoadErrorState(onRetry = onRetry)
 }

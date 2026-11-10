@@ -9,7 +9,18 @@ import com.aditya1875.pokeverse.feature.dexdaily.domain.DexDailyPuzzle
 import com.aditya1875.pokeverse.feature.dexdaily.domain.DexDailyPuzzles
 import com.aditya1875.pokeverse.feature.dexdaily.domain.DexDailyRecord
 import com.aditya1875.pokeverse.feature.pokemon.detail.domain.repository.PokemonDetailRepo
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -49,7 +60,52 @@ class DexDailyRepository(
             result = transform(all[date] ?: DexDailyRecord())
             prefs[recordsKey] = DexDailyCodec.encode(all + (date to result))
         }
+        scheduleSync()
         return result
+    }
+
+    // ── Cloud sync ──────────────────────────────────────────────────────────
+    // History and "already solved today" follow the account, so a reinstall or a second phone can't
+    // replay a finished puzzle. Records only move forward ([DexDailyCodec.merge]).
+    private val syncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var pendingSync: Job? = null
+
+    private fun scheduleSync() {
+        if (FirebaseAuth.getInstance().currentUser == null) return
+        pendingSync?.cancel()
+        pendingSync = syncScope.launch {
+            delay(SYNC_DEBOUNCE_MS)
+            sync(replaceLocal = false)
+        }
+    }
+
+    /**
+     * Merges this phone with the cloud and writes the result to both. With [replaceLocal] the phone's
+     * own history is dropped first (signing in to an existing account must not inherit a guest's).
+     */
+    suspend fun sync(replaceLocal: Boolean) {
+        val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
+        try {
+            val ref = FirebaseFirestore.getInstance().collection("users").document(uid)
+            val cloud = DexDailyCodec.decode(ref.get().await().getString(CLOUD_FIELD))
+            var merged: Map<String, DexDailyRecord> = emptyMap()
+            context.dexDailyStore.edit { prefs ->
+                val local = if (replaceLocal) emptyMap() else DexDailyCodec.decode(prefs[recordsKey])
+                merged = DexDailyCodec.merge(local, cloud)
+                prefs[recordsKey] = DexDailyCodec.encode(merged)
+            }
+            if (merged != cloud) {
+                ref.set(mapOf(CLOUD_FIELD to DexDailyCodec.encode(merged)), SetOptions.merge()).await()
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Local stays the working copy; the next change or launch retries.
+        }
+    }
+
+    suspend fun clearLocal() {
+        context.dexDailyStore.edit { it.remove(recordsKey) }
     }
 
     /**
@@ -84,6 +140,9 @@ class DexDailyRepository(
     }
 
     private companion object {
+        const val CLOUD_FIELD = "dexDailyRecords"
+        const val SYNC_DEBOUNCE_MS = 3_000L
+
         // Default forms PokéAPI names after the form (every one that occurs in the puzzle pool).
         val FORM_SUFFIXES = listOf(
             "-altered", "-normal", "-land", "-incarnate", "-ordinary", "-aria", "-shield",

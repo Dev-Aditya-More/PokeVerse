@@ -343,7 +343,7 @@ fun DexModeScreen(
         DexLcd(
             state = state,
             seen = seen,
-            caught = dex.caught,
+            caught = dex.roster,
             palette = palette,
             bootProgress = bootProgress,
             movesState = movesState,

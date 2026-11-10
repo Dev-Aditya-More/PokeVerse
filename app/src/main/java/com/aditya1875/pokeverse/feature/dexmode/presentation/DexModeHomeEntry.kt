@@ -86,7 +86,7 @@ fun DexModeAnnouncementDialog(onPowerOn: () -> Unit, onLater: () -> Unit) {
     )
 }
 
-/** Little red handheld with a glowing lens — the dialog's icon. */
+/** Little red handheld with a glowing lens, the dialog's icon. */
 @Composable
 private fun MiniDexDevice() {
     val glow by rememberInfiniteTransition(label = "mini_dex").animateFloat(

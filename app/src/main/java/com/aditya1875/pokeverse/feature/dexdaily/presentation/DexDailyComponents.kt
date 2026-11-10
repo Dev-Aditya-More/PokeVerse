@@ -57,6 +57,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import androidx.compose.foundation.border
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.clipRect
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.aditya1875.pokeverse.R
@@ -213,43 +216,115 @@ fun DexDailyShareCard(
     streak: Int,
     modifier: Modifier = Modifier,
 ) {
-    Column(
+    val accent = if (record.solved) Color(0xFF69F0AE) else Color(0xFFFF8A80)
+    val accentDeep = if (record.solved) DexGreen else DexRed
+    Box(
         modifier = modifier
-            .width(300.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(Brush.verticalGradient(listOf(Color(0xFF2A1B3D), Color(0xFF120C1A))))
-            .padding(22.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .width(320.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .border(
+                1.5.dp,
+                Brush.verticalGradient(listOf(StageMid.copy(alpha = 0.9f), accent.copy(alpha = 0.25f), StageMid.copy(alpha = 0.5f))),
+                RoundedCornerShape(28.dp)
+            )
+            .drawBehind {
+                drawRect(Brush.verticalGradient(listOf(Color(0xFF3A2160), Color(0xFF181028), Color(0xFF0B0712))))
+                // A glow in the result's colour behind the stage.
+                drawCircle(
+                    Brush.radialGradient(
+                        listOf(accentDeep.copy(alpha = 0.45f), Color.Transparent),
+                        center = Offset(size.width / 2f, size.height * 0.36f),
+                        radius = size.width * 0.8f
+                    ),
+                    radius = size.width * 0.8f,
+                    center = Offset(size.width / 2f, size.height * 0.36f)
+                )
+                // A scatter of stars; positions are fixed so the card looks the same every time.
+                var seed = 7L
+                repeat(46) {
+                    seed = (seed * 1103515245L + 12345L) and 0x7fffffffL
+                    val x = (seed % 1000) / 1000f * size.width
+                    seed = (seed * 1103515245L + 12345L) and 0x7fffffffL
+                    val y = (seed % 1000) / 1000f * size.height
+                    drawCircle(Color.White.copy(alpha = 0.10f + (seed % 5) * 0.05f), radius = 1.2f + (seed % 3), center = Offset(x, y))
+                }
+                // A big faint Poké Ball bleeding off the bottom corner.
+                clipRect(left = 0f, top = 0f, right = size.width, bottom = size.height) {
+                    val bc = Offset(size.width * 0.92f, size.height * 0.97f)
+                    val br = size.width * 0.34f
+                    drawCircle(Color.White.copy(alpha = 0.05f), br, bc)
+                    drawCircle(Color.Black.copy(alpha = 0.18f), br, bc, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 10f))
+                    drawLine(Color.Black.copy(alpha = 0.18f), Offset(bc.x - br, bc.y), Offset(bc.x + br, bc.y), strokeWidth = 10f)
+                    drawCircle(Color.Black.copy(alpha = 0.18f), br * 0.22f, bc, style = androidx.compose.ui.graphics.drawscope.Stroke(width = 10f))
+                }
+            }
+            .padding(horizontal = 22.dp, vertical = 22.dp)
     ) {
-        Text(
-            stringResource(R.string.dex_daily_label, number),
-            color = StageMid, fontWeight = FontWeight.Black, letterSpacing = 2.sp, fontSize = 13.sp
-        )
-        Spacer(Modifier.height(14.dp))
-        ShadowStage(artworkUrl = artworkUrl, revealed = false, size = 180.dp, animate = false)
-        Spacer(Modifier.height(16.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            ResultBadge(record.solved, size = 26.dp)
-            Spacer(Modifier.width(10.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("DEXVERSE", color = Color.White, fontWeight = FontWeight.Black, letterSpacing = 3.sp, fontSize = 13.sp)
+                Text(
+                    stringResource(R.string.dex_daily_label, number),
+                    color = Color(0xFF1B1226), fontWeight = FontWeight.Black, letterSpacing = 1.sp, fontSize = 11.sp,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(50))
+                        .background(StageMid)
+                        .padding(horizontal = 10.dp, vertical = 4.dp)
+                )
+            }
+            Spacer(Modifier.height(22.dp))
+            // The stage sits in a glowing ring.
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(222.dp)
+                    .border(
+                        3.dp,
+                        Brush.sweepGradient(listOf(StageMid, accent, StageCenter, accent, StageMid)),
+                        CircleShape
+                    )
+                    .padding(8.dp)
+            ) {
+                ShadowStage(artworkUrl = artworkUrl, revealed = false, size = 200.dp, animate = false)
+            }
+            Spacer(Modifier.height(22.dp))
             Text(
-                stringResource(if (record.solved) R.string.dex_daily_got_it else R.string.dex_daily_missed),
-                color = Color.White, fontWeight = FontWeight.Bold, fontSize = 20.sp
+                stringResource(if (record.solved) R.string.dex_daily_got_it else R.string.dex_daily_missed).uppercase(),
+                style = androidx.compose.ui.text.TextStyle(
+                    brush = Brush.horizontalGradient(
+                        if (record.solved) listOf(Color(0xFFB9F6CA), Color(0xFFFFF59D), Color(0xFF69F0AE))
+                        else listOf(Color(0xFFFFCDD2), Color(0xFFFF8A80))
+                    ),
+                    fontWeight = FontWeight.Black, fontSize = 34.sp, letterSpacing = 2.sp
+                )
             )
-        }
-        if (record.solved) {
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(12.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                if (record.solved) {
+                    Text(
+                        stringResource(if (record.hintsUsed) R.string.dex_daily_with_hints else R.string.dex_daily_no_hints),
+                        color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 12.sp,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(50))
+                            .background(Color.White.copy(alpha = 0.12f))
+                            .padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+                if (streak > 1) StreakChip(streak)
+            }
+            Spacer(Modifier.height(22.dp))
+            Box(Modifier.fillMaxWidth().height(1.dp).background(Color.White.copy(alpha = 0.14f)))
+            Spacer(Modifier.height(14.dp))
             Text(
-                stringResource(if (record.hintsUsed) R.string.dex_daily_with_hints else R.string.dex_daily_no_hints),
-                color = StageMid, fontWeight = FontWeight.SemiBold, fontSize = 13.sp
+                stringResource(R.string.dex_daily_share_footer),
+                color = Color.White.copy(alpha = 0.8f), fontSize = 13.sp, fontWeight = FontWeight.Medium
             )
+            Text("dexverse", color = StageMid, fontWeight = FontWeight.Black, fontSize = 15.sp, letterSpacing = 1.sp)
         }
-        if (streak > 1) {
-            Spacer(Modifier.height(8.dp))
-            StreakChip(streak)
-        }
-        Spacer(Modifier.height(16.dp))
-        Text(stringResource(R.string.dex_daily_share_footer), color = Color.White.copy(alpha = 0.7f), fontSize = 12.sp)
-        Text("Dexverse", color = Color.White, fontWeight = FontWeight.Black, fontSize = 14.sp)
     }
 }
 

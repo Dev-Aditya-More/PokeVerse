@@ -166,6 +166,26 @@ object DexDailyRules {
  * Hand-rolled instead of JSON so a missing field can never come back as a surprise null.
  */
 object DexDailyCodec {
+    /**
+     * Combines two copies of the same account's history (this phone and the cloud). Progress only
+     * ever moves forward: a solve on either side stays solved, hints/archive flags can't be shed,
+     * and the longer list of wrong guesses wins. That keeps "already paid today" true on every device.
+     */
+    fun merge(a: Map<String, DexDailyRecord>, b: Map<String, DexDailyRecord>): Map<String, DexDailyRecord> {
+        val merged = a.toMutableMap()
+        b.forEach { (date, other) ->
+            val mine = merged[date]
+            merged[date] = if (mine == null) other else DexDailyRecord(
+                wrongIds = if (other.wrongIds.size > mine.wrongIds.size) other.wrongIds else mine.wrongIds,
+                solved = mine.solved || other.solved,
+                // A live (same-day) play on either device means it was never an archive play.
+                archive = mine.archive && other.archive,
+                hintsUsed = mine.hintsUsed || other.hintsUsed,
+            )
+        }
+        return merged
+    }
+
     fun encode(records: Map<String, DexDailyRecord>): String =
         records.entries.sortedBy { it.key }.joinToString(";") { (date, r) ->
             "$date|${r.wrongIds.joinToString(",")}|${if (r.solved) 1 else 0}|${if (r.archive) 1 else 0}|${if (r.hintsUsed) 1 else 0}"

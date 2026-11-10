@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.item.presentation.screens
 
+import com.aditya1875.pokeverse.feature.core.ui.components.LoadErrorState
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.scaleIn
@@ -175,7 +176,7 @@ fun SharedTransitionScope.ItemDetailScreen(
 
                                 InfoRow(stringResource(R.string.item_detail_label_cost), "${item.cost}")
                                 InfoRow(stringResource(R.string.item_detail_label_category), item.categoryDisplay)
-                                InfoRow(stringResource(R.string.item_detail_label_fling_power), item.flingPower?.toString() ?: "—")
+                                InfoRow(stringResource(R.string.item_detail_label_fling_power), item.flingPower?.toString() ?: "-")
                             }
                         }
                     }
@@ -324,14 +325,10 @@ fun SharedTransitionScope.ItemDetailScreen(
             }
         }
 
-        is ItemDetailState.Error -> {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(stringResource(R.string.item_detail_error))
-            }
-        }
+        is ItemDetailState.Error -> LoadErrorState(
+            onRetry = { viewModel.loadItemDetail(itemName) },
+            onBack = onBack
+        )
 
         else -> Unit
     }

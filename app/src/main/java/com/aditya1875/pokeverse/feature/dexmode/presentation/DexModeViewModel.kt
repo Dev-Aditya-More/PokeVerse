@@ -199,7 +199,6 @@ class DexModeViewModel(
                     cryUrl = p.cries?.legacy ?: p.cries?.latest
                 )
                 store.markSeen(entry.id)
-                runCatching { pokedex.markSeen(entry.id) }
                 _state.update { it.copy(detail = detail, detailLoading = false) }
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e

@@ -8,7 +8,7 @@ import kotlin.math.sin
 
 /**
  * Tiny 8-bit sound chip: square-wave blips rendered once into static AudioTracks.
- * No audio assets — the handheld beeps are synthesized, like the real thing.
+ * No audio assets, the handheld beeps are synthesized, like the real thing.
  */
 class DexSfx {
 

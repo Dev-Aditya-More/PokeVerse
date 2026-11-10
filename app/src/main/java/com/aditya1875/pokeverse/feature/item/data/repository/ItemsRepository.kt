@@ -9,7 +9,7 @@ class ItemRepository(private val api: ItemApiService) {
 
     private val PAGE_SIZE = 40
 
-    // In-memory cache — lives for the session
+    // In-memory cache, lives for the session
     private val detailCache = HashMap<String, ItemUiModel>(200)
     private var cachedList: List<ItemUiModel> = emptyList()
     private var totalCount: Int = 0
