@@ -2,6 +2,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { google } = require("googleapis");
+const { payWeeklyRewards } = require("./weeklyPayout");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -157,7 +158,7 @@ exports.seedDailyChallenge = onSchedule(
     const ref = db.collection("daily_challenges").doc(date);
     const existing = await ref.get();
     if (existing.exists) {
-      console.log(`✅ Challenge for ${date} already exists — skipping.`);
+      console.log(`✅ Challenge for ${date} already exists, skipping.`);
       return;
     }
 
@@ -185,6 +186,14 @@ exports.resetWeeklyXp = onSchedule(
       // ── 1. Snapshot BEFORE reset ──────────────────────────────────────────
       const { top10 } = await writeWeeklySnapshot(docs, now);
 
+      // ── 1b. Placement coins. Best-effort: a failure here must never block the reset below. ──
+      let payouts = new Map();
+      try {
+        payouts = (await payWeeklyRewards(db, admin.firestore.FieldValue, docs, now)).byUid;
+      } catch (e) {
+        console.error("❌ Weekly coin payout failed (reset continues):", e);
+      }
+
       // ── 2. Inbox messages for top-10 ─────────────────────────────────────
       const inboxMessages = top10.map((entry, idx) => {
         const rank = idx + 1;
@@ -206,6 +215,8 @@ exports.resetWeeklyXp = onSchedule(
           body = `You finished #${rank} last week, ${entry.displayName.split(" ")[0]}! You're in the elite.`;
           emoji = "⭐";
         }
+        const won = payouts.get(entry.uid);
+        if (won) body = `${body} +${won.coins} Poké Coins.`;
         const msgRef = db
           .collection("user_messages")
           .doc(entry.uid)
@@ -278,15 +289,15 @@ exports.resetWeeklyXp = onSchedule(
 
 // ── CARD CLASH: sweep abandoned matches (every 5 minutes) ────────────────────
 // Backstop for CardClashRepositoryImpl's client-side staleness filter. That filter
-// only stops *new* players from matching into a dead room — it doesn't remove the
+// only stops *new* players from matching into a dead room, it doesn't remove the
 // dead room itself. Without this, every abandoned "waiting" doc (app killed,
-// backgrounded, crashed — anything that skips the cancelWait() cleanup path)
+// backgrounded, crashed, anything that skips the cancelWait() cleanup path)
 // stays in the collection forever, and the collection only grows.
 //
 // Two passes:
-//  1. "waiting" rooms older than 2 minutes — well past the 18s bot-fallback +
+//  1. "waiting" rooms older than 2 minutes, well past the 18s bot-fallback +
 //     25s client staleness window, so these are unambiguously dead.
-//  2. ANY match (regardless of status) not updated in 24 hours — catches games
+//  2. ANY match (regardless of status) not updated in 24 hours, catches games
 //     abandoned mid-round (both players disconnected, so no one was left to call
 //     forfeitOpponent()) and finished/cancelled docs we don't need to keep.
 exports.cleanupStaleCardBattles = onSchedule({ schedule: "every 5 minutes" }, async () => {
@@ -296,10 +307,10 @@ exports.cleanupStaleCardBattles = onSchedule({ schedule: "every 5 minutes" }, as
   const staleWaitingCutoffMs = now - 2 * 60 * 1000;
   const longAbandonedCutoff = admin.firestore.Timestamp.fromMillis(now - 24 * 60 * 60 * 1000);
 
-  // Equality-only filter (waiting rooms are always a small slice of the collection) —
+  // Equality-only filter (waiting rooms are always a small slice of the collection)
   // deliberately not adding "createdAt <" to this same query. Firestore would need a
   // composite index for that combo, and this project doesn't track firestore.indexes.json
-  // (see the "No orderBy" comments elsewhere in this file) — filtering the small waiting
+  // (see the "No orderBy" comments elsewhere in this file), filtering the small waiting
   // subset in JS avoids that dependency entirely.
   const [waitingSnapshot, longAbandoned] = await Promise.all([
     matches.where("status", "==", "waiting").get(),
@@ -311,7 +322,7 @@ exports.cleanupStaleCardBattles = onSchedule({ schedule: "every 5 minutes" }, as
     return createdAtMs < staleWaitingCutoffMs;
   });
 
-  // Dedupe — a doc can show up in both queries.
+  // Dedupe, a doc can show up in both queries.
   const toDelete = new Map();
   staleWaiting.forEach((doc) => toDelete.set(doc.id, doc.ref));
   longAbandoned.docs.forEach((doc) => toDelete.set(doc.id, doc.ref));
@@ -331,6 +342,46 @@ exports.cleanupStaleCardBattles = onSchedule({ schedule: "every 5 minutes" }, as
 
   console.log(
     `🧹 Card Clash cleanup: removed ${toDelete.size} matches ` +
+    `(${staleWaiting.length} stale-waiting, ${longAbandoned.size} long-abandoned).`
+  );
+});
+
+/**
+ * Online Team Battle rooms (team_battles/{id}) are short-lived. Sweep rooms nobody ever joined, and anything
+ * that has not been touched for a day. A room has teams/ and actions/ subcollections, so it is removed with
+ * recursiveDelete rather than a plain delete (which would orphan them).
+ */
+exports.cleanupStaleTeamBattles = onSchedule({ schedule: "every 5 minutes" }, async () => {
+  const now = Date.now();
+  const rooms = db.collection("team_battles");
+
+  // A quick match waits 30s, a friend room up to 10 minutes. Two hours is far past either.
+  const staleWaitingCutoffMs = now - 2 * 60 * 60 * 1000;
+  const longAbandonedCutoff = admin.firestore.Timestamp.fromMillis(now - 24 * 60 * 60 * 1000);
+
+  // Equality filter only for the waiting rooms (no composite index needed); age is checked in JS.
+  const [waitingSnapshot, longAbandoned] = await Promise.all([
+    rooms.where("status", "==", "waiting").get(),
+    rooms.where("lastUpdated", "<", longAbandonedCutoff).get(),
+  ]);
+  const staleWaiting = waitingSnapshot.docs.filter((doc) => {
+    const createdAtMs = doc.get("createdAt")?.toMillis?.() ?? 0;
+    return createdAtMs < staleWaitingCutoffMs;
+  });
+
+  const toDelete = new Map();
+  staleWaiting.forEach((doc) => toDelete.set(doc.id, doc.ref));
+  longAbandoned.docs.forEach((doc) => toDelete.set(doc.id, doc.ref));
+
+  if (toDelete.size === 0) {
+    console.log("Team Battle cleanup: nothing to remove.");
+    return;
+  }
+  for (const ref of toDelete.values()) {
+    await db.recursiveDelete(ref);
+  }
+  console.log(
+    `Team Battle cleanup: removed ${toDelete.size} rooms ` +
     `(${staleWaiting.length} stale-waiting, ${longAbandoned.size} long-abandoned).`
   );
 });
@@ -425,7 +476,7 @@ exports.redeemReferral = onCall(async (request) => {
   const code = String(request.data?.code ?? "").trim().toUpperCase();
   if (!/^[A-Z0-9]{4,10}$/.test(code)) throw new HttpsError("invalid-argument", "bad-code");
 
-  // Only new accounts can be referred — stops existing players swapping codes.
+  // Only new accounts can be referred, stops existing players swapping codes.
   const user = await admin.auth().getUser(uid);
   const createdMs = Date.parse(user.metadata.creationTime);
   if (Date.now() - createdMs > REFERRAL_WINDOW_DAYS * 24 * 60 * 60 * 1000) {

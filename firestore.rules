@@ -44,6 +44,55 @@ service cloud.firestore {
       return d.get('totalXp', 0) is int && d.get('totalXp', 0) >= 0 && d.get('totalXp', 0) <= 1000000;
     }
 
+    // ── Poké Coins wallet (users/{uid}.progression) ───────────────────────────
+    // Coins only buy cosmetics, so the rules stop impossible values rather than prove play happened:
+    // counters never go down, spending never passes earnings, and one write can't jump far.
+    // (Weekly placement rewards, the only competitive-adjacent coins, are paid by a Cloud Function.)
+    function progOf(d) { return d.get('progression', {}); }
+    function progressionOk(d) {
+      let p = progOf(d);
+      return p.get('earned', 0) is int && p.get('earned', 0) >= 0 && p.get('earned', 0) <= 200000
+        && p.get('spent', 0) is int && p.get('spent', 0) >= 0 && p.get('spent', 0) <= p.get('earned', 0)
+        && p.get('owned', []) is list && p.get('owned', []).size() <= 120
+        && p.get('freezesBought', 0) is int && p.get('freezesBought', 0) >= 0 && p.get('freezesBought', 0) <= 10000
+        && p.get('freezesUsed', 0) is int && p.get('freezesUsed', 0) >= 0
+        && p.get('freezesUsed', 0) <= p.get('freezesBought', 0)
+        // Shop items (stones, balls, lures): per-id counters. Bounded so the map can't be used as storage;
+        // the coin rules above already cap what can be spent on them.
+        && p.get('itemsBought', {}) is map && p.get('itemsBought', {}).size() <= 60
+        && p.get('itemsUsed', {}) is map && p.get('itemsUsed', {}).size() <= 60
+        // Challenge rewards already taken: daily ids are pruned after two weeks, so this stays small.
+        && p.get('challengesClaimed', []) is list && p.get('challengesClaimed', []).size() <= 200
+        && p.get('bagLevel', 0) is int && p.get('bagLevel', 0) >= 0 && p.get('bagLevel', 0) <= 10
+        && p.get('claimedLevel', 0) is int && p.get('claimedLevel', 0) >= 0 && p.get('claimedLevel', 0) <= 1000
+        && str(p.get('frame', ''), 32) && str(p.get('title', ''), 32)
+        && str(p.get('backdrop', ''), 32) && str(p.get('widget', ''), 32);
+    }
+    function progressionStepOk(d, old) {
+      return progOf(d).get('earned', 0) >= progOf(old).get('earned', 0)
+        && progOf(d).get('earned', 0) - progOf(old).get('earned', 0) <= 10000
+        && progOf(d).get('spent', 0) >= progOf(old).get('spent', 0)
+        && progOf(d).get('claimedLevel', 0) >= progOf(old).get('claimedLevel', 0);
+    }
+
+    // ── Cloud copies of local progress (users/{uid}) ──────────────────────────
+    // Pokédex ids (national dex is 1025 entries) and the Dex Daily history string. Sizes are bounded so
+    // the doc can't be used as free storage; the values themselves only decide what the owner sees.
+    function dexSyncOk(d) {
+      return d.get('dexSeen', []) is list && d.get('dexSeen', []).size() <= 1100
+        && d.get('dexCaught', []) is list && d.get('dexCaught', []).size() <= 1100
+        && str(d.get('dexDailyRecords', ''), 30000)
+        // Evolution: shards earned/spent only grow and spending can't pass earnings; evolved forms are dex ids.
+        && d.get('dexEvolved', []) is list && d.get('dexEvolved', []).size() <= 1100
+        // Forms that were evolved away (still in the Pokédex, off the roster).
+        // Category each species was caught in (id:0..4), for the Pokedex rarity counts.
+        && d.get('dexTiers', []) is list && d.get('dexTiers', []).size() <= 1100
+        && d.get('dexConsumed', []) is list && d.get('dexConsumed', []).size() <= 1100
+        && d.get('dexEvoEarned', 0) is int && d.get('dexEvoEarned', 0) >= 0 && d.get('dexEvoEarned', 0) <= 1000000
+        && d.get('dexEvoSpent', 0) is int && d.get('dexEvoSpent', 0) >= 0
+        && d.get('dexEvoSpent', 0) <= d.get('dexEvoEarned', 0);
+    }
+
     // Only the player's Google photo or their own uploaded photo may appear publicly.
     // Anything else could be a tracking pixel logging every viewer's IP, or a local path.
     function photoOk(url, uid) {
@@ -60,10 +109,15 @@ service cloud.firestore {
       allow create: if isOwner(uid)
                     && !('premiumState' in request.resource.data)
                     && userXpOk(request.resource.data)
+                    && progressionOk(request.resource.data)
+                    && dexSyncOk(request.resource.data)
                     && request.resource.data.get('totalXp', 0) <= 100000;
       allow update: if isOwner(uid)
                     && !changed().hasAny(['premiumState'])
                     && userXpOk(request.resource.data)
+                    && progressionOk(request.resource.data)
+                    && dexSyncOk(request.resource.data)
+                    && progressionStepOk(request.resource.data, resource.data)
                     && totalXpStepOk(request.resource.data, resource.data);
     }
 
@@ -84,7 +138,9 @@ service cloud.firestore {
       function clientKeys() {
         return ['uid', 'displayName', 'displayNameLower', 'bio', 'photoUrl', 'totalXp',
                 'weeklyXp', 'lastWeeklyReset', 'level', 'updatedAt', 'weeklyActive',
-                'isPremium', 'email'];
+                'isPremium', 'email', 'frame', 'title',
+                // How a trainer looks on the board: backdrop and partner are cosmetic ids, favorite type is a type name.
+                'backdrop', 'starter', 'favoriteType'];
       }
       function leaderboardDocOk(d, uid) {
         return d.get('uid', uid) == uid
@@ -94,6 +150,8 @@ service cloud.firestore {
           && str(d.get('photoUrl', ''), 2048) && photoOk(d.get('photoUrl', ''), uid)
           // Old app versions still send an empty email; a real address must never be public.
           && d.get('email', '') == ''
+          && str(d.get('frame', ''), 32) && str(d.get('title', ''), 32)
+          && str(d.get('backdrop', ''), 32) && str(d.get('starter', ''), 32) && str(d.get('favoriteType', ''), 32)
           && d.get('isPremium', false) is bool
           && d.get('weeklyActive', false) is bool
           && (d.get('updatedAt', request.time) is timestamp)
@@ -145,6 +203,102 @@ service cloud.firestore {
         allow read: if isOwner(userId);
         allow write: if isOwner(userId)
                      && isPlayer(get(/databases/$(database)/documents/card_battles/$(matchId)).data);
+      }
+    }
+
+    // ── team_battles: real-time online Team Battle ───────────────────────────
+    // Nothing is resolved here. Each player writes one immutable action per step into actions/, and both
+    // phones replay that log through the same seeded engine, so the rules only have to make sure that
+    // (1) only the two players can read or write, (2) a seat can only write its own actions, once, and
+    // (3) a forfeit can only be claimed against yourself, or against a rival whose server-timestamped
+    // heartbeat really is stale.
+    match /team_battles/{matchId} {
+      function isHost(d) { return d.hostId == request.auth.uid; }
+      function isGuest(d) { return d.guestId == request.auth.uid; }
+      function isPlayer(d) { return isHost(d) || isGuest(d); }
+      function seatOf(d) { return isHost(d) ? 'h' : 'g'; }
+      function theRoom() { return get(/databases/$(database)/documents/team_battles/$(matchId)).data; }
+
+      // Open rooms are discoverable (quick match); a started battle is private to its two players.
+      allow read: if signedIn() && (resource.data.status == 'waiting' || isPlayer(resource.data));
+
+      allow create: if signedIn()
+                    && request.resource.data.hostId == request.auth.uid
+                    && request.resource.data.guestId == ''
+                    && request.resource.data.status == 'waiting'
+                    && request.resource.data.mode in ['quick', 'friend']
+                    && request.resource.data.seed is int
+                    && str(request.resource.data.get('hostName', ''), 50)
+                    && str(request.resource.data.get('roomCode', ''), 8)
+                    && request.resource.data.heartbeatHostAt == request.time
+                    && request.resource.data.heartbeatGuestAt == request.time
+                    && request.resource.data.keys().hasOnly(['hostId', 'guestId', 'hostName', 'guestName', 'status',
+                         'roomCode', 'mode', 'seed', 'heartbeatHostAt', 'heartbeatGuestAt', 'createdAt', 'lastUpdated']);
+
+      allow update: if signedIn() && (
+          // Joining an open room: take the empty seat and nothing else.
+          (resource.data.status == 'waiting'
+            && resource.data.guestId == ''
+            && resource.data.hostId != request.auth.uid
+            && request.resource.data.guestId == request.auth.uid
+            && request.resource.data.status == 'active'
+            && str(request.resource.data.get('guestName', ''), 50)
+            && request.resource.data.heartbeatGuestAt == request.time
+            && changed().hasOnly(['guestId', 'guestName', 'status', 'heartbeatGuestAt', 'lastUpdated']))
+          // "I'm still here": your own seat's heartbeat, stamped by the server.
+          || (isHost(resource.data)
+            && request.resource.data.heartbeatHostAt == request.time
+            && changed().hasOnly(['heartbeatHostAt']))
+          || (isGuest(resource.data)
+            && request.resource.data.heartbeatGuestAt == request.time
+            && changed().hasOnly(['heartbeatGuestAt']))
+          // Closing the room (battle over, or a waiting room cancelled).
+          || (isPlayer(resource.data)
+            && request.resource.data.status == 'finished'
+            && changed().hasOnly(['status', 'lastUpdated']))
+          // Leaving mid-battle: you can only ever forfeit for your own seat.
+          || (isPlayer(resource.data)
+            && request.resource.data.status == 'finished'
+            && request.resource.data.get('quitSeat', '') == seatOf(resource.data)
+            && changed().hasOnly(['status', 'quitSeat', 'lastUpdated']))
+          // Claiming the win because the rival stopped answering: only if their last heartbeat is over a minute old.
+          || (resource.data.status == 'active'
+            && isPlayer(resource.data)
+            && request.resource.data.status == 'finished'
+            && request.resource.data.get('abandonedSeat', '') == (isHost(resource.data) ? 'g' : 'h')
+            && request.time.toMillis() - (isHost(resource.data) ? resource.data.heartbeatGuestAt : resource.data.heartbeatHostAt).toMillis() > 60000
+            && changed().hasOnly(['status', 'abandonedSeat', 'lastUpdated']))
+        );
+
+      allow delete: if false; // cleanupStaleTeamBattles sweeps finished/abandoned rooms
+
+      // team_battles/{matchId}/teams/{uid}: the Pokémon ids a player brought. Written once, never changed.
+      // Only ids travel: each phone builds the stats itself from PokeAPI, so nobody can claim stronger stats.
+      match /teams/{uid} {
+        allow read: if signedIn() && isPlayer(theRoom());
+        allow create: if isOwner(uid)
+                      && isPlayer(theRoom())
+                      && request.resource.data.keys().hasOnly(['ids'])
+                      && request.resource.data.ids is list
+                      && request.resource.data.ids.size() >= 1
+                      && request.resource.data.ids.size() <= 6;
+      }
+
+      // team_battles/{matchId}/actions/{s<step>_<seat>}: one immutable choice per seat per step.
+      match /actions/{actionId} {
+        allow read: if signedIn() && isPlayer(theRoom());
+        allow create: if signedIn()
+                      && isPlayer(theRoom())
+                      && theRoom().status == 'active'
+                      && actionId.matches('s[0-9]{1,3}_' + seatOf(theRoom()))
+                      && request.resource.data.seat == seatOf(theRoom())
+                      && request.resource.data.uid == request.auth.uid
+                      && request.resource.data.kind in ['ready', 'attack', 'special', 'guard', 'switch']
+                      && request.resource.data.step is int && request.resource.data.step >= 0 && request.resource.data.step <= 999
+                      && request.resource.data.index is int && request.resource.data.index >= 0 && request.resource.data.index <= 5
+                      && request.resource.data.get('auto', false) is bool
+                      && request.resource.data.keys().hasOnly(['step', 'seat', 'uid', 'kind', 'index', 'auto']);
+        // No update and no delete: a recorded choice is final.
       }
     }
 

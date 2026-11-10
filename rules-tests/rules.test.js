@@ -9,7 +9,7 @@ const {
 } = require("@firebase/rules-unit-testing");
 const {
   doc, setDoc, updateDoc, getDoc, deleteDoc, getDocs, collection, query, where, limit,
-  Timestamp, runTransaction,
+  Timestamp, runTransaction, serverTimestamp,
 } = require("firebase/firestore");
 const { ref, uploadBytes, deleteObject } = require("firebase/storage");
 
@@ -162,6 +162,96 @@ test("live data: v88 buyers (server-written premiumState) can still sync", async
   await seed(`users/${ALICE}`, userDoc(ALICE, { premiumState: { active: true, plan: "x", expiry: 1 } }));
   await assertSucceeds(setDoc(doc(db(ALICE), "users", ALICE), userDoc(ALICE, { totalXp: 1300 }), { merge: true }));
 });
+// ── Pokédex / Dex Daily cloud copy ───────────────────────────────────────────
+test("app: pokedex + dex daily sync (merge set)", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertSucceeds(setDoc(doc(db(ALICE), "users", ALICE), {
+    dexSeen: [1, 4, 25], dexCaught: [25], dexDailyRecords: "2026-11-09||1|0|0",
+    lastDailyFactXpDate: "2026-11-09", lastDexDailyXpDate: "2026-11-09", feedbackThanksClaimed: true,
+  }, { merge: true }));
+});
+test("app: evolution wallet + evolved forms sync", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertSucceeds(setDoc(doc(db(ALICE), "users", ALICE),
+    { dexEvolved: [26, 2], dexEvoEarned: 120, dexEvoSpent: 25 }, { merge: true }));
+});
+test("attack: spend more evo shards than were earned, or mint a million", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { dexEvoEarned: 10, dexEvoSpent: 50 }, { merge: true }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { dexEvoEarned: 5000000, dexEvoSpent: 0 }, { merge: true }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { dexEvolved: Array.from({ length: 5000 }, (_, i) => i) }, { merge: true }));
+});
+test("app: evolved-away forms sync (dexConsumed), and items sync in the wallet", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertSucceeds(setDoc(doc(db(ALICE), "users", ALICE), { dexConsumed: [133, 25] }, { merge: true }));
+  await assertSucceeds(setDoc(doc(db(ALICE), "users", ALICE),
+    { progression: { earned: 700, spent: 250, itemsBought: { "water-stone": 2, ball_great: 5 }, itemsUsed: { "water-stone": 1 } } },
+    { merge: true }));
+});
+test("app: the bag level syncs in the wallet; attack: an absurd or mistyped level", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertSucceeds(setDoc(doc(db(ALICE), "users", ALICE), { progression: { earned: 900, spent: 250, bagLevel: 2 } }, { merge: true }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { progression: { earned: 900, spent: 250, bagLevel: 99 } }, { merge: true }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { progression: { earned: 900, spent: 250, bagLevel: "max" } }, { merge: true }));
+});
+test("attack: stuff dexConsumed or the item maps to use the doc as storage", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { dexConsumed: Array.from({ length: 5000 }, (_, i) => i) }, { merge: true }));
+  const many = Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`k${i}`, 1]));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE),
+    { progression: { earned: 700, spent: 250, itemsBought: many } }, { merge: true }));
+});
+test("attack: stuff the doc with a huge dex list / history string", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { dexSeen: Array.from({ length: 5000 }, (_, i) => i) }, { merge: true }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { dexDailyRecords: "x".repeat(40000) }, { merge: true }));
+});
+// ── Poké Coins wallet ────────────────────────────────────────────────────────
+const wallet = (over = {}) => ({
+  earned: 700, spent: 250, owned: ["frame_pokeball", "frame_flame"], frame: "frame_flame", title: "",
+  backdrop: "", widget: "", freezesBought: 1, freezesUsed: 0, claimedLevel: 24, ...over,
+});
+test("app: wallet sync (merge set of the progression map)", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertSucceeds(setDoc(doc(db(ALICE), "users", ALICE), { progression: wallet() }, { merge: true }));
+});
+test("app: equipped frame/title go public on the leaderboard doc", async () => {
+  await seed(`leaderboard/${ALICE}`, leaderboardDoc(ALICE));
+  await assertSucceeds(setDoc(doc(db(ALICE), "leaderboard", ALICE), { frame: "frame_flame", title: "title_ace" }, { merge: true }));
+});
+test("app: backdrop, partner and favorite type go public on the leaderboard doc", async () => {
+  await seed(`leaderboard/${ALICE}`, leaderboardDoc(ALICE));
+  await assertSucceeds(setDoc(doc(db(ALICE), "leaderboard", ALICE),
+    { backdrop: "backdrop_dusk", starter: "pikachu", favoriteType: "electric" }, { merge: true }));
+});
+test("attack: oversized backdrop / partner / type on the public doc", async () => {
+  await seed(`leaderboard/${ALICE}`, leaderboardDoc(ALICE));
+  await assertFails(setDoc(doc(db(ALICE), "leaderboard", ALICE), { starter: "x".repeat(40) }, { merge: true }));
+  await assertFails(setDoc(doc(db(ALICE), "leaderboard", ALICE), { favoriteType: "x".repeat(40) }, { merge: true }));
+});
+test("attack: spend more than you ever earned", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { progression: wallet({ spent: 800 }) }, { merge: true }));
+});
+test("attack: mint a million coins in one write", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE, { progression: wallet() }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { progression: wallet({ earned: 900000 }) }, { merge: true }));
+});
+test("attack: jump the wallet far past the per-write step", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE, { progression: wallet() }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { progression: wallet({ earned: 20000 }) }, { merge: true }));
+});
+test("attack: roll the wallet back / un-spend coins (stale device)", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE, { progression: wallet() }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { progression: wallet({ spent: 0 }) }, { merge: true }));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { progression: wallet({ earned: 100, spent: 50 }) }, { merge: true }));
+});
+test("attack: more freezes used than ever bought, oversized cosmetic ids", async () => {
+  await seed(`users/${ALICE}`, userDoc(ALICE));
+  await assertFails(setDoc(doc(db(ALICE), "users", ALICE), { progression: wallet({ freezesUsed: 5 }) }, { merge: true }));
+  await assertFails(setDoc(doc(db(ALICE), "leaderboard", ALICE), leaderboardDoc(ALICE, { title: "x".repeat(40) })));
+});
+
 test("attack: read another player's private profile (email, fcmToken)", async () => {
   await seed(`users/${ALICE}`, userDoc(ALICE));
   await assertFails(getDoc(doc(db(EVE), "users", ALICE)));
@@ -261,6 +351,116 @@ test("attack: server-only collections (referrals, feedback, entitlements)", asyn
   await assertFails(getDoc(doc(db(EVE), "referral_codes", "ABC123")));
   await assertFails(setDoc(doc(db(EVE), "feedback", "x"), { message: "spam" }));
   await assertFails(getDoc(doc(db(EVE), "entitlements", "tok")));
+});
+
+// ── Online Team Battle (team_battles) ────────────────────────────────────────
+const ROOM = "room1";
+const roomNew = (over = {}) => ({
+  hostId: ALICE, guestId: "", hostName: "Ash", guestName: "", status: "waiting", roomCode: "ABC234",
+  mode: "quick", seed: 123456789, heartbeatHostAt: serverTimestamp(), heartbeatGuestAt: serverTimestamp(),
+  createdAt: now(), lastUpdated: now(), ...over,
+});
+// An active battle as stored (plain timestamps, since seeding bypasses the rules).
+const roomActive = (over = {}) => ({
+  hostId: ALICE, guestId: BOB, hostName: "Ash", guestName: "Misty", status: "active", roomCode: "ABC234",
+  mode: "quick", seed: 123456789, heartbeatHostAt: now(), heartbeatGuestAt: now(), createdAt: now(), lastUpdated: now(), ...over,
+});
+const minutesAgo = (m) => Timestamp.fromMillis(Date.now() - m * 60 * 1000);
+const room = (uid) => doc(db(uid), "team_battles", ROOM);
+const action = (uid, id) => doc(db(uid), "team_battles", ROOM, "actions", id);
+const act = (seat, uid, step, kind = "attack", index = 0) => ({ step, seat, uid, kind, index });
+
+test("app: host opens a room, guest joins, both bring a team and ready up, then trade actions", async () => {
+  await assertSucceeds(setDoc(room(ALICE), roomNew()));
+  await assertSucceeds(setDoc(doc(db(ALICE), "team_battles", ROOM, "teams", ALICE), { ids: [25, 6, 9] }));
+  await assertSucceeds(updateDoc(room(BOB), {
+    guestId: BOB, guestName: "Misty", status: "active", heartbeatGuestAt: serverTimestamp(), lastUpdated: now(),
+  }));
+  await assertSucceeds(setDoc(doc(db(BOB), "team_battles", ROOM, "teams", BOB), { ids: [7, 4] }));
+  await assertSucceeds(setDoc(action(ALICE, "s0_h"), act("h", ALICE, 0, "ready")));
+  await assertSucceeds(setDoc(action(BOB, "s0_g"), act("g", BOB, 0, "ready")));
+  await assertSucceeds(setDoc(action(ALICE, "s1_h"), act("h", ALICE, 1, "special")));
+  await assertSucceeds(setDoc(action(BOB, "s1_g"), act("g", BOB, 1, "switch", 2)));
+  await assertSucceeds(getDoc(action(ALICE, "s1_g")));
+});
+test("app: a waiting room is discoverable by a quick-match query", async () => {
+  await seed("team_battles/" + ROOM, roomActive({ status: "waiting", guestId: "", guestName: "" }));
+  const open = query(collection(db(BOB), "team_battles"), where("status", "==", "waiting"), where("mode", "==", "quick"), where("guestId", "==", ""), limit(10));
+  await assertSucceeds(getDocs(open));
+});
+test("attack: create a room as someone else, with a taken seat, or with extra fields", async () => {
+  await assertFails(setDoc(room(EVE), roomNew()));
+  await assertFails(setDoc(room(ALICE), roomNew({ guestId: BOB, status: "active" })));
+  await assertFails(setDoc(room(ALICE), roomNew({ mode: "ranked" })));
+  await assertFails(setDoc(room(ALICE), roomNew({ winner: "h" })));
+  await assertFails(setDoc(room(ALICE), roomNew({ heartbeatHostAt: Timestamp.fromMillis(1) })));
+});
+test("attack: take a seat that is taken, join your own room, or change more than the seat", async () => {
+  await seed("team_battles/" + ROOM, roomActive());
+  await assertFails(updateDoc(room(EVE), { guestId: EVE, guestName: "Eve", status: "active", heartbeatGuestAt: serverTimestamp(), lastUpdated: now() }));
+  await seed("team_battles/room2", roomNew({ heartbeatHostAt: now(), heartbeatGuestAt: now() }));
+  await assertFails(updateDoc(doc(db(ALICE), "team_battles", "room2"), { guestId: ALICE, guestName: "Ash", status: "active", heartbeatGuestAt: serverTimestamp(), lastUpdated: now() }));
+  await assertFails(updateDoc(doc(db(EVE), "team_battles", "room2"), { guestId: EVE, guestName: "Eve", status: "active", seed: 1, heartbeatGuestAt: serverTimestamp(), lastUpdated: now() }));
+});
+test("attack: an outsider cannot read a started battle, its teams or its actions", async () => {
+  await seed("team_battles/" + ROOM, roomActive());
+  await seed("team_battles/" + ROOM + "/teams/" + ALICE, { ids: [25] });
+  await seed("team_battles/" + ROOM + "/actions/s0_h", act("h", ALICE, 0, "ready"));
+  await assertFails(getDoc(room(EVE)));
+  await assertFails(getDoc(doc(db(EVE), "team_battles", ROOM, "teams", ALICE)));
+  await assertFails(getDoc(action(EVE, "s0_h")));
+  await assertSucceeds(getDoc(action(BOB, "s0_h")));
+});
+test("attack: write the other seat's action, rewrite a recorded choice, or break the id format", async () => {
+  await seed("team_battles/" + ROOM, roomActive());
+  await assertFails(setDoc(action(BOB, "s1_h"), act("h", BOB, 1)));            // Bob writing the host's seat
+  await assertFails(setDoc(action(BOB, "s1_g"), act("h", BOB, 1)));            // wrong seat field
+  await assertFails(setDoc(action(BOB, "s1_g"), act("g", ALICE, 1)));          // someone else's uid
+  await assertSucceeds(setDoc(action(BOB, "s1_g"), act("g", BOB, 1, "guard")));
+  await assertFails(setDoc(action(BOB, "s1_g"), act("g", BOB, 1, "special"))); // choices are final
+  // The clock's own move carries auto: true (a missed turn); anything else extra or mistyped is refused.
+  await assertSucceeds(setDoc(action(BOB, "s3_g"), { ...act("g", BOB, 3, "attack"), auto: true }));
+  await assertSucceeds(setDoc(action(ALICE, "s3_h"), { ...act("h", ALICE, 3, "attack"), auto: false }));
+  await assertFails(setDoc(action(BOB, "s4_g"), { ...act("g", BOB, 4, "attack"), auto: "yes" }));
+  await assertFails(setDoc(action(BOB, "s4_g"), { ...act("g", BOB, 4, "attack"), bonus: 9 }));
+  await assertFails(setDoc(action(BOB, "move-1"), act("g", BOB, 1)));          // not s<step>_<seat>
+  await assertFails(setDoc(action(BOB, "s2_g"), act("g", BOB, 2, "hack")));
+  await assertFails(setDoc(action(BOB, "s2_g"), act("g", BOB, 2, "switch", 9)));
+  await assertFails(setDoc(action(EVE, "s2_g"), act("g", EVE, 2)));
+});
+test("attack: act in a room that has not started, or write a team that is not yours / too big / twice", async () => {
+  await seed("team_battles/" + ROOM, roomNew({ heartbeatHostAt: now(), heartbeatGuestAt: now() }));
+  await assertFails(setDoc(action(ALICE, "s1_h"), act("h", ALICE, 1)));
+  await seed("team_battles/room3", roomActive());
+  await assertFails(setDoc(doc(db(BOB), "team_battles", "room3", "teams", ALICE), { ids: [1] }));
+  await assertFails(setDoc(doc(db(ALICE), "team_battles", "room3", "teams", ALICE), { ids: [1, 2, 3, 4, 5, 6, 7] }));
+  await assertSucceeds(setDoc(doc(db(ALICE), "team_battles", "room3", "teams", ALICE), { ids: [1, 2] }));
+  await assertFails(setDoc(doc(db(ALICE), "team_battles", "room3", "teams", ALICE), { ids: [150] }));
+});
+test("app: heartbeats and quitting; attack: someone else's heartbeat, a future heartbeat, quitting for the rival", async () => {
+  await seed("team_battles/" + ROOM, roomActive());
+  await assertSucceeds(updateDoc(room(ALICE), { heartbeatHostAt: serverTimestamp() }));
+  await assertSucceeds(updateDoc(room(BOB), { heartbeatGuestAt: serverTimestamp() }));
+  await assertFails(updateDoc(room(BOB), { heartbeatHostAt: serverTimestamp() }));
+  await assertFails(updateDoc(room(EVE), { heartbeatGuestAt: serverTimestamp() }));
+  await assertFails(updateDoc(room(ALICE), { heartbeatHostAt: Timestamp.fromMillis(Date.now() + 3600000) }));
+  await assertFails(updateDoc(room(BOB), { status: "finished", quitSeat: "h", lastUpdated: now() }));
+  await assertSucceeds(updateDoc(room(BOB), { status: "finished", quitSeat: "g", lastUpdated: now() }));
+});
+test("app: close a finished or cancelled room; attack: an outsider closing it, or setting a winner", async () => {
+  await seed("team_battles/" + ROOM, roomActive());
+  await assertFails(updateDoc(room(EVE), { status: "finished", lastUpdated: now() }));
+  await assertFails(updateDoc(room(ALICE), { status: "finished", winner: "h", lastUpdated: now() }));
+  await assertSucceeds(updateDoc(room(ALICE), { status: "finished", lastUpdated: now() }));
+});
+test("attack: claim a forfeit against a rival who is still around; app: claim it once they are really gone", async () => {
+  await seed("team_battles/" + ROOM, roomActive({ heartbeatGuestAt: now() }));
+  await assertFails(updateDoc(room(ALICE), { status: "finished", abandonedSeat: "g", lastUpdated: now() }));
+  await seed("team_battles/room4", roomActive({ heartbeatGuestAt: minutesAgo(5) }));
+  const gone = doc(db(ALICE), "team_battles", "room4");
+  // Nobody can claim against their own seat.
+  await assertFails(updateDoc(gone, { status: "finished", abandonedSeat: "h", lastUpdated: now() }));
+  await assertSucceeds(updateDoc(gone, { status: "finished", abandonedSeat: "g", lastUpdated: now() }));
 });
 
 // ── storage ──────────────────────────────────────────────────────────────────
