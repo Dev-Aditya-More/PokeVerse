@@ -26,8 +26,10 @@ class XPEconomyTest {
     fun `marathon sessions drop to the trickle rate but never to zero`() {
         val big = XPEconomy.award(raw = 50, rawEarnedToday = 5_000, restedPool = 0)
         assertEquals(10, big.total)
-        val tiny = XPEconomy.award(raw = 2, rawEarnedToday = 5_000, restedPool = 0)
-        assertEquals(1, tiny.total)
+        // Tiny awards at the trickle rate add up to what they are worth (10 raw at 20% = 2), instead of
+        // each being rounded up to a full XP.
+        val tiny = (0 until 5).sumOf { XPEconomy.award(raw = 2, rawEarnedToday = 5_000 + it * 2, restedPool = 0).total }
+        assertEquals(2, tiny)
     }
 
     @Test

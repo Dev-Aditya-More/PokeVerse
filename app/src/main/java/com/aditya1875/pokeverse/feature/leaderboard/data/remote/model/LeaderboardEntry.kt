@@ -12,6 +12,13 @@ data class LeaderboardEntry(
     val rank: Int = 0,
     val previousRank: Int = 0,
     val lastWeeklyReset: Long? = null,
-    /** Cosmetic only — gold ring + badge. Never affects ranking. */
-    val isPremium: Boolean = false
+    /** Cosmetic only, gold ring + badge. Never affects ranking. */
+    val isPremium: Boolean = false,
+    /** Cosmetic only, equipped avatar frame / title ids from the Poké Coin shop. */
+    val frame: String = "",
+    val title: String = "",
+    /** Cosmetic only, profile backdrop id, partner Pokémon id and favorite type, shown on the trainer's row. */
+    val backdrop: String = "",
+    val starter: String = "",
+    val favoriteType: String = ""
 )

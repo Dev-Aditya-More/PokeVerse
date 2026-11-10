@@ -13,7 +13,7 @@ import kotlin.math.roundToInt
  *  - **Rested XP**: time away builds a pool that doubles game XP until it's used up,
  *    so coming back after a break feels rewarding instead of hopeless.
  *
- * Daily login, streak and once-a-day bonuses bypass both — they're the reason to return.
+ * Daily login, streak and once-a-day bonuses bypass both, they're the reason to return.
  */
 object XPEconomy {
     const val FULL_RATE_RAW = 300
@@ -28,7 +28,7 @@ object XPEconomy {
         val base: Int,
         /** Extra XP from the rested pool (already capped by what's left in it). */
         val restedBonus: Int,
-        /** The rate that applied to the last chunk — drives the "reduced" label. */
+        /** The rate that applied to the last chunk, drives the "reduced" label. */
         val rate: Float
     ) {
         val total: Int get() = base + restedBonus
@@ -41,7 +41,10 @@ object XPEconomy {
      */
     fun award(raw: Int, rawEarnedToday: Int, restedPool: Int): Award {
         if (raw <= 0) return Award(0, 0, 1f)
-        val base = scaled(raw, rawEarnedToday.coerceAtLeast(0))
+        val earnedBefore = rawEarnedToday.coerceAtLeast(0)
+        // The XP paid is the difference between two roundings of the day's running total, so tiny awards at
+        // the trickle rate add up to what they are really worth instead of each being rounded up to 1.
+        val base = (cumulative(earnedBefore + raw).roundToInt() - cumulative(earnedBefore).roundToInt()).coerceAtLeast(0)
         val rested = base.coerceAtMost(restedPool.coerceAtLeast(0))
         return Award(base, rested, rateAt(rawEarnedToday + raw - 1))
     }
@@ -59,23 +62,12 @@ object XPEconomy {
         else -> TRICKLE_RATE
     }
 
-    /** Integrates the tiered rate across [raw] XP starting at [start], so a big award straddling a tier is split fairly. */
-    private fun scaled(raw: Int, start: Int): Int {
-        var earned = 0f
-        var position = start
-        var remaining = raw
-        while (remaining > 0) {
-            val tierEnd = when {
-                position < FULL_RATE_RAW -> FULL_RATE_RAW
-                position < HALF_RATE_RAW -> HALF_RATE_RAW
-                else -> Int.MAX_VALUE
-            }
-            val chunk = minOf(remaining, tierEnd - position)
-            earned += chunk * rateAt(position)
-            position += chunk
-            remaining -= chunk
-        }
-        // Never round a real effort down to nothing.
-        return earned.roundToInt().coerceAtLeast(1)
+    /** The XP the day's first [raw] raw XP are worth in total: full rate, then half, then the trickle. */
+    fun cumulative(raw: Int): Double {
+        val r = raw.coerceAtLeast(0)
+        val full = minOf(r, FULL_RATE_RAW)
+        val half = (minOf(r, HALF_RATE_RAW) - FULL_RATE_RAW).coerceAtLeast(0)
+        val trickle = (r - HALF_RATE_RAW).coerceAtLeast(0)
+        return full * 1.0 + half * 0.5 + trickle * TRICKLE_RATE.toDouble()
     }
 }

@@ -73,7 +73,7 @@ fun RankCelebrationDialog(
     val (title, subtitle, emoji, color) = when (rank) {
         1 -> Quad(
             "Champion!",
-            "$displayName, You are #1 this week — absolute dominance 👑",
+            "$displayName, You are #1 this week, absolute dominance 👑",
             "🏆",
             Color(0xFFFFD700)
         )

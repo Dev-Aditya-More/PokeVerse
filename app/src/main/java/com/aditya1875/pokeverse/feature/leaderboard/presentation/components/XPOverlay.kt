@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPLabel
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPNote
+import com.aditya1875.pokeverse.feature.progression.domain.Cosmetics
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.utils.SoundManager
 import kotlinx.coroutines.delay
@@ -102,6 +103,9 @@ fun xpLabelText(label: XPLabel): String {
             is XPNote.DailyRate -> stringResource(R.string.xp_note_daily_rate, note.percent)
             XPNote.Perfect -> stringResource(R.string.xp_note_perfect)
             XPNote.UnderPar -> stringResource(R.string.xp_note_under_par)
+            is XPNote.Coins -> stringResource(R.string.xp_note_coins, note.amount)
+            is XPNote.StreakMilestone -> stringResource(R.string.xp_note_streak_milestone, note.days, note.coins)
+            is XPNote.StreakSaved -> stringResource(R.string.xp_note_streak_saved)
         }
     }
     return buildString {
@@ -120,7 +124,8 @@ private fun LevelUpCelebration(result: XPResult, onDismiss: () -> Unit) {
         onDismiss()
     }
 
-    soundManager.play(SoundManager.Sound.LEVEL_UP)
+    // Once: the body recomposes every animation frame, and the sound carries its own haptic.
+    LaunchedEffect(Unit) { soundManager.play(SoundManager.Sound.LEVEL_UP) }
 
     // Card bounces in
     var cardVisible by remember { mutableStateOf(false) }
@@ -276,6 +281,38 @@ private fun LevelUpCelebration(result: XPResult, onDismiss: () -> Unit) {
                                 fontWeight = FontWeight.Bold,
                                 color = Gold
                             )
+                        }
+                    }
+
+                    // What this level unlocked (coins + any cosmetics)
+                    if (result.levelRewards.isNotEmpty()) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.levelup_rewards_title),
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                            Text(
+                                text = stringResource(R.string.levelup_reward_coins, result.levelRewards.sumOf { it.coins }),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = Gold
+                            )
+                            result.levelRewards.flatMap { it.cosmeticIds }
+                                .mapNotNull { Cosmetics.find(it) }
+                                .forEach { cosmetic ->
+                                    Text(
+                                        text = "🎁 " + stringResource(R.string.levelup_reward_item, stringResource(cosmetic.name)),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                         }
                     }
 

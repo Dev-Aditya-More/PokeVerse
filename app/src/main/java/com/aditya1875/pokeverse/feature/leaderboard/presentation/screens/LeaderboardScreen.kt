@@ -1,6 +1,16 @@
 package com.aditya1875.pokeverse.feature.leaderboard.presentation.screens
 
+import androidx.compose.foundation.layout.offset
+import com.aditya1875.pokeverse.utils.withGenericBio
+import com.aditya1875.pokeverse.utils.rememberGenericBio
+import com.aditya1875.pokeverse.feature.pokemon.onboarding.Partner
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.wrapContentSize
 import android.util.Log
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
@@ -87,6 +97,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.aditya1875.pokeverse.feature.progression.presentation.TitleChip
+import com.aditya1875.pokeverse.feature.progression.presentation.avatarFrame
+import com.aditya1875.pokeverse.feature.progression.presentation.backdropBrush
+import com.aditya1875.pokeverse.feature.pokemon.onboarding.Starter
+import com.aditya1875.pokeverse.feature.pokemon.settings.presentation.viewmodels.SettingsViewModel
+import com.aditya1875.pokeverse.utils.localizedTypeName
+import com.aditya1875.pokeverse.utils.pokemonTypeColor
+import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.inbox.presentation.screens.InboxSheet
@@ -139,6 +157,8 @@ fun LeaderboardScreen(
     inboxViewModel: InboxViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    // Partners are official artwork, so they show only when Original Assets is on (like the profile).
+    val partnerArt = true
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullState = rememberPullToRefreshState()
     val authState by profileViewModel.authState.collectAsStateWithLifecycle()
@@ -202,9 +222,25 @@ fun LeaderboardScreen(
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            if (type == LeaderboardType.LAST_WEEK) {
-                if (lastWeekLoading) LeaderboardSkeleton()
-                else PullToRefreshBox(
+            // One view of everything the body depends on, so a tab change cross-fades from the
+            // old content to the new instead of swapping (or showing stale rows) in one frame.
+            val view = LeaderboardView(type, state, lastWeekLoading)
+            AnimatedContent(
+                targetState = view,
+                contentKey = { it.kind },
+                transitionSpec = { fadeIn(tween(240)) togetherWith fadeOut(tween(140)) },
+                label = "leaderboard_content"
+            ) { v ->
+                val type = v.type
+                if (v.kind == "loading") {
+                    LeaderboardSkeleton(
+                        type = type,
+                        onTypeChange = { viewModel.switchType(it) },
+                        unreadCount = unreadCount,
+                        onBellClick = { showInbox = true }
+                    )
+                } else if (type == LeaderboardType.LAST_WEEK) {
+                    PullToRefreshBox(
                     isRefreshing = isRefreshing,
                     onRefresh = { viewModel.refresh() },
                     state = pullState,
@@ -220,36 +256,13 @@ fun LeaderboardScreen(
                         onBioTap = onBioTap
                     )
                 }
-            } else when (val s = state) {
-                is LeaderboardState.Loading -> LeaderboardSkeleton()
-                is LeaderboardState.Error -> LeaderboardError(s.message) { viewModel.load() }
-                is LeaderboardState.Success -> {
-
-                    if (s.entries.isEmpty() && type == LeaderboardType.WEEKLY) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    Icons.Default.EmojiEvents, null,
-                                    tint = PremiumGold,
-                                    modifier = Modifier.size(56.dp)
-                                )
-                                Spacer(Modifier.height(12.dp))
-                                Text(
-                                    stringResource(R.string.leaderboard_weekly_empty_title),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    stringResource(R.string.leaderboard_weekly_empty_subtitle),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                        return@Scaffold
-                    }
-
+                } else when (val s = v.state) {
+                    is LeaderboardState.Loading -> Unit
+                    is LeaderboardState.Error -> LeaderboardError(s.message) { viewModel.load() }
+                    is LeaderboardState.Success -> {
+                        if (s.entries.isEmpty() && type == LeaderboardType.WEEKLY) {
+                            WeeklyEmpty()
+                        } else {
                     val context = LocalContext.current
                     var lastCelebratedRank by remember { mutableIntStateOf(-1) }
                     var showDialog by remember { mutableStateOf(false) }
@@ -300,10 +313,13 @@ fun LeaderboardScreen(
                             unreadCount = unreadCount,
                             onBellClick = { showInbox = true },
                             onBioTap = onBioTap,
-                            onProTap = onProTap
+                            onProTap = onProTap,
+                            showPartnerArt = partnerArt
                         )
                     }
 
+                        }
+                    }
                 }
             }
         }
@@ -321,6 +337,43 @@ fun LeaderboardScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+
+/** What the body is showing. [kind] decides when to animate: paging in more rows must not re-fade the list. */
+private data class LeaderboardView(
+    val type: LeaderboardType,
+    val state: LeaderboardState,
+    val lastWeekLoading: Boolean
+) {
+    val kind: String
+        get() = when {
+            type == LeaderboardType.LAST_WEEK -> if (lastWeekLoading) "loading" else "last_week"
+            state is LeaderboardState.Loading -> "loading"
+            state is LeaderboardState.Error -> "error"
+            else -> "ready_${type.name}"
+        }
+}
+
+@Composable
+private fun WeeklyEmpty() {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(Icons.Default.EmojiEvents, null, tint = PremiumGold, modifier = Modifier.size(56.dp))
+            Spacer(Modifier.height(12.dp))
+            Text(
+                stringResource(R.string.leaderboard_weekly_empty_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                stringResource(R.string.leaderboard_weekly_empty_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
 @Composable
 private fun LeaderboardList(
     type: LeaderboardType,
@@ -332,7 +385,8 @@ private fun LeaderboardList(
     unreadCount: Int,
     onBellClick: () -> Unit,
     onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
-    onProTap: (LeaderboardEntry) -> Unit = {}
+    onProTap: (LeaderboardEntry) -> Unit = {},
+    showPartnerArt: Boolean = false
 ) {
     val listState = rememberLazyListState()
 
@@ -396,7 +450,8 @@ private fun LeaderboardList(
                 isUser = isUser,
                 maxXp = entries[0].totalXp,
                 onBioTap = onBioTap,
-                onProTap = onProTap
+                onProTap = onProTap,
+                showPartnerArt = showPartnerArt
             )
         }
 
@@ -418,7 +473,7 @@ private fun LeaderboardList(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Scrollable title row — slides away when the user scrolls down
+// Scrollable title row, slides away when the user scrolls down
 @Composable
 private fun LeaderboardTitleRow(
     unreadCount: Int,
@@ -437,13 +492,10 @@ private fun LeaderboardTitleRow(
             modifier = Modifier.weight(1f)
         )
         // TODO(friends): re-add the friend-add entry icon when the feature ships
-        BadgedBox(
-            badge = {
-                if (unreadCount > 0) {
-                    Badge { Text(unreadCount.coerceAtMost(99).toString()) }
-                }
-            }
-        ) {
+        // The badge is laid out inside the button's own 48dp box, pinned to its top-right corner and
+        // nudged inward. BadgedBox anchors a number at the icon's trailing edge and lets it grow outward,
+        // so a two-digit count drifted past the screen edge.
+        Box(modifier = Modifier.size(48.dp), contentAlignment = Alignment.Center) {
             IconButton(onClick = onBellClick) {
                 Icon(
                     Icons.Default.Notifications,
@@ -454,11 +506,29 @@ private fun LeaderboardTitleRow(
                         MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            if (unreadCount > 0) {
+                Text(
+                    text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                    color = MaterialTheme.colorScheme.onError,
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    softWrap = false,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 4.dp, end = 4.dp)
+                        .defaultMinSize(minWidth = 16.dp, minHeight = 16.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(MaterialTheme.colorScheme.error)
+                        .padding(horizontal = 4.dp)
+                        .wrapContentSize(Alignment.Center)
+                )
+            }
         }
     }
 }
 
-// Sticky tab strip — only this stays pinned when scrolling
+// Sticky tab strip, only this stays pinned when scrolling
 @Composable
 private fun LeaderboardTabStrip(type: LeaderboardType, onTypeChange: (LeaderboardType) -> Unit) {
     Surface(
@@ -587,13 +657,13 @@ private fun PodiumColumn(
     onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
     onProTap: (LeaderboardEntry) -> Unit = {}
 ) {
+    val genericBio = rememberGenericBio(entry.uid.ifBlank { entry.displayName })
     val bioAnchor = remember { BioAnchorHandles() }
     Column(
         modifier = Modifier
             .onGloballyPositioned { bioAnchor.target = it }
             .then(
-                if (entry.bio.isNotBlank()) Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry, it) } }
-                else Modifier
+                Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry.withGenericBio(genericBio), it) } }
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Bottom
@@ -608,6 +678,7 @@ private fun PodiumColumn(
             size = avatarSize,
             borderColor = color,
             isPremium = entry.isPremium,
+            frame = entry.frame,
             modifier = Modifier
                 .then(if (entry.isPremium) Modifier.premiumAura() else Modifier)
                 .onGloballyPositioned { bioAnchor.avatar = it }
@@ -626,6 +697,7 @@ private fun PodiumColumn(
                 .widthIn(max = 96.dp)
                 .then(if (entry.isPremium) Modifier.premiumNameShimmer() else Modifier)
         )
+        if (entry.title.isNotEmpty()) TitleChip(entry.title, Modifier.padding(top = 2.dp))
         if (entry.isPremium || isUser) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(vertical = 2.dp)) {
                 if (entry.isPremium) ProChip(onClick = { onProTap(entry) })
@@ -671,7 +743,8 @@ private fun LeaderboardRow(
     isUser: Boolean,
     maxXp: Int,
     onBioTap: (LeaderboardEntry, BioAnchor) -> Unit = { _, _ -> },
-    onProTap: (LeaderboardEntry) -> Unit = {}
+    onProTap: (LeaderboardEntry) -> Unit = {},
+    showPartnerArt: Boolean = false
 ) {
     val bgColor = if (isUser)
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
@@ -685,17 +758,22 @@ private fun LeaderboardRow(
         animatedProgress.animateTo(progress, tween(600, easing = FastOutSlowInEasing))
     }
 
+    val genericBio = rememberGenericBio(entry.uid.ifBlank { entry.displayName })
+    val partner = if (showPartnerArt) Partner.from(entry.starter) else null
+    val partnerColor = partner?.type?.let { pokemonTypeColor(it) }
     val bioAnchor = remember { BioAnchorHandles() }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .onGloballyPositioned { bioAnchor.target = it }
             .then(
-                if (entry.bio.isNotBlank()) Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry, it) } }
-                else Modifier
+                Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry.withGenericBio(genericBio), it) } }
             )
             .background(bgColor)
+            // The trainer's equipped backdrop, kept faint so names and XP stay readable.
+            .then(backdropBrush(entry.backdrop)?.let { Modifier.background(it, alpha = 0.22f) } ?: Modifier)
             .then(if (entry.isPremium) Modifier.premiumRowGlow() else Modifier)
+            .then(partnerColor?.let { c -> Modifier.background(Brush.horizontalGradient(listOf(Color.Transparent, c.copy(alpha = 0.20f)))) } ?: Modifier)
             .padding(horizontal = rememberAdaptiveHPadding(), vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -704,7 +782,7 @@ private fun LeaderboardRow(
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(42.dp)
+            modifier = Modifier.width(38.dp)
         )
 
         TrainerAvatar(
@@ -712,6 +790,7 @@ private fun LeaderboardRow(
             displayName = entry.displayName,
             size = 40.dp,
             isPremium = entry.isPremium,
+            frame = entry.frame,
             modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
         )
 
@@ -739,9 +818,13 @@ private fun LeaderboardRow(
                     YouTag()
                 }
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            if (entry.title.isNotEmpty()) TitleChip(entry.title, Modifier.padding(vertical = 2.dp))
+            // Wraps onto a second line on a narrow phone instead of squeezing a pill to nothing.
+            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+            androidx.compose.foundation.layout.FlowRow(
+                verticalArrangement = Arrangement.spacedBy(3.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                itemVerticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     stringResource(R.string.level_short, entry.level),
@@ -749,16 +832,66 @@ private fun LeaderboardRow(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 LeagueBadge(rank = entry.rank)
+                if (entry.favoriteType.isNotEmpty()) FavoriteTypePill(entry.favoriteType)
             }
         }
 
-        Text(
-            stringResource(R.string.xp_count, xpToShow),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.primary
-        )
+        Spacer(Modifier.width(8.dp))
+
+        // The partner stands at the row's right edge on a glow in its own colour, with the XP as a badge on it.
+        if (partner != null) {
+            Box(Modifier.width(96.dp).height(66.dp)) {
+                Box(
+                    Modifier
+                        .align(Alignment.CenterEnd)
+                        .size(66.dp)
+                        .background(Brush.radialGradient(listOf((partnerColor ?: MaterialTheme.colorScheme.primary).copy(alpha = 0.55f), Color.Transparent)), CircleShape)
+                )
+                AsyncImage(
+                    model = partner.artworkUrl,
+                    contentDescription = partner.displayName,
+                    modifier = Modifier.align(Alignment.CenterEnd).size(68.dp).offset(x = 4.dp)
+                )
+                Text(
+                    stringResource(R.string.xp_count, xpToShow),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .clip(RoundedCornerShape(50))
+                        .background(Color.Black.copy(alpha = 0.62f))
+                        .padding(horizontal = 7.dp, vertical = 1.dp)
+                )
+            }
+        } else {
+            Text(
+                stringResource(R.string.xp_count, xpToShow),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                maxLines = 1
+            )
+        }
     }
+}
+
+/** A trainer's favorite type as a small tinted pill, a quick read on what kind of trainer they are. */
+@Composable
+private fun FavoriteTypePill(type: String) {
+    val color = pokemonTypeColor(type)
+    Text(
+        text = localizedTypeName(type),
+        style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 1,
+        modifier = Modifier
+            .clip(RoundedCornerShape(50))
+            .background(color.copy(alpha = 0.22f))
+            .border(BorderStroke(1.dp, color.copy(alpha = 0.7f)), RoundedCornerShape(50))
+            .padding(horizontal = 7.dp, vertical = 1.dp)
+    )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -812,6 +945,7 @@ private fun TrainerAvatar(
     size: Dp,
     borderColor: Color = Color.Transparent,
     isPremium: Boolean = false,
+    frame: String = "",
     modifier: Modifier = Modifier
 ) {
     Box(modifier = modifier.size(size)) {
@@ -825,7 +959,8 @@ private fun TrainerAvatar(
                 )
                 .padding(if (isPremium && borderColor == Color.Transparent) 2.5.dp else 0.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .avatarFrame(frame, 2.5.dp),
             contentAlignment = Alignment.Center
         ) {
             if (photoUrl.isNotEmpty()) {
@@ -891,17 +1026,22 @@ private fun PremiumBadge(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun LeaderboardSkeleton() {
+private fun LeaderboardSkeleton(
+    type: LeaderboardType,
+    onTypeChange: (LeaderboardType) -> Unit,
+    unreadCount: Int,
+    onBellClick: () -> Unit
+) {
     val shimmer by rememberInfiniteTransition(label = "shimmer").animateFloat(
         initialValue = 0.3f, targetValue = 0.7f,
         animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
         label = "alpha"
     )
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Same header as the real list, so switching tabs moves the highlight at once and only the rows load.
+        LeaderboardTitleRow(unreadCount = unreadCount, onBellClick = onBellClick)
+        LeaderboardTabStrip(type = type, onTypeChange = onTypeChange)
+        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
         repeat(8) {
             Row(
                 modifier = Modifier
@@ -940,6 +1080,7 @@ private fun LeaderboardSkeleton() {
                     )
                 }
             }
+        }
         }
     }
 }
@@ -981,7 +1122,7 @@ private fun LeagueBadge(rank: Int) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Last Week tab — special animated view
+// Last Week tab, special animated view
 // ─────────────────────────────────────────────────────────────────────────────
 @Composable
 private fun LastWeekList(
@@ -1122,7 +1263,7 @@ private fun LastWeekHeroHeader(weekOf: Long) {
     }
 }
 
-// Animated podium for Last Week — pulsing glow borders + sparkle for #1
+// Animated podium for Last Week, pulsing glow borders + sparkle for #1
 @Composable
 private fun LastWeekPodiumSection(
     first: LeaderboardEntry,
@@ -1199,13 +1340,13 @@ private fun LastWeekPodiumColumn(
         label = "sparkle"
     )
 
+    val genericBio = rememberGenericBio(entry.uid.ifBlank { entry.displayName })
     val bioAnchor = remember { BioAnchorHandles() }
     Column(
         modifier = Modifier
             .onGloballyPositioned { bioAnchor.target = it }
             .then(
-                if (entry.bio.isNotBlank()) Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry, it) } }
-                else Modifier
+                Modifier.clickable { bioAnchor.resolve()?.let { onBioTap(entry.withGenericBio(genericBio), it) } }
             )
             .graphicsLayer {
                 scaleX = entranceScale.value
@@ -1250,6 +1391,7 @@ private fun LastWeekPodiumColumn(
                 size = avatarSize,
                 borderColor = color.copy(alpha = glowAlpha),
                 isPremium = entry.isPremium,
+                frame = entry.frame,
                 modifier = Modifier.onGloballyPositioned { bioAnchor.avatar = it }
             )
         }

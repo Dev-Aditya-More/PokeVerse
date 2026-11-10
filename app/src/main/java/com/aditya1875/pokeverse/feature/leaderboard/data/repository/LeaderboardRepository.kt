@@ -48,6 +48,10 @@ class LeaderboardRepository {
     private fun hasFullPages(size: Int): Boolean =
         size > 0 && size % PAGE_SIZE.toInt() == 0
 
+    /** True when [getLeaderboard] would answer from the in-memory cache, i.e. instantly. */
+    fun hasFreshCache(type: LeaderboardType): Boolean =
+        !cache[type].isNullOrEmpty() && (System.currentTimeMillis() - (cacheTimestamps[type] ?: 0L)) < CACHE_TTL_MS
+
     suspend fun getLeaderboard(
         type: LeaderboardType = LeaderboardType.GLOBAL,
         forceRefresh: Boolean = false
@@ -288,7 +292,12 @@ class LeaderboardRepository {
             else -> null
         },
         // `as?` rather than getBoolean(), which throws if the field ever holds another type.
-        isPremium = get("isPremium") as? Boolean == true
+        isPremium = get("isPremium") as? Boolean == true,
+        frame = getString("frame") ?: "",
+        title = getString("title") ?: "",
+        backdrop = getString("backdrop") ?: "",
+        starter = getString("starter") ?: "",
+        favoriteType = getString("favoriteType") ?: ""
     )
 
     fun invalidateCache(type: LeaderboardType = LeaderboardType.GLOBAL) {
@@ -332,7 +341,7 @@ class LeaderboardRepository {
                 LeaderboardEntry(
                     uid = m["uid"] as? String ?: "",
                     displayName = m["displayName"] as? String ?: "Trainer",
-                    // Not yet written by the last-week-snapshot Cloud Function —
+                    // Not yet written by the last-week-snapshot Cloud Function -
                     // defaults empty until that function is updated to include it.
                     bio = m["bio"] as? String ?: "",
                     photoUrl = m["photoUrl"] as? String ?: "",

@@ -71,6 +71,9 @@ class LeaderboardViewModel(
         if (type == LeaderboardType.LAST_WEEK) {
             loadLastWeek()
         } else {
+            // Show the loading state right away rather than the previous tab's rows. A cached tab
+            // answers instantly, so it skips the skeleton and just cross-fades.
+            if (!repository.hasFreshCache(type)) _state.value = LeaderboardState.Loading
             load()
         }
     }

@@ -78,9 +78,9 @@ private const val SCRIM_ALPHA = 0.5f
  * (which don't re-trigger onGloballyPositioned) can never leave a stale rect.
  */
 class BioAnchorHandles {
-    /** The whole tappable row / podium column — gets the spotlight. */
+    /** The whole tappable row / podium column, gets the spotlight. */
     var target: LayoutCoordinates? = null
-    /** The avatar inside it — the tail aims at its x. */
+    /** The avatar inside it, the tail aims at its x. */
     var avatar: LayoutCoordinates? = null
 
     fun resolve(): BioAnchor? {
@@ -204,7 +204,7 @@ fun BioSpeechBubble(
                                 scaleX = scale.value
                                 scaleY = scale.value
                                 this.alpha = alpha.value
-                                // Grows outward from the tail tip — the point touching the player.
+                                // Grows outward from the tail tip, the point touching the player.
                                 transformOrigin = TransformOrigin(
                                     (tailX / bubbleWidth).coerceIn(0.1f, 0.9f),
                                     if (showAbove) 1f else 0f
@@ -277,7 +277,7 @@ private fun BubbleContent(entry: LeaderboardEntry) {
     }
 }
 
-/** A rounded rect fused with a triangular tail — one filled path, so the tail is never clipped off. */
+/** A rounded rect fused with a triangular tail, one filled path, so the tail is never clipped off. */
 private fun buildTailBubblePath(
     size: Size,
     tailX: Float,

@@ -2,6 +2,8 @@ package com.aditya1875.pokeverse.feature.leaderboard.domain.xp
 
 import androidx.annotation.StringRes
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.progression.data.ProgressionRepository
+import com.aditya1875.pokeverse.feature.progression.domain.CoinEconomy
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.LevelConfig
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
@@ -35,7 +37,8 @@ import kotlin.math.roundToInt
  * - **Balanced**: game XP goes through [XPEconomy]; retention bonuses don't.
  */
 class XPManager(
-    private val repository: UserProfileRepository
+    private val repository: UserProfileRepository,
+    private val progression: ProgressionRepository
 ) {
     private val syncScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val awardLock = Mutex()
@@ -47,21 +50,34 @@ class XPManager(
         if (profile.lastDailyXpDate == today) return@withLock null
 
         val daysAway = daysBetween(profile.lastDailyXpDate, today)
-        val newStreak = if (daysAway == 1) profile.dailyStreak + 1 else 1
-        val streakBonus = minOf((newStreak - 1) * XPValues.DAILY_STREAK_BONUS, 50)
+
+        // A streak freeze covers missed days, but only for a signed-in player who owns some.
+        val freezes = if (profile.isGuest) 0 else progression.current().freezes
+        val guard = CoinEconomy.guardStreak(daysAway, freezes)
+        val streakContinues = daysAway == 1 || (daysAway >= 2 && guard.kept)
+        val newStreak = if (streakContinues) profile.dailyStreak + 1 else 1
+        if (guard.freezesUsed > 0) progression.useFreezes(guard.freezesUsed)
+
+        val streakBonus = minOf((newStreak - 1) * XPValues.DAILY_STREAK_BONUS, XPValues.DAILY_STREAK_CAP)
         val totalGained = XPValues.DAILY_LOGIN + streakBonus
-        val restedGain = XPEconomy.restedGain(daysAway, profile.restedXp)
+        // A saved streak means the player didn't really "come back from a break", so no rested bonus.
+        val restedGain = if (guard.freezesUsed > 0) 0 else XPEconomy.restedGain(daysAway, profile.restedXp)
+
+        val coins = if (profile.isGuest) null else progression.earnForDailyLogin(newStreak)
 
         val label = XPLabel(
             title = R.string.xp_daily_showup,
             amount = XPValues.DAILY_LOGIN,
             notes = buildList {
                 if (streakBonus > 0) add(XPNote.StreakBonus(streakBonus))
+                if (guard.freezesUsed > 0) add(XPNote.StreakSaved(guard.freezesUsed))
                 if (restedGain > 0) add(XPNote.RestedBanked(profile.restedXp + restedGain))
+                if (coins != null && coins.milestone > 0) add(XPNote.StreakMilestone(newStreak, coins.milestone))
+                if (coins != null) add(XPNote.Coins(coins.total))
             }
         )
 
-        applyXP(profile, totalGained, label) { updated ->
+        applyXP(profile, totalGained, label, coinsGained = coins?.total ?: 0) { updated ->
             updated.copy(
                 lastDailyXpDate = today,
                 dailyStreak = newStreak,
@@ -79,12 +95,19 @@ class XPManager(
         val raw = rawXp(event, profile, today) ?: return@withLock noOpResult(profile)
         if (raw.amount <= 0) return@withLock noOpResult(profile)
 
+        // Coins are paid once per event and never scaled by the XP tiers.
+        val coins = progression.earnForEvent(event)
+        val coinNotes = if (coins > 0) listOf(XPNote.Coins(coins)) else emptyList()
+
         if (event.isRetentionBonus) {
-            return@withLock applyXP(profile, raw.amount, XPLabel(raw.title, raw.titleArg, raw.amount, raw.flair, raw.notes)) { updated ->
+            return@withLock applyXP(profile, raw.amount, XPLabel(raw.title, raw.titleArg, raw.amount, raw.flair, raw.notes + coinNotes), coinsGained = coins, countsForWeekly = event.countsForWeekly) { updated ->
                 when (event) {
                     is XPEvent.FirstGameOfDay -> updated.copy(lastFirstGameXpDate = today)
                     is XPEvent.FirstExplorationOfDay -> updated.copy(lastExplorationXpDate = today)
                     is XPEvent.EasterEggClaim -> updated.copy(lastEasterEggXpDate = today)
+                    is XPEvent.DailyFact -> updated.copy(lastDailyFactXpDate = today)
+                    is XPEvent.DexDaily -> updated.copy(lastDexDailyXpDate = today)
+                    is XPEvent.FeedbackThanks -> updated.copy(feedbackThanksClaimed = true)
                     else -> updated
                 }
             }
@@ -92,7 +115,7 @@ class XPManager(
 
         val earnedToday = if (profile.dailyGameXpDate == today) profile.dailyGameXp else 0
         val award = XPEconomy.award(raw.amount, earnedToday, profile.restedXp)
-        applyXP(profile, award.total, gameLabel(raw, award)) { updated ->
+        applyXP(profile, award.total, gameLabel(raw, award, coinNotes), coinsGained = coins, countsForWeekly = event.countsForWeekly) { updated ->
             updated.copy(
                 dailyGameXp = earnedToday + raw.amount,
                 dailyGameXpDate = today,
@@ -114,7 +137,7 @@ class XPManager(
         is XPEvent.QuizAnswer ->
             RawXp(if (event.correct) XPValues.QUIZ_CORRECT else 0, R.string.xp_correct_answer)
         is XPEvent.QuizComplete -> {
-            val perfect = event.score == event.total && event.total > 0
+            val perfect = event.score == event.total && event.total >= XPValues.MIN_ROUNDS_FOR_PERFECT
             RawXp(
                 XPValues.QUIZ_COMPLETE + if (perfect) XPValues.QUIZ_PERFECT else 0,
                 R.string.xp_quiz_complete, notes = if (perfect) listOf(XPNote.Perfect) else emptyList()
@@ -128,30 +151,31 @@ class XPManager(
             )
         }
         is XPEvent.GuessCorrect -> streakAward(XPValues.GUESS_CORRECT, guessStreakBonus(event.streak), event.streak, R.string.xp_correct_guess)
-        is XPEvent.GuessComplete -> RawXp(XPValues.GUESS_COMPLETE, R.string.xp_guess_complete)
+        is XPEvent.GuessComplete -> RawXp(byEffort(XPValues.GUESS_COMPLETE, event.correct), R.string.xp_guess_complete)
         is XPEvent.DuelCorrect -> streakAward(XPValues.DUEL_CORRECT, guessStreakBonus(event.streak), event.streak, R.string.xp_right_call)
-        is XPEvent.DuelComplete -> RawXp(XPValues.DUEL_COMPLETE, R.string.xp_duel_complete)
+        is XPEvent.DuelComplete -> RawXp(byEffort(XPValues.DUEL_COMPLETE, event.correct), R.string.xp_duel_complete)
         is XPEvent.RushCorrect -> RawXp(XPValues.RUSH_CORRECT, R.string.xp_rush_hit)
         is XPEvent.RushComplete -> {
-            val perfect = event.score == event.total && event.total > 0
+            val perfect = event.score == event.total && event.total >= XPValues.MIN_ROUNDS_FOR_PERFECT
+            // A run that ended almost at once is not a finished run: it pays nothing.
             RawXp(
-                XPValues.RUSH_COMPLETE + if (perfect) XPValues.RUSH_PERFECT else 0,
+                if (event.total < XPValues.RUSH_MIN_ROUNDS) 0 else XPValues.RUSH_COMPLETE + if (perfect) XPValues.RUSH_PERFECT else 0,
                 R.string.xp_rush_complete, notes = if (perfect) listOf(XPNote.Perfect) else emptyList()
             )
         }
-        is XPEvent.CardClashWin -> RawXp(XPValues.CLASH_WIN, R.string.xp_clash_victory)
-        is XPEvent.CardClashRoundWin -> RawXp(XPValues.CLASH_ROUND_WIN, R.string.xp_round_won)
-        is XPEvent.CardClashPerfect -> RawXp(XPValues.CLASH_PERFECT, R.string.xp_perfect_sweep)
-        is XPEvent.CardClashDraw -> RawXp(XPValues.CLASH_DRAW, R.string.xp_clash_draw)
+        is XPEvent.CardClashWin -> RawXp(if (event.vsBot) XPValues.CLASH_BOT_WIN else XPValues.CLASH_WIN, R.string.xp_clash_victory)
+        is XPEvent.CardClashRoundWin -> RawXp(if (event.vsBot) XPValues.CLASH_BOT_ROUND_WIN else XPValues.CLASH_ROUND_WIN, R.string.xp_round_won)
+        is XPEvent.CardClashPerfect -> RawXp(if (event.vsBot) XPValues.CLASH_BOT_PERFECT else XPValues.CLASH_PERFECT, R.string.xp_perfect_sweep)
+        is XPEvent.CardClashDraw -> RawXp(if (event.vsBot) XPValues.CLASH_BOT_DRAW else XPValues.CLASH_DRAW, R.string.xp_clash_draw)
         is XPEvent.WildCatchCaught -> {
             val bonus = when {
                 event.streak >= 6 -> XPValues.CATCH_STREAK_6
                 event.streak >= 3 -> XPValues.CATCH_STREAK_3
                 else -> 0
             }
-            RawXp(XPValues.CATCH_CAUGHT + bonus, R.string.xp_caught, if (bonus > 0) " 🎣 x${event.streak}" else "")
+            RawXp(XPValues.CATCH_CAUGHT + bonus + event.rarityBonus.coerceAtLeast(0), R.string.xp_caught, if (bonus > 0) " 🎣 x${event.streak}" else "")
         }
-        is XPEvent.WildCatchComplete -> RawXp(XPValues.CATCH_COMPLETE, R.string.xp_wildcatch_complete)
+        is XPEvent.WildCatchComplete -> RawXp(byEffort(XPValues.CATCH_COMPLETE, event.catches), R.string.xp_wildcatch_complete)
         is XPEvent.SurvivorCorrect -> {
             val bonus = when {
                 event.streak >= 10 -> XPValues.SURVIVOR_STREAK_10
@@ -160,8 +184,12 @@ class XPManager(
             }
             streakAward(XPValues.SURVIVOR_CORRECT, bonus, event.streak, R.string.xp_survived)
         }
-        is XPEvent.SurvivorComplete -> RawXp(XPValues.SURVIVOR_COMPLETE, R.string.xp_survivor_complete)
-        is XPEvent.ChaseComplete -> {
+        is XPEvent.SurvivorComplete -> RawXp(byEffort(XPValues.SURVIVOR_COMPLETE, event.correct), R.string.xp_survivor_complete)
+        is XPEvent.BattleComplete ->
+            RawXp(if (event.won) XPValues.BATTLE_WIN + event.bonus else XPValues.BATTLE_LOSS, R.string.xp_battle_complete)
+        is XPEvent.OnlineBattleComplete ->
+            RawXp(if (event.won) XPValues.ONLINE_WIN else XPValues.ONLINE_LOSS, R.string.xp_online_battle)
+        is XPEvent.ChaseComplete -> if (event.meters < XPValues.CHASE_MIN_METERS) null else {
             val distanceBonus = (event.meters / 100 * XPValues.CHASE_PER_100M).coerceAtMost(XPValues.CHASE_DISTANCE_CAP)
             RawXp(XPValues.CHASE_COMPLETE + distanceBonus, R.string.xp_chase_escaped, " ⚡", titleArg = event.meters)
         }
@@ -182,22 +210,33 @@ class XPManager(
         is XPEvent.ReferralWelcome -> RawXp(XPValues.REFERRAL_WELCOME, R.string.xp_referral_welcome, " 🤝")
         is XPEvent.ReferralReward ->
             RawXp(XPValues.REFERRAL_PER_FRIEND * event.friends, R.string.xp_referral_reward, " 🎉", titleArg = event.friends)
-        is XPEvent.FeedbackThanks -> RawXp(XPValues.FEEDBACK_THANKS, R.string.xp_feedback_thanks, " 💌")
-        is XPEvent.DailyFact -> RawXp(XPValues.DAILY_FACT, R.string.xp_daily_fact, " 💡")
-        is XPEvent.DexDaily -> RawXp(event.xp, R.string.xp_dex_daily)
+        is XPEvent.FeedbackThanks ->
+            if (profile.feedbackThanksClaimed) null
+            else RawXp(XPValues.FEEDBACK_THANKS, R.string.xp_feedback_thanks, " 💌")
+        // The cards' own stores also guard these, but they are device-local: this is the gate that
+        // follows the account.
+        is XPEvent.DailyFact ->
+            if (profile.lastDailyFactXpDate == today) null
+            else RawXp(XPValues.DAILY_FACT, R.string.xp_daily_fact, " 💡")
+        is XPEvent.DexDaily ->
+            if (profile.lastDexDailyXpDate == today) null
+            else RawXp(event.xp, R.string.xp_dex_daily)
     }
 
     private fun guessStreakBonus(streak: Int) = when {
-        streak >= 5 -> XPValues.GUESS_STREAK_5
-        streak >= 2 -> XPValues.GUESS_STREAK_2
+        streak >= 6 -> XPValues.GUESS_STREAK_6
+        streak >= 3 -> XPValues.GUESS_STREAK_3
         else -> 0
     }
+
+    /** A completion bonus earned by effort: one XP per right answer, up to [full]. Failing at once pays nothing. */
+    private fun byEffort(full: Int, effort: Int) = effort.coerceIn(0, full)
 
     private fun streakAward(base: Int, bonus: Int, streak: Int, @StringRes title: Int) =
         RawXp(base + bonus, title, if (bonus > 0) " 🔥 x$streak" else "")
 
-    /** Says plainly why a number is bigger or smaller than usual — no hidden math. */
-    private fun gameLabel(raw: RawXp, award: XPEconomy.Award): XPLabel = XPLabel(
+    /** Says plainly why a number is bigger or smaller than usual, no hidden math. */
+    private fun gameLabel(raw: RawXp, award: XPEconomy.Award, extraNotes: List<XPNote>): XPLabel = XPLabel(
         title = raw.title,
         titleArg = raw.titleArg,
         amount = award.total,
@@ -206,6 +245,7 @@ class XPManager(
             addAll(raw.notes)
             if (award.restedBonus > 0) add(XPNote.RestedDouble)
             if (award.rate < 1f) add(XPNote.DailyRate((award.rate * 100).roundToInt()))
+            addAll(extraNotes)
         }
     )
 
@@ -213,13 +253,15 @@ class XPManager(
         profile: UserProfile,
         gained: Int,
         label: XPLabel,
+        coinsGained: Int = 0,
+        countsForWeekly: Boolean = true,
         extraUpdate: (UserProfile) -> UserProfile = { it }
     ): XPResult {
         val newTotal = profile.totalXp + gained
         val (newLevel, newCurrent, newNext) = LevelConfig.computeLevel(newTotal)
         val leveledUp = newLevel > profile.level
 
-        // Same boundary as the resetWeeklyXp Cloud Function (Monday 00:00 IST) —
+        // Same boundary as the resetWeeklyXp Cloud Function (Monday 00:00 IST) -
         // a rolling window here would let a stale local weeklyXp overwrite the
         // server reset on the next sync.
         val weekStart = WeeklyReset.startOfCurrentWeekMillis(System.currentTimeMillis())
@@ -230,7 +272,7 @@ class XPManager(
         val updated = extraUpdate(
             profile.copy(
                 totalXp = newTotal, currentXp = newCurrent,
-                nextLevelXp = newNext, level = newLevel, weeklyXp = baseWeeklyXp + gained,
+                nextLevelXp = newNext, level = newLevel, weeklyXp = baseWeeklyXp + if (countsForWeekly) gained else 0,
                 lastWeeklyReset = newWeeklyResetTime
             )
         )
@@ -238,10 +280,15 @@ class XPManager(
         repository.saveProfile(updated)
         scheduleCloudSync(updated)
 
+        // Level rewards (coins + cosmetics) are paid here, the one place levels change.
+        val levelRewards = if (leveledUp && !profile.isGuest) progression.claimLevelRewards(newLevel) else emptyList()
+
         return XPResult(
             xpGained = gained, newTotalXp = newTotal, newLevel = newLevel,
             newCurrentXp = newCurrent, newNextLevelXp = newNext,
-            leveledUp = leveledUp, label = label
+            leveledUp = leveledUp, label = label,
+            coinsGained = coinsGained + levelRewards.sumOf { it.coins },
+            levelRewards = levelRewards
         )
     }
 
