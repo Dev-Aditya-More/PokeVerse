@@ -34,6 +34,8 @@ data class ChallengesUi(
     val sweepReady: Boolean = false,
     val sweepClaimed: Boolean = false,
     val milestones: List<ChallengeRow> = emptyList(),
+    /** Per category: how many long-term goals are claimed, and how many there are. */
+    val milestoneTotals: Map<com.aditya1875.pokeverse.feature.challenges.domain.ChallengeCategory, Pair<Int, Int>> = emptyMap(),
     val progress: ChallengeProgress = ChallengeProgress(),
     val loaded: Boolean = false,
 ) {
@@ -48,8 +50,13 @@ class ChallengesViewModel(
     private val progression: ProgressionRepository,
 ) : ViewModel() {
 
-    val ui: StateFlow<ChallengesUi> = combine(challenges.today, pokedex.progress, progression.state) { today, dex, wallet ->
-        val progress = today.copy(dexCaught = dex.caught.size, dexTiers = dex.tierCounts)
+    val ui: StateFlow<ChallengesUi> = combine(challenges.today, pokedex.progress, progression.state, pokedex.wallet) { today, dex, wallet, evo ->
+        val progress = today.copy(
+            dexCaught = dex.caught.size,
+            dexTiers = dex.tierCounts,
+            evolved = evo.evolved.size,
+            regionCaught = ChallengeRules.regionCounts(dex.caught),
+        )
         val claimed = wallet.challengesClaimed
         val day = progress.day
         ChallengesUi(
@@ -58,6 +65,8 @@ class ChallengesViewModel(
             sweepClaimed = ChallengeRules.sweepId(day) in claimed,
             milestones = ChallengeRules.nextMilestones(claimed, progress)
                 .map { ChallengeRow(it, ChallengeRules.progressOf(it, progress), false) },
+            milestoneTotals = ChallengeRules.milestones.groupBy { it.category }
+                .mapValues { (_, all) -> all.count { it.id in claimed } to all.size },
             progress = progress,
             loaded = true,
         )
@@ -67,11 +76,18 @@ class ChallengesViewModel(
     /** Fires with the balls that were just paid, for the "you got" toast. */
     val paid: SharedFlow<BallReward> = _paid
 
+    /** Pays [r] for [claimId] once. The shards go to the Pokédex wallet, everything else to the progression one. */
+    private suspend fun pay(claimId: String, r: BallReward): Boolean {
+        if (!progression.claimChallenge(claimId, r.great, r.ultra, coins = r.coins, cosmetic = r.cosmetic)) return false
+        if (r.shards > 0) pokedex.grantPurchasedShards(r.shards)
+        return true
+    }
+
     fun claim(row: ChallengeRow) {
         if (!row.claimable) return
         viewModelScope.launch {
             val r = row.challenge.reward
-            if (progression.claimChallenge(row.challenge.id, r.great, r.ultra)) _paid.emit(r)
+            if (pay(row.challenge.id, r)) _paid.emit(r)
         }
     }
 
@@ -80,7 +96,7 @@ class ChallengesViewModel(
             val state = ui.value
             if (!state.sweepReady) return@launch
             val r = ChallengeRules.SWEEP_BONUS
-            if (progression.claimChallenge(ChallengeRules.sweepId(state.progress.day), r.great, r.ultra)) _paid.emit(r)
+            if (pay(ChallengeRules.sweepId(state.progress.day), r)) _paid.emit(r)
         }
     }
 
@@ -92,13 +108,13 @@ class ChallengesViewModel(
             for (row in state.daily + state.milestones) {
                 if (!row.claimable) continue
                 val r = row.challenge.reward
-                if (progression.claimChallenge(row.challenge.id, r.great, r.ultra)) total += r
+                if (pay(row.challenge.id, r)) total += r
             }
             // The bonus opens once the dailies are claimed, so it is re-read from the wallet after the loop.
             val day = state.progress.day
             if (ChallengeRules.sweepReady(day, progression.current().challengesClaimed)) {
                 val r = ChallengeRules.SWEEP_BONUS
-                if (progression.claimChallenge(ChallengeRules.sweepId(day), r.great, r.ultra)) total += r
+                if (pay(ChallengeRules.sweepId(day), r)) total += r
             }
             if (!total.isEmpty) _paid.emit(total)
         }

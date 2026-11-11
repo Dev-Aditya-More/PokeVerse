@@ -303,11 +303,23 @@ private fun LevelUpCelebration(result: XPResult, onDismiss: () -> Unit) {
                                 fontWeight = FontWeight.Bold,
                                 color = Gold
                             )
+                            // The items that came with it, added up across every level gained.
+                            val extras = result.levelRewards.flatMap { it.extraLines() }
+                                .groupBy({ it.first }, { it.second }).map { (name, counts) -> name to counts.sum() }
+                            if (extras.isNotEmpty()) {
+                                Text(
+                                    text = extras.map { "×${it.second} ${stringResource(it.first)}" }.joinToString("  ·  "),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                )
+                            }
                             result.levelRewards.flatMap { it.cosmeticIds }
                                 .mapNotNull { Cosmetics.find(it) }
                                 .forEach { cosmetic ->
                                     Text(
-                                        text = "🎁 " + stringResource(R.string.levelup_reward_item, stringResource(cosmetic.name)),
+                                        text = stringResource(R.string.levelup_reward_item, stringResource(cosmetic.name)),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.SemiBold,
                                         color = MaterialTheme.colorScheme.onSurface

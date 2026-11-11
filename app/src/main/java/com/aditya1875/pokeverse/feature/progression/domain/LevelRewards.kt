@@ -1,11 +1,31 @@
 package com.aditya1875.pokeverse.feature.progression.domain
 
-/** What reaching a level gives: coins always, plus any cosmetics placed on that level. */
+import com.aditya1875.pokeverse.R
+
+/**
+ * What reaching a level gives: coins always, any cosmetics placed on that level, and (on most levels) items:
+ * Great and Ultra Balls, a Rare Lure, a Streak Freeze, and a stone on the big milestones.
+ */
 data class LevelReward(
     val level: Int,
     val coins: Int,
-    val cosmeticIds: List<String> = emptyList()
+    val cosmeticIds: List<String> = emptyList(),
+    val great: Int = 0,
+    val ultra: Int = 0,
+    val lures: Int = 0,
+    val freezes: Int = 0,
+    /** A stone's shop id (PokeAPI name), or null. */
+    val stone: String? = null,
 ) {
+    /** The items as (name, count) pairs for display, in a fixed order. */
+    fun extraLines(): List<Pair<Int, Int>> = buildList {
+        if (great > 0) add(R.string.item_great_ball to great)
+        if (ultra > 0) add(R.string.item_ultra_ball to ultra)
+        if (lures > 0) add(R.string.item_rare_lure to lures)
+        if (freezes > 0) add(R.string.rewards_freeze_title to freezes)
+        stone?.let { id -> ShopItems.find(id)?.let { add(it.name to 1) } }
+    }
+
     /** Every 5th level is a milestone: bigger payout, shown highlighted on the Level Path. */
     val isMilestone: Boolean get() = level % 5 == 0
 }
@@ -24,7 +44,20 @@ object LevelRewards {
     fun forLevel(level: Int): LevelReward? {
         if (level < 2) return null
         val cosmetics = Cosmetics.all.filter { it.levelUnlock == level }.map { it.id }
-        return LevelReward(level, coinsFor(level), cosmetics)
+        val milestone = level % 5 == 0
+        return LevelReward(
+            level = level,
+            coins = coinsFor(level),
+            cosmeticIds = cosmetics,
+            // Even levels pay Great Balls, milestones pay more and add Ultra Balls.
+            great = if (milestone) 3 else if (level % 2 == 0) 2 else 0,
+            ultra = if (!milestone) 0 else if (level >= 50) 5 else if (level >= 25) 3 else 2,
+            // A Rare Lure on every third ordinary level from 6, and a Streak Freeze every tenth level.
+            lures = if (!milestone && level >= 6 && level % 3 == 0) 1 else 0,
+            freezes = if (level % 10 == 0) 1 else 0,
+            // Every 25th level adds a different evolution stone.
+            stone = if (level % 25 == 0) ShopItems.stones[(level / 25 - 1) % ShopItems.stones.size].id else null,
+        )
     }
 
     /** Rewards for every level in (from, to], oldest first. Used for level-ups and for catching up existing players. */

@@ -299,7 +299,6 @@ private fun ShopTab(
         CosmeticKind.TITLE to R.string.rewards_section_titles,
         CosmeticKind.BACKDROP to R.string.rewards_section_backdrops,
         CosmeticKind.WIDGET to R.string.rewards_section_widgets,
-        CosmeticKind.THEME to R.string.rewards_section_themes,
     )
     val themeColors = remember { getStarterThemes().associate { it.theme.name to it.colors } }
 
@@ -411,16 +410,18 @@ private fun ItemsTab(
     }
 }
 
-/** The bag: its level, what it carries, and the next upgrade. */
+/** The bag: its level and the next upgrade. Tap it for what it does. */
 @Composable
 private fun BagCard(state: ProgressionState, canBuy: Boolean, onUpgrade: () -> Unit) {
     val price = BagRules.upgradePrice(state.bagLevel)
+    var info by remember { mutableStateOf(false) }
     Card(
+        onClick = { info = true },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(14.dp),
+            Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -433,71 +434,57 @@ private fun BagCard(state: ProgressionState, canBuy: Boolean, onUpgrade: () -> U
                     color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text(
-                    stringResource(R.string.rewards_bag_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
             Button(onClick = onUpgrade, enabled = canBuy && price != null && state.balance >= price) {
                 if (price == null) Text(stringResource(R.string.rewards_bag_max)) else CoinAmount(price)
             }
         }
     }
+    if (info) InfoDialog(stringResource(R.string.rewards_bag_title), stringResource(R.string.rewards_bag_desc)) { info = false }
 }
+
+/** The explanation of something, shown only when the player taps it, so the lists stay clean. */
+@Composable
+private fun InfoDialog(title: String, body: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(body) },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.battle_help_got_it)) } },
+    )
+}
+
+/** Every item card is the same size: icon, name, buy button. Tap it for the description and how many you hold. */
+private val ItemCardHeight = 176.dp
 
 @Composable
 private fun ItemCard(item: ShopItem, state: ProgressionState, canBuy: Boolean, onBuy: () -> Unit) {
     val held = state.held(item.id)
     val capacity = state.capacityOf(item)
     val full = item.isInventory && held + item.quantity > capacity
+    var info by remember { mutableStateOf(false) }
+    val name = stringResource(item.name) + if (item.quantity > 1) "  ×${item.quantity}" else ""
     Card(
+        onClick = { info = true },
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier.fillMaxWidth().height(ItemCardHeight),
     ) {
         Column(
-            Modifier.fillMaxWidth().padding(12.dp),
+            Modifier.fillMaxSize().padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
             // The real item sprite (or the drawn ball), never an emoji.
             ItemIcon(item, size = 56.dp)
             Text(
-                stringResource(item.name) + if (item.quantity > 1) "  ×${item.quantity}" else "",
+                name,
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
                 textAlign = TextAlign.Center,
-                maxLines = 2
-            )
-            Text(
-                if (item.shards > 0) stringResource(item.desc, item.shards)
-                else stringResource(item.desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
                 minLines = 2,
-                maxLines = 3
+                maxLines = 2,
             )
-            if (item.isInventory) {
-                Text(
-                    stringResource(R.string.rewards_item_held_cap, held, capacity),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
-                // Why the button is off, and what to do about it.
-                if (full) {
-                    Text(
-                        stringResource(
-                            if (state.bagLevel < BagRules.MAX_LEVEL && item.id != ShopItems.ID_MASTER_BALL) R.string.rewards_bag_full_hint
-                            else R.string.rewards_bag_full_max
-                        ),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFFFFB74D),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
             Button(
                 onClick = onBuy,
                 enabled = canBuy && !full && state.balance >= item.price,
@@ -505,27 +492,36 @@ private fun ItemCard(item: ShopItem, state: ProgressionState, canBuy: Boolean, o
             ) { if (full) Text(stringResource(R.string.rewards_item_full)) else CoinAmount(item.price) }
         }
     }
+    if (info) {
+        val desc = if (item.shards > 0) stringResource(item.desc, item.shards) else stringResource(item.desc)
+        val extra = if (!item.isInventory) "" else {
+            "\n\n" + stringResource(R.string.rewards_item_held_cap, held, capacity) + if (full) {
+                "\n" + stringResource(
+                    if (state.bagLevel < BagRules.MAX_LEVEL && item.id != ShopItems.ID_MASTER_BALL) R.string.rewards_bag_full_hint
+                    else R.string.rewards_bag_full_max
+                )
+            } else ""
+        }
+        InfoDialog(name, desc + extra) { info = false }
+    }
 }
 
 @Composable
 private fun FreezeCard(state: ProgressionState, canBuy: Boolean, onBuy: () -> Unit) {
+    var info by remember { mutableStateOf(false) }
     Card(
+        onClick = { info = true },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
-            Modifier.fillMaxWidth().padding(14.dp),
+            Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Icon(Icons.Default.AcUnit, contentDescription = null, tint = Color(0xFF4FC3F7), modifier = Modifier.size(32.dp))
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.rewards_freeze_title), fontWeight = FontWeight.Bold)
-                Text(
-                    stringResource(R.string.rewards_freeze_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
                 Text(
                     stringResource(R.string.rewards_freeze_held, state.freezes, CoinEconomy.FREEZE_MAX),
                     style = MaterialTheme.typography.labelMedium,
@@ -539,7 +535,11 @@ private fun FreezeCard(state: ProgressionState, canBuy: Boolean, onBuy: () -> Un
             ) { CoinAmount(CoinEconomy.FREEZE_PRICE) }
         }
     }
+    if (info) InfoDialog(stringResource(R.string.rewards_freeze_title), stringResource(R.string.rewards_freeze_desc)) { info = false }
 }
+
+/** Every cosmetic card is the same size: preview, name, then one action. */
+private val CosmeticCardHeight = 216.dp
 
 @Composable
 private fun CosmeticCard(
@@ -557,53 +557,56 @@ private fun CosmeticCard(
     Card(
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        border = if (equipped) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
+        border = if (equipped) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null,
+        modifier = Modifier.fillMaxWidth().height(CosmeticCardHeight),
     ) {
         Column(
-            Modifier.fillMaxWidth().padding(12.dp),
+            Modifier.fillMaxSize().padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Box(Modifier.heightIn(min = 64.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Box(Modifier.height(92.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CosmeticPreview(item, state, partner, themeColors)
             }
-            // A title's preview already is its name, so don't print it twice.
-            if (item.kind != CosmeticKind.TITLE) {
-                Text(
-                    stringResource(item.name),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    maxLines = 2
-                )
-            }
-            when {
-                equipped -> OutlinedButton(onClick = onUnequip, modifier = Modifier.fillMaxWidth()) {
-                    Icon(Icons.Default.Check, null, Modifier.size(16.dp))
-                    Spacer(Modifier.width(4.dp))
-                    Text(stringResource(R.string.rewards_equipped))
-                }
-                owned && item.kind == CosmeticKind.THEME -> Text(
-                    stringResource(R.string.rewards_owned),
-                    color = MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.SemiBold
-                )
-                owned -> Button(onClick = onEquip, modifier = Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.rewards_equip))
-                }
-                item.price != null -> Button(
-                    onClick = onBuy,
-                    enabled = canBuy && state.balance >= item.price,
-                    modifier = Modifier.fillMaxWidth()
-                ) { CoinAmount(item.price) }
-                else -> Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Lock, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        stringResource(R.string.rewards_level_locked, item.levelUnlock ?: 0),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            // A title's preview already is its name, so the line is left empty but keeps its room: all cards match.
+            Text(
+                if (item.kind == CosmeticKind.TITLE) "" else stringResource(item.name),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                minLines = 2,
+                maxLines = 2
+            )
+            Box(Modifier.height(40.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                when {
+                    equipped -> OutlinedButton(onClick = onUnequip, modifier = Modifier.fillMaxSize()) {
+                        Icon(Icons.Default.Check, null, Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text(stringResource(R.string.rewards_equipped))
+                    }
+                    owned && item.kind == CosmeticKind.THEME -> Text(
+                        stringResource(R.string.rewards_owned),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold
                     )
+                    owned -> Button(onClick = onEquip, modifier = Modifier.fillMaxSize()) {
+                        Text(stringResource(R.string.rewards_equip))
+                    }
+                    item.price != null -> Button(
+                        onClick = onBuy,
+                        enabled = canBuy && state.balance >= item.price,
+                        modifier = Modifier.fillMaxSize()
+                    ) { CoinAmount(item.price) }
+                    else -> Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Lock, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            if (item.fromChallenge) stringResource(R.string.rewards_challenge_locked) else stringResource(R.string.rewards_level_locked, item.levelUnlock ?: 0),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                        )
+                    }
                 }
             }
         }
@@ -675,10 +678,11 @@ private fun PathTab(state: ProgressionState, level: Int, hPad: androidx.compose.
                 border = if (reward.isMilestone) BorderStroke(1.dp, CoinGold.copy(alpha = 0.6f)) else null
             ) {
                 Row(
-                    Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = if (reward.isMilestone) 14.dp else 10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    Modifier.fillMaxWidth().padding(14.dp),
+                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
+                    // The level, as a badge: a check once it is behind you, the number until then.
                     Surface(
                         shape = CircleShape,
                         color = if (reached) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
@@ -692,24 +696,24 @@ private fun PathTab(state: ProgressionState, level: Int, hPad: androidx.compose.
                             )
                         }
                     }
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            stringResource(R.string.rewards_path_level, reward.level) +
-                                if (here) "  ·  " + stringResource(R.string.rewards_path_here) else "",
-                            fontWeight = FontWeight.Bold
-                        )
-                        reward.cosmeticIds.mapNotNull { Cosmetics.find(it) }.forEach { cosmetic ->
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                Icon(Icons.Default.CardGiftcard, contentDescription = null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                stringResource(R.string.rewards_path_level, reward.level),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold
+                            )
+                            if (here) {
                                 Text(
-                                    stringResource(cosmetic.name),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    stringResource(R.string.rewards_path_here).uppercase(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
+                        LevelRewardPills(reward)
                     }
-                    CoinAmount(reward.coins, color = CoinGold, prefix = "+")
                 }
             }
         }

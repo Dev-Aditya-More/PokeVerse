@@ -101,4 +101,53 @@ class ChallengeRulesTest {
         val counts = ChallengeRules.tierCounts(setOf(150, 1, 2, 3), mapOf(1 to CatchTier.COMMON, 2 to CatchTier.COMMON))
         assertEquals(mapOf(CatchTier.LEGENDARY to 1, CatchTier.COMMON to 2), counts)
     }
+
+    @Test
+    fun `every long-term cosmetic reward exists and can only come from a challenge`() {
+        val ids = ChallengeRules.milestones.mapNotNull { it.reward.cosmetic }
+        assertTrue(ids.isNotEmpty())
+        ids.forEach { id ->
+            val c = com.aditya1875.pokeverse.feature.progression.domain.Cosmetics.find(id)
+            assertTrue("$id missing", c != null && c.fromChallenge)
+        }
+        assertEquals(ids.size, ids.toSet().size)
+    }
+
+    @Test
+    fun `milestone ids are unique and rewards grow along each track`() {
+        val all = ChallengeRules.milestones
+        assertEquals(all.size, all.map { it.id }.toSet().size)
+        all.groupBy { it.track }.values.forEach { ladder ->
+            val sorted = ladder.sortedBy { it.target }
+            sorted.zipWithNext().forEach { (a, b) ->
+                assertTrue("${b.id} pays less than ${a.id}", b.reward.coins + b.reward.ultra * 40 >= a.reward.coins + a.reward.ultra * 40)
+            }
+        }
+    }
+
+    @Test
+    fun `a region goal asks only for non-legendary species and counts only those`() {
+        val kanto = ChallengeRules.milestones.first { it.id == "m:region_kanto" }
+        assertEquals(com.aditya1875.pokeverse.feature.challenges.domain.Region.KANTO.required.size, kanto.target)
+        assertTrue(kanto.target < 151) // Mewtwo, Mew and the birds are not asked for
+        val counts = ChallengeRules.regionCounts(setOf(1, 2, 150, 152))
+        assertEquals(2, counts[com.aditya1875.pokeverse.feature.challenges.domain.Region.KANTO])
+        assertEquals(1, counts[com.aditya1875.pokeverse.feature.challenges.domain.Region.JOHTO])
+    }
+
+    @Test
+    fun `lifetime goals read the whole-account counters`() {
+        val p = ChallengeProgress(lifetimeCatches = 120, bestStreakEver = 12, evolved = 6)
+        assertEquals(100, ChallengeRules.progressOf(ChallengeRules.milestones.first { it.id == "m:catch100" }, p))
+        assertEquals(10, ChallengeRules.progressOf(ChallengeRules.milestones.first { it.id == "m:streak10" }, p))
+        assertEquals(5, ChallengeRules.progressOf(ChallengeRules.milestones.first { it.id == "m:evo5" }, p))
+    }
+
+    @Test
+    fun `rewards add up and an empty one is empty`() {
+        val sum = BallReward(great = 1, coins = 100) + BallReward(ultra = 2, shards = 40, cosmetic = "title_kanto")
+        assertEquals(BallReward(1, 2, 100, 40, "title_kanto"), sum)
+        assertTrue(BallReward().isEmpty)
+        assertFalse(BallReward(coins = 1).isEmpty)
+    }
 }

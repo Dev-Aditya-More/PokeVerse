@@ -140,6 +140,20 @@ class LevelRewardsTest {
     }
 
     @Test
+    fun `levels pay items as well as coins`() {
+        assertEquals(2, LevelRewards.forLevel(2)!!.great)
+        assertEquals(0, LevelRewards.forLevel(3)!!.great)
+        val ten = LevelRewards.forLevel(10)!!
+        assertEquals(3, ten.great); assertEquals(2, ten.ultra); assertEquals(1, ten.freezes)
+        assertEquals(1, LevelRewards.forLevel(6)!!.lures)
+        assertEquals(0, LevelRewards.forLevel(3)!!.lures)
+        assertEquals("fire-stone", LevelRewards.forLevel(25)!!.stone)
+        assertEquals("water-stone", LevelRewards.forLevel(50)!!.stone)
+        // Every level from 2 on pays at least one thing besides coins, except the odd ordinary ones.
+        assertTrue((2..100).count { LevelRewards.forLevel(it)!!.extraLines().isEmpty() } < 40)
+    }
+
+    @Test
     fun `rewards keep coming past level 100`() {
         assertTrue(LevelRewards.forLevel(137)!!.coins > 0)
         assertTrue(LevelRewards.forLevel(150)!!.isMilestone)
@@ -160,9 +174,10 @@ class CosmeticCatalogueTest {
     }
 
     @Test
-    fun `every item is either bought or earned at a level, never both or neither`() {
+    fun `every item is exactly one of bought, earned at a level, or earned from a challenge`() {
         Cosmetics.all.forEach {
-            assertTrue("${it.id} needs a price xor a level", (it.price != null) != (it.levelUnlock != null))
+            val ways = listOf(it.price != null, it.levelUnlock != null, it.fromChallenge).count { w -> w }
+            assertEquals("${it.id} needs exactly one way to get it", 1, ways)
         }
     }
 

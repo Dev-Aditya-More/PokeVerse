@@ -41,7 +41,7 @@ import java.util.Locale
 
 private val Context.progressionStore: DataStore<Preferences> by preferencesDataStore("progression")
 
-/** A player's Poké Coin wallet, collection and equipped look. Account-tied: guests never earn, sign-out clears it. */
+/** A player's Dex Coin wallet, collection and equipped look. Account-tied: guests never earn, sign-out clears it. */
 data class ProgressionState(
     /** Lifetime coins earned. Only ever goes up, so merging two devices is just `max`. */
     val coinsEarned: Int = 0,
@@ -241,6 +241,19 @@ class ProgressionRepository(private val context: Context) {
             granted = LevelRewards.between(claimed, level)
             changed = true
             p[K.EARNED] = (p[K.EARNED] ?: 0) + granted.sumOf { it.coins }
+            fun addItem(id: String, n: Int) {
+                if (n > 0) p[K.bought(id)] = (p[K.bought(id)] ?: 0) + n
+            }
+            for (r in granted) {
+                addItem(ShopItems.ID_GREAT_BALL, r.great)
+                addItem(ShopItems.ID_ULTRA_BALL, r.ultra)
+                addItem(ShopItems.ID_LURE, r.lures)
+                r.stone?.let { addItem(it, 1) }
+                // A Streak Freeze only fits while the player holds fewer than the most they may.
+                if (r.freezes > 0 && (p[K.FREEZES_BOUGHT] ?: 0) - (p[K.FREEZES_USED] ?: 0) < CoinEconomy.FREEZE_MAX) {
+                    p[K.FREEZES_BOUGHT] = (p[K.FREEZES_BOUGHT] ?: 0) + 1
+                }
+            }
             val newIds = granted.flatMap { it.cosmeticIds }
             if (newIds.isNotEmpty()) p[K.OWNED] = (p[K.OWNED] ?: emptySet()) + newIds
             p[K.CLAIMED_LEVEL] = level
@@ -307,13 +320,24 @@ class ProgressionRepository(private val context: Context) {
      * crash cannot pay it again. Rewards are not held to the bag limit (a prize must never be lost to a full bag);
      * the limit only gates buying. Returns true only when this call paid.
      */
-    suspend fun claimChallenge(claimId: String, great: Int, ultra: Int, today: String = today()): Boolean {
+    suspend fun claimChallenge(
+        claimId: String,
+        great: Int,
+        ultra: Int,
+        today: String = today(),
+        /** Dex Coins paid by a long-term goal. */
+        coins: Int = 0,
+        /** A cosmetic id paid by a long-term goal (a title). */
+        cosmetic: String? = null,
+    ): Boolean {
         var paid = false
         ds.edit { p ->
             val claimed = p[K.CHALLENGES] ?: emptySet()
             if (claimId in claimed) return@edit
             if (great > 0) p[K.bought(ShopItems.ID_GREAT_BALL)] = (p[K.bought(ShopItems.ID_GREAT_BALL)] ?: 0) + great
             if (ultra > 0) p[K.bought(ShopItems.ID_ULTRA_BALL)] = (p[K.bought(ShopItems.ID_ULTRA_BALL)] ?: 0) + ultra
+            if (coins > 0) p[K.EARNED] = (p[K.EARNED] ?: 0) + coins
+            if (cosmetic != null && Cosmetics.find(cosmetic) != null) p[K.OWNED] = (p[K.OWNED] ?: emptySet()) + cosmetic
             p[K.CHALLENGES] = ChallengeRules.prune(claimed + claimId, today)
             paid = true
         }

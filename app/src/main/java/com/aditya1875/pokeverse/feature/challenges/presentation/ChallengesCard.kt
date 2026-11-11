@@ -50,9 +50,15 @@ import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.challenges.domain.BallReward
 import com.aditya1875.pokeverse.feature.challenges.domain.Challenge
+import com.aditya1875.pokeverse.feature.challenges.domain.ChallengeCategory
+import com.aditya1875.pokeverse.feature.progression.presentation.ChallengeRewardPills
 import com.aditya1875.pokeverse.feature.challenges.domain.ChallengeGoal
 import com.aditya1875.pokeverse.feature.challenges.domain.ChallengeRules
 import com.aditya1875.pokeverse.feature.challenges.domain.Difficulty
+import com.aditya1875.pokeverse.feature.challenges.domain.Region
+import com.aditya1875.pokeverse.feature.core.ui.components.CoinIcon
+import com.aditya1875.pokeverse.feature.core.ui.components.ShardGem
+import com.aditya1875.pokeverse.feature.progression.domain.Cosmetics
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.BallType
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.CatchTier
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.components.BallIcon
@@ -85,25 +91,24 @@ private fun Challenge.title(): String = when (goal) {
     ChallengeGoal.CATCH_STREAK -> stringResource(R.string.challenge_streak, target)
     ChallengeGoal.DEX_TOTAL -> stringResource(R.string.challenge_dex_total, target)
     ChallengeGoal.DEX_TIER -> stringResource(R.string.challenge_dex_tier, target, tierLabel(minTier))
-}
-
-/** The balls a reward pays, as drawn balls with a count: no emoji, and the same look as the games. */
-@Composable
-fun RewardChips(reward: BallReward, modifier: Modifier = Modifier) {
-    Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-        if (reward.great > 0) RewardChip(BallType.GREAT, reward.great)
-        if (reward.ultra > 0) RewardChip(BallType.ULTRA, reward.ultra)
-    }
+    ChallengeGoal.CATCH_TOTAL -> stringResource(R.string.challenge_catch_total, target)
+    ChallengeGoal.STREAK_EVER -> stringResource(R.string.challenge_streak_ever, target)
+    ChallengeGoal.EVOLVED -> stringResource(R.string.challenge_evolved, target)
+    ChallengeGoal.DEX_REGION -> stringResource(R.string.challenge_region, regionName(region))
 }
 
 @Composable
-private fun RewardChip(ball: BallType, count: Int) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        BallIcon(ball, 18.dp)
-        Spacer(Modifier.width(3.dp))
-        Text("x$count", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+private fun regionName(region: Region?): String = stringResource(
+    when (region) {
+        Region.KANTO, null -> R.string.region_kanto
+        Region.JOHTO -> R.string.region_johto
+        Region.HOENN -> R.string.region_hoenn
+        Region.SINNOH -> R.string.region_sinnoh
+        Region.UNOVA -> R.string.region_unova
+        Region.KALOS -> R.string.region_kalos
+        Region.ALOLA -> R.string.region_alola
     }
-}
+)
 
 /** The round button on Home that opens the challenges. A gold dot with the count shows when a reward is waiting. */
 @Composable
@@ -135,8 +140,9 @@ fun ChallengesFab(waiting: Int, onClick: () -> Unit, modifier: Modifier = Modifi
 }
 
 /**
- * Challenges as a bottom sheet that drags up to full screen: today's three, the all-done bonus, then the
- * long-term Pokédex goals. A ready reward is claimed here.
+ * Challenges as a bottom sheet that drags up to full screen, in sections: today's three (with the all-done
+ * bonus), then the long-term goals grouped by what they ask for. Every row has the same layout: what to do, how
+ * far along, and what it pays. A ready reward is claimed here.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,17 +159,15 @@ fun ChallengesSheet(
     ) {
         LazyColumn(
             contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            item {
+            item(key = "head") {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    BallIcon(BallType.ULTRA, 28.dp)
-                    Spacer(Modifier.width(10.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.challenges_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.challenges_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                         Text(
                             stringResource(R.string.challenges_today, ui.dailyDone, ui.daily.size),
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -172,115 +176,193 @@ fun ChallengesSheet(
                             onClick = onClaimAll,
                             colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color(0xFF3A2A00)),
                             contentPadding = PaddingValues(horizontal = 16.dp),
-                            modifier = Modifier.height(38.dp),
+                            modifier = Modifier.height(40.dp),
                         ) { Text(stringResource(R.string.challenges_claim_all, ui.waiting), fontWeight = FontWeight.Bold) }
                     }
                 }
             }
 
-            item { SectionLabel(stringResource(R.string.challenges_daily)) }
-            items(ui.daily, key = { it.challenge.id }) { row -> ChallengePanel(row, onClaim = { onClaim(row) }) }
+            // ── Today ──
+            item(key = "h_daily") { SectionHeader(stringResource(R.string.challenges_daily)) }
+            items(ui.daily, key = { it.challenge.id }) { row -> ChallengePanel(row, showDifficulty = true, onClaim = { onClaim(row) }) }
             if (ui.sweepReady || ui.sweepClaimed) {
-                item { SweepRow(claimed = ui.sweepClaimed, onClaim = onClaimSweep) }
+                item(key = "sweep") { SweepPanel(claimed = ui.sweepClaimed, onClaim = onClaimSweep) }
             }
 
-            item {
-                Column {
-                    SectionLabel(stringResource(R.string.challenges_goals))
-                    Text(
-                        stringResource(R.string.challenges_goals_hint),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+            // ── Long-term goals, one section per kind of goal ──
+            item(key = "h_long") {
+                SectionHeader(stringResource(R.string.challenges_goals), stringResource(R.string.challenges_goals_hint), topSpace = 14.dp)
+            }
+            ChallengeCategory.entries.forEach { category ->
+                val rows = ui.milestones.filter { it.challenge.category == category }
+                val totals = ui.milestoneTotals[category]
+                if (rows.isEmpty() && totals == null) return@forEach
+                item(key = "h_$category") {
+                    CategoryHeader(
+                        title = stringResource(category.titleRes()),
+                        done = totals?.first ?: 0,
+                        total = totals?.second ?: 0,
                     )
                 }
+                if (rows.isEmpty()) {
+                    item(key = "done_$category") {
+                        Text(
+                            stringResource(R.string.challenges_category_complete),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 4.dp),
+                        )
+                    }
+                }
+                items(rows, key = { it.challenge.id }) { row -> ChallengePanel(row, showDifficulty = false, onClaim = { onClaim(row) }) }
             }
-            items(ui.milestones, key = { it.challenge.id }) { row -> ChallengePanel(row, onClaim = { onClaim(row) }) }
         }
     }
 }
 
-@Composable
-private fun SectionLabel(text: String) {
-    Text(text, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+private fun ChallengeCategory.titleRes(): Int = when (this) {
+    ChallengeCategory.POKEDEX -> R.string.challenge_cat_pokedex
+    ChallengeCategory.COLLECTION -> R.string.challenge_cat_collection
+    ChallengeCategory.REGIONS -> R.string.challenge_cat_regions
+    ChallengeCategory.CATCHING -> R.string.challenge_cat_catching
+    ChallengeCategory.EVOLUTION -> R.string.challenge_cat_evolution
 }
 
-/** One challenge as its own raised panel, so the list reads as separate goals rather than a table. */
 @Composable
-private fun ChallengePanel(row: ChallengeRow, onClaim: () -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(14.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (row.claimed) 0.3f else 0.55f),
-        border = if (row.claimable) BorderStroke(1.5.dp, Gold.copy(alpha = 0.8f)) else null,
-        modifier = Modifier.fillMaxWidth(),
-    ) {
-        Box(Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) { ChallengeRowView(row, onClaim) }
+private fun SectionHeader(title: String, subtitle: String? = null, topSpace: androidx.compose.ui.unit.Dp = 6.dp) {
+    Column(Modifier.padding(top = topSpace)) {
+        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        if (subtitle != null) {
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
     }
 }
 
+/** A sub-heading inside the long-term section: the kind of goal, and how many of its goals are done. */
 @Composable
-private fun ChallengeRowView(row: ChallengeRow, onClaim: () -> Unit) {
-    val c = row.challenge
-    val color = c.difficulty.color()
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(8.dp).clip(CircleShape).background(color))
-        Spacer(Modifier.width(10.dp))
-        Column(Modifier.weight(1f)) {
+private fun CategoryHeader(title: String, done: Int, total: Int) {
+    Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            title,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.weight(1f),
+        )
+        if (total > 0) {
             Text(
-                c.title(),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
-            )
-            Spacer(Modifier.height(4.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                LinearProgressIndicator(
-                    progress = { if (c.target == 0) 0f else row.progress.toFloat() / c.target },
-                    color = color,
-                    trackColor = color.copy(alpha = 0.18f),
-                    modifier = Modifier.weight(1f).height(6.dp).clip(CircleShape),
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "${row.progress}/${c.target}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        Spacer(Modifier.width(10.dp))
-        when {
-            row.claimed -> Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.challenges_claimed), tint = color, modifier = Modifier.size(22.dp))
-            row.claimable -> TextButton(onClick = onClaim) {
-                Text(stringResource(R.string.challenges_claim), fontWeight = FontWeight.Bold, color = Gold)
-            }
-            else -> RewardChips(c.reward)
-        }
-    }
-}
-
-@Composable
-private fun SweepRow(claimed: Boolean, onClaim: () -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(Gold.copy(alpha = 0.14f))
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(stringResource(R.string.challenges_sweep), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-            Text(
-                stringResource(R.string.challenges_sweep_desc),
-                style = MaterialTheme.typography.labelSmall,
+                stringResource(R.string.challenges_category_done, done, total),
+                style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        if (claimed) {
-            Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.challenges_claimed), tint = Gold, modifier = Modifier.size(22.dp))
-        } else {
-            RewardChips(ChallengeRules.SWEEP_BONUS)
-            TextButton(onClick = onClaim) { Text(stringResource(R.string.challenges_claim), fontWeight = FontWeight.Bold, color = Gold) }
+    }
+}
+
+@Composable
+private fun Difficulty.label(): String = stringResource(
+    when (this) {
+        Difficulty.EASY -> R.string.challenge_diff_easy
+        Difficulty.MEDIUM -> R.string.challenge_diff_medium
+        Difficulty.HARD -> R.string.challenge_diff_hard
+        Difficulty.MILESTONE -> R.string.challenges_goals
+    }
+)
+
+/**
+ * One challenge as its own panel, always laid out the same way: [difficulty tag], the task, a progress bar with
+ * its count, then the reward pills. A claimable one gets a gold outline and a Claim button; a claimed one dims and
+ * shows a check instead of its reward.
+ */
+@Composable
+private fun ChallengePanel(row: ChallengeRow, showDifficulty: Boolean, onClaim: () -> Unit) {
+    val c = row.challenge
+    val color = c.difficulty.color()
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = if (row.claimed) 0.3f else 0.55f),
+        border = if (row.claimable) BorderStroke(1.5.dp, Gold.copy(alpha = 0.85f)) else null,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.Top) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    if (showDifficulty) {
+                        Text(
+                            c.difficulty.label().uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 1.sp,
+                            color = color,
+                        )
+                    }
+                    Text(c.title(), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
+                }
+                when {
+                    row.claimed -> Icon(
+                        Icons.Filled.Check, contentDescription = stringResource(R.string.challenges_claimed),
+                        tint = color, modifier = Modifier.size(24.dp),
+                    )
+                    row.claimable -> Button(
+                        onClick = onClaim,
+                        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color(0xFF3A2A00)),
+                        contentPadding = PaddingValues(horizontal = 14.dp),
+                        modifier = Modifier.height(36.dp),
+                    ) { Text(stringResource(R.string.challenges_claim), fontWeight = FontWeight.Bold) }
+                }
+            }
+            if (!row.claimed) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    LinearProgressIndicator(
+                        progress = { if (c.target == 0) 0f else row.progress.toFloat() / c.target },
+                        color = color,
+                        trackColor = color.copy(alpha = 0.18f),
+                        modifier = Modifier.weight(1f).height(8.dp).clip(CircleShape),
+                    )
+                    Spacer(Modifier.width(10.dp))
+                    Text(
+                        "${row.progress} / ${c.target}",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                ChallengeRewardPills(c.reward)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SweepPanel(claimed: Boolean, onClaim: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = Gold.copy(alpha = if (claimed) 0.08f else 0.14f),
+        border = if (!claimed) BorderStroke(1.5.dp, Gold.copy(alpha = 0.85f)) else null,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(stringResource(R.string.challenges_sweep), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.challenges_sweep_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (claimed) {
+                    Icon(Icons.Filled.Check, contentDescription = stringResource(R.string.challenges_claimed), tint = Gold, modifier = Modifier.size(24.dp))
+                } else {
+                    Button(
+                        onClick = onClaim,
+                        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color(0xFF3A2A00)),
+                        contentPadding = PaddingValues(horizontal = 14.dp),
+                        modifier = Modifier.height(36.dp),
+                    ) { Text(stringResource(R.string.challenges_claim), fontWeight = FontWeight.Bold) }
+                }
+            }
+            if (!claimed) ChallengeRewardPills(ChallengeRules.SWEEP_BONUS)
         }
     }
 }

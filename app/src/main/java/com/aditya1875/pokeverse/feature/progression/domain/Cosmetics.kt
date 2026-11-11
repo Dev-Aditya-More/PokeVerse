@@ -18,7 +18,9 @@ data class Cosmetic(
     @StringRes val name: Int,
     val price: Int? = null,
     val levelUnlock: Int? = null,
-    val themeName: String? = null
+    val themeName: String? = null,
+    /** True for items only a long-term challenge pays (no price, no level). */
+    val fromChallenge: Boolean = false,
 ) {
     val isShopItem: Boolean get() = price != null
 }
@@ -56,6 +58,20 @@ object Cosmetics {
         Cosmetic("title_bugcatcher", CosmeticKind.TITLE, R.string.cosmetic_title_bugcatcher, price = 100),
         Cosmetic("title_fan", CosmeticKind.TITLE, R.string.cosmetic_title_fan, price = 150),
         Cosmetic("title_challenger", CosmeticKind.TITLE, R.string.cosmetic_title_challenger, price = 200),
+        // Earned from the long-term Challenges; there is no other way to get them.
+        Cosmetic("title_collector", CosmeticKind.TITLE, R.string.cosmetic_title_collector, fromChallenge = true),
+        Cosmetic("title_hoarder", CosmeticKind.TITLE, R.string.cosmetic_title_hoarder, fromChallenge = true),
+        Cosmetic("title_untouchable", CosmeticKind.TITLE, R.string.cosmetic_title_untouchable, fromChallenge = true),
+        Cosmetic("title_evolutionist", CosmeticKind.TITLE, R.string.cosmetic_title_evolutionist, fromChallenge = true),
+        Cosmetic("title_apex", CosmeticKind.TITLE, R.string.cosmetic_title_apex, fromChallenge = true),
+        Cosmetic("title_dexcompleter", CosmeticKind.TITLE, R.string.cosmetic_title_dexcompleter, fromChallenge = true),
+        Cosmetic("title_kanto", CosmeticKind.TITLE, R.string.cosmetic_title_kanto, fromChallenge = true),
+        Cosmetic("title_johto", CosmeticKind.TITLE, R.string.cosmetic_title_johto, fromChallenge = true),
+        Cosmetic("title_hoenn", CosmeticKind.TITLE, R.string.cosmetic_title_hoenn, fromChallenge = true),
+        Cosmetic("title_sinnoh", CosmeticKind.TITLE, R.string.cosmetic_title_sinnoh, fromChallenge = true),
+        Cosmetic("title_unova", CosmeticKind.TITLE, R.string.cosmetic_title_unova, fromChallenge = true),
+        Cosmetic("title_kalos", CosmeticKind.TITLE, R.string.cosmetic_title_kalos, fromChallenge = true),
+        Cosmetic("title_alola", CosmeticKind.TITLE, R.string.cosmetic_title_alola, fromChallenge = true),
 
         // ── Profile backdrops. All dark on purpose: every partner's colours stay readable on them. ──
         Cosmetic("backdrop_twilight", CosmeticKind.BACKDROP, R.string.cosmetic_backdrop_twilight, levelUnlock = 15),
@@ -64,6 +80,9 @@ object Cosmetics {
         Cosmetic("backdrop_night", CosmeticKind.BACKDROP, R.string.cosmetic_backdrop_night, price = 200),
         Cosmetic("backdrop_deepsea", CosmeticKind.BACKDROP, R.string.cosmetic_backdrop_deepsea, price = 250),
         Cosmetic("backdrop_forge", CosmeticKind.BACKDROP, R.string.cosmetic_backdrop_forge, price = 250),
+        // These two finish the element sets: Forge/Flame, Deep Sea/Tide, Verdant/Leaf, Stormfront/Volt.
+        Cosmetic("backdrop_verdant", CosmeticKind.BACKDROP, R.string.cosmetic_backdrop_verdant, price = 250),
+        Cosmetic("backdrop_storm", CosmeticKind.BACKDROP, R.string.cosmetic_backdrop_storm, price = 250),
 
         // ── Streak widget looks ──────────────────────────────────────────────
         Cosmetic("widget_royal", CosmeticKind.WIDGET, R.string.cosmetic_widget_royal, levelUnlock = 25),

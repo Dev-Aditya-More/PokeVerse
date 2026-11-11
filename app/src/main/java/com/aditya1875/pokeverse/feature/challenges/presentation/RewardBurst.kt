@@ -37,6 +37,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.challenges.domain.BallReward
+import com.aditya1875.pokeverse.feature.progression.domain.Cosmetics
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.BallType
 import com.aditya1875.pokeverse.feature.game.wildcatch.presentation.components.BallIcon
 import com.aditya1875.pokeverse.utils.Haptics
@@ -178,6 +179,26 @@ fun RewardBurst(reward: BallReward, onDone: () -> Unit) {
                                 modifier = Modifier.graphicsLayer { alpha = ballPop[i].value.coerceIn(0f, 1f) },
                             )
                         }
+                    }
+                }
+                // Long-term goals also pay coins, shards and a title: one line each, fading in with the heading.
+                val extras = buildList {
+                    if (reward.coins > 0) add(stringResource(R.string.challenge_reward_coins, reward.coins))
+                    if (reward.shards > 0) add(stringResource(R.string.challenge_reward_shards, reward.shards))
+                    reward.cosmetic?.let { id ->
+                        Cosmetics.find(id)?.let { add(stringResource(R.string.challenge_reward_title, stringResource(it.name))) }
+                    }
+                }
+                if (extras.isNotEmpty()) {
+                    Spacer(Modifier.height(18.dp))
+                    extras.forEach { line ->
+                        Text(
+                            line,
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.graphicsLayer { alpha = title.value.coerceIn(0f, 1f) },
+                        )
                     }
                 }
             }

@@ -34,8 +34,9 @@ private data class FrameStyle(val colors: List<Color>, val animated: Boolean = f
 private val Gold = Color(0xFFFFC24B)
 
 private fun frameStyle(id: String): FrameStyle? = when (id) {
-    "frame_pokeball" -> FrameStyle(listOf(Color(0xFFE53935), Color(0xFFE53935), Color.White, Color.White, Color(0xFFE53935)))
-    "frame_ultra" -> FrameStyle(listOf(Color(0xFFFFD54F), Color(0xFF212121), Color(0xFFFFD54F), Color(0xFF212121), Color(0xFFFFD54F)))
+    // Level frames are tone-on-tone (one hue, light and dark), so they sit with any backdrop instead of fighting it.
+    "frame_pokeball" -> FrameStyle(listOf(Color(0xFFE53935), Color(0xFFFFCDD2), Color(0xFFE53935), Color(0xFFFFCDD2), Color(0xFFE53935)))
+    "frame_ultra" -> FrameStyle(listOf(Color(0xFFFFD54F), Color(0xFFFFF3C4), Color(0xFFFFB300), Color(0xFFFFF3C4), Color(0xFFFFD54F)))
     "frame_master" -> FrameStyle(listOf(Color(0xFFAB47BC), Color(0xFFE040FB), Color(0xFF7C4DFF), Color(0xFFE040FB), Color(0xFFAB47BC)), animated = true)
     "frame_legend" -> FrameStyle(listOf(Gold, Color(0xFFFFF3C4), Color(0xFF4DD0E1), Color(0xFFFFF3C4), Gold), animated = true)
     "frame_mythic" -> FrameStyle(
@@ -93,8 +94,31 @@ internal fun backdropColors(id: String): List<Color>? = when (id) {
     "backdrop_night" -> listOf(Color(0xFF0A1128), Color(0xFF14264F), Color(0xFF1C3A6B))
     "backdrop_deepsea" -> listOf(Color(0xFF031C2B), Color(0xFF05475E), Color(0xFF0A6C80))
     "backdrop_forge" -> listOf(Color(0xFF1A0A06), Color(0xFF4A1508), Color(0xFF8A2B0C))
+    "backdrop_verdant" -> listOf(Color(0xFF04180C), Color(0xFF0E3B1E), Color(0xFF1F6B34))
+    "backdrop_storm" -> listOf(Color(0xFF0B0C1F), Color(0xFF23265A), Color(0xFF55501A))
     else -> null
 }
+
+/**
+ * The one colour a cosmetic belongs to. Frames and backdrops of the same element share it (Flame and Forge,
+ * Tide and Deep Sea, Leaf and Verdant, Volt and Stormfront), and the title chip takes it from whichever is
+ * equipped, so the pieces of a look read as one set. Null for the rainbow Mythic frame and the plain card.
+ */
+private fun familyAccent(id: String): Color? = when (id) {
+    "frame_flame", "backdrop_forge" -> Color(0xFFFF8A50)
+    "frame_tide", "backdrop_deepsea" -> Color(0xFF4FC3F7)
+    "frame_leaf", "backdrop_verdant" -> Color(0xFF81C784)
+    "frame_volt", "backdrop_storm" -> Color(0xFFFFE066)
+    "frame_master", "backdrop_cosmos", "backdrop_twilight" -> Color(0xFFCE93D8)
+    "frame_legend", "frame_shiny", "frame_ultra" -> Gold
+    "frame_pokeball" -> Color(0xFFEF9A9A)
+    "backdrop_aurora" -> Color(0xFF4DD0E1)
+    "backdrop_night" -> Color(0xFF90CAF9)
+    else -> null
+}
+
+/** The accent of what a player wears: their frame's if it has one, otherwise their backdrop's. */
+fun cosmeticAccent(frameId: String, backdropId: String): Color? = familyAccent(frameId) ?: familyAccent(backdropId)
 
 /** Gradient behind the profile header for the equipped backdrop, or null for the plain card. */
 fun backdropBrush(id: String): Brush? = backdropColors(id)?.let { Brush.linearGradient(it) }
@@ -110,10 +134,11 @@ fun widgetAccentArgb(id: String): Long? = when (id) {
 
 /** Title as a small pill. Level-earned titles read gold; bought ones use the theme colour. */
 @Composable
-fun TitleChip(titleId: String, modifier: Modifier = Modifier) {
+fun TitleChip(titleId: String, modifier: Modifier = Modifier, accent: Color? = null) {
     val cosmetic = Cosmetics.find(titleId) ?: return
-    val earned = cosmetic.levelUnlock != null
-    val tint = if (earned) Gold else MaterialTheme.colorScheme.primary
+    val earned = cosmetic.levelUnlock != null || cosmetic.fromChallenge
+    // Matches the equipped frame or backdrop when there is one; otherwise gold for earned titles.
+    val tint = accent ?: if (earned) Gold else MaterialTheme.colorScheme.primary
     Surface(
         shape = RoundedCornerShape(50),
         color = tint.copy(alpha = 0.16f),
