@@ -307,6 +307,12 @@ service cloud.firestore {
       }
     }
 
+    // ── announcements: published by the developer from the console, read-only for the app ──
+    match /announcements/{announcementId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
     // ── user_messages/{uid}/inbox: written by Cloud Functions ────────────────
     // The app only marks messages read; it can't plant or edit messages.
     match /user_messages/{userId}/inbox/{messageId} {

@@ -22,8 +22,19 @@ class InboxViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
+    /** An announcement to show once as a dialog (on Home), or null. */
+    private val _popup = MutableStateFlow<UserMessage?>(null)
+    val popup: StateFlow<UserMessage?> = _popup.asStateFlow()
+
     init {
         loadMessages()
+    }
+
+    fun dismissPopup() {
+        val shown = _popup.value ?: return
+        _popup.value = null
+        repository.markPopupShown(shown.id)
+        markAsRead(shown.id)
     }
 
     fun loadMessages() {
@@ -33,6 +44,7 @@ class InboxViewModel(
                 val msgs = repository.getMessages()
                 _messages.value = msgs
                 _unreadCount.value = msgs.count { !it.isRead }
+                _popup.value = repository.pendingPopup()
             } finally {
                 _isLoading.value = false
             }

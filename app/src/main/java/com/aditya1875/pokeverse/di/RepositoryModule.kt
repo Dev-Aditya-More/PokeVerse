@@ -54,7 +54,7 @@ val repositoryModule = module {
 
     single { LeaderboardRepository() }
 
-    single { InboxRepository() }
+    single { InboxRepository(androidContext()) }
 
     // TODO(friends): re-add when the feature ships
     // single { FriendsRepository() }
