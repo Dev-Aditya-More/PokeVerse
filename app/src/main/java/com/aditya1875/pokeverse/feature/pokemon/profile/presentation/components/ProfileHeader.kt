@@ -278,7 +278,7 @@ fun ProfileHeader(
             }
 
             if (progression.title.isNotEmpty()) {
-                TitleChip(progression.title)
+                TitleChip(progression.title, accent = com.aditya1875.pokeverse.feature.progression.presentation.cosmeticAccent(progression.frame, progression.backdrop))
             }
 
             if (!profile.isGuest) {

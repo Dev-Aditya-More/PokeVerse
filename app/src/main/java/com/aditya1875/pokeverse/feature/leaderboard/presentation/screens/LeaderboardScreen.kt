@@ -157,8 +157,8 @@ fun LeaderboardScreen(
     inboxViewModel: InboxViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    // Partners are official artwork, so they show only when Original Assets is on (like the profile).
-    val partnerArt = true
+    // Partner ("buddy") art is switched off on the leaderboard for now; flip this back to bring it back.
+    val partnerArt = false
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val pullState = rememberPullToRefreshState()
     val authState by profileViewModel.authState.collectAsStateWithLifecycle()
@@ -697,7 +697,7 @@ private fun PodiumColumn(
                 .widthIn(max = 96.dp)
                 .then(if (entry.isPremium) Modifier.premiumNameShimmer() else Modifier)
         )
-        if (entry.title.isNotEmpty()) TitleChip(entry.title, Modifier.padding(top = 2.dp))
+        if (entry.title.isNotEmpty()) TitleChip(entry.title, Modifier.padding(top = 2.dp), accent = com.aditya1875.pokeverse.feature.progression.presentation.cosmeticAccent(entry.frame, entry.backdrop))
         if (entry.isPremium || isUser) {
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(vertical = 2.dp)) {
                 if (entry.isPremium) ProChip(onClick = { onProTap(entry) })
@@ -818,7 +818,7 @@ private fun LeaderboardRow(
                     YouTag()
                 }
             }
-            if (entry.title.isNotEmpty()) TitleChip(entry.title, Modifier.padding(vertical = 2.dp))
+            if (entry.title.isNotEmpty()) TitleChip(entry.title, Modifier.padding(vertical = 2.dp), accent = com.aditya1875.pokeverse.feature.progression.presentation.cosmeticAccent(entry.frame, entry.backdrop))
             // Wraps onto a second line on a narrow phone instead of squeezing a pill to nothing.
             @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
             androidx.compose.foundation.layout.FlowRow(
