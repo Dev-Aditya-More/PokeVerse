@@ -1233,7 +1233,7 @@
     <string name="pro_tour_dex">ये है तुम्हारा Pokédex! जो भी Pokémon तुम खोलते हो वो seen mark हो जाता है, और जिन्हें पकड़ते हो वो भर जाते हैं। %1$s तुम्हारी पहली entry बन चुका है!</string>
     <string name="pro_tour_games">Break चाहिए? Mini games में खूब मज़ा है: silhouette पहचानो, quiz में कमाल करो, cards match करो, और Team Rocket से बचकर भी दिखाओ।</string>
     <string name="pro_tour_rank">हर game से XP मिलता है। Level up करो, leaderboard पर चढ़ो, और दुनिया को दिखाओ कि %1$s कैसा trainer है!</string>
-    <string name="pro_tour_style">इसे अपना बनाओ! Themes unlock करो, Poké Coins जमा करो, और अपनी daily streak जलती रखो।</string>
+    <string name="pro_tour_style">इसे अपना बनाओ! Themes unlock करो, Dex Coins जमा करो, और अपनी daily streak जलती रखो।</string>
     <string name="pro_tour_seen">देखे</string>
     <string name="pro_tour_caught">पकड़े</string>
     <string name="pro_ask_notify">आख़िरी बात! जब तुम्हारी streak ख़तरे में हो या कुछ नया आए, तो क्या मैं तुम्हें एक छोटा message भेजूँ?</string>
@@ -1321,7 +1321,7 @@
     <string name="dex_daily_with_hints">हिंट के साथ</string>
     <string name="xp_dex_daily">Dex Daily</string>
 
-    <!-- Poké Coins, shop and level rewards -->
+    <!-- Dex Coins, shop and level rewards -->
     <string name="cosmetic_frame_pokeball">पोके बॉल फ्रेम</string>
     <string name="cosmetic_frame_ultra">अल्ट्रा फ्रेम</string>
     <string name="cosmetic_frame_master">मास्टर फ्रेम</string>
@@ -1381,8 +1381,8 @@
     <string name="rewards_entry_title">रिवॉर्ड्स और शॉप</string>
     <string name="rewards_entry_subtitle">पोके कॉइन्स से फ्रेम, बैकड्रॉप और टाइटल पाएँ</string>
     <string name="rewards_new_count">%1$d नया</string>
-    <string name="xp_note_coins">🪙 +%1$d</string>
-    <string name="xp_note_streak_milestone">🏆 %1$d-दिन की स्ट्रीक! +%2$d 🪙</string>
+    <string name="xp_note_coins">+%1$d Dex Coins</string>
+    <string name="xp_note_streak_milestone">%1$d-दिन की streak! +%2$d Dex Coins</string>
     <string name="xp_note_streak_saved">🛡️ फ्रीज़ ने स्ट्रीक बचा ली</string>
     <string name="levelup_rewards_title">रिवॉर्ड्स अनलॉक</string>
     <string name="levelup_reward_coins">+%1$d पोके कॉइन्स</string>
@@ -1403,7 +1403,7 @@
     <string name="guide_row_games">एक गेम पूरा करें (रोज़ के पहले %1$d)</string>
     <string name="guide_section_streak">स्ट्रीक बोनस</string>
     <string name="guide_streak_days">%1$d-दिन की स्ट्रीक</string>
-    <string name="guide_amount">+%1$d 🪙</string>
+    <string name="guide_amount">+%1$d Dex Coins</string>
     <string name="guide_section_levels">लेवल बढ़ाएँ</string>
     <string name="guide_levels_body">हर नए लेवल पर कॉइन्स मिलते हैं, और हर 5वें लेवल पर ज़्यादा कॉइन्स और पहनने के लिए कुछ नया अनलॉक होता है। आगे क्या है, यह लेवल पाथ टैब में देखें।</string>
     <string name="guide_section_tips">ज़रूरी बातें</string>
@@ -1412,7 +1412,7 @@
     <string name="guide_tip_guest">कॉइन्स कमाने के लिए साइन इन करें। गेस्ट उन्हें जमा नहीं कर सकते।</string>
     <string name="guide_got_it">समझ गया</string>
     <string name="coach_unlimited">Pro के साथ unlimited</string>
-    <string name="coins_intro_title">Poké Coins आ गए हैं!</string>
+    <string name="coins_intro_title">Dex Coins आ गए हैं!</string>
     <string name="coins_intro_earn">हर दिन coins कमाओ: login करो, games खेलो, Dex Daily solve करो और streak बचाकर रखो।</string>
     <string name="coins_intro_weekly">हर Monday leaderboard से coins मिलते हैं। जिसने भी खेला उसे %1$d, top 10 को %2$d, top 3 को %3$d, और #1 को %4$d coins।</string>
     <string name="coins_intro_levels">Level up करो और बड़े rewards के साथ frames, titles और backdrops unlock करो।</string>
@@ -1423,8 +1423,8 @@
     <string name="weekly_reward_title_podium">तुम podium पर पहुँचे! 🏆</string>
     <string name="weekly_reward_title_top10">Top 10 में आए! ⭐</string>
     <string name="weekly_reward_title_played">पिछले हफ़्ते खेलने के लिए धन्यवाद!</string>
-    <string name="weekly_reward_body">तुम पिछले हफ़्ते #%1$d रहे और %2$d Poké Coins कमाए।</string>
-    <string name="weekly_reward_body_played">पिछले हफ़्ते खेलने पर तुमने %1$d Poké Coins कमाए। और ऊपर चढ़ो, और कमाओ!</string>
+    <string name="weekly_reward_body">तुम पिछले हफ़्ते #%1$d रहे और %2$d Dex Coins कमाए।</string>
+    <string name="weekly_reward_body_played">पिछले हफ़्ते खेलने पर तुमने %1$d Dex Coins कमाए। और ऊपर चढ़ो, और कमाओ!</string>
     <string name="weekly_reward_nice">बढ़िया!</string>
     <string name="guide_section_weekly">Weekly leaderboard prizes</string>
     <string name="guide_weekly_1">#1 पर खत्म करो</string>
@@ -1438,7 +1438,7 @@
     <string name="cosmetic_title_regionhero">रीजन हीरो</string>
     <string name="cosmetic_title_halloffame">हॉल ऑफ़ फ़ेमर</string>
     <string name="cosmetic_title_dexmaster">डेक्स मास्टर</string>
-    <string name="weekly_reward_amount">+%1$d Poké Coins</string>
+    <string name="weekly_reward_amount">+%1$d Dex Coins</string>
     <string name="load_error_offline_title">तुम offline हो</string>
     <string name="load_error_offline_body">अपना connection check करो। online आते ही हम अपने-आप दोबारा try करेंगे।</string>
     <string name="load_error_timeout_title">बहुत देर लग गई</string>
@@ -1482,6 +1482,12 @@
     <string name="battle_log_immune">कोई असर नहीं हुआ…</string>
     <string name="battle_log_crit">Critical hit!</string>
     <string name="battle_log_guard">%1$s impact के लिए तैयार है।</string>
+    <string name="battle_log_tera">%1$s ने %2$s type में Terastallize किया!</string>
+    <string name="battle_tera_button">Terastallize → %1$s</string>
+    <string name="battle_tera_armed">Tera तैयार: इस turn %1$s moves</string>
+    <string name="battle_tera_used">Tera इस्तेमाल हो चुका</string>
+    <string name="battle_tera_badge">TERA</string>
+    <string name="battle_help_tera">सिर्फ़ online, हर battle में एक बार: आपका Pokémon अपने Tera type में बदल जाता है और उसके attacks भी बदल जाते हैं।</string>
     <string name="battle_log_switch">%1$s मैदान में आया!</string>
     <string name="battle_log_faint">%1$s बेहोश हो गया!</string>
     <string name="battle_log_energy">%1$s की energy full है!</string>
@@ -1740,6 +1746,7 @@
     <string name="wildcatch_zone_excellent">बेहतरीन</string>
     <string name="wildcatch_details_run">मुकाबला #%1$d · %2$d पकड़े</string>
     <string name="wildcatch_run_left">%1$d मुफ़्त बचे</string>
+    <string name="wildcatch_run_today">आज %1$d बचे</string>
     <string name="wildcatch_run_ad">विज्ञापन देखें</string>
 
     <!-- Team building and the Legendary limit -->
@@ -1778,8 +1785,8 @@
     <string name="challenges_claim">लो</string>
     <string name="challenges_claim_all">%1$d लो</string>
     <string name="challenges_claimed">ले लिया</string>
-    <string name="challenges_goals">Pokédex लक्ष्य</string>
-    <string name="challenges_goals_hint">लंबे लक्ष्य। इनमें अलग-अलग Pokémon चाहिए, इसलिए Common और Rare भी Legendary जितने ही गिने जाते हैं।</string>
+    <string name="challenges_goals">लंबे समय के लक्ष्य</string>
+    <string name="challenges_goals_hint">लंबे समय के लक्ष्य। हर एक Dex Coins, Evo Shards या title देता है, और किसी में Legendary की ज़रूरत नहीं।</string>
     <string name="challenges_sweep">आज सब पूरा</string>
     <string name="challenges_sweep_desc">तीनों पूरे करो और बोनस पाओ।</string>
     <string name="challenges_got_great">Great Ball x%1$d</string>
@@ -1793,4 +1800,47 @@
     <string name="dex_complete_pct">%1$d%% पूरा</string>
     <string name="challenges_daily">आज</string>
     <string name="challenges_reward_title">इनाम!</string>
+    <string name="cosmetic_title_collector">Collector</string>
+    <string name="cosmetic_title_hoarder">Hoarder</string>
+    <string name="cosmetic_title_untouchable">Untouchable</string>
+    <string name="cosmetic_title_evolutionist">Evolutionist</string>
+    <string name="cosmetic_title_apex">Apex Hunter</string>
+    <string name="cosmetic_title_dexcompleter">Dex Completer</string>
+    <string name="cosmetic_title_kanto">Kanto Master</string>
+    <string name="cosmetic_title_johto">Johto Master</string>
+    <string name="cosmetic_title_hoenn">Hoenn Master</string>
+    <string name="cosmetic_title_sinnoh">Sinnoh Master</string>
+    <string name="cosmetic_title_unova">Unova Master</string>
+    <string name="cosmetic_title_kalos">Kalos Master</string>
+    <string name="cosmetic_title_alola">Alola Master</string>
+    <string name="cosmetic_backdrop_verdant">Verdant</string>
+    <string name="cosmetic_backdrop_storm">Stormfront</string>
+    <string name="region_kanto">Kanto</string>
+    <string name="region_johto">Johto</string>
+    <string name="region_hoenn">Hoenn</string>
+    <string name="region_sinnoh">Sinnoh</string>
+    <string name="region_unova">Unova</string>
+    <string name="region_kalos">Kalos</string>
+    <string name="region_alola">Alola</string>
+    <string name="challenge_catch_total">कुल %1$d Pokémon पकड़ो</string>
+    <string name="challenge_streak_ever">एक ही run में लगातार %1$d पकड़ो</string>
+    <string name="challenge_evolved">%1$d Pokémon evolve करो</string>
+    <string name="challenge_region">%1$s के सभी non-Legendary Pokémon पकड़ो</string>
+    <string name="challenge_reward_coins">+%1$d Dex Coins</string>
+    <string name="challenge_reward_shards">+%1$d Evo Shards</string>
+    <string name="challenge_reward_title">नया title: %1$s</string>
+    <string name="rewards_challenge_locked">Challenges से मिलता है</string>
+    <string name="battle_online_err_size">इस room में %1$d Pokémon चाहिए। अपनी team उसी के हिसाब से बदलें।</string>
+    <string name="battle_online_format_ready">Quick match %1$d बनाम %1$d है, यानी दोनों तरफ़ बराबर Pokémon होते हैं।</string>
+    <string name="battle_online_format_need">Quick match %1$d बनाम %1$d है। ठीक %1$d Pokémon चुनें (%2$d चुने)।</string>
+    <string name="challenge_cat_pokedex">Pokédex</string>
+    <string name="challenge_cat_collection">Rarity collections</string>
+    <string name="challenge_cat_regions">Regions</string>
+    <string name="challenge_cat_catching">Catching</string>
+    <string name="challenge_cat_evolution">Evolution</string>
+    <string name="challenges_category_done">%1$d में से %2$d पूरे</string>
+    <string name="challenges_category_complete">इस section के सभी लक्ष्य पूरे हो चुके हैं।</string>
+    <string name="challenge_diff_easy">आसान</string>
+    <string name="challenge_diff_medium">मध्यम</string>
+    <string name="challenge_diff_hard">कठिन</string>
 </resources>

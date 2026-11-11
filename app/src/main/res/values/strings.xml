@@ -1247,7 +1247,7 @@
     <string name="pro_tour_dex">This is your Pokédex! Every Pokémon you open is marked as seen, and the ones you catch fill in. %1$s is already your first entry!</string>
     <string name="pro_tour_games">Need a break? The mini games are packed with fun: guess the silhouette, ace the quizzes, match cards, even outrun Team Rocket.</string>
     <string name="pro_tour_rank">Every game earns XP. Level up, climb the leaderboard, and show the world what kind of trainer %1$s is!</string>
-    <string name="pro_tour_style">Make it yours! Unlock themes, collect Poké Coins, and keep your daily streak burning.</string>
+    <string name="pro_tour_style">Make it yours! Unlock themes, collect Dex Coins, and keep your daily streak burning.</string>
     <string name="pro_tour_seen">Seen</string>
     <string name="pro_tour_caught">Caught</string>
     <string name="pro_ask_notify">One last thing! Shall I send you a quick message when your streak is in danger or something new arrives?</string>
@@ -1335,7 +1335,7 @@
     <string name="dex_daily_with_hints">With hints</string>
     <string name="xp_dex_daily">Dex Daily</string>
 
-    <!-- Poké Coins, shop and level rewards -->
+    <!-- Dex Coins, shop and level rewards -->
     <string name="cosmetic_frame_pokeball">Poké Ball Frame</string>
     <string name="cosmetic_frame_ultra">Ultra Frame</string>
     <string name="cosmetic_frame_master">Master Frame</string>
@@ -1368,7 +1368,7 @@
     <string name="rewards_title">Rewards</string>
     <string name="rewards_tab_shop">Shop</string>
     <string name="rewards_tab_path">Level path</string>
-    <string name="rewards_guest_banner">Sign in to earn Poké Coins and unlock rewards as you level up.</string>
+    <string name="rewards_guest_banner">Sign in to earn Dex Coins and unlock rewards as you level up.</string>
     <string name="rewards_freeze_title">Streak Freeze</string>
     <string name="rewards_freeze_desc">Saves your streak if you miss a day. Used automatically.</string>
     <string name="rewards_freeze_held">%1$d / %2$d held</string>
@@ -1384,29 +1384,29 @@
     <string name="rewards_section_widgets">Widget looks</string>
     <string name="rewards_section_themes">Themes</string>
     <string name="rewards_confirm_title">Buy %1$s?</string>
-    <string name="rewards_confirm_body">This costs %1$d Poké Coins. You have %2$d.</string>
+    <string name="rewards_confirm_body">This costs %1$d Dex Coins. You have %2$d.</string>
     <string name="rewards_msg_bought">%1$s unlocked and equipped!</string>
     <string name="rewards_msg_bought_theme">%1$s unlocked. Apply it from Themes.</string>
     <string name="rewards_msg_freeze_bought">Streak Freeze added!</string>
     <string name="rewards_msg_freeze_full">You\'re already holding the maximum.</string>
-    <string name="rewards_msg_not_enough">Not enough Poké Coins yet.</string>
+    <string name="rewards_msg_not_enough">Not enough Dex Coins yet.</string>
     <string name="rewards_path_level">Level %1$d</string>
     <string name="rewards_path_here">You are here</string>
     <string name="rewards_entry_title">Rewards &amp; Shop</string>
-    <string name="rewards_entry_subtitle">Spend Poké Coins on frames, backdrops and titles</string>
+    <string name="rewards_entry_subtitle">Spend Dex Coins on frames, backdrops and titles</string>
     <string name="rewards_new_count">%1$d new</string>
-    <string name="xp_note_coins">🪙 +%1$d</string>
-    <string name="xp_note_streak_milestone">🏆 %1$d-day streak! +%2$d 🪙</string>
+    <string name="xp_note_coins">+%1$d Dex Coins</string>
+    <string name="xp_note_streak_milestone">%1$d-day streak! +%2$d Dex Coins</string>
     <string name="xp_note_streak_saved">🛡️ Streak saved by a Freeze</string>
     <string name="levelup_rewards_title">Rewards unlocked</string>
-    <string name="levelup_reward_coins">+%1$d Poké Coins</string>
+    <string name="levelup_reward_coins">+%1$d Dex Coins</string>
     <string name="levelup_reward_item">Unlocked: %1$s</string>
-    <string name="theme_unlock_with_coins">Or unlock selected themes with Poké Coins</string>
+    <string name="theme_unlock_with_coins">Or unlock selected themes with Dex Coins</string>
     <string name="cosmetic_backdrop_twilight">Twilight</string>
     <string name="cosmetic_backdrop_night">Night Sky</string>
     <string name="cosmetic_backdrop_deepsea">Deep Sea</string>
     <string name="cosmetic_backdrop_forge">Forge</string>
-    <string name="guide_title">How to earn Poké Coins</string>
+    <string name="guide_title">How to earn Dex Coins</string>
     <string name="guide_intro">Coins come from showing up and finishing things, never from grinding answers. They only buy looks, so they never change your XP, level or rank.</string>
     <string name="guide_section_daily">Every day</string>
     <string name="guide_row_login">Open Dexverse (daily check-in)</string>
@@ -1417,7 +1417,7 @@
     <string name="guide_row_games">Finish a game (first %1$d each day)</string>
     <string name="guide_section_streak">Streak bonuses</string>
     <string name="guide_streak_days">%1$d-day streak</string>
-    <string name="guide_amount">+%1$d 🪙</string>
+    <string name="guide_amount">+%1$d Dex Coins</string>
     <string name="guide_section_levels">Level up</string>
     <string name="guide_levels_body">Every new level pays coins, and every 5th level pays more and unlocks something to wear. Check the Level path tab to see what\'s next.</string>
     <string name="guide_section_tips">Good to know</string>
@@ -1426,7 +1426,7 @@
     <string name="guide_tip_guest">Sign in to earn coins. Guests can\'t collect them.</string>
     <string name="guide_got_it">Got it</string>
     <string name="coach_unlimited">Unlimited with Pro</string>
-    <string name="coins_intro_title">Poké Coins are here!</string>
+    <string name="coins_intro_title">Dex Coins are here!</string>
     <string name="coins_intro_earn">Earn coins every day: check in, play games, solve the Dex Daily and keep your streak alive.</string>
     <string name="coins_intro_weekly">Every Monday the leaderboard pays out. Everyone who played gets %1$d coins, the top 10 get %2$d, the top 3 get %3$d, and #1 takes home %4$d.</string>
     <string name="coins_intro_levels">Level up for bigger rewards, plus frames, titles and backdrops to unlock.</string>
@@ -1437,8 +1437,8 @@
     <string name="weekly_reward_title_podium">You made the podium! 🏆</string>
     <string name="weekly_reward_title_top10">Top 10 finish! ⭐</string>
     <string name="weekly_reward_title_played">Thanks for playing last week!</string>
-    <string name="weekly_reward_body">You finished #%1$d last week and earned %2$d Poké Coins.</string>
-    <string name="weekly_reward_body_played">You earned %1$d Poké Coins for playing last week. Climb higher to earn more!</string>
+    <string name="weekly_reward_body">You finished #%1$d last week and earned %2$d Dex Coins.</string>
+    <string name="weekly_reward_body_played">You earned %1$d Dex Coins for playing last week. Climb higher to earn more!</string>
     <string name="weekly_reward_nice">Nice!</string>
     <string name="guide_section_weekly">Weekly leaderboard prizes</string>
     <string name="guide_weekly_1">Finish #1</string>
@@ -1452,7 +1452,7 @@
     <string name="cosmetic_title_regionhero">Region Hero</string>
     <string name="cosmetic_title_halloffame">Hall of Famer</string>
     <string name="cosmetic_title_dexmaster">Dex Master</string>
-    <string name="weekly_reward_amount">+%1$d Poké Coins</string>
+    <string name="weekly_reward_amount">+%1$d Dex Coins</string>
     <string name="load_error_offline_title">You\'re offline</string>
     <string name="load_error_offline_body">Check your connection. We\'ll retry on our own the moment you\'re back online.</string>
     <string name="load_error_timeout_title">That took too long</string>
@@ -1496,6 +1496,12 @@
     <string name="battle_log_immune">It had no effect…</string>
     <string name="battle_log_crit">A critical hit!</string>
     <string name="battle_log_guard">%1$s braces for impact.</string>
+    <string name="battle_log_tera">%1$s Terastallized into the %2$s type!</string>
+    <string name="battle_tera_button">Terastallize → %1$s</string>
+    <string name="battle_tera_armed">Tera ready: %1$s moves this turn</string>
+    <string name="battle_tera_used">Tera used</string>
+    <string name="battle_tera_badge">TERA</string>
+    <string name="battle_help_tera">Online only, once per battle: your Pokémon turns into its Tera type and its attacks change to match.</string>
     <string name="battle_log_switch">%1$s takes the field!</string>
     <string name="battle_log_faint">%1$s fainted!</string>
     <string name="battle_log_energy">%1$s\'s energy is full!</string>
@@ -1754,6 +1760,7 @@
     <string name="wildcatch_zone_excellent">Excellent</string>
     <string name="wildcatch_details_run">Encounter #%1$d · %2$d caught</string>
     <string name="wildcatch_run_left">%1$d free left</string>
+    <string name="wildcatch_run_today">%1$d left today</string>
     <string name="wildcatch_run_ad">Watch an ad</string>
 
     <!-- Team building and the Legendary limit -->
@@ -1778,7 +1785,7 @@
     <string name="rewards_msg_bag_upgraded">Bag upgraded to level %1$d!</string>
     <string name="rewards_msg_bag_maxed">Your bag is already at the top level.</string>
     <string name="rewards_confirm_bag_title">Upgrade your bag?</string>
-    <string name="rewards_confirm_bag_body">Level %1$d: carry ×%2$d as many of each item. Costs %3$d Poké Coins. You have %4$d.</string>
+    <string name="rewards_confirm_bag_body">Level %1$d: carry ×%2$d as many of each item. Costs %3$d Dex Coins. You have %4$d.</string>
     <string name="chase_biome_coast">Cerulean Shore</string>
     <string name="chase_biome_forest">Ilex Forest</string>
     <string name="chase_biome_snow">Snowpoint Pass</string>
@@ -1792,8 +1799,8 @@
     <string name="challenges_claim">Claim</string>
     <string name="challenges_claim_all">Claim %1$d</string>
     <string name="challenges_claimed">Claimed</string>
-    <string name="challenges_goals">Pokédex goals</string>
-    <string name="challenges_goals_hint">Long-term goals. They ask for different Pokémon, so Commons and Rares count as much as Legendaries.</string>
+    <string name="challenges_goals">Long-term goals</string>
+    <string name="challenges_goals_hint">Long runs of play. Each pays Dex Coins, Evo Shards or a title, and none of them needs a Legendary.</string>
     <string name="challenges_sweep">All done today</string>
     <string name="challenges_sweep_desc">Finish all three for a bonus.</string>
     <string name="challenges_got_great">Great Ball x%1$d</string>
@@ -1807,4 +1814,47 @@
     <string name="dex_complete_pct">%1$d%% complete</string>
     <string name="challenges_daily">Today</string>
     <string name="challenges_reward_title">Rewards!</string>
+    <string name="cosmetic_title_collector">Collector</string>
+    <string name="cosmetic_title_hoarder">Hoarder</string>
+    <string name="cosmetic_title_untouchable">Untouchable</string>
+    <string name="cosmetic_title_evolutionist">Evolutionist</string>
+    <string name="cosmetic_title_apex">Apex Hunter</string>
+    <string name="cosmetic_title_dexcompleter">Dex Completer</string>
+    <string name="cosmetic_title_kanto">Kanto Master</string>
+    <string name="cosmetic_title_johto">Johto Master</string>
+    <string name="cosmetic_title_hoenn">Hoenn Master</string>
+    <string name="cosmetic_title_sinnoh">Sinnoh Master</string>
+    <string name="cosmetic_title_unova">Unova Master</string>
+    <string name="cosmetic_title_kalos">Kalos Master</string>
+    <string name="cosmetic_title_alola">Alola Master</string>
+    <string name="cosmetic_backdrop_verdant">Verdant</string>
+    <string name="cosmetic_backdrop_storm">Stormfront</string>
+    <string name="region_kanto">Kanto</string>
+    <string name="region_johto">Johto</string>
+    <string name="region_hoenn">Hoenn</string>
+    <string name="region_sinnoh">Sinnoh</string>
+    <string name="region_unova">Unova</string>
+    <string name="region_kalos">Kalos</string>
+    <string name="region_alola">Alola</string>
+    <string name="challenge_catch_total">Catch %1$d Pokémon in total</string>
+    <string name="challenge_streak_ever">Catch %1$d in a row in a single run</string>
+    <string name="challenge_evolved">Evolve %1$d Pokémon</string>
+    <string name="challenge_region">Catch every non-Legendary %1$s Pokémon</string>
+    <string name="challenge_reward_coins">+%1$d Dex Coins</string>
+    <string name="challenge_reward_shards">+%1$d Evo Shards</string>
+    <string name="challenge_reward_title">New title: %1$s</string>
+    <string name="rewards_challenge_locked">Earned from Challenges</string>
+    <string name="battle_online_err_size">That room needs %1$d Pokémon. Change your team to match.</string>
+    <string name="battle_online_format_ready">Quick match is %1$d vs %1$d, so both sides bring the same number.</string>
+    <string name="battle_online_format_need">Quick match is %1$d vs %1$d. Pick exactly %1$d Pokémon (%2$d picked).</string>
+    <string name="challenge_cat_pokedex">Pokédex</string>
+    <string name="challenge_cat_collection">Rarity collections</string>
+    <string name="challenge_cat_regions">Regions</string>
+    <string name="challenge_cat_catching">Catching</string>
+    <string name="challenge_cat_evolution">Evolution</string>
+    <string name="challenges_category_done">%1$d of %2$d done</string>
+    <string name="challenges_category_complete">Every goal in this section is complete.</string>
+    <string name="challenge_diff_easy">Easy</string>
+    <string name="challenge_diff_medium">Medium</string>
+    <string name="challenge_diff_hard">Hard</string>
 </resources>
