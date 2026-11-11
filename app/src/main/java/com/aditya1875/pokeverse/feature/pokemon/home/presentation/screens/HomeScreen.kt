@@ -247,6 +247,22 @@ fun SharedTransitionScope.HomeScreen(
     var rewardBurst by remember { mutableStateOf<com.aditya1875.pokeverse.feature.challenges.domain.BallReward?>(null) }
     androidx.compose.runtime.LaunchedEffect(Unit) { challengesViewModel.paid.collect { rewardBurst = it } }
     val dexProgress by dexViewModel.progress.collectAsStateWithLifecycle()
+
+    // A message from the developer (published to everyone), shown once per device.
+    val inboxViewModel: com.aditya1875.pokeverse.feature.inbox.presentation.viewmodels.InboxViewModel = koinViewModel()
+    val announcement by inboxViewModel.popup.collectAsStateWithLifecycle()
+    announcement?.let { msg ->
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { inboxViewModel.dismissPopup() },
+            title = { Text("${msg.emoji} ${msg.title}") },
+            text = { Text(msg.body) },
+            confirmButton = {
+                androidx.compose.material3.TextButton(onClick = { inboxViewModel.dismissPopup() }) {
+                    Text(stringResource(R.string.battle_help_got_it))
+                }
+            },
+        )
+    }
     var dexFilter by rememberSaveable { mutableStateOf(DexFilter.ALL) }
     // Seen/Caught need the whole region in memory, not just the pages scrolled so far.
     LaunchedEffect(dexFilter, isLoading, viewModel.endReached) {
@@ -1046,7 +1062,8 @@ fun SharedTransitionScope.HomeScreen(
                                                     .collectAsStateWithLifecycle(false)
 
                                                 val dexId = pokemonIdFromUrl(pokemon.url)
-                                                val inDexSeen = dexId in dexProgress.seen
+                                                // Real artwork once the entry is registered (opened or met), not before.
+                                                val inDexSeen = dexProgress.isRevealed(dexId)
                                                 val inDexCaught = dexId in dexProgress.roster
 
                                                 ImprovedPokemonCard(

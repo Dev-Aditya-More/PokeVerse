@@ -68,6 +68,8 @@ class PokemonDetailsViewModel(
                         evolutionError = null
                     )
                 }
+                // Opening the entry registers it (lifts the Home silhouette); Seen is not affected.
+                if (pokedex.markRegistered(result.pokemon.id)) _newEntry.tryEmit(result.pokemon.id)
 
             } catch (e: kotlinx.coroutines.CancellationException) {
                 throw e

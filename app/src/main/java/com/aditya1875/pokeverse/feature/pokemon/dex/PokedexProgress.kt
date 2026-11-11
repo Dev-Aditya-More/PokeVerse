@@ -48,10 +48,18 @@ data class DexProgress(
     val consumed: Set<Int> = emptySet(),
     /** The category each caught species was in when it was caught (Legendary is known by id, so it isn't stored). */
     val tiers: Map<Int, CatchTier> = emptyMap(),
+    /**
+     * Entries the trainer has opened and registered in the Pokédex. This only lifts the silhouette on Home;
+     * it is NOT part of [seen], which stays what you met in Wild Catch.
+     */
+    val registered: Set<Int> = emptySet(),
     /** False only for the placeholder emitted before the stored progress has been read. */
     val loaded: Boolean = true,
 ) {
     val seenCount: Int get() = seen.size
+
+    /** Whether Home shows this Pokémon's real artwork instead of a silhouette. */
+    fun isRevealed(id: Int): Boolean = id in registered || id in seen
     /** How many you have right now. An evolved form takes the place of the one it came from, so this does not drop. */
     val caughtCount: Int get() = roster.size
 
@@ -96,14 +104,16 @@ sealed interface EvolveResult {
 
 /**
  * Pokédex progress, kept on the device and mirrored to the signed-in account (users/{uid}.dexSeen and
- * .dexCaught) so it survives a reinstall or a new phone. Seen = opened its detail page, met in Wild
- * Catch, favourited, put on a team, or chosen as the starter. Caught = caught in Wild Catch, plus the
+ * .dexCaught) so it survives a reinstall or a new phone. Seen = met in Wild Catch or chosen as the starter
+ * (opening a detail page only *registers* the entry, which lifts its Home silhouette; see [DexProgress.registered]). Caught = caught in Wild Catch, plus the
  * starter you begin with. Entries are only ever added, so merging two copies is a union.
  */
 class PokedexRepository(context: Context) {
 
     private val ds = context.applicationContext.dexStore
     private val seenKey = stringSetPreferencesKey("seen")
+    /** Entries registered by opening them. Kept on this device only: it just decides silhouette vs artwork. */
+    private val registeredKey = stringSetPreferencesKey("registered")
     // "caught_wild": earlier builds also counted teams and starters under "caught"; a new key drops that.
     private val caughtKey = stringSetPreferencesKey("caught_wild")
     private val starterChosenKey = booleanPreferencesKey("starter_chosen")
@@ -128,6 +138,7 @@ class PokedexRepository(context: Context) {
             caught = p[caughtKey].toIds(),
             consumed = p[consumedKey].toIds(),
             tiers = p[tiersKey].toTiers(),
+            registered = p[registeredKey].toIds(),
         )
     }
 
@@ -208,6 +219,32 @@ class PokedexRepository(context: Context) {
         return result
     }
 
+    // ── Wild Catch daily runs ────────────────────────────────────────────────
+    private val runDayKey = androidx.datastore.preferences.core.stringPreferencesKey("run_day")
+    private val runCountKey = androidx.datastore.preferences.core.intPreferencesKey("run_count")
+
+    /** Runs used today in Wild Catch, for everyone (Pro included). Resets with the calendar day. */
+    val runsToday: Flow<Int> = ds.data.map { p ->
+        if (p[runDayKey] == java.time.LocalDate.now().toString()) p[runCountKey] ?: 0 else 0
+    }
+
+    suspend fun recordRun() {
+        val today = java.time.LocalDate.now().toString()
+        ds.edit { p ->
+            val used = if (p[runDayKey] == today) p[runCountKey] ?: 0 else 0
+            p[runDayKey] = today
+            p[runCountKey] = used + 1
+        }
+    }
+
+    /** Remembers the category of a caught species whose category was never recorded. The first one stays. */
+    suspend fun recordTier(id: Int, tier: CatchTier) {
+        ds.edit { p ->
+            if (p[tiersKey].toTiers()[id] == null) p[tiersKey] = p[tiersKey].orEmpty() + "$id:${tier.ordinal}"
+        }
+        scheduleSync()
+    }
+
     /** Returns true only the first time this Pokémon is seen, so callers can celebrate the new entry. */
     suspend fun markSeen(id: Int): Boolean {
         if (id !in 1..DexProgress.TOTAL) return false
@@ -220,6 +257,23 @@ class PokedexRepository(context: Context) {
             }
         }
         if (isNew) scheduleSync()
+        return isNew
+    }
+
+    /**
+     * Registers [id]'s entry (the trainer opened it), which lifts its silhouette on Home. Deliberately does
+     * not touch Seen. Returns true only the first time, so the page can celebrate the new entry.
+     */
+    suspend fun markRegistered(id: Int): Boolean {
+        if (id !in 1..DexProgress.TOTAL) return false
+        var isNew = false
+        ds.edit { p ->
+            val registered = p[registeredKey].orEmpty()
+            if (id.toString() !in registered && id.toString() !in p[seenKey].orEmpty()) {
+                p[registeredKey] = registered + id.toString()
+                isNew = true
+            }
+        }
         return isNew
     }
 
@@ -377,9 +431,31 @@ class PokedexRepository(context: Context) {
     }
 }
 
-class PokedexViewModel(private val repository: PokedexRepository) : ViewModel() {
+class PokedexViewModel(
+    private val repository: PokedexRepository,
+    private val pokeApi: com.aditya1875.pokeverse.feature.pokemon.detail.domain.repository.PokemonDetailRepo,
+) : ViewModel() {
     val progress: StateFlow<DexProgress> = repository.progress
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DexProgress.EMPTY)
+
+    init {
+        // Species caught before categories were recorded (or reached by evolving) have none, so the
+        // category chips would add up to less than Caught. Work them out once from their base stats.
+        viewModelScope.launch {
+            val p = repository.progress.first { it.loaded }
+            val missing = p.caught.filter { it in 1..DexProgress.TOTAL && ChallengeRules.tierOfCaught(it, p.tiers) == null }
+            for (id in missing) {
+                try {
+                    val bst = pokeApi.getPokemonByName(id.toString()).stats.sumOf { it.base_stat }
+                    repository.recordTier(id, CatchTier.of(id, bst))
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (_: Exception) {
+                    return@launch // offline: try again next launch
+                }
+            }
+        }
+    }
 
     val requestedFilter: StateFlow<DexFilter?> = repository.requestedFilter
 

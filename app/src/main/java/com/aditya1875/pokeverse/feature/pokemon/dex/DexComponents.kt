@@ -152,27 +152,9 @@ fun DexProgressStrip(
                 selected = activeFilter == DexFilter.CAUGHT,
                 onClick = onFilter?.let { f -> { f(DexFilter.CAUGHT) } },
             )
-            if (progress.loaded) RarityBreakdown(progress.tierCounts)
-            if (onFilter != null && activeFilter == DexFilter.ALL) {
-                Text(
-                    stringResource(R.string.dex_tap_to_filter),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                )
-            }
-            // Caught only comes from Wild Catch, so say so (and offer the shortcut).
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    stringResource(R.string.dex_catch_hint),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f),
-                )
-                if (onPlayWildCatch != null) {
-                    TextButton(onClick = onPlayWildCatch) {
-                        Text(stringResource(R.string.dex_play), fontWeight = FontWeight.Bold)
-                    }
-                }
+            // The category counts only appear once the trainer opens the Caught list; the card itself stays two bars.
+            AnimatedVisibility(visible = progress.loaded && activeFilter == DexFilter.CAUGHT) {
+                RarityBreakdown(progress.tierCounts)
             }
         }
     }
