@@ -398,7 +398,7 @@ internal fun OnlineFailed(lobby: OnlineBattleViewModel.Lobby, onBack: () -> Unit
         )
         lobby.errorRes?.let {
             Spacer(Modifier.height(10.dp))
-            Text(stringResource(it), color = Color.White.copy(alpha = 0.75f), textAlign = TextAlign.Center)
+            Text(lobbyErrorText(it, lobby.errorArg), color = Color.White.copy(alpha = 0.75f), textAlign = TextAlign.Center)
         }
         Spacer(Modifier.height(24.dp))
         Button(
@@ -410,6 +410,11 @@ internal fun OnlineFailed(lobby: OnlineBattleViewModel.Lobby, onBack: () -> Unit
     }
 }
 
+/** A lobby error message, with its number filled in when it has one. */
+@Composable
+internal fun lobbyErrorText(@androidx.annotation.StringRes res: Int, arg: Int?): String =
+    if (arg != null) stringResource(res, arg) else stringResource(res)
+
 // ── Play with a friend ──────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -417,6 +422,7 @@ internal fun OnlineFailed(lobby: OnlineBattleViewModel.Lobby, onBack: () -> Unit
 internal fun FriendRoomSheet(
     code: String,
     errorRes: Int?,
+    errorArg: Int?,
     busy: Boolean,
     onCodeChange: (String) -> Unit,
     onCreate: () -> Unit,
@@ -475,7 +481,7 @@ internal fun FriendRoomSheet(
                 ) { Text(stringResource(R.string.battle_online_join), color = if (code.length == 6) Gold else Color.White.copy(alpha = 0.4f), fontWeight = FontWeight.Bold) }
             }
             errorRes?.let {
-                Text(stringResource(it), color = Color(0xFFFF8A80), style = MaterialTheme.typography.bodySmall)
+                Text(lobbyErrorText(it, errorArg), color = Color(0xFFFF8A80), style = MaterialTheme.typography.bodySmall)
             }
         }
     }

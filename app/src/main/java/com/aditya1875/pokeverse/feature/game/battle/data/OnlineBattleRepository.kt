@@ -86,6 +86,9 @@ interface OnlineBattleRepository {
     fun observe(matchId: String): Flow<OnlineSnapshot>
 }
 
+/** A friend's room needs [required] Pokémon, and the joiner brought a different number. */
+class TeamSizeMismatch(val required: Int) : Exception("room needs $required Pokémon")
+
 class FirestoreOnlineBattleRepository : OnlineBattleRepository {
 
     private val firestore get() = FirebaseFirestore.getInstance()
@@ -112,6 +115,8 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
                 "status" to OnlineMatch.STATUS_WAITING,
                 "roomCode" to code,
                 "mode" to mode,
+                // How many Pokémon each side brings. The joiner must match it (see the rules and joinByCode).
+                "teamSize" to team.size,
                 "seed" to seed,
                 "heartbeatHostAt" to FieldValue.serverTimestamp(),
                 "heartbeatGuestAt" to FieldValue.serverTimestamp(),
@@ -129,6 +134,8 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
             .whereEqualTo("status", OnlineMatch.STATUS_WAITING)
             .whereEqualTo("mode", OnlineMatch.MODE_QUICK)
             .whereEqualTo("guestId", "")
+            // Quick matches only pair teams of the same size, so nobody faces more Pokémon than they brought.
+            .whereEqualTo("teamSize", team.size)
             .limit(10)
             .get()
             .await()
@@ -158,6 +165,8 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
             .await()
             .documents.firstOrNull() ?: return null
         if (found.getString("hostId") == uid) return null
+        val required = found.getLong("teamSize")?.toInt()
+        if (required != null && required != team.size) throw TeamSizeMismatch(required)
         if (!claimSeat(found.id, uid, name)) return null
         saveTeam(found.id, uid, team)
         return found.id
@@ -196,14 +205,16 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
         // Choices are final (the rules refuse an overwrite), so a retry after a flaky network is a no-op.
         if (ref.get().await().exists()) return
         ref.set(
-            mapOf(
-                "step" to step,
-                "seat" to seat.code,
-                "uid" to uid,
-                "kind" to action.kind,
-                "index" to action.index,
-                "auto" to action.auto,
-            )
+            buildMap<String, Any> {
+                put("step", step)
+                put("seat", seat.code)
+                put("uid", uid)
+                put("kind", action.kind)
+                put("index", action.index)
+                put("auto", action.auto)
+                // Only written when used, so ordinary turns stay valid against rules that predate Tera.
+                if (action.tera) put("tera", true)
+            }
         ).await()
     }
 
@@ -299,7 +310,8 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
                 val kind = (doc.getString("kind") ?: continue).take(12)
                 val index = (doc.get("index") as? Number)?.toInt() ?: 0
                 val auto = doc.getBoolean("auto") ?: false
-                log.getOrPut(step) { mutableMapOf() }[seat] = OnlineAction(kind, index, auto)
+                val tera = doc.getBoolean("tera") ?: false
+                log.getOrPut(step) { mutableMapOf() }[seat] = OnlineAction(kind, index, auto, tera)
             }
             actions = log
             push()

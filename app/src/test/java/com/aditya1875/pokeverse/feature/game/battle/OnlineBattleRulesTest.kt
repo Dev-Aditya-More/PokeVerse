@@ -248,4 +248,11 @@ class OnlineBattleRulesTest {
         assertEquals(Seat.GUEST, Seat.HOST.other)
     }
 
+    @Test
+    fun `online teams must be the same size`() {
+        assertTrue(OnlineBattleRules.evenTeams(listOf(1, 2, 3), listOf(4, 5, 6)))
+        assertFalse(OnlineBattleRules.evenTeams(listOf(1, 2, 3), listOf(4, 5, 6, 7, 8, 9)))
+        assertFalse(OnlineBattleRules.evenTeams(null, listOf(1)))
+        assertEquals(3, OnlineBattleRules.QUICK_TEAM_SIZE)
+    }
 }

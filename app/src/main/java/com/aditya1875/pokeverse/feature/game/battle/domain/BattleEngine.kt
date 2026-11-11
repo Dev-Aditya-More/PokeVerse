@@ -42,6 +42,25 @@ object BattleMath {
     }
 }
 
+/**
+ * Terastallize: once per online battle, one Pokémon turns into a single pure type (its Tera type) and
+ * both its attack types follow. Every species has ONE fixed Tera type, like a set on Pokémon Showdown,
+ * so a rival can read it off the team in advance and the choice is only ever *when*.
+ */
+object TeraTypes {
+    val ALL = listOf(
+        "normal", "fire", "water", "electric", "grass", "ice", "fighting", "poison", "ground",
+        "flying", "psychic", "bug", "rock", "ghost", "dragon", "dark", "steel", "fairy",
+    )
+
+    /** The species' Tera type: always a type it does not already have, and the same on every phone. */
+    fun forSpecies(id: Int, types: List<String>): String {
+        val own = types.map { it.lowercase() }.toSet()
+        val start = Math.floorMod(id * 7 + 3, ALL.size)
+        return (0 until ALL.size).map { ALL[(start + it) % ALL.size] }.firstOrNull { it !in own } ?: ALL[start]
+    }
+}
+
 data class Fighter(
     val id: Int,
     val name: String,
@@ -50,6 +69,9 @@ data class Fighter(
     val spriteUrl: String,
     val hp: Int = stats.hp,
     val energy: Int = 0,
+    /** The type it becomes when it Terastallizes. Fixed per species. */
+    val teraType: String = TeraTypes.forSpecies(id, types),
+    val terastallized: Boolean = false,
 ) {
     val fainted: Boolean get() = hp <= 0
     val energyReady: Boolean get() = energy >= BattleMath.FULL_ENERGY
@@ -68,6 +90,8 @@ data class Side(
     val team: List<Fighter>,
     val active: Int = 0,
     val guardsLeft: Int = BattleEngine.MAX_GUARDS,
+    /** One Terastallize per side per battle; true once it has been spent. */
+    val teraUsed: Boolean = false,
 ) {
     val current: Fighter get() = team[active]
     val hasFighters: Boolean get() = team.any { !it.fainted }
@@ -98,6 +122,9 @@ sealed interface BattleEvent {
     ) : BattleEvent
 
     data class Guarded(val by: Who, val name: String, val energyAfter: Int) : BattleEvent
+
+    /** [who]'s Pokémon turned into [teraType]. [fighter] is the Pokémon as it is afterwards. */
+    data class Terastallized(val who: Who, val name: String, val teraType: String, val fighter: Fighter) : BattleEvent
 
     /** [fighter] is the Pokémon as it is the moment it comes in. */
     data class Switched(val who: Who, val name: String, val fighter: Fighter) : BattleEvent
@@ -136,6 +163,7 @@ fun Who.other(): Who = if (this == Who.PLAYER) Who.FOE else Who.PLAYER
 fun BattleEvent.mirrored(): BattleEvent = when (this) {
     is BattleEvent.Hit -> copy(by = by.other())
     is BattleEvent.Guarded -> copy(by = by.other())
+    is BattleEvent.Terastallized -> copy(who = who.other())
     is BattleEvent.Switched -> copy(who = who.other())
     is BattleEvent.Fainted -> copy(who = who.other())
     is BattleEvent.EnergyReady -> copy(who = who.other())
@@ -183,6 +211,13 @@ object BattleEngine {
         }
     }
 
+    /** Whether [who] may Terastallize this turn: not yet spent, a healthy Pokémon on the field, not switching. */
+    fun canTera(state: BattleState, who: Who, action: BattleAction = BattleAction.Attack): Boolean {
+        val side = state.side(who)
+        return !state.over && !side.teraUsed && !side.current.fainted && !side.current.terastallized &&
+            action !is BattleAction.Switch
+    }
+
     /** The player chooses a replacement after a knockout. Costs no turn. */
     fun forceSwitch(state: BattleState, index: Int): TurnResult = forceSwitch(state, Who.PLAYER, index)
 
@@ -217,6 +252,9 @@ object BattleEngine {
         foeSkill: Float = 1f,
         /** True against the bot, which picks its own replacement. False online: the foe player is asked. */
         botReplaces: Boolean = true,
+        /** Terastallize this turn (online only). Ignored when not allowed, so a bad flag can never stall a step. */
+        playerTera: Boolean = false,
+        foeTera: Boolean = false,
     ): TurnResult {
         if (state.over || state.playerMustSwitch || state.foeMustSwitch) return TurnResult(state, emptyList())
 
@@ -230,6 +268,10 @@ object BattleEngine {
         // 1. Switches happen first, player then foe; the incoming Pokémon takes the hit.
         st = applySwitch(st, Who.PLAYER, pAct, events)
         st = applySwitch(st, Who.FOE, fAct, events)
+
+        // 1b. Terastallize, before anyone strikes: the new type is what this turn's blows are made of.
+        if (playerTera && canTera(st, Who.PLAYER, pAct)) st = terastallize(st, Who.PLAYER, events)
+        if (foeTera && canTera(st, Who.FOE, fAct)) st = terastallize(st, Who.FOE, events)
 
         val guarding = buildSet {
             if (pAct == BattleAction.Guard) add(Who.PLAYER)
@@ -276,6 +318,16 @@ object BattleEngine {
         val side = st.side(who)
         events += BattleEvent.Switched(who, side.team[action.index].name, side.team[action.index])
         return replace(st, who, side.copy(active = action.index))
+    }
+
+    private fun terastallize(st: BattleState, who: Who, events: MutableList<BattleEvent>): BattleState {
+        val side = st.side(who)
+        val after = side.current.copy(types = listOf(side.current.teraType), terastallized = true)
+        events += BattleEvent.Terastallized(who, after.name, after.teraType, after)
+        return replace(st, who, side.copy(
+            team = side.team.toMutableList().also { it[side.active] = after },
+            teraUsed = true,
+        ))
     }
 
     /** Spends one of the side's Guards. */

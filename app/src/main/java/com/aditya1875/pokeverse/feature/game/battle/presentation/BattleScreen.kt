@@ -194,7 +194,7 @@ fun BattleScreen(
                         BattleArena(
                             state = state,
                             host = online,
-                            onRematch = { online.reset(); online.quickMatch(picker.selected) },
+                            onRematch = { online.reset(); if (picker.selected.size == com.aditya1875.pokeverse.feature.game.battle.domain.online.OnlineBattleRules.QUICK_TEAM_SIZE) online.quickMatch(picker.selected) },
                             onChangeTeam = { online.reset(); mode = BattleMode.ONLINE },
                             onBack = { online.reset(); onBack() },
                         )
@@ -263,6 +263,7 @@ fun BattleScreen(
         FriendRoomSheet(
             code = lobby.enteredCode,
             errorRes = lobby.errorRes,
+            errorArg = lobby.errorArg,
             busy = lobby.busy,
             onCodeChange = online::setCode,
             onCreate = { online.createFriendRoom(picker.selected) },
@@ -370,7 +371,7 @@ private fun PickerContent(
                     } else {
                         OnlineIntroCard()
                         lobby.errorRes?.let {
-                            Text(stringResource(it), color = Color(0xFFFF8A80), style = MaterialTheme.typography.bodySmall)
+                            Text(lobbyErrorText(it, lobby.errorArg), color = Color(0xFFFF8A80), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
@@ -417,9 +418,20 @@ private fun PickerContent(
             }
         } else {
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Online is always even: a quick match is exactly 3 against 3, a friend's room is whatever you pick.
+                val quickSize = com.aditya1875.pokeverse.feature.game.battle.domain.online.OnlineBattleRules.QUICK_TEAM_SIZE
+                val quickReady = picker.selected.size == quickSize
+                Text(
+                    if (quickReady) stringResource(R.string.battle_online_format_ready, quickSize)
+                    else stringResource(R.string.battle_online_format_need, quickSize, picker.selected.size),
+                    color = Color.White.copy(alpha = 0.7f),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Button(
                     onClick = onFindMatch,
-                    enabled = picker.selected.isNotEmpty() && !lobby.busy,
+                    enabled = quickReady && !lobby.busy,
                     modifier = Modifier.fillMaxWidth().height(54.dp),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color.Black)

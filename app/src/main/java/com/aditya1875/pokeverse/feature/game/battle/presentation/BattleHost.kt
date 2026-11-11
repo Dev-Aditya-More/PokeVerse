@@ -23,7 +23,8 @@ interface BattleHost {
     /** Extras that only an online battle has; a practice battle leaves everything at its default. */
     val hud: StateFlow<ArenaHud>
 
-    fun act(action: BattleAction)
+    /** [tera] also Terastallizes this turn; only an online battle honours it. */
+    fun act(action: BattleAction, tera: Boolean = false)
     fun chooseReplacement(index: Int)
 
     /** The arena has finished playing back what it was given, so any turn clock may now start. */

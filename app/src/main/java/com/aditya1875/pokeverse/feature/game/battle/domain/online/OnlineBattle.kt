@@ -39,7 +39,13 @@ enum class Seat(val code: String, val who: Who) {
  * One recorded choice. For a switch, [index] is the bench slot; for everything else it is unused.
  * [auto] marks a choice the clock made because the player ran out of time: those are the "missed turns".
  */
-data class OnlineAction(val kind: String, val index: Int = 0, val auto: Boolean = false) {
+data class OnlineAction(
+    val kind: String,
+    val index: Int = 0,
+    val auto: Boolean = false,
+    /** Terastallize this turn as well. Only meaningful with an attack, special or guard. */
+    val tera: Boolean = false,
+) {
 
     fun toBattleAction(): BattleAction = when (kind) {
         KIND_SPECIAL -> BattleAction.Special
@@ -54,10 +60,10 @@ data class OnlineAction(val kind: String, val index: Int = 0, val auto: Boolean 
         const val KIND_GUARD = "guard"
         const val KIND_SWITCH = "switch"
 
-        fun of(action: BattleAction): OnlineAction = when (action) {
-            BattleAction.Attack -> OnlineAction(KIND_ATTACK)
-            BattleAction.Special -> OnlineAction(KIND_SPECIAL)
-            BattleAction.Guard -> OnlineAction(KIND_GUARD)
+        fun of(action: BattleAction, tera: Boolean = false): OnlineAction = when (action) {
+            BattleAction.Attack -> OnlineAction(KIND_ATTACK, tera = tera)
+            BattleAction.Special -> OnlineAction(KIND_SPECIAL, tera = tera)
+            BattleAction.Guard -> OnlineAction(KIND_GUARD, tera = tera)
             is BattleAction.Switch -> OnlineAction(KIND_SWITCH, action.index)
         }
 
@@ -145,6 +151,8 @@ object OnlineBattleRules {
             val guest = actions[Seat.GUEST]?.toBattleAction() ?: BattleAction.Attack
             return BattleEngine.resolveTurn(
                 state, host, guest, BattleEngine.turnRandom(matchSeed, step), botReplaces = false,
+                playerTera = actions[Seat.HOST]?.tera == true,
+                foeTera = actions[Seat.GUEST]?.tera == true,
             )
         }
 
@@ -211,6 +219,16 @@ object OnlineBattleRules {
     /** Whether a finished battle pays: it must have been fought, and not be one rival farmed over and over. */
     fun paysRewards(turns: Int, paidWithThisRivalToday: Int): Boolean =
         turns >= MIN_TURNS_FOR_REWARD && paidWithThisRivalToday < REWARDED_PER_RIVAL_PER_DAY
+
+    /**
+     * Online battles are always even: both players bring the same number of Pokémon. A quick match is the
+     * standard [QUICK_TEAM_SIZE] versus [QUICK_TEAM_SIZE]; a friend's room uses whatever size its host chose, and
+     * the guest has to match it. Without this, someone with six Pokémon could be matched with someone who has three.
+     */
+    const val QUICK_TEAM_SIZE = 3
+
+    fun evenTeams(host: List<Int>?, guest: List<Int>?): Boolean =
+        host != null && guest != null && host.size == guest.size
 
     /** Team ids are checked before they are trusted: a real, bounded roster in the dex. */
     fun validTeam(ids: List<Int>?, maxId: Int): Boolean =

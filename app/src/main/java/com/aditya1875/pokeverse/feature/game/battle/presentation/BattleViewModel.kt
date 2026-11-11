@@ -268,7 +268,7 @@ class BattleViewModel(
 
     // ── Fighting ────────────────────────────────────────────────────────────
 
-    override fun act(action: BattleAction) {
+    override fun act(action: BattleAction, tera: Boolean) {
         val st = _battle.value ?: return
         if (st.over || st.playerMustSwitch) return
         val foeAction = BotBrain(activeTier.skill).choose(st, rng)

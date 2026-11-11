@@ -107,6 +107,9 @@ import com.aditya1875.pokeverse.utils.ScreenStateManager
 import com.aditya1875.pokeverse.utils.SoundManager
 import com.aditya1875.pokeverse.utils.localizedTypeName
 import com.aditya1875.pokeverse.utils.pokemonTypeColor
+import com.aditya1875.pokeverse.utils.pokemonTypeNameRes
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -173,6 +176,11 @@ private fun ArenaBody(
     val pShield = remember { Animatable(0f) }; val fShield = remember { Animatable(0f) }
     val screenShake = remember { Animatable(0f) }
     val screenFlash = remember { Animatable(0f) }
+    // Terastallize: 0..1 progress of the crystal effect per side, its colour, and whether you armed it this turn.
+    val pTera = remember { Animatable(0f) }; val fTera = remember { Animatable(0f) }
+    var pTeraColor by remember { mutableStateOf(Color.White) }
+    var fTeraColor by remember { mutableStateOf(Color.White) }
+    var teraArmed by remember { mutableStateOf(false) }
     val projT = remember { Animatable(0f) }
     val burstT = remember { Animatable(1f) }
     var projFrom by remember { mutableStateOf(Offset.Zero) }
@@ -322,6 +330,30 @@ private fun ArenaBody(
                         shield(e.by).animateTo(0f, tween(240))
                     }
 
+                    is BattleEvent.Terastallized -> {
+                        val col = pokemonTypeColor(e.teraType)
+                        val typeName = pokemonTypeNameRes(e.teraType)?.let { context.getString(it) }
+                            ?: e.teraType.replaceFirstChar { it.uppercase() }
+                        logLine = context.getString(R.string.battle_log_tera, e.name, typeName)
+                        if (e.who == Who.PLAYER) pTeraColor = col else fTeraColor = col
+                        val t = if (e.who == Who.PLAYER) pTera else fTera
+                        t.snapTo(0f)
+                        sound.play(SoundManager.Sound.MATCH_FOUND, 0.9f, haptic = false)
+                        haptics.play(Haptics.Haptic.CHARGE)
+                        coroutineScope {
+                            // A crystal shell closes around the Pokémon, then shatters into its new type.
+                            launch { t.animateTo(1f, tween(1500, easing = LinearEasing)) }
+                            delay(640)
+                            if (e.who == Who.PLAYER) shownPlayer = e.fighter else shownFoe = e.fighter
+                            haptics.play(Haptics.Haptic.HEAVY)
+                            launch { burst(posOf(e.who), col, big = true) }
+                            launch { for (x in listOf(9f, -8f, 6f, -4f, 0f)) screenShake.animateTo(x, tween(34)) }
+                            launch { screenFlash.animateTo(0.45f, tween(60)); screenFlash.animateTo(0f, tween(300)) }
+                        }
+                        t.snapTo(0f)
+                        delay(260)
+                    }
+
                     is BattleEvent.Switched -> {
                         logLine = context.getString(R.string.battle_log_switch, e.name)
                         // The new one arrives in a flash.
@@ -424,6 +456,46 @@ private fun ArenaBody(
                         drawCircle(Cyan.copy(alpha = 0.85f * v), r, c, style = Stroke(4f * unit))
                     }
                 }
+                // Terastallize: the crystal shell, its shatter, and the gem a Tera'd Pokémon keeps above its head.
+                listOf(Who.PLAYER to shownPlayer, Who.FOE to shownFoe).forEach { (who, f) ->
+                    val v = (if (who == Who.PLAYER) pTera else fTera).value
+                    val col = if (who == Who.PLAYER) pTeraColor else fTeraColor
+                    val c = posOf(who)
+                    val sz = (if (who == Who.PLAYER) playerSize else foeSize).toPx()
+                    if (v in 0.01f..0.999f) {
+                        val form = (v / 0.42f).coerceIn(0f, 1f)          // the shell closing in
+                        val shatter = ((v - 0.42f) / 0.58f).coerceIn(0f, 1f) // then flying apart
+                        val rx = sz * (0.62f + 0.5f * (1f - form) + 0.55f * shatter)
+                        val ry = rx * 1.3f
+                        val shellAlpha = if (shatter == 0f) form else (1f - shatter)
+                        val shell = diamondPath(c, rx, ry)
+                        drawPath(shell, col.copy(alpha = 0.32f * shellAlpha))
+                        drawPath(shell, Color.White.copy(alpha = 0.9f * shellAlpha), style = Stroke(3f * unit))
+                        // facet lines
+                        drawLine(Color.White.copy(alpha = 0.5f * shellAlpha), Offset(c.x, c.y - ry), Offset(c.x, c.y + ry), 1.5f * unit)
+                        drawLine(Color.White.copy(alpha = 0.5f * shellAlpha), Offset(c.x - rx, c.y), Offset(c.x + rx, c.y), 1.5f * unit)
+                        drawCircle(col.copy(alpha = 0.35f * form * (1f - shatter)), sz * 0.9f, c)
+                        if (shatter > 0f) {
+                            for (i in 0 until 14) {
+                                val a = i / 14f * 2f * PI.toFloat() + 0.3f
+                                val d = sz * (0.4f + 1.1f * shatter) * (0.8f + 0.4f * ((i * 37) % 10) / 10f)
+                                val p = Offset(c.x + cos(a) * d, c.y + sin(a) * d * 0.8f)
+                                val s = (9f + (i % 3) * 4f) * unit * (1f - shatter * 0.7f)
+                                val sp = diamondPath(p, s * 0.6f, s)
+                                drawPath(sp, col.copy(alpha = (1f - shatter).coerceIn(0f, 1f)))
+                                drawPath(sp, Color.White.copy(alpha = 0.8f * (1f - shatter)), style = Stroke(1.5f * unit))
+                            }
+                        }
+                    }
+                    if (f.terastallized && !f.fainted && v < 0.01f) {
+                        val gc = pokemonTypeColor(f.teraType)
+                        val g = Offset(c.x, c.y - sz * 0.58f)
+                        drawCircle(gc.copy(alpha = 0.28f * aura), 16f * unit, g)
+                        val gem = diamondPath(g, 8f * unit, 12f * unit)
+                        drawPath(gem, gc)
+                        drawPath(gem, Color.White.copy(alpha = 0.9f), style = Stroke(1.5f * unit))
+                    }
+                }
                 // The orb of a special attack.
                 if (projT.value > 0.001f && projT.value < 0.999f) {
                     val p = projT.value
@@ -454,8 +526,10 @@ private fun ArenaBody(
             }
 
             // The Pokémon.
-            FighterArt(foeSize, foePos, shownFoe, Who.FOE, fLunge.value, playerPos, fShake.value, fFlash.value, fFaint.value, fEnter.value, bob)
-            FighterArt(playerSize, playerPos, shownPlayer, Who.PLAYER, pLunge.value, foePos, pShake.value, pFlash.value, pFaint.value, pEnter.value, bob)
+            FighterArt(foeSize, foePos, shownFoe, Who.FOE, fLunge.value, playerPos, fShake.value, fFlash.value, fFaint.value, fEnter.value, bob,
+                teraGlow = sin(fTera.value * PI.toFloat()), teraColor = fTeraColor)
+            FighterArt(playerSize, playerPos, shownPlayer, Who.PLAYER, pLunge.value, foePos, pShake.value, pFlash.value, pFaint.value, pEnter.value, bob,
+                teraGlow = sin(pTera.value * PI.toFloat()), teraColor = pTeraColor)
 
             // Info plates.
             NamePlate(
@@ -531,8 +605,13 @@ private fun ArenaBody(
                 enabled = !playing && !state.over && !hud.waiting,
                 showBench = showBench || state.playerMustSwitch,
                 onToggleBench = { showBench = !showBench },
-                onAct = { host.act(it) },
+                onAct = { host.act(it, tera = teraArmed); teraArmed = false },
                 onReplace = { host.chooseReplacement(it) },
+                teraShown = hud.online,
+                teraAvailable = hud.online && !state.over && !state.player.teraUsed &&
+                    !shownPlayer.fainted && !shownPlayer.terastallized,
+                teraArmed = teraArmed,
+                onToggleTera = { teraArmed = !teraArmed },
             )
         }
         Spacer(Modifier.height(12.dp))
@@ -571,7 +650,8 @@ private fun ArenaBody(
 private fun OnlineStatusBar(hud: ArenaHud, rivalName: String) {
     val left = hud.secondsLeft
     val urgent = left != null && left <= 10
-    val barColor by animateColorAsState(if (urgent) Color(0xFFFF6B6B) else Gold, label = "clock")
+    // Gold while it is your clock, cyan while you are watching your rival's run down.
+    val barColor by animateColorAsState(if (urgent) Color(0xFFFF6B6B) else if (hud.waiting) Cyan else Gold, label = "clock")
     val progress by animateFloatAsState(
         (left ?: 0) / OnlineBattleRules.TURN_SECONDS.toFloat(),
         animationSpec = tween(900, easing = LinearEasing), label = "clock_progress"
@@ -627,6 +707,11 @@ private fun StatusChip(text: String, color: Color) {
 
 // ── Pieces ──────────────────────────────────────────────────────────────────────────────────────────
 
+/** A diamond (the Tera crystal shape) centred on [c], [rx] wide and [ry] tall. */
+private fun DrawScope.diamondPath(c: Offset, rx: Float, ry: Float): Path = Path().apply {
+    moveTo(c.x, c.y - ry); lineTo(c.x + rx, c.y); lineTo(c.x, c.y + ry); lineTo(c.x - rx, c.y); close()
+}
+
 @Composable
 private fun FighterArt(
     size: androidx.compose.ui.unit.Dp,
@@ -640,6 +725,8 @@ private fun FighterArt(
     faint: Float,
     enter: Float,
     bob: Float,
+    teraGlow: Float = 0f,
+    teraColor: Color = Color.White,
 ) {
     val density = androidx.compose.ui.platform.LocalDensity.current
     val px = with(density) { size.toPx() }
@@ -650,7 +737,11 @@ private fun FighterArt(
         model = fighter.spriteUrl,
         contentDescription = fighter.name,
         contentScale = ContentScale.Fit,
-        colorFilter = if (flash > 0.02f) ColorFilter.tint(Color.White.copy(alpha = flash), BlendMode.SrcAtop) else null,
+        colorFilter = when {
+            flash > 0.02f -> ColorFilter.tint(Color.White.copy(alpha = flash), BlendMode.SrcAtop)
+            teraGlow > 0.02f -> ColorFilter.tint(teraColor.copy(alpha = teraGlow * 0.6f), BlendMode.SrcAtop)
+            else -> null
+        },
         modifier = Modifier
             .offset { IntOffset((center.x - px / 2f).toInt(), (center.y - px / 2f).toInt()) }
             .size(size)
@@ -696,7 +787,15 @@ private fun NamePlate(fighter: Fighter, team: List<Fighter>, guardsLeft: Int, la
             Spacer(Modifier.width(6.dp))
             Text("Lv${BattleMath.LEVEL}", color = Color.White.copy(alpha = 0.55f), fontSize = 11.sp)
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { fighter.types.forEach { TypeTag(it) } }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            if (fighter.terastallized) {
+                Text(
+                    "◆ ${stringResource(R.string.battle_tera_badge)}",
+                    color = pokemonTypeColor(fighter.teraType), fontSize = 9.sp, fontWeight = FontWeight.Black,
+                )
+            }
+            fighter.types.forEach { TypeTag(it) }
+        }
         // HP, with the number beside the bar instead of on a row of its own
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("HP", color = Color(0xFFFFB300), fontWeight = FontWeight.Black, fontSize = 10.sp)
@@ -832,6 +931,10 @@ private fun Controls(
     onToggleBench: () -> Unit,
     onAct: (BattleAction) -> Unit,
     onReplace: (Int) -> Unit,
+    teraShown: Boolean,
+    teraAvailable: Boolean,
+    teraArmed: Boolean,
+    onToggleTera: () -> Unit,
 ) {
     val benchAlive = state.player.team.withIndex().filter { (i, f) -> i != state.player.active && !f.fainted }
 
@@ -867,22 +970,26 @@ private fun Controls(
     }
 
     val canSwitch = benchAlive.isNotEmpty()
+    // With Tera armed, the moves preview the type they will have this turn.
+    val armed = teraArmed && teraAvailable
+    val moves = if (armed) me.copy(types = listOf(me.teraType)) else me
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         modifier = Modifier.fillMaxWidth().alpha(if (enabled) 1f else 0.45f)
     ) {
+        if (teraShown) TeraToggle(me.teraType, armed, teraAvailable, enabled, onToggleTera)
         // Four tiles of the same size, two by two.
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             ActionTile(
                 stringResource(R.string.battle_attack), stringResource(R.string.battle_hint_attack),
-                me.primaryType, pokemonTypeColor(me.primaryType), enabled, false, Modifier.weight(1f)
+                moves.primaryType, pokemonTypeColor(moves.primaryType), enabled, false, Modifier.weight(1f)
             ) { onAct(BattleAction.Attack) }
             ActionTile(
                 label = stringResource(R.string.battle_special),
                 hint = if (me.energyReady) stringResource(R.string.battle_hint_special)
                 else stringResource(R.string.battle_special_charging, me.energy.coerceIn(0, BattleMath.FULL_ENERGY)),
-                type = me.specialType,
-                accent = pokemonTypeColor(me.specialType),
+                type = moves.specialType,
+                accent = pokemonTypeColor(moves.specialType),
                 enabled = enabled && me.energyReady,
                 highlight = me.energyReady,
                 modifier = Modifier.weight(1f),
@@ -902,6 +1009,39 @@ private fun Controls(
                 null, Color(0xFF90A4AE), enabled && canSwitch, false, Modifier.weight(1f), onClick = onToggleBench
             )
         }
+    }
+}
+
+/**
+ * The Terastallize switch above the moves: shows the type this Pokémon would become, glows when armed,
+ * and turns into a dim "Tera used" note once the battle's one use is spent.
+ */
+@Composable
+private fun TeraToggle(teraType: String, armed: Boolean, available: Boolean, enabled: Boolean, onToggle: () -> Unit) {
+    val color = if (available) pokemonTypeColor(teraType) else Color(0xFF90A4AE)
+    val typeName = pokemonTypeNameRes(teraType)?.let { stringResource(it) } ?: teraType.replaceFirstChar { it.uppercase() }
+    val pulse by rememberInfiniteTransition(label = "tera").animateFloat(0.5f, 1f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "tp")
+    val label = when {
+        !available -> stringResource(R.string.battle_tera_used)
+        armed -> stringResource(R.string.battle_tera_armed, typeName)
+        else -> stringResource(R.string.battle_tera_button, typeName)
+    }
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .height(38.dp)
+            .alpha(if (available) 1f else 0.5f)
+            .clip(RoundedCornerShape(50))
+            .background(color.copy(alpha = if (armed) 0.45f else 0.2f))
+            .border(BorderStroke(if (armed) 2.dp else 1.dp, color.copy(alpha = if (armed) pulse else 0.7f)), RoundedCornerShape(50))
+            .clickable(enabled = enabled && available, onClick = onToggle)
+            .padding(horizontal = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Text("◆", color = color, fontWeight = FontWeight.Black, fontSize = 14.sp)
+        Spacer(Modifier.width(8.dp))
+        Text(label, color = Color.White, fontWeight = FontWeight.ExtraBold, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -973,6 +1113,7 @@ fun BattleHelpDialog(onDismiss: () -> Unit) {
                 HelpRow(R.string.battle_special, Gold, R.string.battle_help_special)
                 HelpRow(R.string.battle_guard, Cyan, R.string.battle_help_guard)
                 HelpRow(R.string.battle_switch, Color(0xFF90A4AE), R.string.battle_help_switch)
+                HelpRow(R.string.battle_tera_badge, Color(0xFFB388FF), R.string.battle_help_tera)
                 Text(stringResource(R.string.battle_help_types), color = Color.White.copy(alpha = 0.6f), style = MaterialTheme.typography.bodySmall)
                 androidx.compose.material3.Button(
                     onClick = onDismiss, modifier = Modifier.fillMaxWidth().height(48.dp), shape = RoundedCornerShape(14.dp),

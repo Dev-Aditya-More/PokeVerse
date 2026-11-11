@@ -233,7 +233,9 @@ service cloud.firestore {
                     && request.resource.data.heartbeatHostAt == request.time
                     && request.resource.data.heartbeatGuestAt == request.time
                     && request.resource.data.keys().hasOnly(['hostId', 'guestId', 'hostName', 'guestName', 'status',
-                         'roomCode', 'mode', 'seed', 'heartbeatHostAt', 'heartbeatGuestAt', 'createdAt', 'lastUpdated']);
+                         'roomCode', 'mode', 'seed', 'teamSize', 'heartbeatHostAt', 'heartbeatGuestAt', 'createdAt', 'lastUpdated'])
+                    && request.resource.data.get('teamSize', 3) is int
+                    && request.resource.data.get('teamSize', 3) >= 1 && request.resource.data.get('teamSize', 3) <= 6;
 
       allow update: if signedIn() && (
           // Joining an open room: take the empty seat and nothing else.
@@ -281,7 +283,9 @@ service cloud.firestore {
                       && request.resource.data.keys().hasOnly(['ids'])
                       && request.resource.data.ids is list
                       && request.resource.data.ids.size() >= 1
-                      && request.resource.data.ids.size() <= 6;
+                      && request.resource.data.ids.size() <= 6
+                      // Both sides bring the same number: the room says how many.
+                      && request.resource.data.ids.size() == theRoom().get('teamSize', request.resource.data.ids.size());
       }
 
       // team_battles/{matchId}/actions/{s<step>_<seat>}: one immutable choice per seat per step.
@@ -297,7 +301,8 @@ service cloud.firestore {
                       && request.resource.data.step is int && request.resource.data.step >= 0 && request.resource.data.step <= 999
                       && request.resource.data.index is int && request.resource.data.index >= 0 && request.resource.data.index <= 5
                       && request.resource.data.get('auto', false) is bool
-                      && request.resource.data.keys().hasOnly(['step', 'seat', 'uid', 'kind', 'index', 'auto']);
+                      && request.resource.data.get('tera', false) is bool
+                      && request.resource.data.keys().hasOnly(['step', 'seat', 'uid', 'kind', 'index', 'auto', 'tera']);
         // No update and no delete: a recorded choice is final.
       }
     }

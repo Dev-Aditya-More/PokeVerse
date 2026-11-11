@@ -89,6 +89,8 @@ class OnlineBattleViewModel(
         val opponentName: String? = null,
         val team: List<Int> = emptyList(),
         @StringRes val errorRes: Int? = null,
+        /** The number the error message mentions (a room's required team size), if it has one. */
+        val errorArg: Int? = null,
         val loadError: LoadErrorKind? = null,
     )
 
@@ -164,6 +166,8 @@ class OnlineBattleViewModel(
 
     /** Looks for a real trainer; after [OnlineBattleRules.QUEUE_SECONDS] with nobody, falls back to a bot. */
     fun quickMatch(team: List<Int>) {
+        // The standard format: exactly the same number on both sides.
+        if (team.size != OnlineBattleRules.QUICK_TEAM_SIZE) return
         if (!begin(team, friend = false)) return
         viewModelScope.launch {
             val joined = runCatching { repo.joinQuick(uid, myName, team) }
@@ -205,6 +209,9 @@ class OnlineBattleViewModel(
         if (code.length != 6 || !begin(team, friend = true)) return
         viewModelScope.launch {
             val result = runCatching { repo.joinByCode(code, uid, myName, team) }
+            (result.exceptionOrNull() as? com.aditya1875.pokeverse.feature.game.battle.data.TeamSizeMismatch)?.let {
+                return@launch failLobby(R.string.battle_online_err_size, it.required)
+            }
             if (result.isFailure) return@launch failLobby(R.string.battle_online_err_generic)
             val roomId = result.getOrNull() ?: return@launch failLobby(R.string.battle_online_err_room)
             openMatch(roomId, Seat.GUEST)
@@ -271,10 +278,10 @@ class OnlineBattleViewModel(
         return true
     }
 
-    private fun failLobby(@StringRes error: Int) {
+    private fun failLobby(@StringRes error: Int, arg: Int? = null) {
         cancelJobs()
         matchId = null
-        _lobby.update { Lobby(enteredCode = it.enteredCode, errorRes = error) }
+        _lobby.update { Lobby(enteredCode = it.enteredCode, errorRes = error, errorArg = arg) }
     }
 
     private fun openMatch(id: String, mySeat: Seat) {
@@ -351,7 +358,9 @@ class OnlineBattleViewModel(
         preparing = true
         viewModelScope.launch {
             try {
-                if (!OnlineBattleRules.validTeam(host, DexProgress.TOTAL) || !OnlineBattleRules.validTeam(guest, DexProgress.TOTAL)) {
+                if (!OnlineBattleRules.validTeam(host, DexProgress.TOTAL) || !OnlineBattleRules.validTeam(guest, DexProgress.TOTAL) ||
+                    !OnlineBattleRules.evenTeams(host, guest)
+                ) {
                     return@launch failBattle(null, R.string.battle_online_err_prep)
                 }
                 val (hostFighters, guestFighters) = coroutineScope {
@@ -416,6 +425,9 @@ class OnlineBattleViewModel(
             val result = OnlineBattleRules.resolve(state, nextStep, seed, entries)
             state = result.state
             nextStep++
+            // The step is done: its clock stops, and the next one starts once the animation has played.
+            timerJob?.cancel(); timerStep = -1
+            _hud.update { it.copy(secondsLeft = null) }
             canonical = state
             _battle.value = view(state)
             _events.tryEmit(if (seat == Seat.HOST) result.events else result.events.map { it.mirrored() })
@@ -442,18 +454,19 @@ class OnlineBattleViewModel(
             it.copy(
                 waiting = !state.over && (!iNeed || mySubmitted),
                 opponentLocked = seat.other in entries,
-                secondsLeft = if (iNeed && !mySubmitted) it.secondsLeft else null,
+                // Shown to both players for as long as anyone still has to choose.
+                secondsLeft = if (!state.over && pending.isNotEmpty()) it.secondsLeft else null,
             )
         }
     }
 
     // ── Choosing ─────────────────────────────────────────────────────────────────
 
-    override fun act(action: BattleAction) {
+    override fun act(action: BattleAction, tera: Boolean) {
         val mine = _battle.value ?: return
         if (mine.over || mine.playerMustSwitch) return
         if (!BattleEngine.isLegal(mine, Who.PLAYER, action)) return
-        submit(OnlineAction.of(action))
+        submit(OnlineAction.of(action, tera = tera && BattleEngine.canTera(mine, Who.PLAYER, action)))
     }
 
     override fun chooseReplacement(index: Int) {
@@ -470,8 +483,8 @@ class OnlineBattleViewModel(
         val step = nextStep
         if (ended || state.over || seat !in OnlineBattleRules.pendingSeats(state) || submittedStep == step) return
         submittedStep = step
-        timerJob?.cancel()
-        _hud.update { it.copy(waiting = true, secondsLeft = null) }
+        // The clock keeps running after you lock in: it is the rival's remaining time, and both players see it.
+        _hud.update { it.copy(waiting = true) }
         viewModelScope.launch {
             var sent = false
             repeat(3) { attempt ->
@@ -502,8 +515,9 @@ class OnlineBattleViewModel(
         val state = canonical ?: return
         if (_lobby.value.stage != Stage.BATTLING || ended || state.over) return
         val step = nextStep
-        if (timerStep == step || submittedStep == step) return
-        if (seat !in OnlineBattleRules.pendingSeats(state)) return
+        // The clock runs for whoever still has to choose, and both players watch it (yours, or your rival's).
+        if (timerStep == step) return
+        if (OnlineBattleRules.pendingSeats(state).isEmpty()) return
         timerStep = step
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
@@ -513,7 +527,7 @@ class OnlineBattleViewModel(
             }
             // Out of time: the sensible move is played for you, so a stalled player never stalls the match.
             val now = canonical
-            if (now != null && nextStep == step && submittedStep != step) {
+            if (now != null && nextStep == step && submittedStep != step && seat in OnlineBattleRules.pendingSeats(now)) {
                 // Marked as the clock's move: two of these and the player is disqualified.
                 submit(OnlineBattleRules.defaultAction(now, seat).copy(auto = true))
             }
