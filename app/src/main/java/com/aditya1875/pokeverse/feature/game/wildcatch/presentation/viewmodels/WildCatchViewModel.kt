@@ -16,6 +16,7 @@ import com.aditya1875.pokeverse.feature.game.core.data.local.entity.GameScoreEnt
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.ThrowAccuracy
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.WildCatchDifficulty
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.WildCatchPokemon
+import com.aditya1875.pokeverse.feature.game.wildcatch.domain.model.WildForms
 import com.aditya1875.pokeverse.feature.game.wildcatch.domain.state.WildCatchGameState
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
@@ -63,6 +64,8 @@ data class CatchBag(
     val lureLeft: Int = 0,
     /** Free runs left this game. At zero, running away costs a rewarded ad (free for Pro). */
     val runsLeft: Int = WildCatchViewModel.MAX_FREE_RUNS,
+    /** Runs allowed today across all games, Pro included. At zero the Run button is gone until tomorrow. */
+    val dailyRunsLeft: Int = WildCatchViewModel.DAILY_RUN_CAP,
 )
 
 class WildCatchViewModel(
@@ -81,6 +84,11 @@ class WildCatchViewModel(
         const val MAX_LIVES = 3
         /** Free runs per game; after these, running away is a rewarded ad. */
         const val MAX_FREE_RUNS = 3
+        /** Most runs a trainer gets per day, ads and Pro included: runs reroll the encounter, so they are rationed. */
+        const val DAILY_RUN_CAP = 10
+
+        /** Share of encounters that arrive in an alternate form (regional, costume, cap...) when the species has one. */
+        const val FORM_CHANCE = 0.35f
         /** Chance each encounter is a legendary or mythical while a Rare Lure is working. */
         private const val LURE_LEGENDARY_CHANCE = 0.25f
         /** Rounds of candidates tried to find the rolled category before settling for the nearest one. */
@@ -113,6 +121,11 @@ class WildCatchViewModel(
 
     init {
         viewModelScope.launch { pokedex.progress.collect { knownCaught = it.caught } }
+        viewModelScope.launch {
+            pokedex.runsToday.collect { used ->
+                _bag.update { it.copy(dailyRunsLeft = (DAILY_RUN_CAP - used).coerceAtLeast(0)) }
+            }
+        }
         viewModelScope.launch {
             progression.state.collect { s ->
                 _bag.update { cur ->
@@ -315,9 +328,12 @@ class WildCatchViewModel(
      */
     fun runAway(bypassLimit: Boolean = false) {
         if (_gameState.value !is WildCatchGameState.Throwing) return
+        // The daily cap applies to everyone, whatever paid for the run.
+        if (_bag.value.dailyRunsLeft <= 0) return
         val left = _bag.value.runsLeft
         // Out of free runs: the caller must have earned this one (a rewarded ad, or Pro), or nothing happens.
         if (!bypassLimit && left <= 0) return
+        viewModelScope.launch { pokedex.recordRun() }
         if (!bypassLimit) _bag.update { it.copy(runsLeft = left - 1) }
         currentStreak = 0
         nextRound()
@@ -435,12 +451,34 @@ class WildCatchViewModel(
     }
 
     private suspend fun fetchEncounter(id: Int): WildCatchPokemon {
+        // Sometimes the species turns up in one of its other forms (Alolan, Galarian, Pikachu in a cap...).
+        // It still counts as the same Pokédex entry (the id stays the species'), and any failure falls back
+        // to the ordinary form.
+        if (Random.nextFloat() < FORM_CHANCE) {
+            runCatching { fetchForm(id) }.getOrNull()?.let { return it }
+        }
         val p = repo.getPokemonByName(id.toString())
         val sprite = p.sprites.other?.officialArtwork?.frontDefault
             ?: p.sprites.front_default ?: error("no artwork for #$id")
         return WildCatchPokemon(
             id = id,
             name = p.name,
+            spriteUrl = sprite,
+            types = p.types.map { it.type.name },
+            tier = CatchTier.of(id, p.stats.sumOf { it.base_stat }),
+        )
+    }
+
+    /** A random alternate form of species [id], or null when it has none that can appear. */
+    private suspend fun fetchForm(id: Int): WildCatchPokemon? {
+        val forms = repo.getPokemonSpeciesByName(id.toString()).varieties
+            .filter { !it.isDefault && WildForms.allowed(it.pokemon.name) }
+        val pick = forms.randomOrNull() ?: return null
+        val p = repo.getPokemonByName(pick.pokemon.name)
+        val sprite = p.sprites.other?.officialArtwork?.frontDefault ?: return null
+        return WildCatchPokemon(
+            id = id,
+            name = WildForms.displayName(p.name),
             spriteUrl = sprite,
             types = p.types.map { it.type.name },
             tier = CatchTier.of(id, p.stats.sumOf { it.base_stat }),

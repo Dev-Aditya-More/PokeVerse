@@ -812,7 +812,8 @@ private fun ThrowingContent(
 
         // Run: skip this Pokémon. No life is lost, but the catch streak ends. Three free runs a game, then an ad.
         val needsAd = !isPremium && bag.runsLeft <= 0
-        androidx.compose.material3.FilledTonalButton(
+        // Ten runs a day for everyone (Pro included); after that the button is gone until tomorrow.
+        if (bag.dailyRunsLeft > 0) androidx.compose.material3.FilledTonalButton(
             onClick = {
                 if (needsAd) requestRewardedAd(adContext, adActivity, adManager, adState) { onRunAway(true) }
                 else onRunAway(isPremium)
@@ -829,14 +830,16 @@ private fun ThrowingContent(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(Icons.AutoMirrored.Filled.DirectionsRun, contentDescription = null, modifier = Modifier.size(20.dp))
                 Text(stringResource(R.string.wildcatch_run), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
-                if (!isPremium) {
-                    Text(
-                        if (needsAd) stringResource(R.string.wildcatch_run_ad) else stringResource(R.string.wildcatch_run_left, bag.runsLeft),
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1,
-                        color = if (needsAd) Color(0xFFFFD54F) else Color.White.copy(alpha = 0.75f)
-                    )
-                }
+                Text(
+                    when {
+                        isPremium -> stringResource(R.string.wildcatch_run_today, bag.dailyRunsLeft)
+                        needsAd -> stringResource(R.string.wildcatch_run_ad)
+                        else -> stringResource(R.string.wildcatch_run_left, bag.runsLeft)
+                    },
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                    color = if (needsAd) Color(0xFFFFD54F) else Color.White.copy(alpha = 0.75f)
+                )
             }
         }
 
