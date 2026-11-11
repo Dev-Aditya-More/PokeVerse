@@ -42,7 +42,7 @@ import com.aditya1875.pokeverse.feature.progression.domain.WeeklyPrizes
 private val CoinGold = Color(0xFFFFC24B)
 
 /**
- * "How do I earn Poké Coins?" Every number comes from [CoinEconomy], so the guide can't drift
+ * "How do I earn Dex Coins?" Every number comes from [CoinEconomy], so the guide can't drift
  * from what the game actually pays.
  */
 @OptIn(ExperimentalMaterial3Api::class)

@@ -181,7 +181,7 @@ data class XPResult(
     val leveledUp: Boolean,
     /** What the popup says; null for a no-op award. Turned into text by the UI, in the user's language. */
     val label: XPLabel? = null,
-    /** Poké Coins paid alongside this award (shown in the popup note). */
+    /** Dex Coins paid alongside this award (shown in the popup note). */
     val coinsGained: Int = 0,
     /** Level rewards unlocked by this award, oldest first; non-empty only on a level-up. */
     val levelRewards: List<LevelReward> = emptyList()

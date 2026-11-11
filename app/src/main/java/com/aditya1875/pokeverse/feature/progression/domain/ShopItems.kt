@@ -6,7 +6,7 @@ import com.aditya1875.pokeverse.R
 enum class ItemKind { STONE, EVO_ITEM, BALL, BOOST, PACK }
 
 /**
- * A consumable the player buys with Poké Coins and spends in a game. Unlike a [Cosmetic] it is used up.
+ * A consumable the player buys with Dex Coins and spends in a game. Unlike a [Cosmetic] it is used up.
  *
  * [id] doubles as the inventory key, so for evolution items it is the PokeAPI item name
  * ("water-stone", "metal-coat"): the evolution chain says which item a Pokémon needs, and that string

@@ -9,7 +9,7 @@ import com.aditya1875.pokeverse.feature.progression.domain.ShopItems
 /**
  * Evolution: turn a Pokémon on your roster into its next form. The old form is used up (it leaves the
  * roster; the Pokédex entry stays), and the new form takes its place. Evolutions that need a stone or a
- * held item cost that item, bought with Poké Coins; the rest cost Evo Shards. Shards come from the two
+ * held item cost that item, bought with Dex Coins; the rest cost Evo Shards. Shards come from the two
  * games that use your Pokémon: catching them in Wild Catch and winning with them in Team Battle.
  *
  * Pure Kotlin so every rule is unit-tested. Shards never touch XP, level or rank.

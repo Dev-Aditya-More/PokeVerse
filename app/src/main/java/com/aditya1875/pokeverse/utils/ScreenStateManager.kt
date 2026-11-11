@@ -94,7 +94,7 @@ object ScreenStateManager {
         return context.dataStore.data.first()[BATTLE_TUTORIAL_SEEN] ?: false
     }
 
-    /** The one-time "Poké Coins are here" announcement. */
+    /** The one-time "Dex Coins are here" announcement. */
     suspend fun markCoinsIntroSeen(context: Context) {
         context.dataStore.edit { it[COINS_INTRO_SEEN] = true }
     }

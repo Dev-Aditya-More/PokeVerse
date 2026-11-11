@@ -126,7 +126,7 @@ class ProfileViewModel(
 
     /**
      * Merges the cloud wallet into this device and pays any level rewards not yet claimed
-     * (which is how players who levelled up before Poké Coins existed get their back-pay).
+     * (which is how players who levelled up before Dex Coins existed get their back-pay).
      */
     private suspend fun syncProgression() {
         val uid = authManager.currentUser.value?.uid ?: return

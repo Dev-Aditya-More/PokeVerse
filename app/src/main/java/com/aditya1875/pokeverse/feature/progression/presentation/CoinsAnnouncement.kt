@@ -71,7 +71,7 @@ import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.progression.domain.WeeklyPrizes
 
 /**
- * One-time introduction to Poké Coins and the weekly prizes, shown to everyone once.
+ * One-time introduction to Dex Coins and the weekly prizes, shown to everyone once.
  * Guests get the same tour plus a nudge to sign in, since coins are tied to an account.
  */
 @Composable

@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 private val CoinGold = Color(0xFFFFC24B)
 private val CoinRim = Color(0xFFE09A1A)
 
-/** A Poké Coin: a gold disc with a rim and a highlight. */
+/** A Dex Coin: a gold disc with a rim and a highlight. */
 @Composable
 fun CoinIcon(size: Dp, modifier: Modifier = Modifier) {
     Canvas(modifier.size(size)) {

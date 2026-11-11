@@ -107,7 +107,7 @@ fun ThemeSelectorScreen(
     val subscriptionState by billingViewModel.subscriptionState.collectAsStateWithLifecycle()
     val isPremium = subscriptionState is SubscriptionState.Premium
 
-    // Pro themes bought with Poké Coins work for everyone, Pro or not.
+    // Pro themes bought with Dex Coins work for everyone, Pro or not.
     val progression: ProgressionRepository = koinInject()
     val progressionState by progression.state.collectAsState(initial = ProgressionState())
     val coinThemes = Cosmetics.themeUnlockedBy(progressionState.owned)

@@ -3,7 +3,7 @@ package com.aditya1875.pokeverse.feature.progression.domain
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
 
 /**
- * Where Poké Coins come from, and the streak-protection rule. Pure Kotlin, unit-tested.
+ * Where Dex Coins come from, and the streak-protection rule. Pure Kotlin, unit-tested.
  *
  * Coins are deliberately *not* tied to how much XP you grind:
  *  - every faucet is a once-a-day bonus or a small, capped completion reward, so a marathon
