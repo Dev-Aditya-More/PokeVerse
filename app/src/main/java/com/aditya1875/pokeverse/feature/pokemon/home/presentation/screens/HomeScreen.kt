@@ -956,7 +956,7 @@ fun SharedTransitionScope.HomeScreen(
                                                     itemListState as ItemListState.Success
 
                                                 LazyVerticalGrid(
-                                                    columns = GridCells.Adaptive(minSize = 180.dp),
+                                                    columns = GridCells.Adaptive(minSize = 100.dp),
                                                     state = itemGridState,
                                                     contentPadding = PaddingValues(
                                                         start = hPadding,
@@ -1017,7 +1017,7 @@ fun SharedTransitionScope.HomeScreen(
                                                     if (berrySearchQuery.isNotEmpty()) filteredBerries
                                                     else bs.berries
                                                 LazyVerticalGrid(
-                                                    columns = GridCells.Adaptive(minSize = 180.dp),
+                                                    columns = GridCells.Adaptive(minSize = 100.dp),
                                                     state = berryGridState,
                                                     contentPadding = PaddingValues(
                                                         start = hPadding,

@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.core.ui.components.CatalogTile
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import androidx.compose.ui.graphics.FilterQuality
@@ -43,83 +44,17 @@ fun SharedTransitionScope.ItemGridCard(
     onClick: () -> Unit,
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
-
-    val accent = Color(item.categoryColor)
-
-    val key = "item-${item.id}"
-
-    Card(
+    CatalogTile(
+        spriteUrl = item.spriteUrl,
+        name = item.displayName,
+        caption = item.categoryDisplay,
+        accent = Color(item.categoryColor),
         onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+        discModifier = Modifier.sharedElement(
+            sharedContentState = rememberSharedContentState(key = "item-${item.id}"),
+            animatedVisibilityScope = animatedVisibilityScope,
         ),
-        elevation = CardDefaults.cardElevation(0.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .graphicsLayer {
-                shadowElevation = 8f
-                shape = RoundedCornerShape(20.dp)
-                clip = true
-            }
-            .background(
-                Brush.verticalGradient(
-                    listOf(
-                        accent.copy(alpha = 0.25f),
-                        Color.Transparent
-                    )
-                )
-            )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .clip(CircleShape)
-                    .background(accent.copy(alpha = 0.15f))
-                    .sharedElement(
-                        sharedContentState = rememberSharedContentState(key = key),
-                        animatedVisibilityScope = animatedVisibilityScope,
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                AsyncImage(
-                    model = item.spriteUrl,
-                    contentDescription = item.displayName,
-                    modifier = Modifier.size(40.dp),
-                    contentScale = ContentScale.Fit,
-                    filterQuality = FilterQuality.None
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-
-                Text(
-                    item.displayName,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(Modifier.height(4.dp))
-
-                Text(
-                    item.categoryDisplay,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = accent.copy(alpha = 0.8f)
-                )
-            }
-        }
-    }
+    )
 }
 
 @Composable
@@ -131,7 +66,7 @@ fun ItemGridSkeleton() {
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = Modifier.fillMaxSize(), userScrollEnabled = false) {
         items(18) {
-            Box(Modifier.fillMaxWidth().aspectRatio(0.85f).clip(RoundedCornerShape(16.dp))
+            Box(Modifier.fillMaxWidth().aspectRatio(0.82f).clip(RoundedCornerShape(18.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = shimmer)))
         }
     }

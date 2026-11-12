@@ -2,6 +2,7 @@ package com.aditya1875.pokeverse.feature.berry.presentation.screens
 
 import com.aditya1875.pokeverse.feature.core.ui.components.LoadErrorState
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.core.ui.components.CatalogTile
 import androidx.compose.ui.res.stringResource
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -52,76 +53,14 @@ import com.aditya1875.pokeverse.utils.pokemonTypeColor
 
 @Composable
 fun BerryGridCard(berry: BerryUiModel, onClick: () -> Unit = {}, modifier: Modifier = Modifier) {
-    val typeColor = pokemonTypeColor(berry.naturalGiftType)
-
-    Card(
+    CatalogTile(
+        spriteUrl = berry.spriteUrl,
+        name = berry.displayName,
+        caption = berry.naturalGiftType,
+        accent = pokemonTypeColor(berry.naturalGiftType),
         onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
-        ),
-        elevation = CardDefaults.cardElevation(0.dp),
-        modifier = modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .graphicsLayer {
-                shadowElevation = 8f
-                shape = RoundedCornerShape(20.dp)
-                clip = true
-            }
-            .background(
-                Brush.verticalGradient(
-                    listOf(typeColor.copy(alpha = 0.25f), Color.Transparent)
-                )
-            )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(54.dp)
-                    .clip(CircleShape)
-                    .background(typeColor.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                AsyncImage(
-                    model = berry.spriteUrl,
-                    contentDescription = berry.displayName,
-                    modifier = Modifier.size(40.dp),
-                    contentScale = ContentScale.Fit,
-                    filterQuality = FilterQuality.None
-                )
-            }
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    berry.displayName,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(Modifier.height(4.dp))
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = typeColor.copy(alpha = 0.2f)
-                ) {
-                    Text(
-                        berry.naturalGiftType.replaceFirstChar { it.uppercase() },
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = typeColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
+        modifier = modifier,
+    )
 }
 
 @Composable
@@ -141,8 +80,8 @@ fun BerryGridSkeleton() {
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(0.85f)
-                    .clip(RoundedCornerShape(16.dp))
+                    .aspectRatio(0.82f)
+                    .clip(RoundedCornerShape(18.dp))
                     .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = shimmer))
             )
         }
