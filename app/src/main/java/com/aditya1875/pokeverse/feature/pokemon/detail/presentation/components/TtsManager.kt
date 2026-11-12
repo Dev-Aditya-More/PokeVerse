@@ -4,6 +4,8 @@ import com.aditya1875.pokeverse.R
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.util.Log
@@ -12,6 +14,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 import java.util.UUID
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 
 class TTSManager private constructor(context: Context) {
 
@@ -26,8 +31,29 @@ class TTSManager private constructor(context: Context) {
         }
     }
 
+    @Volatile
     private var tts: TextToSpeech? = null
     private var mediaPlayer: MediaPlayer? = null
+
+    // Every TextToSpeech call is a synchronous binder call into the engine app and takes a lock the
+    // engine's own connect task holds while it binds. On a cold or busy engine that blocks for seconds,
+    // which on the main thread is an ANR (stop() blocking in TextToSpeech.runAction). So the engine is
+    // only ever touched from this one worker: calls stay in order and main never waits on them.
+    private val worker: ExecutorService = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "tts-worker").apply { isDaemon = true }
+    }
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    private fun onEngine(block: (TextToSpeech) -> Unit) {
+        val engine = tts ?: return
+        try {
+            worker.execute {
+                try { block(engine) } catch (e: Exception) { Log.w("TTS", "Engine call failed", e) }
+            }
+        } catch (_: RejectedExecutionException) {
+            // Shut down: nothing to speak with.
+        }
+    }
 
     private val _isReady = MutableStateFlow(false)
     val isReady: StateFlow<Boolean> = _isReady.asStateFlow()
@@ -37,6 +63,7 @@ class TTSManager private constructor(context: Context) {
 
     // The engine binds asynchronously (often 0.5-2s). A request made before then used to be
     // dropped, so the first Dex Mode entry played its cry and then said nothing. Keep the latest.
+    @Volatile
     private var pending: Pair<String, Boolean>? = null
 
     init {
@@ -47,14 +74,16 @@ class TTSManager private constructor(context: Context) {
         // Initialize TTS
         tts = TextToSpeech(context) { status ->
             if (status == TextToSpeech.SUCCESS) {
-                tts?.let { engine ->
+                // This callback runs on the main thread; setLanguage / voices / voice are blocking
+                // binder calls, so the whole setup happens on the worker.
+                onEngine { engine ->
                     val result = engine.setLanguage(Locale.US)
                     if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                         Log.e("TTS", "Language not supported")
                         _isReady.value = false
                     } else {
 
-                        val voices = engine.voices
+                        val voices = engine.voices.orEmpty()
 
                         val preferred = voices.firstOrNull {
                             it.name.contains("en-us-x-iom")
@@ -89,11 +118,14 @@ class TTSManager private constructor(context: Context) {
                             }
                         })
 
-                        _isReady.value = true
                         Log.d("TTS", "TTS initialized successfully")
-                        pending?.let { (text, withBeep) ->
-                            pending = null
-                            speak(text, withBeep)
+                        // Back on main for the rest: ready flag, the beep (MediaPlayer) and any queued line.
+                        mainHandler.post {
+                            _isReady.value = true
+                            pending?.let { (text, withBeep) ->
+                                pending = null
+                                speak(text, withBeep)
+                            }
                         }
                     }
                 }
@@ -139,7 +171,7 @@ class TTSManager private constructor(context: Context) {
             mediaPlayer?.apply {
                 setOnCompletionListener {
                     onStart?.invoke()
-                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+                    onEngine { it.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId) }
                 }
 
                 try {
@@ -147,13 +179,13 @@ class TTSManager private constructor(context: Context) {
                 } catch (e: Exception) {
                     Log.e("TTS", "Beep failed, speaking directly", e)
                     onStart?.invoke()
-                    tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+                    onEngine { it.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId) }
                 }
             }
         } else {
             // Speak immediately
             onStart?.invoke()
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+            onEngine { it.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId) }
         }
     }
 
@@ -162,7 +194,7 @@ class TTSManager private constructor(context: Context) {
      */
     fun stop() {
         pending = null
-        tts?.stop()
+        onEngine { it.stop() }
         mediaPlayer?.let {
             if (it.isPlaying) {
                 it.pause()
@@ -182,9 +214,17 @@ class TTSManager private constructor(context: Context) {
      */
     fun shutdown() {
         stop()
-        tts?.shutdown()
-        mediaPlayer?.release()
+        // Queued behind the stop above, so the engine is released in order, off the main thread.
+        val engine = tts
         tts = null
+        if (engine != null) {
+            try {
+                worker.execute { runCatching { engine.shutdown() } }
+            } catch (_: RejectedExecutionException) {
+            }
+        }
+        worker.shutdown()
+        mediaPlayer?.release()
         mediaPlayer = null
         _isReady.value = false
     }
