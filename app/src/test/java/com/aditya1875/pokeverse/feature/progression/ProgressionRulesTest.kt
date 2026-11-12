@@ -34,9 +34,17 @@ class CoinEconomyTest {
     }
 
     @Test
-    fun `community bonuses pay no coins`() {
-        assertEquals(0, CoinEconomy.forEvent(XPEvent.ReferralReward(friends = 10), 0).coins)
-        assertEquals(0, CoinEconomy.forEvent(XPEvent.FeedbackThanks, 0).coins)
+    fun `invite and suggest pay coins without using a completion slot`() {
+        assertEquals(CoinEconomy.FEEDBACK_THANKS, CoinEconomy.forEvent(XPEvent.FeedbackThanks, 0).coins)
+        assertEquals(CoinEconomy.REFERRAL_WELCOME, CoinEconomy.forEvent(XPEvent.ReferralWelcome, 0).coins)
+        assertEquals(40, CoinEconomy.forEvent(XPEvent.ReferralReward(friends = 2), 0).coins)
+        assertEquals(false, CoinEconomy.forEvent(XPEvent.FeedbackThanks, 0).countsAsCompletion)
+    }
+
+    @Test
+    fun `referral payout is capped`() {
+        assertEquals(CoinEconomy.REFERRAL_MAX_PER_PAYOUT, CoinEconomy.forEvent(XPEvent.ReferralReward(friends = 10), 0).coins)
+        assertEquals(0, CoinEconomy.referralCoins(0))
     }
 
     @Test

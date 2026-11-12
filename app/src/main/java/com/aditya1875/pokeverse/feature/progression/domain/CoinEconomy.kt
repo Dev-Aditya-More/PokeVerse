@@ -24,6 +24,16 @@ object CoinEconomy {
     const val COMPLETION = 4
     const val COMPLETIONS_PER_DAY = 5
 
+    /** One-off thank-you for the first suggestion sent. */
+    const val FEEDBACK_THANKS = 25
+
+    /** Joining with a friend's code, and per friend who joins with yours (capped per payout). */
+    const val REFERRAL_WELCOME = 20
+    const val REFERRAL_PER_FRIEND = 20
+    const val REFERRAL_MAX_PER_PAYOUT = 100
+
+    fun referralCoins(friends: Int): Int = (friends * REFERRAL_PER_FRIEND).coerceIn(0, REFERRAL_MAX_PER_PAYOUT)
+
     const val FREEZE_PRICE = 100
     const val FREEZE_MAX = 2
 
@@ -37,6 +47,11 @@ object CoinEconomy {
         XPEvent.FirstExplorationOfDay -> EventCoins(FIRST_EXPLORATION)
         XPEvent.DailyFact -> EventCoins(DAILY_FACT)
         is XPEvent.DexDaily -> EventCoins(if (event.xp >= 15) DEX_DAILY_SOLVED else DEX_DAILY_TRIED)
+        // Settings actions. Each is gated elsewhere (feedback once ever, referrals counted by the server
+        // and redeemable once), so these are not repeatable faucets.
+        XPEvent.FeedbackThanks -> EventCoins(FEEDBACK_THANKS)
+        XPEvent.ReferralWelcome -> EventCoins(REFERRAL_WELCOME)
+        is XPEvent.ReferralReward -> EventCoins(referralCoins(event.friends))
         is XPEvent.QuizComplete, is XPEvent.MatchComplete, is XPEvent.GuessComplete, is XPEvent.DuelComplete,
         is XPEvent.RushComplete, is XPEvent.WildCatchComplete, is XPEvent.SurvivorComplete,
         is XPEvent.ChaseComplete, is XPEvent.BattleComplete, is XPEvent.OnlineBattleComplete, is XPEvent.CardClashWin, is XPEvent.CardClashDraw ->
