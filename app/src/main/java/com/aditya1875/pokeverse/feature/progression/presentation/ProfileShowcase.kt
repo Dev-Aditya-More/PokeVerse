@@ -78,13 +78,21 @@ import kotlin.random.Random
 
 private val CardShape = RoundedCornerShape(28.dp)
 
-/** The card's sky: the backdrop when one is equipped, otherwise a deep tint of the partner's type colour. */
-private fun skyBrush(palette: List<Color>?, typeColor: Color): Brush =
-    if (palette != null) Brush.linearGradient(palette)
-    else Brush.linearGradient(listOf(lerp(typeColor, Color.Black, 0.45f), lerp(typeColor, Color.Black, 0.82f)))
+/**
+ * The look of a card with nothing equipped, which is how every new trainer's first impression looks: a deep indigo
+ * dusk sliding into violet and orchid, with soft pastel smoke. It is the same for every partner on purpose.
+ * Darkening each type colour instead gave muddy olives and browns (yellow, grass, ground...), and the partner's own
+ * colour still shows, as the glow behind them.
+ */
+private val DefaultSky = listOf(Color(0xFF171C4A), Color(0xFF38287A), Color(0xFF7A3E96))
+private val DefaultSmoke = listOf(Color(0xFF7C6CF0), Color(0xFFFF7EB6), Color(0xFF5CC8FF))
 
-private fun smokePalette(palette: List<Color>?, typeColor: Color): List<Color> =
-    palette ?: listOf(typeColor, lerp(typeColor, Color.White, 0.35f), typeColor)
+/** The card's sky: the backdrop when one is equipped, otherwise the default dusk. */
+private fun skyBrush(palette: List<Color>?, @Suppress("UNUSED_PARAMETER") typeColor: Color): Brush =
+    Brush.linearGradient(palette ?: DefaultSky)
+
+private fun smokePalette(palette: List<Color>?, @Suppress("UNUSED_PARAMETER") typeColor: Color): List<Color> =
+    palette ?: DefaultSmoke
 
 /**
  * The profile's hero card. This is where cosmetics become visible:
@@ -248,7 +256,7 @@ private fun PartnerArt(
                             repeat(3) { hearts.add(nextHeart++) }
                             line = reactions.randomOrNull()
                             bubbleJob?.cancel()
-                            bubbleJob = scope.launch { delay(2300); line = null }
+                            bubbleJob = scope.launch { delay(1500); line = null }
                         },
                         onLongPress = { onChange?.invoke() }
                     )
@@ -259,9 +267,11 @@ private fun PartnerArt(
             ThoughtCloud(
                 text,
                 modifier = Modifier
-                    // Beside the partner, in the card's empty bottom-left, so it never covers the name or XP.
-                    .align(Alignment.BottomStart)
-                    .offset(x = (-150).dp, y = (-10).dp)
+                    // Up and to the left of the partner's head, inside the card, with its puffs trailing toward the
+                    // head. It may cover a little of the card's text for a moment; it is gone after about a second
+                    // and a half.
+                    .align(Alignment.TopStart)
+                    .offset(x = (-62).dp, y = (-6).dp)
                     .widthIn(max = 150.dp)
             )
         }
@@ -285,20 +295,20 @@ private fun PartnerArt(
 }
 
 /**
- * What the partner says, as a comic thought cloud: a puffy outline in the theme's own surface and text colours (so it
- * sits in the card instead of fighting it), two small puffs trailing toward the partner, and a quick pop-in.
+ * What the partner says, as a white comic thought cloud with dark ink: a puffy outline, two small puffs trailing down
+ * toward the partner, and a quick pop-in. White on purpose, so it reads as speech whatever backdrop is equipped.
  */
 @Composable
 private fun ThoughtCloud(text: String, modifier: Modifier = Modifier) {
     val scale = remember(text) { Animatable(0.6f) }
     LaunchedEffect(text) { scale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 500f)) }
-    val fill = MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
-    val ink = MaterialTheme.colorScheme.onSurface
-    val outline = ink.copy(alpha = 0.45f)
+    val fill = Color.White
+    val ink = Color(0xFF1B1F2A)
+    val outline = ink.copy(alpha = 0.55f)
     Box(
         modifier.graphicsLayer {
             scaleX = scale.value; scaleY = scale.value
-            // It grows out of the corner nearest the partner.
+            // It grows out of the bottom-right corner, the one nearest the partner's head.
             transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 1f)
         }
     ) {
@@ -312,12 +322,12 @@ private fun ThoughtCloud(text: String, modifier: Modifier = Modifier) {
             maxLines = 2,
             modifier = Modifier
                 .background(fill, CloudShape)
-                .border(1.dp, outline, CloudShape)
+                .border(1.5.dp, outline, CloudShape)
                 .padding(horizontal = 16.dp, vertical = 11.dp)
         )
         // The trailing puffs of a thought bubble, getting smaller toward the one doing the thinking.
-        Box(Modifier.align(Alignment.BottomEnd).offset(x = 4.dp, y = 9.dp).size(7.dp).background(fill, CircleShape).border(1.dp, outline, CircleShape))
-        Box(Modifier.align(Alignment.BottomEnd).offset(x = 11.dp, y = 16.dp).size(4.dp).background(fill, CircleShape).border(1.dp, outline, CircleShape))
+        Box(Modifier.align(Alignment.BottomEnd).offset(x = (-6).dp, y = 9.dp).size(8.dp).background(fill, CircleShape).border(1.dp, outline, CircleShape))
+        Box(Modifier.align(Alignment.BottomEnd).offset(x = 1.dp, y = 17.dp).size(5.dp).background(fill, CircleShape).border(1.dp, outline, CircleShape))
     }
 }
 
