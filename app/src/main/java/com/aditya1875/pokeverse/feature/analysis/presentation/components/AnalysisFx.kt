@@ -151,11 +151,3 @@ fun Confetti(fire: Boolean, modifier: Modifier = Modifier) {
     }
 }
 
-/** Counts from 0 up to [target] the first time it is shown, then follows any new value. */
-@Composable
-fun rememberCountUp(target: Int, durationMs: Int = 1100): Int {
-    var goal by remember { mutableIntStateOf(0) }
-    LaunchedEffect(target) { goal = target }
-    val value by animateIntAsState(goal, tween(durationMs, easing = FastOutSlowInEasing), label = "countUp")
-    return value
-}

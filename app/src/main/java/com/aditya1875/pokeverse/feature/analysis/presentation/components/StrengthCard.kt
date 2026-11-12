@@ -59,11 +59,7 @@ fun ScoreHeroCard(score: Int) {
         else        -> "🛠️"
     }
 
-    val animatedScore by animateIntAsState(
-        targetValue = score,
-        animationSpec = tween(1200, easing = FastOutSlowInEasing),
-        label = "score"
-    )
+    val animatedScore = com.aditya1875.pokeverse.utils.rememberCountUp("analysis_strength", score, 1200)
     val animatedProgress by animateFloatAsState(
         targetValue = score / 100f,
         animationSpec = tween(1200, easing = FastOutSlowInEasing),

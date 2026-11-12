@@ -56,7 +56,7 @@ private fun MiniStatChip(
     modifier: Modifier, icon: String, value: Int, suffix: String, label: String, color: Color, index: Int,
     alarm: Boolean = false,
 ) {
-    val shown = rememberCountUp(value, 1000)
+    val shown = com.aditya1875.pokeverse.utils.rememberCountUp("analysis_stat:$label", value, 1000)
     val transition = rememberInfiniteTransition(label = "stat$index")
     val bounce by transition.animateFloat(
         initialValue = 0.92f, targetValue = 1.12f,

@@ -113,7 +113,7 @@ fun RankHero(analysis: TeamAnalysis, teamSize: Int) {
         else -> R.string.analysis_verdict_poor
     }
 
-    val shown = rememberCountUp(score, 1400)
+    val shown = com.aditya1875.pokeverse.utils.rememberCountUp("analysis_rank", score, 1400)
     var goal by remember { mutableFloatStateOf(0f) }
     LaunchedEffect(score) { goal = score / 100f }
     val sweep by animateFloatAsState(goal, tween(1400, easing = FastOutSlowInEasing), label = "sweep")

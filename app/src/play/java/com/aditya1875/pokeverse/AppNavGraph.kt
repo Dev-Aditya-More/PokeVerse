@@ -348,6 +348,8 @@ fun AppNavGraph(
                 WithBottomBar(
                     navController = navController
                 ) {
+                    // Numbers on this screen count up once per visit, not again each time they scroll back into view.
+                    com.aditya1875.pokeverse.utils.ProvideCountUpMemory {
                     ProfileScreen(
                         onSettingsClick = {
                             navController.navigate(Route.Settings.route)
@@ -369,6 +371,7 @@ fun AppNavGraph(
                             }
                         }
                     )
+                    }
                 }
             }
 
@@ -577,10 +580,12 @@ fun AppNavGraph(
 
                 val teamId = backStackEntry.arguments?.getString("teamId")
 
-                TeamAnalysisScreen(
-                    navController = navController,
-                    teamId = teamId
-                )
+                com.aditya1875.pokeverse.utils.ProvideCountUpMemory {
+                    TeamAnalysisScreen(
+                        navController = navController,
+                        teamId = teamId
+                    )
+                }
             }
 
             composable(

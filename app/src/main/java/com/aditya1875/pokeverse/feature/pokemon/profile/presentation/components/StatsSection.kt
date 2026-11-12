@@ -3,7 +3,7 @@ package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.components
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateIntAsState
+import com.aditya1875.pokeverse.utils.rememberCountUp
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -78,7 +78,7 @@ fun StatsSection(profile: UserProfile) {
 
 @Composable
 private fun StripStat(icon: ImageVector, tint: Color, value: Int, label: String, modifier: Modifier) {
-    val shown by countUp(value)
+    val shown = rememberCountUp("profile_strip:$label", value)
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(16.dp))
@@ -92,14 +92,6 @@ private fun StripStat(icon: ImageVector, tint: Color, value: Int, label: String,
         }
         Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
-}
-
-/** Counts up from 0 on first show, then animates to any new value. */
-@Composable
-private fun countUp(target: Int) = run {
-    var start by remember { mutableIntStateOf(0) }
-    LaunchedEffect(target) { start = target }
-    animateIntAsState(start, tween(900, easing = FastOutSlowInEasing), label = "count")
 }
 
 private data class GameBest(
@@ -150,7 +142,7 @@ fun GameStatsSection(profile: UserProfile) {
 @Composable
 private fun BestTile(game: GameBest, isTop: Boolean, modifier: Modifier) {
     val played = game.hasPlayed
-    val shown by countUp(game.score)
+    val shown = rememberCountUp("profile_best:${game.title}", game.score)
     Surface(
         shape = RoundedCornerShape(14.dp),
         color = game.color.copy(alpha = if (played) 0.1f else 0.04f),
