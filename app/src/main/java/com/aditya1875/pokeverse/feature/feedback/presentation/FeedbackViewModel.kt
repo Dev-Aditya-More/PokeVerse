@@ -23,7 +23,10 @@ data class FeedbackUiState(
     val sent: Boolean = false,
     val failed: Boolean = false,
     val tooSoon: Boolean = false,
-    val xpAwarded: Int = 0
+    val xpAwarded: Int = 0,
+    val coinsAwarded: Int = 0,
+    /** The first suggestion still has its coin reward to earn. */
+    val rewardAvailable: Boolean = false
 ) {
     val canSend: Boolean get() = !sending && (selected.isNotEmpty() || message.isNotBlank())
 }
@@ -41,7 +44,7 @@ class FeedbackViewModel(
 
     /** Fresh form each time the sheet opens. */
     fun reset() {
-        _state.value = FeedbackUiState(tooSoon = !repo.canSubmitNow)
+        _state.value = FeedbackUiState(tooSoon = !repo.canSubmitNow, rewardAvailable = !repo.thanksClaimed)
     }
 
     fun toggle(wish: FeedbackWish) = _state.update {
@@ -59,12 +62,14 @@ class FeedbackViewModel(
         viewModelScope.launch {
             val ok = repo.submit(s.selected, s.message)
             var gained = 0
+            var coins = 0
             if (ok && repo.claimThanksOnce()) {
                 val award = xpManager.awardGameXP(XPEvent.FeedbackThanks)
                 gained = award.xpGained
+                coins = award.coinsGained
                 if (gained > 0) _xp.emit(award)
             }
-            _state.update { it.copy(sending = false, sent = ok, failed = !ok, xpAwarded = gained) }
+            _state.update { it.copy(sending = false, sent = ok, failed = !ok, xpAwarded = gained, coinsAwarded = coins) }
         }
     }
 }

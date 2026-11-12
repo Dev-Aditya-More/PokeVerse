@@ -54,6 +54,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.progression.domain.CoinEconomy
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPValues
 import com.aditya1875.pokeverse.feature.referral.data.RedeemResult
 
@@ -95,6 +96,8 @@ fun InviteFriendsSheet(
             Spacer(Modifier.height(12.dp))
             RewardRow("🎁", stringResource(R.string.referral_reward_you, XPValues.REFERRAL_PER_FRIEND))
             RewardRow("✨", stringResource(R.string.referral_reward_friend, XPValues.REFERRAL_WELCOME))
+            RewardRow("🪙", stringResource(R.string.referral_coins_you, CoinEconomy.REFERRAL_PER_FRIEND))
+            RewardRow("🪙", stringResource(R.string.referral_coins_friend, CoinEconomy.REFERRAL_WELCOME))
             Spacer(Modifier.height(20.dp))
 
             when {
@@ -240,7 +243,7 @@ private fun RedeemSection(
         result?.let {
             Spacer(Modifier.height(8.dp))
             val (msg, good) = when (it) {
-                RedeemResult.Success -> stringResource(R.string.referral_redeem_success, XPValues.REFERRAL_WELCOME) to true
+                RedeemResult.Success -> stringResource(R.string.referral_redeem_success, XPValues.REFERRAL_WELCOME, CoinEconomy.REFERRAL_WELCOME) to true
                 RedeemResult.UnknownCode -> stringResource(R.string.referral_redeem_unknown) to false
                 RedeemResult.OwnCode -> stringResource(R.string.referral_redeem_own) to false
                 RedeemResult.AlreadyRedeemed -> stringResource(R.string.referral_redeem_already) to false

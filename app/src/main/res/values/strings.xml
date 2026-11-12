@@ -1119,6 +1119,8 @@
     <string name="referral_title">Invite friends, earn XP</string>
     <string name="referral_reward_you">You get +%1$d XP for each friend who joins (up to 10)</string>
     <string name="referral_reward_friend">Your friend gets a +%1$d XP welcome bonus</string>
+    <string name="referral_coins_you">Plus %1$d Dex Coins for each friend who joins</string>
+    <string name="referral_coins_friend">Plus %1$d Dex Coins for them too</string>
     <string name="referral_sign_in">Sign in from your Profile to get your invite code.</string>
     <string name="referral_copy">Copy</string>
     <string name="referral_copied">Code copied</string>
@@ -1131,7 +1133,7 @@
     <string name="referral_have_code">Got a code from a friend?</string>
     <string name="referral_code_hint">Enter code</string>
     <string name="referral_redeem">Redeem</string>
-    <string name="referral_redeem_success">Welcome aboard! +%1$d XP added.</string>
+    <string name="referral_redeem_success">Welcome aboard! +%1$d XP and +%2$d Dex Coins added.</string>
     <string name="referral_redeem_unknown">That code doesn\'t exist. Check it and try again.</string>
     <string name="referral_redeem_own">That\'s your own code. Share it with a friend instead!</string>
     <string name="referral_redeem_already">You\'ve already used a friend\'s code.</string>
@@ -1145,6 +1147,8 @@
     <string name="referral_claim_cta">Claim bonus</string>
     <string name="feedback_title">What should we build next?</string>
     <string name="feedback_subtitle">Pick anything you\'d love to see. Every reply is read.</string>
+    <string name="feedback_coins_note">Your first suggestion earns you +%1$d Dex Coins.</string>
+    <string name="feedback_coins_earned">+%1$d Dex Coins</string>
     <string name="feedback_message_hint">Anything else? (optional)</string>
     <string name="feedback_send">Send</string>
     <string name="feedback_failed">Couldn\'t send. Check your connection and try again.</string>

@@ -1106,6 +1106,8 @@
     <string name="referral_title">दोस्तों को बुलाएँ, XP कमाएँ</string>
     <string name="referral_reward_you">हर जुड़ने वाले दोस्त पर आपको +%1$d XP (10 तक)</string>
     <string name="referral_reward_friend">आपके दोस्त को +%1$d XP का वेलकम बोनस</string>
+    <string name="referral_coins_you">हर दोस्त के जुड़ने पर +%1$d Dex Coins भी</string>
+    <string name="referral_coins_friend">उन्हें भी +%1$d Dex Coins</string>
     <string name="referral_sign_in">अपना इनवाइट कोड पाने के लिए प्रोफ़ाइल से साइन इन करें।</string>
     <string name="referral_copy">कॉपी</string>
     <string name="referral_copied">कोड कॉपी हुआ</string>
@@ -1118,7 +1120,7 @@
     <string name="referral_have_code">दोस्त से कोड मिला है?</string>
     <string name="referral_code_hint">कोड डालें</string>
     <string name="referral_redeem">रिडीम</string>
-    <string name="referral_redeem_success">स्वागत है! +%1$d XP जोड़े गए।</string>
+    <string name="referral_redeem_success">स्वागत है! +%1$d XP और +%2$d Dex Coins जोड़े गए।</string>
     <string name="referral_redeem_unknown">यह कोड मौजूद नहीं है। जाँचकर फिर कोशिश करें।</string>
     <string name="referral_redeem_own">यह आपका अपना कोड है। इसे किसी दोस्त के साथ शेयर करें!</string>
     <string name="referral_redeem_already">आप पहले ही किसी दोस्त का कोड इस्तेमाल कर चुके हैं।</string>
@@ -1132,6 +1134,8 @@
     <string name="referral_claim_cta">बोनस लें</string>
     <string name="feedback_title">हमें आगे क्या बनाना चाहिए?</string>
     <string name="feedback_subtitle">जो भी देखना चाहें वो चुनें। हर जवाब पढ़ा जाता है।</string>
+    <string name="feedback_coins_note">आपके पहले सुझाव पर +%1$d Dex Coins मिलेंगे।</string>
+    <string name="feedback_coins_earned">+%1$d Dex Coins</string>
     <string name="feedback_message_hint">कुछ और? (वैकल्पिक)</string>
     <string name="feedback_send">भेजें</string>
     <string name="feedback_failed">भेजा नहीं जा सका। कनेक्शन जाँचकर फिर कोशिश करें।</string>

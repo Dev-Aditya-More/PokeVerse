@@ -1106,6 +1106,8 @@
     <string name="referral_title">Invitez des amis, gagnez de l\'XP</string>
     <string name="referral_reward_you">Vous gagnez +%1$d XP par ami qui rejoint (jusqu\'à 10)</string>
     <string name="referral_reward_friend">Votre ami reçoit un bonus de bienvenue de +%1$d XP</string>
+    <string name="referral_coins_you">Plus %1$d Dex Coins pour chaque ami qui rejoint</string>
+    <string name="referral_coins_friend">Et %1$d Dex Coins pour lui aussi</string>
     <string name="referral_sign_in">Connectez-vous depuis votre profil pour obtenir votre code d\'invitation.</string>
     <string name="referral_copy">Copier</string>
     <string name="referral_copied">Code copié</string>
@@ -1118,7 +1120,7 @@
     <string name="referral_have_code">Un ami vous a donné un code ?</string>
     <string name="referral_code_hint">Saisir le code</string>
     <string name="referral_redeem">Valider</string>
-    <string name="referral_redeem_success">Bienvenue ! +%1$d XP ajoutés.</string>
+    <string name="referral_redeem_success">Bienvenue ! +%1$d XP et +%2$d Dex Coins ajoutés.</string>
     <string name="referral_redeem_unknown">Ce code n\'existe pas. Vérifiez-le et réessayez.</string>
     <string name="referral_redeem_own">C\'est votre propre code. Partagez-le plutôt avec un ami !</string>
     <string name="referral_redeem_already">Vous avez déjà utilisé le code d\'un ami.</string>
@@ -1132,6 +1134,8 @@
     <string name="referral_claim_cta">Réclamer</string>
     <string name="feedback_title">Que devrions-nous créer ensuite ?</string>
     <string name="feedback_subtitle">Choisissez ce que vous aimeriez voir. Chaque réponse est lue.</string>
+    <string name="feedback_coins_note">Ta première suggestion te rapporte +%1$d Dex Coins.</string>
+    <string name="feedback_coins_earned">+%1$d Dex Coins</string>
     <string name="feedback_message_hint">Autre chose ? (facultatif)</string>
     <string name="feedback_send">Envoyer</string>
     <string name="feedback_failed">Envoi impossible. Vérifiez votre connexion et réessayez.</string>

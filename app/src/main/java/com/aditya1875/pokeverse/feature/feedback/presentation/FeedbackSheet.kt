@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aditya1875.pokeverse.R
+import com.aditya1875.pokeverse.feature.progression.domain.CoinEconomy
 import com.aditya1875.pokeverse.feature.feedback.data.FeedbackRepository
 import com.aditya1875.pokeverse.feature.feedback.data.FeedbackWish
 
@@ -109,6 +110,15 @@ fun FeedbackSheet(viewModel: FeedbackViewModel, onDismiss: () -> Unit) {
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
+                if (state.coinsAwarded > 0) {
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        "🪙 " + stringResource(R.string.feedback_coins_earned, state.coinsAwarded),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Black,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
                 Spacer(Modifier.height(16.dp))
                 Button(onClick = onDismiss, shape = RoundedCornerShape(12.dp)) { Text(stringResource(R.string.feedback_close)) }
                 return@Column
@@ -129,6 +139,16 @@ fun FeedbackSheet(viewModel: FeedbackViewModel, onDismiss: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
+            if (state.rewardAvailable) {
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    "🪙 " + stringResource(R.string.feedback_coins_note, CoinEconomy.FEEDBACK_THANKS),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    textAlign = TextAlign.Center
+                )
+            }
             Spacer(Modifier.height(16.dp))
 
             FlowRow(

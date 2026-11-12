@@ -50,6 +50,9 @@ class FeedbackRepository(context: Context) {
         false
     }
 
+    /** Whether the one-off thank-you reward has already been paid. */
+    val thanksClaimed: Boolean get() = prefs.getBoolean(KEY_THANKED, false)
+
     /** True the first time only, the thank-you XP is a one-off. */
     fun claimThanksOnce(): Boolean {
         if (prefs.getBoolean(KEY_THANKED, false)) return false

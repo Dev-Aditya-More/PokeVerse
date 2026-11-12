@@ -1120,6 +1120,8 @@
     <string name="referral_title">Convide amigos e ganhe XP</string>
     <string name="referral_reward_you">Você ganha +%1$d XP por amigo que entrar (até 10)</string>
     <string name="referral_reward_friend">Seu amigo ganha um bônus de boas-vindas de +%1$d XP</string>
+    <string name="referral_coins_you">Mais %1$d Dex Coins por cada amigo que entrar</string>
+    <string name="referral_coins_friend">E %1$d Dex Coins para ele também</string>
     <string name="referral_sign_in">Entre pelo seu Perfil para receber seu código de convite.</string>
     <string name="referral_copy">Copiar</string>
     <string name="referral_copied">Código copiado</string>
@@ -1132,7 +1134,7 @@
     <string name="referral_have_code">Recebeu um código de um amigo?</string>
     <string name="referral_code_hint">Digite o código</string>
     <string name="referral_redeem">Resgatar</string>
-    <string name="referral_redeem_success">Bem-vindo! +%1$d XP adicionados.</string>
+    <string name="referral_redeem_success">Bem-vindo! +%1$d XP e +%2$d Dex Coins adicionados.</string>
     <string name="referral_redeem_unknown">Esse código não existe. Confira e tente de novo.</string>
     <string name="referral_redeem_own">Esse é o seu código. Compartilhe com um amigo!</string>
     <string name="referral_redeem_already">Você já usou o código de um amigo.</string>
@@ -1146,6 +1148,8 @@
     <string name="referral_claim_cta">Resgatar bônus</string>
     <string name="feedback_title">O que devemos criar a seguir?</string>
     <string name="feedback_subtitle">Escolha o que você gostaria de ver. Lemos todas as respostas.</string>
+    <string name="feedback_coins_note">Sua primeira sugestão rende +%1$d Dex Coins.</string>
+    <string name="feedback_coins_earned">+%1$d Dex Coins</string>
     <string name="feedback_message_hint">Mais alguma coisa? (opcional)</string>
     <string name="feedback_send">Enviar</string>
     <string name="feedback_failed">Não foi possível enviar. Verifique sua conexão e tente de novo.</string>
