@@ -1504,9 +1504,9 @@
     <string name="battle_help_attack_title">Attaque</string>
     <string name="battle_help_attack">Un coup rapide. Charge ton énergie.</string>
     <string name="battle_help_special_title">Spécial</string>
-    <string name="battle_help_special">Un gros coup. Il faut une jauge SPÉCIAL pleine : elle se remplit quand tu attaques (+35), gardes (+40) et encaisses (+10).</string>
+    <string name="battle_help_special">Un gros coup. Il faut une jauge SPÉCIAL pleine : elle se remplit quand tu attaques (+35) et encaisses (+10).</string>
     <string name="battle_help_guard_title">Garde</string>
-    <string name="battle_help_guard">Subis moitié moins de dégâts et charge vite la jauge SPÉCIAL. Chaque camp n\'a que 3 Gardes par combat.</string>
+    <string name="battle_help_guard">Active la Garde, puis choisis Attaque ou Spécial. Ton action a quand même lieu et tu subis 40 % de dégâts en moins ce tour. Chaque camp n\'a que 2 Gardes par combat.</string>
     <string name="battle_help_switch_title">Changer</string>
     <string name="battle_help_switch">Fais entrer un coéquipier. Il encaisse le coup.</string>
     <string name="battle_help_types_title">Joue sur les types !</string>
@@ -1516,7 +1516,7 @@
     <string name="battle_help_got_it">Au combat !</string>
     <string name="battle_hint_attack">Charge l\'énergie</string>
     <string name="battle_hint_special">Gros coup</string>
-    <string name="battle_hint_guard">Dégâts réduits de moitié</string>
+    <string name="battle_hint_guard">40 % de dégâts en moins</string>
     <string name="battle_hint_switch">Changer de Pokémon</string>
     <string name="battle_eff_super">Super efficace</string>
     <string name="battle_eff_resisted">Résisté</string>
@@ -1703,7 +1703,7 @@
     <string name="wildcatch_tier_common">Commun</string>
     <string name="battle_energy_label">Spécial</string>
     <string name="battle_special_charging">Charge %1$d %%</string>
-    <string name="battle_hint_guard_left">Dégâts réduits de moitié · %1$d restante(s)</string>
+    <string name="battle_hint_guard_left">40 %% de dégâts en moins · %1$d restante(s)</string>
     <string name="battle_guard_none">Plus de Gardes</string>
     <string name="battle_guard_hint">S\'ajoute à ton action · %1$d restant(s)</string>
     <string name="battle_guard_armed">Activée : tu subis 40%% de moins ce tour</string>
@@ -1719,8 +1719,8 @@
     <string name="tip_catch_streak">Toutes les 5 captures d\'affilée, tu récupères un cœur.</string>
     <string name="tip_catch_dart">Les Pokémon Ultra rares et Légendaires bougent vite. Attends qu\'ils se calment avant de lancer.</string>
     <string name="tip_catch_evolve">Les Éclats d\'évolution et les pierres font évoluer les Pokémon capturés. L\'évolution consomme l\'ancienne forme, choisis bien.</string>
-    <string name="tip_battle_special">Surveille la jauge SPÉCIAL. Elle se remplit quand tu attaques, gardes et encaisses, et le gros coup se débloque à 100 %.</string>
-    <string name="tip_battle_guards">Chaque camp n\'a que 3 Gardes par combat, quel que soit le nombre de Pokémon utilisés. Garde-les pour les gros coups.</string>
+    <string name="tip_battle_special">Surveille la jauge SPÉCIAL. Elle se remplit quand tu attaques et encaisses, et le gros coup se débloque à 100 %.</string>
+    <string name="tip_battle_guards">Chaque camp n\'a que 2 Gardes par combat, quel que soit le nombre de Pokémon utilisés. La Garde accompagne ton action : réserve-la aux gros coups.</string>
     <string name="tip_battle_types">Les types comptent : un coup super efficace fait deux fois plus de dégâts.</string>
     <string name="tip_battle_speed">Le Pokémon le plus rapide frappe en premier et peut gagner avant que l\'autre n\'agisse.</string>
     <string name="tip_battle_switch">Le Pokémon que tu fais entrer encaisse le coup : choisis-en un qui résiste à l\'attaque.</string>

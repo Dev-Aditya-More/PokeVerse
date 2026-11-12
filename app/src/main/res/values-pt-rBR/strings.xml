@@ -1518,9 +1518,9 @@
     <string name="battle_help_attack_title">Atacar</string>
     <string name="battle_help_attack">Golpe rápido. Carrega sua energia.</string>
     <string name="battle_help_special_title">Especial</string>
-    <string name="battle_help_special">Golpe forte. Precisa da barra ESPECIAL cheia, que enche ao atacar (+35), defender (+40) e apanhar (+10).</string>
+    <string name="battle_help_special">Golpe forte. Precisa da barra ESPECIAL cheia, que enche ao atacar (+35) e apanhar (+10).</string>
     <string name="battle_help_guard_title">Defender</string>
-    <string name="battle_help_guard">Recebe metade do dano e carrega rápido a barra ESPECIAL. Cada lado só tem 3 Defesas por batalha.</string>
+    <string name="battle_help_guard">Ative a Defesa e escolha Ataque ou Especial. Sua jogada acontece normalmente e você sofre 40% menos dano neste turno. Cada lado só tem 2 Defesas por batalha.</string>
     <string name="battle_help_switch_title">Trocar</string>
     <string name="battle_help_switch">Troque por um colega. Ele leva o golpe.</string>
     <string name="battle_help_types_title">Use os tipos!</string>
@@ -1530,7 +1530,7 @@
     <string name="battle_help_got_it">Vamos batalhar!</string>
     <string name="battle_hint_attack">Carrega energia</string>
     <string name="battle_hint_special">Golpe forte</string>
-    <string name="battle_hint_guard">Metade do dano</string>
+    <string name="battle_hint_guard">40% menos dano</string>
     <string name="battle_hint_switch">Trocar Pokémon</string>
     <string name="battle_eff_super">Super efetivo</string>
     <string name="battle_eff_resisted">Resistido</string>
@@ -1717,7 +1717,7 @@
     <string name="wildcatch_tier_common">Comum</string>
     <string name="battle_energy_label">Especial</string>
     <string name="battle_special_charging">Carregando %1$d%%</string>
-    <string name="battle_hint_guard_left">Metade do dano · restam %1$d</string>
+    <string name="battle_hint_guard_left">40%% menos dano · restam %1$d</string>
     <string name="battle_guard_none">Sem Defesas restantes</string>
     <string name="battle_guard_hint">Soma-se à sua jogada · %1$d restante(s)</string>
     <string name="battle_guard_armed">Ativa: você sofre 40%% menos neste turno</string>
@@ -1733,8 +1733,8 @@
     <string name="tip_catch_streak">A cada 5 capturas seguidas você recupera um coração.</string>
     <string name="tip_catch_dart">Pokémon Ultra raros e Lendários se movem rápido. Espere eles se acalmarem antes de lançar.</string>
     <string name="tip_catch_evolve">Fragmentos de Evolução e pedras evoluem os Pokémon que você captura. Evoluir consome a forma antiga, então escolha bem.</string>
-    <string name="tip_battle_special">Fique de olho na barra ESPECIAL. Ela enche ao atacar, defender e apanhar, e o golpe forte libera em 100%.</string>
-    <string name="tip_battle_guards">Cada lado só tem 3 Defesas por batalha, não importa quantos Pokémon use. Guarde-as para os golpes grandes.</string>
+    <string name="tip_battle_special">Fique de olho na barra ESPECIAL. Ela enche ao atacar e apanhar, e o golpe forte libera em 100%.</string>
+    <string name="tip_battle_guards">Cada lado só tem 2 Defesas por batalha, não importa quantos Pokémon use. A Defesa acompanha sua jogada, então reserve-a para os golpes grandes.</string>
     <string name="tip_battle_types">Tipos importam: um golpe super efetivo causa o dobro de dano.</string>
     <string name="tip_battle_speed">O Pokémon mais rápido ataca primeiro e pode vencer antes de o outro agir.</string>
     <string name="tip_battle_switch">O Pokémon que você troca leva o golpe, então coloque um que resista ao que vem.</string>

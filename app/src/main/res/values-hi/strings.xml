@@ -1504,9 +1504,9 @@
     <string name="battle_help_attack_title">Attack</string>
     <string name="battle_help_attack">तेज़ वार। एनर्जी भरती है।</string>
     <string name="battle_help_special_title">Special</string>
-    <string name="battle_help_special">बड़ा वार। SPECIAL बार पूरा भरा होना चाहिए, जो हमला (+35), गार्ड (+40) और चोट खाने (+10) से भरता है।</string>
+    <string name="battle_help_special">बड़ा वार। SPECIAL बार पूरा भरा होना चाहिए, जो हमला (+35) और चोट खाने (+10) से भरता है।</string>
     <string name="battle_help_guard_title">Guard</string>
-    <string name="battle_help_guard">आधा नुकसान, और SPECIAL बार तेज़ी से भरता है। हर पक्ष को पूरे बैटल में सिर्फ 3 गार्ड मिलते हैं।</string>
+    <string name="battle_help_guard">गार्ड चालू करें, फिर Attack या Special चुनें। आपकी चाल फिर भी चलती है और उस टर्न आपको 40% कम नुकसान होता है। हर पक्ष को पूरे बैटल में सिर्फ 2 गार्ड मिलते हैं।</string>
     <string name="battle_help_switch_title">Switch</string>
     <string name="battle_help_switch">साथी को उतारिए। वही वार झेलता है।</string>
     <string name="battle_help_types_title">Types का इस्तेमाल करो!</string>
@@ -1516,7 +1516,7 @@
     <string name="battle_help_got_it">चलो battle करें!</string>
     <string name="battle_hint_attack">एनर्जी भरे</string>
     <string name="battle_hint_special">बड़ा वार</string>
-    <string name="battle_hint_guard">आधा नुकसान</string>
+    <string name="battle_hint_guard">40% कम नुकसान</string>
     <string name="battle_hint_switch">Pokémon बदलो</string>
     <string name="battle_eff_super">Super effective</string>
     <string name="battle_eff_resisted">कम असर</string>
@@ -1702,7 +1702,7 @@
     <string name="wildcatch_tier_common">कॉमन</string>
     <string name="battle_energy_label">स्पेशल</string>
     <string name="battle_special_charging">चार्ज %1$d%%</string>
-    <string name="battle_hint_guard_left">आधा नुकसान · %1$d बचे</string>
+    <string name="battle_hint_guard_left">40%% कम नुकसान · %1$d बचे</string>
     <string name="battle_guard_none">कोई गार्ड नहीं बचा</string>
     <string name="battle_guard_hint">अपनी चाल के साथ जुड़ता है · %1$d बचे</string>
     <string name="battle_guard_armed">चालू: इस टर्न तुम्हें 40%% कम चोट लगेगी</string>
@@ -1718,8 +1718,8 @@
     <string name="tip_catch_streak">लगातार हर 5 कैच पर एक दिल वापस मिलता है।</string>
     <string name="tip_catch_dart">अल्ट्रा रेयर और लेजेंडरी पोकेमॉन इधर-उधर भागते हैं। फेंकने से पहले उनके रुकने का इंतज़ार करें।</string>
     <string name="tip_catch_evolve">इवो शार्ड और स्टोन से पकड़े हुए पोकेमॉन विकसित होते हैं। विकास में पुराना रूप खर्च हो जाता है, इसलिए सोचकर चुनें।</string>
-    <string name="tip_battle_special">SPECIAL बार पर नज़र रखें। यह हमला करने, गार्ड करने और चोट खाने से भरता है, और 100% पर बड़ा वार खुलता है।</string>
-    <string name="tip_battle_guards">हर पक्ष को पूरे बैटल में सिर्फ 3 गार्ड मिलते हैं, चाहे कितने भी पोकेमॉन उतारें। इन्हें बड़े वारों के लिए बचाएँ।</string>
+    <string name="tip_battle_special">SPECIAL बार पर नज़र रखें। यह हमला करने और चोट खाने से भरता है, और 100% पर बड़ा वार खुलता है।</string>
+    <string name="tip_battle_guards">हर पक्ष को पूरे बैटल में सिर्फ 2 गार्ड मिलते हैं, चाहे कितने भी पोकेमॉन उतारें। गार्ड आपकी चाल के साथ चलता है, इसलिए इसे बड़े वारों के लिए बचाएँ।</string>
     <string name="tip_battle_types">टाइप मायने रखते हैं: सुपर इफेक्टिव वार दोगुना नुकसान करता है।</string>
     <string name="tip_battle_speed">तेज़ पोकेमॉन पहले वार करता है और दूसरे के हिलने से पहले ही जीत सकता है।</string>
     <string name="tip_battle_switch">जिसे आप बदलकर लाते हैं वही वार झेलता है, इसलिए आने वाले वार को सहने वाला पोकेमॉन लाएँ।</string>

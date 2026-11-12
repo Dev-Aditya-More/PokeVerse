@@ -1518,9 +1518,9 @@
     <string name="battle_help_attack_title">Attack</string>
     <string name="battle_help_attack">A quick hit. Charges your energy.</string>
     <string name="battle_help_special_title">Special</string>
-    <string name="battle_help_special">A big hit. Needs a full SPECIAL bar, which fills as you attack (+35), guard (+40) and get hit (+10).</string>
+    <string name="battle_help_special">A big hit. Needs a full SPECIAL bar, which fills as you attack (+35) and get hit (+10).</string>
     <string name="battle_help_guard_title">Guard</string>
-    <string name="battle_help_guard">Take half damage and charge the SPECIAL bar fast. Each side only gets 3 Guards per battle.</string>
+    <string name="battle_help_guard">Switch Guard on, then pick Attack or Special. Your move still happens and you take 40% less damage that turn. Each side only gets 2 Guards per battle.</string>
     <string name="battle_help_switch_title">Switch</string>
     <string name="battle_help_switch">Swap in a teammate. It takes the hit.</string>
     <string name="battle_help_types_title">Use types!</string>
@@ -1530,7 +1530,7 @@
     <string name="battle_help_got_it">Let\'s battle!</string>
     <string name="battle_hint_attack">Builds energy</string>
     <string name="battle_hint_special">Big hit</string>
-    <string name="battle_hint_guard">Half damage</string>
+    <string name="battle_hint_guard">40% less damage</string>
     <string name="battle_hint_switch">Swap Pokémon</string>
     <string name="battle_eff_super">Super effective</string>
     <string name="battle_eff_resisted">Resisted</string>
@@ -1716,7 +1716,7 @@
     <string name="wildcatch_tier_common">Common</string>
     <string name="battle_energy_label">Special</string>
     <string name="battle_special_charging">Charging %1$d%%</string>
-    <string name="battle_hint_guard_left">Half damage · %1$d left</string>
+    <string name="battle_hint_guard_left">40%% less damage · %1$d left</string>
     <string name="battle_guard_none">No Guards left</string>
     <string name="battle_guard_hint">Add to your move · %1$d left</string>
     <string name="battle_guard_armed">On: you take 40%% less this turn</string>
@@ -1732,8 +1732,8 @@
     <string name="tip_catch_streak">Every 5 catches in a row brings back a heart.</string>
     <string name="tip_catch_dart">Ultra Rare and Legendary Pokémon dart around. Wait for them to settle before you throw.</string>
     <string name="tip_catch_evolve">Evo Shards and stones evolve the Pokémon you catch. Evolving uses the old form up, so choose well.</string>
-    <string name="tip_battle_special">Watch the SPECIAL bar. It fills as you attack, guard and get hit, and the heavy move unlocks at 100%.</string>
-    <string name="tip_battle_guards">Each side only gets 3 Guards per battle, however many Pokémon it uses. Save them for the big hits.</string>
+    <string name="tip_battle_special">Watch the SPECIAL bar. It fills as you attack and get hit, and the heavy move unlocks at 100%.</string>
+    <string name="tip_battle_guards">Each side only gets 2 Guards per battle, however many Pokémon it uses. Guard rides along with your move, so save it for the big hits.</string>
     <string name="tip_battle_types">Types matter: a super effective hit does double damage.</string>
     <string name="tip_battle_speed">The faster Pokémon strikes first, and can win before the other even moves.</string>
     <string name="tip_battle_switch">A Pokémon you switch in takes the hit, so bring one that resists what is coming.</string>
