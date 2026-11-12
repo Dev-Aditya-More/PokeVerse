@@ -110,62 +110,91 @@ class GuardLimitTest {
         listOf(mon("B1"), mon("B2")),
     )
 
+    /** One turn where only [who] adds a Guard to a plain Attack. */
     private fun guardTurn(st: com.aditya1875.pokeverse.feature.game.battle.domain.BattleState, who: Who) =
         BattleEngine.resolveTurn(
-            st,
-            if (who == Who.PLAYER) BattleAction.Guard else BattleAction.Attack,
-            if (who == Who.FOE) BattleAction.Guard else BattleAction.Attack,
-            Random(1),
+            st, BattleAction.Attack, BattleAction.Attack, Random(1),
+            playerGuard = who == Who.PLAYER, foeGuard = who == Who.FOE,
         ).state
 
     @Test
-    fun `a side starts with three Guards`() {
+    fun `a side starts with two Guards`() {
         val st = start()
-        assertEquals(3, BattleEngine.MAX_GUARDS)
-        assertEquals(3, st.player.guardsLeft)
-        assertEquals(3, st.foe.guardsLeft)
+        assertEquals(2, BattleEngine.MAX_GUARDS)
+        assertEquals(2, st.player.guardsLeft)
+        assertEquals(2, st.foe.guardsLeft)
     }
 
     @Test
-    fun `each Guard used costs one and the fourth is not allowed`() {
+    fun `each Guard used costs one and the third is not allowed`() {
         var st = start()
-        repeat(3) { st = guardTurn(st, Who.PLAYER) }
+        repeat(2) { st = guardTurn(st, Who.PLAYER) }
         assertEquals(0, st.player.guardsLeft)
-        assertEquals("the foe's Guards are its own", 3, st.foe.guardsLeft)
-        assertFalse(BattleEngine.isLegal(st, Who.PLAYER, BattleAction.Guard))
-        assertTrue(BattleEngine.isLegal(st, Who.FOE, BattleAction.Guard))
+        assertEquals("the foe's Guards are its own", 2, st.foe.guardsLeft)
+        assertFalse(BattleEngine.canGuard(st, Who.PLAYER, BattleAction.Attack))
+        assertTrue(BattleEngine.canGuard(st, Who.FOE, BattleAction.Attack))
     }
 
     @Test
-    fun `a Guard with none left becomes a plain attack`() {
+    fun `a Guard goes with an Attack or a Special, never a Switch`() {
+        val st = start()
+        assertTrue(BattleEngine.canGuard(st, Who.PLAYER, BattleAction.Attack))
+        assertTrue(BattleEngine.canGuard(st, Who.PLAYER, BattleAction.Special))
+        assertFalse(BattleEngine.canGuard(st, Who.PLAYER, BattleAction.Switch(1)))
+    }
+
+    @Test
+    fun `a Guard with none left is ignored and the move still happens`() {
         var st = start()
-        repeat(3) { st = guardTurn(st, Who.PLAYER) }
-        val r = BattleEngine.resolveTurn(st, BattleAction.Guard, BattleAction.Guard, Random(2))
-        // It did not guard (nothing was spent or shown) and instead struck.
+        repeat(2) { st = guardTurn(st, Who.PLAYER) }
+        val r = BattleEngine.resolveTurn(st, BattleAction.Attack, BattleAction.Attack, Random(2), playerGuard = true, foeGuard = true)
+        // It did not guard (nothing was spent or shown) and still struck.
         assertTrue(r.events.none { it is BattleEvent.Guarded && it.by == Who.PLAYER })
         assertTrue(r.events.any { it is BattleEvent.Hit && it.by == Who.PLAYER })
         assertEquals(0, r.state.player.guardsLeft)
         // The foe's own Guard was still allowed.
-        assertEquals(2, r.state.foe.guardsLeft)
+        assertEquals(1, r.state.foe.guardsLeft)
+    }
+
+    @Test
+    fun `a Guard added to a Switch is ignored and costs nothing`() {
+        val r = BattleEngine.resolveTurn(start(), BattleAction.Switch(1), BattleAction.Attack, Random(3), playerGuard = true)
+        assertEquals(2, r.state.player.guardsLeft)
+        assertTrue(r.events.none { it is BattleEvent.Guarded && it.by == Who.PLAYER })
     }
 
     @Test
     fun `Guards belong to the team, not to the Pokemon`() {
         var st = start()
         st = guardTurn(st, Who.PLAYER)
-        // Switch to the second Pokemon: the team has still only two Guards left.
+        // Switch to the second Pokemon: the team has still only one Guard left.
         st = BattleEngine.resolveTurn(st, BattleAction.Switch(1), BattleAction.Attack, Random(3)).state
         assertEquals(1, st.player.active)
-        assertEquals(2, st.player.guardsLeft)
-        st = guardTurn(st, Who.PLAYER)
         assertEquals(1, st.player.guardsLeft)
+        st = guardTurn(st, Who.PLAYER)
+        assertEquals(0, st.player.guardsLeft)
     }
 
     @Test
     fun `both sides can guard in the same turn and each pays one`() {
-        val st = BattleEngine.resolveTurn(start(), BattleAction.Guard, BattleAction.Guard, Random(4)).state
-        assertEquals(2, st.player.guardsLeft)
-        assertEquals(2, st.foe.guardsLeft)
+        val st = BattleEngine.resolveTurn(start(), BattleAction.Attack, BattleAction.Attack, Random(4), playerGuard = true, foeGuard = true).state
+        assertEquals(1, st.player.guardsLeft)
+        assertEquals(1, st.foe.guardsLeft)
+    }
+
+    @Test
+    fun `a Guard resists forty percent of the hit and the move still lands`() {
+        val plain = BattleEngine.resolveTurn(start(), BattleAction.Attack, BattleAction.Attack, Random(5))
+        val guarded = BattleEngine.resolveTurn(start(), BattleAction.Attack, BattleAction.Attack, Random(5), playerGuard = true)
+        fun hitOn(r: com.aditya1875.pokeverse.feature.game.battle.domain.TurnResult, who: Who) =
+            r.events.filterIsInstance<BattleEvent.Hit>().first { it.by == who }
+        // The player's own blow is unchanged by the player's Guard...
+        assertEquals(hitOn(plain, Who.PLAYER).damage, hitOn(guarded, Who.PLAYER).damage)
+        // ...and the blow the player takes lands at 60%, give or take the rounding down of one point.
+        val full = hitOn(plain, Who.FOE).damage
+        val soft = hitOn(guarded, Who.FOE).damage
+        assertTrue("full=$full soft=$soft", soft in (full * 0.6).toInt() - 1..(full * 0.6).toInt() + 1)
+        assertTrue(soft < full)
     }
 
     @Test
@@ -177,8 +206,13 @@ class GuardLimitTest {
         val random = Random(9)
         repeat(400) {
             val skill = if (it % 2 == 0) 0.0f else 1.0f // random play and smart play
-            assertFalse(BotBrain(skill).choose(noGuards, random) == BattleAction.Guard)
+            assertFalse(BotBrain(skill).wantsGuard(noGuards, BattleAction.Attack, random))
         }
+    }
+
+    @Test
+    fun `the bot never guards a switch`() {
+        repeat(100) { assertFalse(BotBrain(1f).wantsGuard(start(), BattleAction.Switch(1), Random(it))) }
     }
 
     @Test
@@ -186,20 +220,29 @@ class GuardLimitTest {
         var st = start()
         st = guardTurn(st, Who.PLAYER)
         val guestView = st.mirrored()
-        assertEquals(3, guestView.player.guardsLeft) // the guest's own, untouched
-        assertEquals(2, guestView.foe.guardsLeft)    // the host's, one used
+        assertEquals(2, guestView.player.guardsLeft) // the guest's own, untouched
+        assertEquals(1, guestView.foe.guardsLeft)    // the host's, one used
     }
 
     @Test
     fun `an online replay enforces the limit the same way on both phones`() {
-        val guard = OnlineAction(OnlineAction.KIND_GUARD)
+        val guard = OnlineAction(OnlineAction.KIND_ATTACK, guard = true)
         val attack = OnlineAction(OnlineAction.KIND_ATTACK)
         val log = (1..6).associateWith { mapOf(Seat.HOST to guard, Seat.GUEST to attack) }
         val a = OnlineBattleRules.replay(start(), 5L, log)
         val b = OnlineBattleRules.replay(start(), 5L, log)
         assertEquals(a, b)
         assertEquals(0, a.state.player.guardsLeft)
-        assertEquals(3, a.state.foe.guardsLeft)
+        assertEquals(2, a.state.foe.guardsLeft)
+    }
+
+    @Test
+    fun `the guard flag changes the online result, so a phone that ignores it would disagree`() {
+        val withGuard = mapOf(1 to mapOf(Seat.HOST to OnlineAction(OnlineAction.KIND_ATTACK, guard = true), Seat.GUEST to OnlineAction(OnlineAction.KIND_ATTACK)))
+        val without = mapOf(1 to mapOf(Seat.HOST to OnlineAction(OnlineAction.KIND_ATTACK), Seat.GUEST to OnlineAction(OnlineAction.KIND_ATTACK)))
+        val a = OnlineBattleRules.replay(start(), 5L, withGuard).state
+        val b = OnlineBattleRules.replay(start(), 5L, without).state
+        assertTrue("the Guard softened the hit the host took", a.player.current.hp > b.player.current.hp)
     }
 }
 

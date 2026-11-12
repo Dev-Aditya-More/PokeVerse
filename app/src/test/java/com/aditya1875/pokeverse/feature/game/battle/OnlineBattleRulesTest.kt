@@ -36,7 +36,7 @@ class OnlineBattleRulesTest {
     )
 
     private val attack = OnlineAction(OnlineAction.KIND_ATTACK)
-    private val guard = OnlineAction(OnlineAction.KIND_GUARD)
+    private val guard = OnlineAction(OnlineAction.KIND_ATTACK, guard = true)
     private fun both(h: OnlineAction, g: OnlineAction) = mapOf(Seat.HOST to h, Seat.GUEST to g)
 
     // ── who has to act ───────────────────────────────────────────────────────
@@ -240,7 +240,7 @@ class OnlineBattleRulesTest {
 
     @Test
     fun `actions map to and from the engine`() {
-        listOf<BattleAction>(BattleAction.Attack, BattleAction.Special, BattleAction.Guard, BattleAction.Switch(3)).forEach {
+        listOf<BattleAction>(BattleAction.Attack, BattleAction.Special, BattleAction.Switch(3)).forEach {
             assertEquals(it, OnlineAction.of(it).toBattleAction())
         }
         assertNotNull(Seat.fromCode("h"))
@@ -253,6 +253,7 @@ class OnlineBattleRulesTest {
         assertTrue(OnlineBattleRules.evenTeams(listOf(1, 2, 3), listOf(4, 5, 6)))
         assertFalse(OnlineBattleRules.evenTeams(listOf(1, 2, 3), listOf(4, 5, 6, 7, 8, 9)))
         assertFalse(OnlineBattleRules.evenTeams(null, listOf(1)))
-        assertEquals(3, OnlineBattleRules.QUICK_TEAM_SIZE)
+        // The quick formats are 3 vs 3 and 6 vs 6, and nothing in between.
+        assertEquals(listOf(3, 6), com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat.entries.mapNotNull { it.size })
     }
 }

@@ -13,6 +13,7 @@ import com.aditya1875.pokeverse.feature.game.battle.domain.BattleEngine
 import com.aditya1875.pokeverse.feature.game.battle.domain.BattleEvent
 import com.aditya1875.pokeverse.feature.game.battle.domain.BattleMatchmaker
 import com.aditya1875.pokeverse.feature.game.battle.data.SavedTeam
+import com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat
 import com.aditya1875.pokeverse.feature.game.battle.domain.TeamRules
 import com.aditya1875.pokeverse.feature.game.battle.data.SavedTeamsRepository
 import com.aditya1875.pokeverse.feature.game.battle.data.loadFighter
@@ -41,12 +42,15 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.random.Random
 
 /** Team Battle: choose from the Pokémon you've caught, then fight a bot of matching strength. */
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class BattleViewModel(
     private val repo: PokemonDetailRepo,
     private val pokedex: PokedexRepository,
@@ -85,6 +89,8 @@ class BattleViewModel(
         val activeTeam: String? = null,
         /** The last tap was refused because the team already has its Legendaries. */
         val legendaryNotice: Boolean = false,
+        /** What kind of team is being built: it sets the size, the Legendary limit and which saved teams show. */
+        val format: TeamFormat = TeamFormat.PRACTICE,
     ) {
         val legendaries: Int get() = TeamRules.legendaryCount(selected)
     }
@@ -123,9 +129,13 @@ class BattleViewModel(
     private var rewarded = false
     private var activeTier = BotTier.TRAINER
 
+    private val formatFlow = MutableStateFlow(TeamFormat.PRACTICE)
+
     init {
         viewModelScope.launch {
-            savedTeams.teams.collect { teams -> _picker.update { it.copy(saved = teams) } }
+            // The collection on show follows the format: 3 vs 3, 6 vs 6 and Practice each keep their own teams.
+            formatFlow.flatMapLatest { savedTeams.teams(it) }
+                .collect { teams -> _picker.update { it.copy(saved = teams) } }
         }
         viewModelScope.launch {
             pokedex.progress.collect { p ->
@@ -144,12 +154,29 @@ class BattleViewModel(
 
     // ── Picking ─────────────────────────────────────────────────────────────
 
+    /**
+     * Switches what kind of team is being built (Practice, 3 vs 3, 6 vs 6). The picked team is cut down to
+     * what the new format allows, and the saved teams on show become that format's own collection.
+     */
+    fun setFormat(format: TeamFormat) {
+        if (formatFlow.value == format) return
+        formatFlow.value = format
+        _picker.update { cur ->
+            cur.copy(
+                format = format,
+                selected = TeamRules.trim(cur.selected, format),
+                activeTeam = null,
+                legendaryNotice = false,
+            )
+        }
+    }
+
     fun toggle(id: Int) = _picker.update { cur ->
         when {
             id in cur.selected -> cur.copy(selected = cur.selected - id, legendaryNotice = false)
-            cur.selected.size >= MAX_TEAM -> cur
-            // A team may bring at most TeamRules.MAX_LEGENDARIES Legendary or Mythical Pokémon.
-            !TeamRules.canAdd(cur.selected, id) -> cur.copy(legendaryNotice = true)
+            cur.selected.size >= cur.format.maxTeam -> cur
+            // A team may bring at most the format's number of Legendary or Mythical Pokémon.
+            !TeamRules.canAdd(cur.selected, id, cur.format) -> cur.copy(legendaryNotice = true)
             else -> cur.copy(selected = cur.selected + id, legendaryNotice = false)
         }
     }
@@ -158,6 +185,16 @@ class BattleViewModel(
     fun quickFill() = _picker.update { cur ->
         cur.copy(selected = TeamRules.quickFill(cur.caught, rng), activeTeam = null, legendaryNotice = false)
     }
+
+    /**
+     * Fills the team with a type-varied suggestion of [size] from the roster, with at most [maxLegendaries]
+     * Legendaries. Replaces whatever is picked now. The index is passed in, so this stays free of any lookup.
+     */
+    fun suggestTeam(size: Int, maxLegendaries: Int, index: Map<Int, com.aditya1875.pokeverse.utils.PokemonIndex.Entry>) =
+        _picker.update { cur ->
+            val team = com.aditya1875.pokeverse.feature.game.battle.domain.TeamSuggester.suggest(cur.caught, index, size, maxLegendaries, rng)
+            cur.copy(selected = TeamRules.trim(team), activeTeam = null, legendaryNotice = false)
+        }
 
     fun clearTeam() = _picker.update { it.copy(selected = emptyList(), activeTeam = null, legendaryNotice = false) }
 
@@ -169,7 +206,7 @@ class BattleViewModel(
     fun loadTeam(team: SavedTeam) = _picker.update { cur ->
         val owned = cur.caught.toSet()
         cur.copy(
-            selected = TeamRules.trim(team.ids.filter { it in owned }),
+            selected = TeamRules.trim(team.ids.filter { it in owned }, cur.format),
             activeTeam = team.name,
             legendaryNotice = false,
         )
@@ -177,10 +214,10 @@ class BattleViewModel(
 
     /** Saves the picked team under [name]. A name already in use is replaced. */
     fun saveCurrentTeam(name: String) {
-        savedTeams.save(name, _picker.value.selected)
+        savedTeams.save(_picker.value.format, name, _picker.value.selected)
     }
 
-    fun deleteTeam(team: SavedTeam) = savedTeams.delete(team.name)
+    fun deleteTeam(team: SavedTeam) = savedTeams.delete(_picker.value.format, team.name)
 
     fun backToPicker() {
         _battle.value = null
@@ -268,11 +305,17 @@ class BattleViewModel(
 
     // ── Fighting ────────────────────────────────────────────────────────────
 
-    override fun act(action: BattleAction, tera: Boolean) {
+    override fun act(action: BattleAction, tera: Boolean, guard: Boolean) {
         val st = _battle.value ?: return
         if (st.over || st.playerMustSwitch) return
-        val foeAction = BotBrain(activeTier.skill).choose(st, rng)
-        val result = BattleEngine.resolveTurn(st, action, foeAction, rng, activeTier.skill)
+        val bot = BotBrain(activeTier.skill)
+        val foeAction = bot.choose(st, rng)
+        // The bot adds a Guard to its own move when it judges the hit coming is worth one of its two Guards.
+        val foeGuard = bot.wantsGuard(st, foeAction, rng)
+        val result = BattleEngine.resolveTurn(
+            st, action, foeAction, rng, activeTier.skill,
+            playerGuard = guard, foeGuard = foeGuard,
+        )
         _battle.value = result.state
         _events.tryEmit(result.events)
         if (result.state.over) finish(result.state)

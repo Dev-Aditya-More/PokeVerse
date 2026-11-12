@@ -47,9 +47,9 @@ class OnlineBattleTest {
         var host = start()
         var guest = start()
         val moves = listOf(
-            BattleAction.Attack to BattleAction.Guard,
             BattleAction.Attack to BattleAction.Attack,
-            BattleAction.Guard to BattleAction.Attack,
+            BattleAction.Attack to BattleAction.Attack,
+            BattleAction.Attack to BattleAction.Attack,
             BattleAction.Attack to BattleAction.Attack,
         )
         moves.forEach { (p, f) ->
@@ -81,7 +81,7 @@ class OnlineBattleTest {
 
     @Test
     fun `a blow the host dealt is a blow the guest took`() {
-        val host = BattleEngine.resolveTurn(start(), BattleAction.Attack, BattleAction.Guard, Random(5), botReplaces = false)
+        val host = BattleEngine.resolveTurn(start(), BattleAction.Attack, BattleAction.Attack, Random(5), botReplaces = false)
         val hit = host.events.filterIsInstance<BattleEvent.Hit>().first { it.by == Who.PLAYER }
         val guestHit = host.mirrored().events.filterIsInstance<BattleEvent.Hit>().first { it.damage == hit.damage }
         assertEquals(Who.FOE, guestHit.by)
@@ -115,7 +115,7 @@ class OnlineBattleTest {
 
     @Test
     fun `online, a knocked out foe is not replaced by the bot, the other player is asked`() {
-        val r = BattleEngine.resolveTurn(foeOnTheEdge(), BattleAction.Attack, BattleAction.Guard, Random(3), botReplaces = false)
+        val r = BattleEngine.resolveTurn(foeOnTheEdge(), BattleAction.Attack, BattleAction.Attack, Random(3), botReplaces = false)
         assertTrue(r.state.foeMustSwitch)
         assertFalse(r.state.playerMustSwitch)
         assertEquals("B1 stays down until its trainer picks", 0, r.state.foe.current.hp)
@@ -124,7 +124,7 @@ class OnlineBattleTest {
 
     @Test
     fun `against the bot nothing changes, it still replaces itself`() {
-        val r = BattleEngine.resolveTurn(foeOnTheEdge(), BattleAction.Attack, BattleAction.Guard, Random(3))
+        val r = BattleEngine.resolveTurn(foeOnTheEdge(), BattleAction.Attack, BattleAction.Attack, Random(3))
         assertFalse(r.state.foeMustSwitch)
         assertTrue(r.state.foe.current.hp > 0)
     }

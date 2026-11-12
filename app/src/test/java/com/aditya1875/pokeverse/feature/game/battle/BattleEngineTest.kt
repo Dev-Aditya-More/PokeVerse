@@ -73,12 +73,15 @@ class BattleEngineTest {
     }
 
     @Test
-    fun `guarding halves the hit`() {
+    fun `guarding resists forty percent of the hit`() {
         val a = mon("A", "fire")
         val d = mon("D", "normal")
         val full = dmg(a, d)
         val guarded = dmg(a, d, guarding = true)
-        assertTrue(guarded in (full / 2 - 1)..(full / 2 + 1))
+        val sixty = (full * BattleEngine.GUARD_FACTOR).toInt()
+        assertEquals(0.6f, BattleEngine.GUARD_FACTOR)
+        assertTrue("full=$full guarded=$guarded", guarded in (sixty - 1)..(sixty + 1))
+        assertTrue(guarded < full)
     }
 
     @Test
@@ -105,33 +108,38 @@ class BattleEngineTest {
 
     @Test
     fun `attacking charges energy and the special needs a full meter`() {
-        val a = mon("A", "fire")
+        // Sturdy enough to survive three exchanges, so the meter is what is being measured.
+        val a = mon("A", "fire", s = stats(hp = 255, def = 250, spd = 250))
         val b = mon("B", "water", s = stats(hp = 255, def = 200, spd = 200))
         var st = duel(a, b)
         assertFalse(BattleEngine.isLegal(st, Who.PLAYER, BattleAction.Special))
 
-        // The foe guards twice, then hits back, so its three Guards are not used up before the Special turn below.
-        repeat(3) { st = BattleEngine.resolveTurn(st, BattleAction.Attack, if (it < 2) BattleAction.Guard else BattleAction.Attack, Random(it)).state }
+        // Three attacks charge the meter (the foe guards the first, which changes the damage, not the charge).
+        repeat(3) { st = BattleEngine.resolveTurn(st, BattleAction.Attack, BattleAction.Attack, Random(it), foeGuard = it < 1).state }
         assertEquals(105.coerceAtMost(100), st.player.current.energy)
         assertTrue(BattleEngine.isLegal(st, Who.PLAYER, BattleAction.Special))
 
-        st = BattleEngine.resolveTurn(st, BattleAction.Special, BattleAction.Guard, Random(9)).state
-        assertEquals("the special spends the whole meter", 0, st.player.current.energy)
+        st = BattleEngine.resolveTurn(st, BattleAction.Special, BattleAction.Attack, Random(9)).state
+        // The meter is emptied; being hit afterwards in the same turn can add back at most the usual 10.
+        assertTrue("the special spends the whole meter, got ${st.player.current.energy}", st.player.current.energy <= BattleEngine.ENERGY_WHEN_HIT)
     }
 
     @Test
     fun `an illegal special becomes a plain attack instead of doing nothing`() {
         val st = duel(mon("A", "fire"), mon("B", "grass"))
-        val result = BattleEngine.resolveTurn(st, BattleAction.Special, BattleAction.Guard, Random(3))
+        val result = BattleEngine.resolveTurn(st, BattleAction.Special, BattleAction.Attack, Random(3))
         val hit = result.events.filterIsInstance<BattleEvent.Hit>().single { it.by == Who.PLAYER }
         assertFalse(hit.special)
     }
 
     @Test
-    fun `guard charges energy quickly`() {
+    fun `a guard goes with the move, which still happens in full`() {
         val st = duel(mon("A", "fire"), mon("B", "water"))
-        val after = BattleEngine.resolveTurn(st, BattleAction.Guard, BattleAction.Guard, Random(2)).state
-        assertEquals(BattleEngine.ENERGY_ON_GUARD, after.player.current.energy)
+        val after = BattleEngine.resolveTurn(st, BattleAction.Attack, BattleAction.Attack, Random(2), playerGuard = true)
+        assertEquals("one Guard was spent", BattleEngine.MAX_GUARDS - 1, after.state.player.guardsLeft)
+        assertTrue("the attack still struck", after.events.any { it is BattleEvent.Hit && it.by == Who.PLAYER })
+        // The usual charge from attacking and being hit: a Guard adds no energy of its own.
+        assertEquals(BattleEngine.ENERGY_ON_ATTACK + BattleEngine.ENERGY_WHEN_HIT, after.state.player.current.energy)
     }
 
     @Test
@@ -160,7 +168,7 @@ class BattleEngineTest {
         val bench = mon("Bench", "water")
         val foe = mon("Foe", "fire", s = stats(atk = 200, spe = 200))
         var st = BattleEngine.start(listOf(glass, bench), listOf(foe))
-        st = BattleEngine.resolveTurn(st, BattleAction.Guard, BattleAction.Attack, Random(5)).state
+        st = BattleEngine.resolveTurn(st, BattleAction.Attack, BattleAction.Attack, Random(5), playerGuard = true).state
         // The guard may or may not have saved it; force a clear knockout instead.
         st = BattleEngine.resolveTurn(st.copy(player = st.player.copy(team = listOf(glass.copy(hp = 1), bench))), BattleAction.Attack, BattleAction.Attack, Random(6)).state
         assertTrue(st.playerMustSwitch)
@@ -179,7 +187,7 @@ class BattleEngineTest {
         val ground = mon("Ground", "ground")
         val flyer = mon("Flyer", "flying")
         val st = BattleEngine.start(listOf(strong), listOf(feeble, ground, flyer))
-        val after = BattleEngine.resolveTurn(st, BattleAction.Attack, BattleAction.Guard, Random(2)).state
+        val after = BattleEngine.resolveTurn(st, BattleAction.Attack, BattleAction.Attack, Random(2)).state
         // Electric can't touch Ground, so that is the Pokémon the foe should bring in.
         assertEquals("Ground", after.foe.current.name)
     }

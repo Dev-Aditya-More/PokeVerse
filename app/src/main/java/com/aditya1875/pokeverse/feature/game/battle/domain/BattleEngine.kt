@@ -100,7 +100,6 @@ data class Side(
 sealed interface BattleAction {
     data object Attack : BattleAction
     data object Special : BattleAction
-    data object Guard : BattleAction
     data class Switch(val index: Int) : BattleAction
 }
 
@@ -179,13 +178,23 @@ object BattleEngine {
     const val ATTACK_POWER = 45
     const val SPECIAL_POWER = 100
     const val ENERGY_ON_ATTACK = 35
-    const val ENERGY_ON_GUARD = 40
     const val ENERGY_WHEN_HIT = 10
     const val CRIT_CHANCE = 0.0625f
-    const val GUARD_FACTOR = 0.5f
+
+    /** A Guard resists this share of the hit taken: it lands at 60%, so 40% less. */
+    const val GUARD_FACTOR = 0.6f
 
     /** Guards a side may use in a whole battle, shared by its whole team. */
-    const val MAX_GUARDS = 3
+    const val MAX_GUARDS = 2
+
+    /**
+     * Whether [who] may add a Guard to [action] this turn: a Guard goes WITH an Attack or a Special (never a
+     * Switch), and the side must have one left. The move still happens in full; the Guard only softens the
+     * hit that lands on them this turn, so using it is a trade of a limited charge for 40% of the damage.
+     */
+    fun canGuard(state: BattleState, who: Who, action: BattleAction): Boolean =
+        !state.over && state.side(who).guardsLeft > 0 &&
+            (action == BattleAction.Attack || action == BattleAction.Special)
 
     fun start(player: List<Fighter>, foe: List<Fighter>): BattleState {
         require(player.isNotEmpty() && foe.isNotEmpty()) { "both sides need at least one Pokémon" }
@@ -204,7 +213,6 @@ object BattleEngine {
         val side = state.side(who)
         return when (action) {
             BattleAction.Attack -> true
-            BattleAction.Guard -> side.guardsLeft > 0
             BattleAction.Special -> side.current.energyReady
             is BattleAction.Switch -> action.index in side.team.indices &&
                 action.index != side.active && !side.team[action.index].fainted
@@ -255,6 +263,14 @@ object BattleEngine {
         /** Terastallize this turn (online only). Ignored when not allowed, so a bad flag can never stall a step. */
         playerTera: Boolean = false,
         foeTera: Boolean = false,
+        /**
+         * Add a Guard to this turn's Attack or Special. The move happens in full AND the hit that lands on them
+         * this turn is resisted by 40%. It costs one of their limited Guards, so the other side can answer with a
+         * Guard of their own or take the damage and save theirs. Ignored when it is not allowed (a Switch, or no
+         * Guards left), so a bad flag can never stall a turn.
+         */
+        playerGuard: Boolean = false,
+        foeGuard: Boolean = false,
     ): TurnResult {
         if (state.over || state.playerMustSwitch || state.foeMustSwitch) return TurnResult(state, emptyList())
 
@@ -273,13 +289,13 @@ object BattleEngine {
         if (playerTera && canTera(st, Who.PLAYER, pAct)) st = terastallize(st, Who.PLAYER, events)
         if (foeTera && canTera(st, Who.FOE, fAct)) st = terastallize(st, Who.FOE, events)
 
+        // 1c. Guards: spent now, and they soften whatever hits that side this turn. The move itself is unchanged.
         val guarding = buildSet {
-            if (pAct == BattleAction.Guard) add(Who.PLAYER)
-            if (fAct == BattleAction.Guard) add(Who.FOE)
+            if (playerGuard && canGuard(st, Who.PLAYER, pAct)) add(Who.PLAYER)
+            if (foeGuard && canGuard(st, Who.FOE, fAct)) add(Who.FOE)
         }
         guarding.forEach { who ->
             st = useGuard(st, who)
-            st = giveEnergy(st, who, ENERGY_ON_GUARD, events)
             events += BattleEvent.Guarded(who, st.side(who).current.name, st.side(who).current.energy)
         }
 
@@ -456,6 +472,25 @@ object BattleEngine {
  */
 class BotBrain(private val skill: Float) {
 
+    /**
+     * Whether the bot adds a Guard to [action]. A rookie does it on a whim; a skilled bot saves its two Guards for
+     * hits that matter: when the player's Special is ready, or the one that would hurt is aimed at a weak Pokémon.
+     */
+    fun wantsGuard(state: BattleState, action: BattleAction, random: Random): Boolean {
+        if (!BattleEngine.canGuard(state, Who.FOE, action)) return false
+        if (random.nextFloat() > skill) return random.nextFloat() < 0.25f
+        val me = state.foe.current
+        val you = state.player.current
+        // A fixed roll, so the estimate is the same every time it is asked.
+        val worst = BattleEngine.rollDamage(you, me, you.energyReady, false, Random(0)).damage
+        return when {
+            worst >= me.hp -> true                                   // it would be knocked out: guard it
+            you.energyReady && worst >= me.hp * 0.4f -> random.nextFloat() < 0.8f
+            me.hpFraction < 0.35f -> random.nextFloat() < 0.6f
+            else -> false
+        }
+    }
+
     fun choose(state: BattleState, random: Random): BattleAction {
         val legal = legalActions(state)
         if (random.nextFloat() > skill) return legal.random(random)
@@ -474,15 +509,11 @@ class BotBrain(private val skill: Float) {
         // A full meter is a hit waiting to land, unless it would do nothing.
         if (me.energyReady && BattleMath.effectiveness(me.specialType, you.types) > 0f) return BattleAction.Special
 
-        // Brace when the other side is about to unload on a Pokémon that is already hurt.
-        if (state.foe.guardsLeft > 0 && you.energyReady && me.hpFraction < 0.45f && random.nextFloat() < 0.6f) return BattleAction.Guard
-
         return BattleAction.Attack
     }
 
     private fun legalActions(state: BattleState): List<BattleAction> = buildList {
         add(BattleAction.Attack)
-        if (state.foe.guardsLeft > 0) add(BattleAction.Guard)
         if (state.foe.current.energyReady) add(BattleAction.Special)
         benchCandidates(state.foe).forEach { (i, _) -> add(BattleAction.Switch(i)) }
     }

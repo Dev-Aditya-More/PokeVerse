@@ -23,8 +23,11 @@ interface BattleHost {
     /** Extras that only an online battle has; a practice battle leaves everything at its default. */
     val hud: StateFlow<ArenaHud>
 
-    /** [tera] also Terastallizes this turn; only an online battle honours it. */
-    fun act(action: BattleAction, tera: Boolean = false)
+    /**
+     * [tera] also Terastallizes this turn; only an online battle honours it. [guard] adds a Guard to an Attack or
+     * a Special: the move happens in full and the hit taken this turn is resisted by 40%.
+     */
+    fun act(action: BattleAction, tera: Boolean = false, guard: Boolean = false)
     fun chooseReplacement(index: Int)
 
     /** The arena has finished playing back what it was given, so any turn clock may now start. */
@@ -55,4 +58,6 @@ data class ArenaHud(
     val rewardsLimited: Boolean = false,
     /** XP this battle paid, for the result card. */
     val xpGained: Int = 0,
+    /** The rival left before the battle was really fought: no win, no loss, nothing on the record. */
+    val notCounted: Boolean = false,
 )

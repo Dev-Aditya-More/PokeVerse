@@ -60,6 +60,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
@@ -181,6 +185,8 @@ private fun ArenaBody(
     var pTeraColor by remember { mutableStateOf(Color.White) }
     var fTeraColor by remember { mutableStateOf(Color.White) }
     var teraArmed by remember { mutableStateOf(false) }
+    // A Guard added to the next Attack or Special: the move happens, and the hit taken this turn is resisted 40%.
+    var guardArmed by remember { mutableStateOf(false) }
     val projT = remember { Animatable(0f) }
     val burstT = remember { Animatable(1f) }
     var projFrom by remember { mutableStateOf(Offset.Zero) }
@@ -605,7 +611,10 @@ private fun ArenaBody(
                 enabled = !playing && !state.over && !hud.waiting,
                 showBench = showBench || state.playerMustSwitch,
                 onToggleBench = { showBench = !showBench },
-                onAct = { host.act(it, tera = teraArmed); teraArmed = false },
+                // A Guard rides along with an Attack or a Special; a Switch has nothing to guard, so it is dropped.
+                onAct = { host.act(it, tera = teraArmed, guard = guardArmed && it !is BattleAction.Switch); teraArmed = false; guardArmed = false },
+                guardArmed = guardArmed,
+                onToggleGuard = { guardArmed = !guardArmed },
                 onReplace = { host.chooseReplacement(it) },
                 teraShown = hud.online,
                 teraAvailable = hud.online && !state.over && !state.player.teraUsed &&
@@ -935,6 +944,8 @@ private fun Controls(
     teraAvailable: Boolean,
     teraArmed: Boolean,
     onToggleTera: () -> Unit,
+    guardArmed: Boolean,
+    onToggleGuard: () -> Unit,
 ) {
     val benchAlive = state.player.team.withIndex().filter { (i, f) -> i != state.player.active && !f.fainted }
 
@@ -998,12 +1009,17 @@ private fun Controls(
             )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            // Guard is not a move of its own: it is armed, then goes WITH the Attack or Special you pick next.
             val guards = state.player.guardsLeft
             ActionTile(
                 stringResource(R.string.battle_guard),
-                if (guards > 0) stringResource(R.string.battle_hint_guard_left, guards) else stringResource(R.string.battle_guard_none),
-                null, Cyan, enabled && guards > 0, false, Modifier.weight(1f)
-            ) { onAct(BattleAction.Guard) }
+                when {
+                    guards <= 0 -> stringResource(R.string.battle_guard_none)
+                    guardArmed -> stringResource(R.string.battle_guard_armed)
+                    else -> stringResource(R.string.battle_guard_hint, guards)
+                },
+                null, Cyan, enabled && guards > 0, guardArmed, Modifier.weight(1f), onClick = onToggleGuard
+            )
             ActionTile(
                 stringResource(R.string.battle_switch), stringResource(R.string.battle_hint_switch),
                 null, Color(0xFF90A4AE), enabled && canSwitch, false, Modifier.weight(1f), onClick = onToggleBench

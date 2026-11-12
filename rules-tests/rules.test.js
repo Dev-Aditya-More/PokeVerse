@@ -383,6 +383,30 @@ test("app: host opens a room, guest joins, both bring a team and ready up, then 
   await assertSucceeds(setDoc(action(BOB, "s1_g"), act("g", BOB, 1, "switch", 2)));
   await assertSucceeds(getDoc(action(ALICE, "s1_g")));
 });
+test("app: a Guard rides along with an attack, and only as a boolean", async () => {
+  await seed("team_battles/" + ROOM, roomActive());
+  await assertSucceeds(setDoc(action(ALICE, "s1_h"), { ...act("h", ALICE, 1, "attack"), guard: true }));
+  await assertSucceeds(setDoc(action(BOB, "s1_g"), { ...act("g", BOB, 1, "special"), tera: true, guard: true }));
+  await assertFails(setDoc(action(ALICE, "s2_h"), { ...act("h", ALICE, 2, "attack"), guard: "yes" }));
+  await assertFails(setDoc(action(BOB, "s2_g"), { ...act("g", BOB, 2, "attack"), guard: 1 }));
+});
+test("rules version: a room on newer rules can only be joined by a phone on the same version", async () => {
+  await assertSucceeds(setDoc(room(ALICE), roomNew({ rules: 2 })));
+  // A phone from before versions existed states none, so it reads as version 1 and is refused.
+  await assertFails(updateDoc(room(BOB), { guestId: BOB, guestName: "Misty", status: "active", heartbeatGuestAt: serverTimestamp(), lastUpdated: now() }));
+  // Claiming to be on another version is refused too.
+  await assertFails(updateDoc(room(BOB), { guestId: BOB, guestName: "Misty", status: "active", joinerRules: 1, heartbeatGuestAt: serverTimestamp(), lastUpdated: now() }));
+  await assertFails(updateDoc(room(BOB), { guestId: BOB, guestName: "Misty", status: "active", joinerRules: 3, heartbeatGuestAt: serverTimestamp(), lastUpdated: now() }));
+  // The same version joins.
+  await assertSucceeds(updateDoc(room(BOB), { guestId: BOB, guestName: "Misty", status: "active", joinerRules: 2, heartbeatGuestAt: serverTimestamp(), lastUpdated: now() }));
+});
+test("rules version: a room from before versions existed is still joined the old way", async () => {
+  await assertSucceeds(setDoc(room(ALICE), roomNew()));
+  await assertSucceeds(updateDoc(room(BOB), { guestId: BOB, guestName: "Misty", status: "active", heartbeatGuestAt: serverTimestamp(), lastUpdated: now() }));
+});
+test("rules version: the version must be a number", async () => {
+  await assertFails(setDoc(room(ALICE), roomNew({ rules: "two" })));
+});
 test("app: a waiting room is discoverable by a quick-match query", async () => {
   await seed("team_battles/" + ROOM, roomActive({ status: "waiting", guestId: "", guestName: "" }));
   const open = query(collection(db(BOB), "team_battles"), where("status", "==", "waiting"), where("mode", "==", "quick"), where("guestId", "==", ""), limit(10));

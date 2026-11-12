@@ -232,8 +232,11 @@ service cloud.firestore {
                     && str(request.resource.data.get('roomCode', ''), 8)
                     && request.resource.data.heartbeatHostAt == request.time
                     && request.resource.data.heartbeatGuestAt == request.time
+                    // 'rules' is the battle-rules version the room was opened under. Rooms from before it existed have
+                    // none, which reads as version 1; a phone only joins a room on its own version (see joining below).
+                    && request.resource.data.get('rules', 1) is int
                     && request.resource.data.keys().hasOnly(['hostId', 'guestId', 'hostName', 'guestName', 'status',
-                         'roomCode', 'mode', 'seed', 'teamSize', 'heartbeatHostAt', 'heartbeatGuestAt', 'createdAt', 'lastUpdated'])
+                         'roomCode', 'mode', 'seed', 'teamSize', 'rules', 'heartbeatHostAt', 'heartbeatGuestAt', 'createdAt', 'lastUpdated'])
                     && request.resource.data.get('teamSize', 3) is int
                     && request.resource.data.get('teamSize', 3) >= 1 && request.resource.data.get('teamSize', 3) <= 6;
 
@@ -246,7 +249,11 @@ service cloud.firestore {
             && request.resource.data.status == 'active'
             && str(request.resource.data.get('guestName', ''), 50)
             && request.resource.data.heartbeatGuestAt == request.time
-            && changed().hasOnly(['guestId', 'guestName', 'status', 'heartbeatGuestAt', 'lastUpdated']))
+            // Both phones replay the battle with the same rules, so they must be on the same version. The joiner
+            // states theirs; a phone from before versions existed states none (version 1) and so can never join
+            // a room opened under newer rules, where the two would compute different battles.
+            && request.resource.data.get('joinerRules', 1) == resource.data.get('rules', 1)
+            && changed().hasOnly(['guestId', 'guestName', 'status', 'heartbeatGuestAt', 'joinerRules', 'lastUpdated']))
           // "I'm still here": your own seat's heartbeat, stamped by the server.
           || (isHost(resource.data)
             && request.resource.data.heartbeatHostAt == request.time
@@ -302,7 +309,8 @@ service cloud.firestore {
                       && request.resource.data.index is int && request.resource.data.index >= 0 && request.resource.data.index <= 5
                       && request.resource.data.get('auto', false) is bool
                       && request.resource.data.get('tera', false) is bool
-                      && request.resource.data.keys().hasOnly(['step', 'seat', 'uid', 'kind', 'index', 'auto', 'tera']);
+                      && request.resource.data.get('guard', false) is bool
+                      && request.resource.data.keys().hasOnly(['step', 'seat', 'uid', 'kind', 'index', 'auto', 'tera', 'guard']);
         // No update and no delete: a recorded choice is final.
       }
     }
