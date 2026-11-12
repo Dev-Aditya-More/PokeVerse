@@ -25,7 +25,14 @@ class FavouritesViewModel(
 
     fun addToFavorites(pokemonResult: PokemonResult) {
         viewModelScope.launch {
-            addToFavoritesUseCase(pokemonResult.name)
+            // The use case fetches the Pokémon over the network; a timeout must not take the app down.
+            try {
+                addToFavoritesUseCase(pokemonResult.name)
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                android.util.Log.w("FavouritesVM", "Could not add ${pokemonResult.name} to favourites", e)
+            }
         }
     }
 

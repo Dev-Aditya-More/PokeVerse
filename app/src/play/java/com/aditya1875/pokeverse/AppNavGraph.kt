@@ -26,7 +26,9 @@ import androidx.core.net.toUri
 import com.aditya1875.pokeverse.BuildConfig
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.ForceUpdateScreen
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.UpdateAvailableDialog
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
+import com.aditya1875.pokeverse.utils.NetworkCrashGuard
 import com.google.firebase.firestore.Source
 import kotlinx.coroutines.tasks.await
 import androidx.navigation.NavHostController
@@ -178,6 +180,23 @@ fun AppNavGraph(
         } catch (e: Exception) {
             // Never leave the splash waiting on a startup lookup that failed.
             Route.BottomBar.Home.route
+        }
+    }
+
+    // Crash reports show the last screens the player was on (route patterns only, no user data), and
+    // network failures the crash guard swallows still appear as non-fatals.
+    LaunchedEffect(Unit) {
+        runCatching {
+            NetworkCrashGuard.reporter = { FirebaseCrashlytics.getInstance().recordException(it) }
+        }
+    }
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == null) return@LaunchedEffect
+        runCatching {
+            FirebaseCrashlytics.getInstance().apply {
+                setCustomKey("screen", currentRoute)
+                log("screen: $currentRoute")
+            }
         }
     }
 

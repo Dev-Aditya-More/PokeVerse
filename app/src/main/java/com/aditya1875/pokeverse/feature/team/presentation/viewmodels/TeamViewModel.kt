@@ -139,7 +139,14 @@ class TeamViewModel(
     }
 
     fun addToSpecificTeam(pokemonResult: PokemonResult, teamId: String) = viewModelScope.launch {
-        addPokemonToTeamUseCase(pokemonResult.name, teamId)
+        // The use case fetches the Pokémon over the network; a timeout must not take the app down.
+        try {
+            addPokemonToTeamUseCase(pokemonResult.name, teamId)
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w("PokeVM", "Could not add ${pokemonResult.name} to team", e)
+        }
     }
 
     fun removeFromTeam(pokemon: TeamMemberEntity) =

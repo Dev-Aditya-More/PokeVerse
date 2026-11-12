@@ -8,6 +8,7 @@ import com.aditya1875.pokeverse.di.appModules
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.firebase.UserProfileRepository
 import com.aditya1875.pokeverse.feature.widget.streak.StreakWidgetSync
 import com.aditya1875.pokeverse.utils.LocaleHelper
+import com.aditya1875.pokeverse.utils.NetworkCrashGuard
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.context.GlobalContext
 import org.koin.core.context.GlobalContext.startKoin
@@ -24,6 +25,10 @@ class PokeVerseApp : Application(), ImageLoaderFactory {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Wraps Crashlytics' handler (installed during Firebase init, before this runs): a dropped
+        // connection on a background thread is no longer fatal, everything else still crashes/reports.
+        NetworkCrashGuard.install()
 
         // Every build attests itself (Play Integrity in release, debug provider in debug), so
         // Firestore, Storage, Functions and Gemini can tell the real app from scripts and
