@@ -6,6 +6,11 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,33 +54,53 @@ fun CoachReadCard(
     onAsk: () -> Unit,
 ) {
     val accent = AnalysisColors.PURPLE
-    Column(
+    val gold = Color(0xFFFFD54F)
+    val shape = RoundedCornerShape(24.dp)
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(AnalysisColors.CARD)
-            .border(BorderStroke(1.dp, accent.copy(alpha = 0.35f)), RoundedCornerShape(20.dp))
-            .padding(18.dp)
-            .animateContentSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .clip(shape)
+            .background(
+                Brush.linearGradient(
+                    listOf(Color(0xFF1B1530), AnalysisColors.CARD, Color(0xFF1A1710))
+                )
+            )
+            .border(
+                BorderStroke(1.dp, Brush.linearGradient(listOf(accent.copy(alpha = 0.7f), Color.White.copy(alpha = 0.06f), gold.copy(alpha = 0.55f)))),
+                shape,
+            )
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            MascotBall(talking = state is CoachUiState.Loading, size = 30.dp)
-            Spacer(Modifier.width(10.dp))
-            Column {
-                Text(
-                    stringResource(R.string.coach_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                )
-                Text(
-                    stringResource(R.string.coach_subtitle),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(alpha = 0.55f),
-                )
+        Box(
+            Modifier
+                .matchParentSize()
+                .background(Brush.radialGradient(listOf(accent.copy(alpha = 0.16f), Color.Transparent), radius = 700f))
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 20.dp)
+                .animateContentSize(),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                MascotBall(talking = state is CoachUiState.Loading, size = 34.dp)
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        stringResource(R.string.coach_title).uppercase(),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 2.5.sp,
+                        color = gold,
+                    )
+                    Text(
+                        stringResource(R.string.coach_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.55f),
+                    )
+                }
             }
-        }
+            HorizontalDivider(color = Color.White.copy(alpha = 0.08f))
 
         when (state) {
             is CoachUiState.Idle -> {
@@ -99,11 +124,6 @@ fun CoachReadCard(
 
             is CoachUiState.Ready -> {
                 RevealedText(text = state.text, animate = state.fresh)
-                Text(
-                    stringResource(R.string.coach_disclaimer),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.White.copy(alpha = 0.4f),
-                )
                 RemainingLabel(state.remaining)
             }
 
@@ -130,6 +150,7 @@ fun CoachReadCard(
                 AskButton(stringResource(R.string.coach_retry), accent, onAsk)
             }
         }
+        }
     }
 }
 
@@ -137,11 +158,11 @@ fun CoachReadCard(
 private fun AskButton(label: String, accent: Color, onClick: () -> Unit) {
     Button(
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = Color.Black),
-        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = accent, contentColor = Color(0xFF14101F)),
+        modifier = Modifier.fillMaxWidth().height(50.dp),
     ) {
-        Text(label, fontWeight = FontWeight.Bold, modifier = Modifier.padding(vertical = 4.dp))
+        Text(label.uppercase(), fontWeight = FontWeight.SemiBold, letterSpacing = 1.5.sp)
     }
 }
 
@@ -164,12 +185,23 @@ private fun RevealedText(text: String, animate: Boolean) {
             shown = (shown + 2).coerceAtMost(text.length)
         }
     }
-    Text(
-        text = text.take(shown),
-        style = MaterialTheme.typography.bodyLarge,
-        color = Color.White,
-        lineHeight = 24.sp,
-        modifier = Modifier.fillMaxWidth(),
-    )
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+        Box(
+            Modifier
+                .width(3.dp)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(2.dp))
+                .background(Brush.verticalGradient(listOf(AnalysisColors.PURPLE, Color(0xFFFFD54F))))
+        )
+        Spacer(Modifier.width(14.dp))
+        Text(
+            text = text.take(shown),
+            style = MaterialTheme.typography.bodyLarge,
+            color = Color.White.copy(alpha = 0.95f),
+            fontSize = 16.sp,
+            lineHeight = 26.sp,
+            modifier = Modifier.weight(1f),
+        )
+    }
     Spacer(Modifier.height(0.dp))
 }
