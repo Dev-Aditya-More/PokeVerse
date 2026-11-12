@@ -256,21 +256,13 @@ private fun PartnerArt(
         )
         hearts.toList().forEach { id -> key(id) { FloatingHeart { hearts.remove(id) } } }
         line?.let { text ->
-            Text(
+            ThoughtCloud(
                 text,
-                color = Color.White,
-                fontSize = 11.sp,
-                lineHeight = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 2,
                 modifier = Modifier
                     // Beside the partner, in the card's empty bottom-left, so it never covers the name or XP.
                     .align(Alignment.BottomStart)
-                    .offset(x = (-158).dp, y = (-8).dp)
-                    .widthIn(max = 158.dp)
-                    .clip(RoundedCornerShape(14.dp))
-                    .background(Color.Black.copy(alpha = 0.62f))
-                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                    .offset(x = (-150).dp, y = (-10).dp)
+                    .widthIn(max = 150.dp)
             )
         }
         if (onChange != null) {
@@ -289,6 +281,82 @@ private fun PartnerArt(
                 Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = Color.White, modifier = Modifier.size(17.dp))
             }
         }
+    }
+}
+
+/**
+ * What the partner says, as a comic thought cloud: a puffy outline in the theme's own surface and text colours (so it
+ * sits in the card instead of fighting it), two small puffs trailing toward the partner, and a quick pop-in.
+ */
+@Composable
+private fun ThoughtCloud(text: String, modifier: Modifier = Modifier) {
+    val scale = remember(text) { Animatable(0.6f) }
+    LaunchedEffect(text) { scale.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = 500f)) }
+    val fill = MaterialTheme.colorScheme.surface.copy(alpha = 0.97f)
+    val ink = MaterialTheme.colorScheme.onSurface
+    val outline = ink.copy(alpha = 0.45f)
+    Box(
+        modifier.graphicsLayer {
+            scaleX = scale.value; scaleY = scale.value
+            // It grows out of the corner nearest the partner.
+            transformOrigin = androidx.compose.ui.graphics.TransformOrigin(1f, 1f)
+        }
+    ) {
+        Text(
+            text,
+            color = ink,
+            fontSize = 11.sp,
+            lineHeight = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            maxLines = 2,
+            modifier = Modifier
+                .background(fill, CloudShape)
+                .border(1.dp, outline, CloudShape)
+                .padding(horizontal = 16.dp, vertical = 11.dp)
+        )
+        // The trailing puffs of a thought bubble, getting smaller toward the one doing the thinking.
+        Box(Modifier.align(Alignment.BottomEnd).offset(x = 4.dp, y = 9.dp).size(7.dp).background(fill, CircleShape).border(1.dp, outline, CircleShape))
+        Box(Modifier.align(Alignment.BottomEnd).offset(x = 11.dp, y = 16.dp).size(4.dp).background(fill, CircleShape).border(1.dp, outline, CircleShape))
+    }
+}
+
+/** A cloud outline: a rounded body with a row of round puffs along the top and bottom and one at each end. */
+private val CloudShape = object : androidx.compose.ui.graphics.Shape {
+    override fun createOutline(
+        size: Size,
+        layoutDirection: androidx.compose.ui.unit.LayoutDirection,
+        density: androidx.compose.ui.unit.Density,
+    ): androidx.compose.ui.graphics.Outline {
+        val w = size.width
+        val h = size.height
+        val r = minOf(h * 0.3f, w / 4f)
+        var path = androidx.compose.ui.graphics.Path().apply {
+            addRoundRect(
+                androidx.compose.ui.geometry.RoundRect(
+                    r, r * 0.8f, w - r, h - r * 0.8f,
+                    androidx.compose.ui.geometry.CornerRadius(r * 0.5f)
+                )
+            )
+        }
+        fun puff(cx: Float, cy: Float) {
+            path = androidx.compose.ui.graphics.Path.combine(
+                androidx.compose.ui.graphics.PathOperation.Union,
+                path,
+                androidx.compose.ui.graphics.Path().apply {
+                    addOval(androidx.compose.ui.geometry.Rect(androidx.compose.ui.geometry.Offset(cx, cy), r))
+                }
+            )
+        }
+        val n = maxOf(2, Math.ceil(((w - 2 * r) / (r * 1.3f)).toDouble()).toInt())
+        for (i in 0..n) {
+            val cx = r + (w - 2 * r) * i / n
+            puff(cx, r)
+            puff(cx, h - r)
+        }
+        puff(r, h / 2f)
+        puff(w - r, h / 2f)
+        return androidx.compose.ui.graphics.Outline.Generic(path)
     }
 }
 

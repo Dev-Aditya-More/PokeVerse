@@ -3,6 +3,11 @@ package com.aditya1875.pokeverse.feature.challenges.presentation
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.FilterChip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -110,15 +115,19 @@ private fun regionName(region: Region?): String = stringResource(
     }
 )
 
-/** The round button on Home that opens the challenges. A gold dot with the count shows when a reward is waiting. */
+/**
+ * The round button on Home that opens the challenges, in the app's primary colours like the rest of the chrome.
+ * A gold dot with the count shows when a reward is waiting, and a soft ring pulses around it to say so.
+ */
 @Composable
 fun ChallengesFab(waiting: Int, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(modifier) {
+    Box(modifier, contentAlignment = Alignment.Center) {
+        if (waiting > 0) PulseRing()
         FloatingActionButton(
             onClick = onClick,
             shape = RoundedCornerShape(16.dp),
-            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary,
             elevation = FloatingActionButtonDefaults.elevation(8.dp),
             modifier = Modifier.size(52.dp),
         ) {
@@ -139,6 +148,30 @@ fun ChallengesFab(waiting: Int, onClick: () -> Unit, modifier: Modifier = Modifi
     }
 }
 
+/** A soft ring that swells and fades behind the button while there is something to claim. */
+@Composable
+private fun PulseRing() {
+    val t = androidx.compose.animation.core.rememberInfiniteTransition(label = "challenge_ring")
+    val ring by t.animateFloat(
+        initialValue = 0f, targetValue = 1f,
+        animationSpec = androidx.compose.animation.core.infiniteRepeatable(
+            androidx.compose.animation.core.tween(1500, easing = androidx.compose.animation.core.FastOutSlowInEasing),
+            androidx.compose.animation.core.RepeatMode.Restart,
+        ),
+        label = "ring",
+    )
+    Box(
+        Modifier
+            .size(52.dp)
+            .graphicsLayer {
+                val s = 1f + ring * 0.6f
+                scaleX = s; scaleY = s
+                alpha = (1f - ring) * 0.45f
+            }
+            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+    )
+}
+
 /**
  * Challenges as a bottom sheet that drags up to full screen, in sections: today's three (with the all-done
  * bonus), then the long-term goals grouped by what they ask for. Every row has the same layout: what to do, how
@@ -153,68 +186,102 @@ fun ChallengesSheet(
     onClaimAll: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    // One chip per section so a single section is on screen at a time instead of one long scroll: Today first,
+    // then each kind of long-term goal (only the ones that have something to show).
+    val sections: List<ChallengeCategory?> = listOf<ChallengeCategory?>(null) + ChallengeCategory.entries.filter { c ->
+        ui.milestones.any { it.challenge.category == c } || ui.milestoneTotals[c] != null
+    }
+    var selectedName by rememberSaveable { mutableStateOf<String?>(null) }
+    // A section that has since disappeared (all claimed and gone) falls back to Today.
+    val selected: ChallengeCategory? = sections.firstOrNull { it != null && it.name == selectedName }
+    fun waitingIn(section: ChallengeCategory?): Int =
+        if (section == null) ui.daily.count { it.claimable } + (if (ui.sweepReady) 1 else 0)
+        else ui.milestones.count { it.challenge.category == section && it.claimable }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false),
     ) {
-        LazyColumn(
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            item(key = "head") {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.challenges_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                        Text(
-                            stringResource(R.string.challenges_today, ui.dailyDone, ui.daily.size),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (ui.waiting > 0) {
-                        Button(
-                            onClick = onClaimAll,
-                            colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color(0xFF3A2A00)),
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            modifier = Modifier.height(40.dp),
-                        ) { Text(stringResource(R.string.challenges_claim_all, ui.waiting), fontWeight = FontWeight.Bold) }
-                    }
-                }
-            }
-
-            // ── Today ──
-            item(key = "h_daily") { SectionHeader(stringResource(R.string.challenges_daily)) }
-            items(ui.daily, key = { it.challenge.id }) { row -> ChallengePanel(row, showDifficulty = true, onClaim = { onClaim(row) }) }
-            if (ui.sweepReady || ui.sweepClaimed) {
-                item(key = "sweep") { SweepPanel(claimed = ui.sweepClaimed, onClaim = onClaimSweep) }
-            }
-
-            // ── Long-term goals, one section per kind of goal ──
-            item(key = "h_long") {
-                SectionHeader(stringResource(R.string.challenges_goals), stringResource(R.string.challenges_goals_hint), topSpace = 14.dp)
-            }
-            ChallengeCategory.entries.forEach { category ->
-                val rows = ui.milestones.filter { it.challenge.category == category }
-                val totals = ui.milestoneTotals[category]
-                if (rows.isEmpty() && totals == null) return@forEach
-                item(key = "h_$category") {
-                    CategoryHeader(
-                        title = stringResource(category.titleRes()),
-                        done = totals?.first ?: 0,
-                        total = totals?.second ?: 0,
+        Column(Modifier.fillMaxWidth()) {
+            Row(Modifier.padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.challenges_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    Text(
+                        stringResource(R.string.challenges_today, ui.dailyDone, ui.daily.size),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                if (rows.isEmpty()) {
-                    item(key = "done_$category") {
-                        Text(
-                            stringResource(R.string.challenges_category_complete),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(horizontal = 4.dp),
+                if (ui.waiting > 0) {
+                    Button(
+                        onClick = onClaimAll,
+                        colors = ButtonDefaults.buttonColors(containerColor = Gold, contentColor = Color(0xFF3A2A00)),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        modifier = Modifier.height(40.dp),
+                    ) { Text(stringResource(R.string.challenges_claim_all, ui.waiting), fontWeight = FontWeight.Bold) }
+                }
+            }
+
+            // The switcher. A gold dot on a chip means a reward in that section is ready to claim.
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                sections.forEach { section ->
+                    val ready = waitingIn(section)
+                    FilterChip(
+                        selected = section == selected,
+                        onClick = { selectedName = section?.name },
+                        label = {
+                            Text(
+                                if (section == null) stringResource(R.string.challenges_daily) else stringResource(section.titleRes()),
+                                fontWeight = FontWeight.SemiBold,
+                            )
+                        },
+                        trailingIcon = if (ready > 0) {
+                            { Box(Modifier.size(8.dp).clip(CircleShape).background(Gold)) }
+                        } else null,
+                    )
+                }
+            }
+
+            LazyColumn(
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 32.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.weight(1f, fill = false),
+            ) {
+                if (selected == null) {
+                    // ── Today ──
+                    items(ui.daily, key = { it.challenge.id }) { row -> ChallengePanel(row, showDifficulty = true, onClaim = { onClaim(row) }) }
+                    if (ui.sweepReady || ui.sweepClaimed) {
+                        item(key = "sweep") { SweepPanel(claimed = ui.sweepClaimed, onClaim = onClaimSweep) }
+                    }
+                } else {
+                    // ── One kind of long-term goal ──
+                    val rows = ui.milestones.filter { it.challenge.category == selected }
+                    val totals = ui.milestoneTotals[selected]
+                    item(key = "h_${selected.name}") {
+                        CategoryHeader(
+                            title = stringResource(selected.titleRes()),
+                            done = totals?.first ?: 0,
+                            total = totals?.second ?: 0,
                         )
                     }
+                    if (rows.isEmpty()) {
+                        item(key = "done_${selected.name}") {
+                            Text(
+                                stringResource(R.string.challenges_category_complete),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 4.dp),
+                            )
+                        }
+                    }
+                    items(rows, key = { it.challenge.id }) { row -> ChallengePanel(row, showDifficulty = false, onClaim = { onClaim(row) }) }
                 }
-                items(rows, key = { it.challenge.id }) { row -> ChallengePanel(row, showDifficulty = false, onClaim = { onClaim(row) }) }
             }
         }
     }

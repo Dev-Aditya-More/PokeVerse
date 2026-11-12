@@ -370,23 +370,6 @@ fun SharedTransitionScope.HomeScreen(
 
     val context = LocalContext.current
 
-    val clashFabTransition = rememberInfiniteTransition(label = "clash_fab")
-    val clashRing1 by clashFabTransition.animateFloat(
-        initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Restart),
-        label = "clash_ring1"
-    )
-    val clashRing2 by clashFabTransition.animateFloat(
-        initialValue = 0f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing, delayMillis = 750), RepeatMode.Restart),
-        label = "clash_ring2"
-    )
-    val clashFabScale by clashFabTransition.animateFloat(
-        initialValue = 1f, targetValue = 1.07f,
-        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "clash_fab_scale"
-    )
-
     val activity = context as? Activity
     val monthly by billingViewModel.monthlyPrice.collectAsStateWithLifecycle()
     val yearly by billingViewModel.yearlyPrice.collectAsStateWithLifecycle()
@@ -663,64 +646,18 @@ fun SharedTransitionScope.HomeScreen(
                 )
             },
             floatingActionButton = {
-
+                // The challenges button sits where the Card Clash button used to be.
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.Bottom
                 ) {
                     com.aditya1875.pokeverse.feature.challenges.presentation.ChallengesFab(
                         waiting = challengesUi.waiting,
                         onClick = { challengesOpen = true },
                     )
-
-                    Box(contentAlignment = Alignment.Center) {
-                        // Sonar ring 1
-                        Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .graphicsLayer {
-                                    val s = 1f + clashRing1 * 0.75f
-                                    scaleX = s; scaleY = s
-                                    alpha = (1f - clashRing1) * 0.52f
-                                }
-                                .background(
-                                    MaterialTheme.colorScheme.primary,
-                                    RoundedCornerShape(16.dp)
-                                )
-                        )
-                        Box(
-                            modifier = Modifier
-                                .size(52.dp)
-                                .graphicsLayer {
-                                    val s = 1f + clashRing2 * 0.75f
-                                    scaleX = s; scaleY = s
-                                    alpha = (1f - clashRing2) * 0.52f
-                                }
-                                .background(
-                                    MaterialTheme.colorScheme.primary,
-                                    RoundedCornerShape(16.dp)
-                                )
-                        )
-                        // FAB with gentle scale breath
-                        FloatingActionButton(
-                            onClick = { navController.navigate(Route.BottomBar.Clash.route) },
-                            shape = RoundedCornerShape(16.dp),
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            elevation = FloatingActionButtonDefaults.elevation(8.dp),
-                            modifier = Modifier
-                                .size(52.dp)
-                                .graphicsLayer { scaleX = clashFabScale; scaleY = clashFabScale }
-                        ) {
-                            Icon(
-                                Icons.Default.Groups,
-                                contentDescription = stringResource(R.string.clash_lobby_title),
-                                tint = MaterialTheme.colorScheme.onPrimary
-                            )
-                        }
-                    }
                 }
             },
             floatingActionButtonPosition = FabPosition.Center

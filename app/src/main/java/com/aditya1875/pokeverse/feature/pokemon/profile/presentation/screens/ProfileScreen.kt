@@ -106,13 +106,11 @@ fun ProfileScreen(
                 }
 
                 item {
+                    // Plain read-out here: no onFilter, so the bars have no arrows and don't open the Pokédex list.
+                    // (Home keeps its tappable bars.)
                     DexProgressStrip(
                         dexProgress,
                         onPlayWildCatch = onPlayWildCatch,
-                        onFilter = { picked ->
-                            dexViewModel.requestFilter(picked)
-                            onOpenDexList()
-                        }
                     )
                 }
 
