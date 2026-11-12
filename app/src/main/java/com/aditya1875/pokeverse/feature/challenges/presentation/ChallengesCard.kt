@@ -235,6 +235,11 @@ fun ChallengesSheet(
                     FilterChip(
                         selected = section == selected,
                         onClick = { selectedName = section?.name },
+                        // The selected chip takes the app's colour; the default came out a muddy brown on this theme.
+                        colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f),
+                            selectedLabelColor = MaterialTheme.colorScheme.primary,
+                        ),
                         label = {
                             Text(
                                 if (section == null) stringResource(R.string.challenges_daily) else stringResource(section.titleRes()),

@@ -72,7 +72,23 @@ class PokemonListViewModel(
     // -------------------------
 
     private val typePokemonCache = mutableMapOf<PokemonType, Set<Int>>()
+
+    /**
+     * Every Pokémon of a type, as the type request returned them. A type filter shows THIS, whole, instead of
+     * whichever of that type happen to be in the pages loaded so far: before, the full list appeared first, and the
+     * next page load replaced it with the few already-loaded matches, so the list shrank and the type looked
+     * incomplete.
+     */
+    private val typeResultsCache = mutableMapOf<PokemonType, List<PokemonResult>>()
     private var allPokemonInRegion: List<PokemonResult> = emptyList()
+
+    /** The complete list for [type], limited to [region] and to real species (no alternate forms), or null if not loaded. */
+    private fun completeTypeList(type: PokemonType, region: Region?): List<PokemonResult>? =
+        typeResultsCache[type]?.filter { pokemon ->
+            val id = extractIdFromUrl(pokemon.url)
+            id in 1..com.aditya1875.pokeverse.feature.pokemon.dex.DexProgress.TOTAL &&
+                (region == null || region.range.contains(id))
+        }
 
     // FIX: screenState now includes _hasError and endReached awareness.
     //
@@ -247,14 +263,12 @@ class PokemonListViewModel(
                     .map { extractIdFromUrl(it.pokemon.url) }
                     .toSet()
                 typePokemonCache[type] = pokemonIds
+                typeResultsCache[type] = typeResponse.pokemon.map { it.pokemon }
 
-                val filtered = typeResponse.pokemon
-                    .map { it.pokemon }
-                    .filter { pokemon ->
-                        val id = extractIdFromUrl(pokemon.url)
-                        capturedRegion == null || capturedRegion.range.contains(id)
-                    }
-                _pokemonList.value = filtered
+                // The player may have changed the filter while this was loading: only show it if it is still wanted.
+                if (_filters.value.selectedType == type) {
+                    _pokemonList.value = completeTypeList(type, capturedRegion) ?: emptyList()
+                }
             } catch (e: Exception) {
                 val fallback = typePokemonCache[type]
                 if (fallback != null) applyTypeFilterFromCache(type, fallback)
@@ -270,10 +284,13 @@ class PokemonListViewModel(
         _pokemonList.value = if (selectedType == null) {
             allPokemonInRegion
         } else {
-            val typeIds = typePokemonCache[selectedType] ?: emptySet()
-            allPokemonInRegion.filter {
-                val id = extractIdFromUrl(it.url)
-                typeIds.contains(id)
+            // A page just loaded: keep showing the type's COMPLETE list, not only its matches among the loaded pages.
+            completeTypeList(selectedType, _filters.value.selectedRegion) ?: run {
+                val typeIds = typePokemonCache[selectedType] ?: emptySet()
+                allPokemonInRegion.filter {
+                    val id = extractIdFromUrl(it.url)
+                    typeIds.contains(id)
+                }
             }
         }
 
@@ -284,6 +301,11 @@ class PokemonListViewModel(
 
     private fun applyTypeFilterFromCache(type: PokemonType, typeIds: Set<Int>) {
         val region = _filters.value.selectedRegion
+
+        completeTypeList(type, region)?.let { complete ->
+            _pokemonList.value = complete
+            return
+        }
 
         _pokemonList.value = allPokemonInRegion.filter { pokemon ->
             val id = extractIdFromUrl(pokemon.url)

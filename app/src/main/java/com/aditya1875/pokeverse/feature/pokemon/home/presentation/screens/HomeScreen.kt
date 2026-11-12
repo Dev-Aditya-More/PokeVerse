@@ -154,6 +154,7 @@ import com.aditya1875.pokeverse.feature.dexdaily.presentation.DexDailySheet
 import com.aditya1875.pokeverse.feature.dexdaily.presentation.DexDailyViewModel
 import com.aditya1875.pokeverse.feature.game.premium.LocalPremium
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.FilterBar
+import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.DexverseMenu
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.HomeContentMode
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.HomePopupOrchestrator
 import com.aditya1875.pokeverse.feature.pokemon.home.presentation.components.ImprovedPokemonCard
@@ -334,14 +335,21 @@ fun SharedTransitionScope.HomeScreen(
         if (searchQuery.isNotEmpty()) filteredItems
         else (itemListState as? ItemListState.Success)?.items ?: emptyList()
 
-    val shouldLoadMorePokemons by remember {
+    val listFilters by viewModel.filters.collectAsStateWithLifecycle()
+
+    // Near the end of what is ON SCREEN. This used to compare the grid position against the size of the whole
+    // unfiltered list, which is wrong the moment Seen/Caught narrows the grid, and it read `endReached` as a value
+    // copied at the first composition (so it never saw it change). A type filter already shows that type's complete
+    // list, so there is nothing more to page in while one is on.
+    val shouldLoadMorePokemons by remember(visiblePokemon, listFilters.selectedType) {
         derivedStateOf {
             val lastVisible =
                 pokemonGridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
 
-            lastVisible >= pokemonList.size - 6 &&
+            lastVisible >= visiblePokemon.size - 6 &&
                     !isLoading &&
-                    !endReached
+                    !viewModel.endReached &&
+                    listFilters.selectedType == null
         }
     }
 
@@ -378,7 +386,10 @@ fun SharedTransitionScope.HomeScreen(
 
     var showPremiumSheet by remember { mutableStateOf(false) }
 
-    LaunchedEffect(contentMode, shouldLoadMorePokemons) {
+    // Keyed on everything that can change the answer, not just the yes/no flag. Keyed on the flag alone, applying a
+    // filter while it was already "yes" changed nothing the effect could see, so it never restarted and paging
+    // silently stopped until the player scrolled away and back.
+    LaunchedEffect(contentMode, shouldLoadMorePokemons, isLoading, visiblePokemon.size, listFilters, dexFilter) {
         if (contentMode == HomeContentMode.POKEMON && shouldLoadMorePokemons) {
             viewModel.loadPokemonList()
         }
@@ -506,136 +517,16 @@ fun SharedTransitionScope.HomeScreen(
                                 )
                             }
 
-                            DropdownMenu(
+                            DexverseMenu(
                                 expanded = showMenu,
-                                onDismissRequest = { showMenu = false }
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.home_section_pokedex),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Black,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                                )
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_menu_pokemon)) },
-                                    trailingIcon = {
-                                        if (contentMode == HomeContentMode.POKEMON) {
-                                            Icon(Icons.Default.Check, contentDescription = null)
-                                        }
-                                    },
-                                    onClick = {
-                                        contentMode = HomeContentMode.POKEMON
-                                        showMenu = false
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_menu_items)) },
-                                    trailingIcon = {
-                                        if (contentMode == HomeContentMode.ITEMS) {
-                                            Icon(Icons.Default.Check, contentDescription = null)
-                                        }
-                                    },
-                                    onClick = {
-                                        contentMode = HomeContentMode.ITEMS
-                                        showMenu = false
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_menu_berries)) },
-                                    trailingIcon = {
-                                        if (contentMode == HomeContentMode.BERRIES) {
-                                            Icon(Icons.Default.Check, contentDescription = null)
-                                        }
-                                    },
-                                    onClick = {
-                                        contentMode = HomeContentMode.BERRIES
-                                        showMenu = false
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_menu_badges)) },
-                                    trailingIcon = {
-                                        if (contentMode == HomeContentMode.BADGES) {
-                                            Icon(Icons.Default.Check, contentDescription = null)
-                                        }
-                                    },
-                                    onClick = {
-                                        contentMode = HomeContentMode.BADGES
-                                        showMenu = false
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_menu_characters)) },
-                                    trailingIcon = {
-                                        if (contentMode == HomeContentMode.CHARACTERS) {
-                                            Icon(Icons.Default.Check, contentDescription = null)
-                                        }
-                                    },
-                                    onClick = {
-                                        contentMode = HomeContentMode.CHARACTERS
-                                        showMenu = false
-                                    }
-                                )
-
-                                HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
-
-                                Text(
-                                    text = stringResource(R.string.home_section_other_tools),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Black,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.dex_menu_title), fontWeight = FontWeight.Bold) },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.PhoneAndroid, contentDescription = null, tint = Color(0xFFE53935))
-                                    },
-                                    onClick = {
-                                        navController.navigate(Route.DexMode.route)
-                                        showMenu = false
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_menu_face_match)) },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Cameraswitch, contentDescription = null)
-                                    },
-                                    onClick = {
-                                        navController.navigate(Route.FaceMatch.route)
-                                        showMenu = false
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_menu_compare)) },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.CompareArrows, contentDescription = null)
-                                    },
-                                    onClick = {
-                                        navController.navigate(Route.ComparePokemon.route)
-                                        showMenu = false
-                                    }
-                                )
-
-                                DropdownMenuItem(
-                                    text = { Text(stringResource(R.string.home_menu_stat_calculator)) },
-                                    leadingIcon = {
-                                        Icon(Icons.Default.Calculate, contentDescription = null)
-                                    },
-                                    onClick = {
-                                        navController.navigate(Route.StatCalculator.route)
-                                        showMenu = false
-                                    }
-                                )
-                            }
+                                contentMode = contentMode,
+                                onDismiss = { showMenu = false },
+                                onContentMode = { contentMode = it; showMenu = false },
+                                onDexMode = { navController.navigate(Route.DexMode.route); showMenu = false },
+                                onFaceMatch = { navController.navigate(Route.FaceMatch.route); showMenu = false },
+                                onCompare = { navController.navigate(Route.ComparePokemon.route); showMenu = false },
+                                onStatCalculator = { navController.navigate(Route.StatCalculator.route); showMenu = false },
+                            )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
