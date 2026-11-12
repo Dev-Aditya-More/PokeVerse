@@ -410,6 +410,7 @@
     <string name="clash_quick_match_desc">किसी random online player से match करो</string>
     <string name="clash_searching">Player ढूंढ रहे हैं…</string>
     <string name="clash_queue_hint">तुम queue में हो, player pool बढ़ाने के लिए दोस्तों को invite करो!</string>
+    <string name="clash_match_cancelled">आपका विरोधी मैच शुरू होने से पहले चला गया। जब चाहें दोबारा कोशिश करें।</string>
     <string name="clash_invite_friends">दोस्तों को invite करो</string>
     <string name="clash_waiting_friend">दोस्त का इंतज़ार है…</string>
     <string name="clash_room_code">Room Code</string>
@@ -1684,6 +1685,13 @@
     <string name="battle_online_clock">%1$d सेकंड</string>
     <string name="battle_online_victory_body">आपने %1$s को %2$d टर्न में हराया!</string>
     <string name="battle_online_won_left">%1$s बैटल छोड़ गया। जीत आपकी है।</string>
+    <string name="battle_online_void_title">मैच रद्द</string>
+    <string name="battle_online_void_body">%1$s बैटल शुरू होने से पहले ही चला गया, इसलिए यह आप दोनों में से किसी के लिए नहीं गिना जाएगा।</string>
+    <plurals name="mp_pool_waiting">
+        <item quantity="one">%d खिलाड़ी अभी मैच ढूँढ रहा है</item>
+        <item quantity="other">%d खिलाड़ी अभी मैच ढूँढ रहे हैं</item>
+    </plurals>
+    <string name="mp_pool_empty">अभी कोई इंतज़ार नहीं कर रहा। खोज शुरू करें, दूसरे आपको ढूँढ लेंगे।</string>
     <string name="battle_online_defeat_body">%1$s जीत गया। रीमैच के लिए तैयार?</string>
     <string name="battle_online_again">दूसरा मैच ढूँढें</string>
     <string name="battle_online_xp">+%1$d XP</string>
@@ -1696,6 +1704,8 @@
     <string name="battle_special_charging">चार्ज %1$d%%</string>
     <string name="battle_hint_guard_left">आधा नुकसान · %1$d बचे</string>
     <string name="battle_guard_none">कोई गार्ड नहीं बचा</string>
+    <string name="battle_guard_hint">अपनी चाल के साथ जुड़ता है · %1$d बचे</string>
+    <string name="battle_guard_armed">चालू: इस टर्न तुम्हें 40%% कम चोट लगेगी</string>
     <string name="battle_guards_left">बचे गार्ड: %1$d</string>
     <string name="tip_label">टिप</string>
     <string name="tip_catch_categories">पोकेमॉन कॉमन, अनकॉमन, रेयर, अल्ट्रा रेयर और लेजेंडरी होते हैं। जितना दुर्लभ, उतना पकड़ना मुश्किल।</string>
@@ -1833,6 +1843,11 @@
     <string name="battle_online_err_size">इस room में %1$d Pokémon चाहिए। अपनी team उसी के हिसाब से बदलें।</string>
     <string name="battle_online_format_ready">Quick match %1$d बनाम %1$d है, यानी दोनों तरफ़ बराबर Pokémon होते हैं।</string>
     <string name="battle_online_format_need">Quick match %1$d बनाम %1$d है। ठीक %1$d Pokémon चुनें (%2$d चुने)।</string>
+    <string name="battle_online_quick_legend_limit">Quick match की टीम में अधिकतम %1$d लेजेंडरी या मिथिकल पोकेमॉन हो सकता है। आगे बढ़ने के लिए एक बदलें।</string>
+    <string name="battle_format_label">%1$d बनाम %1$d</string>
+    <string name="battle_search_hint">नाम या नंबर से खोजें</string>
+    <string name="battle_filter_all">सभी</string>
+    <string name="battle_no_match">कोई पोकेमॉन नहीं मिला। कोई दूसरा नाम या टाइप आज़माएँ।</string>
     <string name="challenge_cat_pokedex">Pokédex</string>
     <string name="challenge_cat_collection">Rarity collections</string>
     <string name="challenge_cat_regions">Regions</string>

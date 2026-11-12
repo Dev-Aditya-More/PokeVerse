@@ -62,6 +62,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.background
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -89,7 +91,8 @@ fun CardClashLobbyScreen(
     onCreateFriendRoom: () -> Unit,
     onJoinByCode: (String) -> Unit,
     onCodeChanged: (String) -> Unit,
-    onCancelWait: () -> Unit
+    onCancelWait: () -> Unit,
+    waiting: Int? = null
 ) {
     val context = LocalContext.current
     var showGuide by remember {
@@ -160,6 +163,7 @@ fun CardClashLobbyScreen(
                             roomCode = if (state.isRandomWait) null else state.roomCode,
                             isRandom = state.isRandomWait,
                             matchmakingSecondsLeft = state.matchmakingSecondsLeft,
+                            waiting = waiting,
                             onCancel = onCancelWait
                         )
 
@@ -169,7 +173,8 @@ fun CardClashLobbyScreen(
                             onPlayRandom = onPlayRandom,
                             onCreateFriendRoom = onCreateFriendRoom,
                             onJoinByCode = onJoinByCode,
-                            onCodeChanged = onCodeChanged
+                            onCodeChanged = onCodeChanged,
+                            waiting = waiting
                         )
                 }
             }
@@ -183,7 +188,8 @@ private fun LobbyContent(
     onPlayRandom: () -> Unit,
     onCreateFriendRoom: () -> Unit,
     onJoinByCode: (String) -> Unit,
-    onCodeChanged: (String) -> Unit
+    onCodeChanged: (String) -> Unit,
+    waiting: Int? = null
 ) {
     Column(
         modifier = Modifier
@@ -258,6 +264,7 @@ private fun LobbyContent(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                ClashPoolLine(waiting)
                 Button(
                     onClick = onPlayRandom,
                     modifier = Modifier.fillMaxWidth(),
@@ -305,8 +312,43 @@ private fun LobbyContent(
                 textAlign = TextAlign.Center
             )
         }
+        if (state.matchCancelled) {
+            Text(
+                text = stringResource(R.string.clash_match_cancelled),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center
+            )
+        }
 
         Spacer(Modifier.height(8.dp))
+    }
+}
+
+/**
+ * How many other players are waiting for a match right now, so people know someone is out there (or that
+ * starting a search is how others will find them). Shows nothing until the first count arrives.
+ */
+@Composable
+private fun ClashPoolLine(waiting: Int?) {
+    if (waiting == null) return
+    val color = if (waiting > 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Box(
+            Modifier
+                .size(8.dp)
+                .background(color, CircleShape)
+        )
+        Text(
+            text = if (waiting > 0) pluralStringResource(R.plurals.mp_pool_waiting, waiting, waiting)
+            else stringResource(R.string.mp_pool_empty),
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
+            color = color
+        )
     }
 }
 
@@ -393,6 +435,7 @@ private fun WaitingView(
     roomCode: String?,
     isRandom: Boolean,
     matchmakingSecondsLeft: Int,
+    waiting: Int? = null,
     onCancel: () -> Unit
 ) {
     val context = LocalContext.current
@@ -460,6 +503,7 @@ private fun WaitingView(
                         textAlign = TextAlign.Center
                     )
                 }
+                ClashPoolLine(waiting)
                 Spacer(Modifier.height(4.dp))
                 FilledTonalButton(
                     onClick = {

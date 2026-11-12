@@ -13,6 +13,8 @@ import com.aditya1875.pokeverse.feature.game.cardclash.presentation.CardClashVie
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.aditya1875.pokeverse.feature.leaderboard.presentation.components.XPOverlay
 import com.aditya1875.pokeverse.utils.ConnectivityObserver
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.emptyFlow
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -42,6 +44,11 @@ fun CardClashScreen(
         ClashPhase.MATCH_FINISHED
     )
 
+    // "N players waiting": only listened to while the lobby is on screen and the phone is online.
+    val watchPool = !isInGame && isOnline && !state.isBotMatch
+    val poolFlow = remember(watchPool) { if (watchPool) viewModel.poolFlow() else emptyFlow() }
+    val pool: Int? by poolFlow.collectAsStateWithLifecycle(initialValue = null)
+
     XPOverlay(result = pendingXp, onDismiss = { pendingXp = null }) {
         if (!isOnline && !isInGame) {
             NoInternetScreen()
@@ -63,7 +70,8 @@ fun CardClashScreen(
                 onCreateFriendRoom = viewModel::createMatch,
                 onJoinByCode = viewModel::joinByCode,
                 onCodeChanged = viewModel::updateEnteredCode,
-                onCancelWait = viewModel::cancelWait
+                onCancelWait = viewModel::cancelWait,
+                waiting = pool
             )
         }
     }

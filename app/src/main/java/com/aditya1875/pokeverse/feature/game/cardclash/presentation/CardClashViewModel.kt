@@ -10,6 +10,8 @@ import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashRound
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashUiState
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.MatchOutcome
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.RoundWinner
+import com.aditya1875.pokeverse.feature.game.core.domain.Matchmaking
+import com.aditya1875.pokeverse.feature.game.core.domain.YieldResult
 import com.aditya1875.pokeverse.feature.game.pokeduel.domain.engine.DuelGameEngine
 import com.aditya1875.pokeverse.feature.game.pokeduel.domain.model.DuelPokemon
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPEvent
@@ -17,7 +19,15 @@ import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPManager
 import com.aditya1875.pokeverse.feature.leaderboard.domain.xp.XPResult
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -109,7 +119,7 @@ class CardClashViewModel(
         resolveIdentity() ?: return
         isPlayer1 = true
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, error = null, matchCancelled = false) }
             runCatching { repository.createMatch(myId, myName) }
                 .onSuccess { matchId ->
                     _uiState.update {
@@ -121,10 +131,16 @@ class CardClashViewModel(
         }
     }
 
+    /** How many other players are waiting in the random queue right now, live. Collect it only while it is on screen. */
+    fun poolFlow(): Flow<Int> = flow {
+        val me = auth.currentUser?.uid.orEmpty()
+        emitAll(repository.observeQuickPool(me))
+    }.distinctUntilChanged()
+
     fun joinRandom() {
         resolveIdentity() ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, error = null) }
+            _uiState.update { it.copy(isLoading = true, error = null, matchCancelled = false) }
             runCatching { repository.joinRandomMatch(myId, myName) }
                 .onSuccess { matchId ->
                     if (matchId != null) {
@@ -133,7 +149,7 @@ class CardClashViewModel(
                     } else {
                         // No open match, create one and wait; start countdown to bot fallback
                         isPlayer1 = true
-                        runCatching { repository.createMatch(myId, myName) }
+                        runCatching { repository.createQuickMatch(myId, myName) }
                             .onSuccess { newMatchId ->
                                 _uiState.update {
                                     it.copy(
@@ -179,14 +195,78 @@ class CardClashViewModel(
     private fun startMatchmakingCountdown(waitingMatchId: String) {
         matchmakingTimerJob?.cancel()
         matchmakingTimerJob = viewModelScope.launch {
+            // The room this search is waiting in; it changes if the room has to be reopened.
+            var waitingId = waitingMatchId
             for (remaining in BOT_MATCHMAKING_TIMEOUT - 1 downTo 0) {
                 delay(1000L)
                 _uiState.update { it.copy(matchmakingSecondsLeft = remaining) }
                 if (remaining == 0) {
-                    startBotMatch(waitingMatchId)
+                    startBotMatch(waitingId)
+                    return@launch
+                }
+                // Two players who tapped "play" together each opened a room and cannot see the other's.
+                // Look again every couple of seconds; null means this search is over (matched elsewhere).
+                if (Matchmaking.shouldLookNow(BOT_MATCHMAKING_TIMEOUT - remaining)) {
+                    waitingId = lookForAnotherWaitingPlayer(waitingId) ?: return@launch
                 }
             }
         }
+    }
+
+    /**
+     * One look for another waiting player. Only the player whose room id is larger gives way, so of two
+     * players waiting together exactly one moves and they cannot join each other's rooms at the same time.
+     * Returns the room this search is now waiting in, or null when the search is finished.
+     */
+    private suspend fun lookForAnotherWaitingPlayer(waitingId: String): String? {
+        val other = runCatching { repository.findRoomToYieldTo(waitingId, myId) }.getOrNull() ?: return waitingId
+        // Closing our room and taking the other seat must not be cut in half by the player leaving.
+        val result = withContext(NonCancellable) {
+            runCatching { repository.yieldToRoom(waitingId, other, myId, myName) }.getOrDefault(YieldResult.STAYED)
+        }
+        if (!currentCoroutineContext().isActive) {
+            // They left while this ran: don't bring the screen back, and let go of the seat we just took.
+            if (result == YieldResult.JOINED) {
+                withContext(NonCancellable) { runCatching { repository.finishMatch(other, "cancelled", 0.0, 0.0) } }
+            }
+            return null
+        }
+        return when (result) {
+            YieldResult.JOINED -> {
+                isPlayer1 = false
+                // Run apart from this countdown: the match's first snapshot cancels the countdown job.
+                viewModelScope.launch {
+                    _uiState.update { it.copy(isRandomWait = false) }
+                    onJoinedAsPlayer2(other)
+                }
+                null
+            }
+            // Someone joined our own room first: that is the real match and its snapshot carries it on.
+            YieldResult.STAYED -> waitingId
+            // Our room is closed but the other one was taken: search again with the time that is left.
+            YieldResult.LOST -> reopenSearch()
+        }
+    }
+
+    private suspend fun reopenSearch(): String? {
+        val joined = runCatching { repository.joinRandomMatch(myId, myName) }.getOrNull()
+        if (joined != null) {
+            isPlayer1 = false
+            viewModelScope.launch {
+                _uiState.update { it.copy(isRandomWait = false) }
+                onJoinedAsPlayer2(joined)
+            }
+            return null
+        }
+        val room = runCatching { repository.createQuickMatch(myId, myName) }.getOrNull()
+        if (room == null) {
+            _uiState.update { it.copy(phase = ClashPhase.LOBBY, isLoading = false, isRandomWait = false, matchId = null, error = "Couldn't reach the matchmaking service. Please try again.") }
+            return null
+        }
+        isPlayer1 = true
+        _uiState.update { it.copy(matchId = room) }
+        startObserving(room)
+        return room
     }
 
     private suspend fun startBotMatch(waitingMatchId: String) {
@@ -386,6 +466,13 @@ class CardClashViewModel(
                 // Stop timer and heartbeat, no point continuing them after the match ends
                 timerJob?.cancel(); timerJob = null
                 heartbeatJob?.cancel(); heartbeatJob = null
+                // The other player backed out of the waiting room just as this one joined: nothing was ever
+                // played, so return to the lobby with a note, rather than leaving this player on the
+                // dealing screen for good (a "finished" room is ignored while still dealing).
+                if (state.winner == "cancelled" && current.phase == ClashPhase.DEALING && !isBotMatchActive) {
+                    reset()
+                    _uiState.update { it.copy(matchCancelled = true) }
+                }
                 // The final reveal + result screen are sequenced by reconcileRounds.
             }
         }
@@ -846,7 +933,14 @@ class CardClashViewModel(
         val matchId = state.matchId
         if (matchId != null && !state.isBotMatch && state.phase == ClashPhase.WAITING_FOR_OPPONENT) {
             viewModelScope.launch {
-                runCatching { repository.finishMatch(matchId, "cancelled", 0.0, 0.0) }
+                // Close the room only if it is still empty. If someone joined at the last moment, that
+                // match is told it was cancelled before it began (see onMatchStateUpdate), instead of
+                // being left waiting on a player who has gone.
+                runCatching {
+                    if (!repository.cancelWaitingMatchIfUnjoined(matchId)) {
+                        repository.finishMatch(matchId, "cancelled", 0.0, 0.0)
+                    }
+                }
             }
         }
         reset()

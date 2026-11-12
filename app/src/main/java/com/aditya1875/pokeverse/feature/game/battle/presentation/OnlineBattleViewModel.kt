@@ -13,6 +13,8 @@ import com.aditya1875.pokeverse.feature.game.battle.data.OnlineBattleRepository
 import com.aditya1875.pokeverse.feature.game.battle.data.OnlineMatch
 import com.aditya1875.pokeverse.feature.game.battle.data.OnlineRewardLedger
 import com.aditya1875.pokeverse.feature.game.battle.data.OnlineSnapshot
+import com.aditya1875.pokeverse.feature.game.core.domain.Matchmaking
+import com.aditya1875.pokeverse.feature.game.core.domain.YieldResult
 import com.aditya1875.pokeverse.feature.game.battle.data.loadFighter
 import com.aditya1875.pokeverse.feature.game.battle.domain.BattleAction
 import com.aditya1875.pokeverse.feature.game.battle.domain.BattleEngine
@@ -37,7 +39,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -166,36 +176,60 @@ class OnlineBattleViewModel(
 
     /** Looks for a real trainer; after [OnlineBattleRules.QUEUE_SECONDS] with nobody, falls back to a bot. */
     fun quickMatch(team: List<Int>) {
-        // The standard format: exactly the same number on both sides.
-        if (team.size != OnlineBattleRules.QUICK_TEAM_SIZE) return
+        // The standard format: exactly the same number on both sides, with at most one Legendary.
+        if (!OnlineBattleRules.quickTeamOk(team)) return
         if (!begin(team, friend = false)) return
         viewModelScope.launch {
-            val joined = runCatching { repo.joinQuick(uid, myName, team) }
+            val joined = runCatching { repo.joinQuick(uid, myName, team) }.logged("joinQuick")
             if (joined.isFailure) return@launch failLobby(R.string.battle_online_err_generic)
             val roomId = joined.getOrNull()
             if (roomId != null) {
                 // Someone was already waiting: take the empty seat and go straight to the battlefield.
-                openMatch(roomId, Seat.GUEST)
-                _lobby.update { it.copy(stage = Stage.PREPARING, busy = false) }
-                armPrepTimeout()
-                return@launch
+                return@launch enterAsGuest(roomId)
             }
-            // Nobody waiting: open a room and wait for the next trainer.
-            runCatching { repo.createRoom(uid, myName, OnlineMatch.MODE_QUICK, team) }
+            // Nobody waiting: open a room and wait. While waiting, the countdown keeps looking for other
+            // waiting players, so two people who tapped at the same moment still find each other.
+            runCatching { repo.createRoom(uid, myName, OnlineMatch.MODE_QUICK, team) }.logged("createRoom(quick)")
                 .onSuccess { room ->
                     openMatch(room.id, Seat.HOST)
                     _lobby.update { it.copy(busy = false, secondsLeft = OnlineBattleRules.QUEUE_SECONDS) }
-                    startQueueCountdown(room.id)
+                    startQueueCountdown(team)
                 }
                 .onFailure { failLobby(R.string.battle_online_err_generic) }
         }
+    }
+
+    /**
+     * How many other trainers are waiting for a quick match of [teamSize] right now, live. 3 vs 3 and 6 vs 6
+     * are separate pools. Collect it only while it is on screen.
+     */
+    fun poolFlow(teamSize: Int): Flow<Int> = flow {
+        val me = FirebaseAuth.getInstance().currentUser?.uid.orEmpty()
+        emitAll(repo.observeQuickPool(me, teamSize))
+    }.distinctUntilChanged()
+
+    /**
+     * The "couldn't reach the battle server" message covers every failure to open or join a room (no network,
+     * permission denied, a missing index...), and used to throw the real reason away. This keeps it: in the
+     * log, and as a non-fatal in Crashlytics tagged with what was being attempted.
+     */
+    private fun <T> Result<T>.logged(what: String): Result<T> = onFailure { e ->
+        android.util.Log.w("OnlineBattle", "$what failed: ${e::class.java.simpleName}: ${e.message}", e)
+        runCatching { com.aditya1875.pokeverse.utils.NetworkCrashGuard.reporter?.invoke(RuntimeException("OnlineBattle $what failed", e)) }
+    }
+
+    /** Takes the guest seat of [roomId], which this phone has already claimed, and moves on to the battlefield. */
+    private fun enterAsGuest(roomId: String) {
+        openMatch(roomId, Seat.GUEST)
+        _lobby.update { it.copy(stage = Stage.PREPARING, busy = false) }
+        armPrepTimeout()
     }
 
     /** Opens a private room and waits for a friend to enter its code. */
     fun createFriendRoom(team: List<Int>) {
         if (!begin(team, friend = true)) return
         viewModelScope.launch {
-            runCatching { repo.createRoom(uid, myName, OnlineMatch.MODE_FRIEND, team) }
+            runCatching { repo.createRoom(uid, myName, OnlineMatch.MODE_FRIEND, team) }.logged("createRoom(friend)")
                 .onSuccess { room ->
                     openMatch(room.id, Seat.HOST)
                     _lobby.update { it.copy(busy = false, roomCode = room.roomCode) }
@@ -208,7 +242,7 @@ class OnlineBattleViewModel(
         val code = _lobby.value.enteredCode
         if (code.length != 6 || !begin(team, friend = true)) return
         viewModelScope.launch {
-            val result = runCatching { repo.joinByCode(code, uid, myName, team) }
+            val result = runCatching { repo.joinByCode(code, uid, myName, team) }.logged("joinByCode")
             (result.exceptionOrNull() as? com.aditya1875.pokeverse.feature.game.battle.data.TeamSizeMismatch)?.let {
                 return@launch failLobby(R.string.battle_online_err_size, it.required)
             }
@@ -297,17 +331,22 @@ class OnlineBattleViewModel(
         startHeartbeat(id)
     }
 
-    private fun startQueueCountdown(roomId: String) {
+    private fun startQueueCountdown(team: List<Int>) {
         countdownJob?.cancel()
         countdownJob = viewModelScope.launch {
-            for (left in OnlineBattleRules.QUEUE_SECONDS downTo 1) {
-                _lobby.update { it.copy(secondsLeft = left) }
+            val total = OnlineBattleRules.QUEUE_SECONDS
+            for (elapsed in 0 until total) {
+                _lobby.update { it.copy(secondsLeft = total - elapsed) }
                 delay(1000L)
+                // Two players who tapped "play" together each opened a room and cannot see the other's.
+                // Look again every couple of seconds; if this search ends here (matched or failed), stop.
+                if (Matchmaking.shouldLookNow(elapsed + 1) && !lookForAnotherWaitingTrainer(team)) return@launch
             }
             _lobby.update { it.copy(secondsLeft = 0) }
             // Close the empty room atomically. If a real trainer joined in the meantime this returns false
             // and the normal snapshot updates carry that match forward instead.
-            if (repo.cancelWaitingIfUnjoined(roomId)) {
+            val room = matchId ?: return@launch
+            if (repo.cancelWaitingIfUnjoined(room)) {
                 cancelJobs()
                 matchId = null
                 val keep = _lobby.value.enteredCode
@@ -315,6 +354,41 @@ class OnlineBattleViewModel(
                 _fallback.tryEmit(Unit)
             }
         }
+    }
+
+    /**
+     * One look for another waiting trainer. Only the player whose room id is larger gives way, so of two
+     * players waiting together exactly one moves and they cannot join each other's rooms at once.
+     * Returns true to keep waiting, false when this search is finished (matched, or it failed).
+     */
+    private suspend fun lookForAnotherWaitingTrainer(team: List<Int>): Boolean {
+        val mine = matchId ?: return false
+        val other = repo.findRoomToYieldTo(mine, uid, team.size) ?: return true
+        // Closing our room and taking the other seat must not be cut in half by the player leaving.
+        val result = withContext(NonCancellable) {
+            runCatching { repo.yieldToRoom(mine, other, uid, myName, team) }.getOrDefault(YieldResult.STAYED)
+        }
+        if (!currentCoroutineContext().isActive) {
+            // They left while this ran: don't bring the screen back, and give the seat up.
+            if (result == YieldResult.JOINED) bgScope.launch { repo.quit(other, Seat.GUEST) }
+            return false
+        }
+        return when (result) {
+            YieldResult.JOINED -> { enterAsGuest(other); false }
+            // Someone joined our own room first: that is the real match, and its snapshot carries it on.
+            YieldResult.STAYED -> true
+            // Our room is closed but the other one was taken: search again with the time that is left.
+            YieldResult.LOST -> reopenSearch(team)
+        }
+    }
+
+    private suspend fun reopenSearch(team: List<Int>): Boolean {
+        val joined = runCatching { repo.joinQuick(uid, myName, team) }.logged("reopen joinQuick").getOrNull()
+        if (joined != null) { enterAsGuest(joined); return false }
+        val room = runCatching { repo.createRoom(uid, myName, OnlineMatch.MODE_QUICK, team) }.logged("reopen createRoom").getOrNull()
+        if (room == null) { failLobby(R.string.battle_online_err_generic); return false }
+        openMatch(room.id, Seat.HOST)
+        return true
     }
 
     /** A joined player who never shows up (or never loads) must not leave this phone spinning forever. */
@@ -341,8 +415,9 @@ class OnlineBattleViewModel(
         }
         if (_lobby.value.stage == Stage.PREPARING) {
             _lobby.update { it.copy(opponentName = m.nameOf(seat.other).ifBlank { it.opponentName }) }
-            // The room closed before the battle began (the other side left): nothing to play.
-            if (m.finished && !prepared) return failBattle(null, R.string.battle_online_err_prep)
+            // The room closed before the battle began (the other side left): nothing to play. This holds even
+            // when this phone was already ready, otherwise it would sit here until the preparation timeout.
+            if (m.finished) return failBattle(null, R.string.battle_online_err_prep)
             prepareFighters(s)
             if (prepared && s.actions[0]?.keys?.containsAll(Seat.entries) == true) startBattle()
         }
@@ -462,11 +537,18 @@ class OnlineBattleViewModel(
 
     // ── Choosing ─────────────────────────────────────────────────────────────────
 
-    override fun act(action: BattleAction, tera: Boolean) {
+    override fun act(action: BattleAction, tera: Boolean, guard: Boolean) {
         val mine = _battle.value ?: return
         if (mine.over || mine.playerMustSwitch) return
         if (!BattleEngine.isLegal(mine, Who.PLAYER, action)) return
-        submit(OnlineAction.of(action, tera = tera && BattleEngine.canTera(mine, Who.PLAYER, action)))
+        submit(
+            OnlineAction.of(
+                action,
+                tera = tera && BattleEngine.canTera(mine, Who.PLAYER, action),
+                // A Guard only goes with an Attack or a Special, and only while there is one left.
+                guard = guard && BattleEngine.canGuard(mine, Who.PLAYER, action),
+            )
+        )
     }
 
     override fun chooseReplacement(index: Int) {
@@ -579,6 +661,9 @@ class OnlineBattleViewModel(
             // Nobody landed the last blow: the rival left, so the battle ends here with you ahead.
             _battle.value = view(state).copy(winner = if (won) Who.PLAYER else Who.FOE)
         }
+        // A rival who walked out before the battle was really fought did not lose to anyone: it is not a win
+        // for this player, and it is not a battle played, for either of them.
+        val counts = OnlineBattleRules.countsForRecord(byLeaving, state.turn) || disqualified
         _hud.update {
             it.copy(
                 waiting = false,
@@ -586,10 +671,12 @@ class OnlineBattleViewModel(
                 opponentLeft = byLeaving && won && !disqualified,
                 opponentDisqualified = disqualified && won,
                 iWasDisqualified = disqualified && !won,
+                notCounted = !counts,
             )
         }
         val id = matchId
         if (id != null) bgScope.launch { repo.finish(id) }
+        if (!counts) return
         // The record counts every finished battle, even a short one or another game with the same rival.
         // Only the shards and XP below are limited; the wins and losses never are.
         viewModelScope.launch {

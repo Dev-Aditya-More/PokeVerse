@@ -43,13 +43,17 @@ data class OnlineAction(
     val kind: String,
     val index: Int = 0,
     val auto: Boolean = false,
-    /** Terastallize this turn as well. Only meaningful with an attack, special or guard. */
+    /** Terastallize this turn as well. Only meaningful with an attack or special. */
     val tera: Boolean = false,
+    /**
+     * Add a Guard to this attack or special: the move happens in full and the hit taken this turn is resisted by
+     * 40%. Only meaningful with an attack or special; the engine ignores it otherwise.
+     */
+    val guard: Boolean = false,
 ) {
 
     fun toBattleAction(): BattleAction = when (kind) {
         KIND_SPECIAL -> BattleAction.Special
-        KIND_GUARD -> BattleAction.Guard
         KIND_SWITCH -> BattleAction.Switch(index)
         else -> BattleAction.Attack
     }
@@ -57,19 +61,17 @@ data class OnlineAction(
     companion object {
         const val KIND_ATTACK = "attack"
         const val KIND_SPECIAL = "special"
-        const val KIND_GUARD = "guard"
         const val KIND_SWITCH = "switch"
 
-        fun of(action: BattleAction, tera: Boolean = false): OnlineAction = when (action) {
-            BattleAction.Attack -> OnlineAction(KIND_ATTACK, tera = tera)
-            BattleAction.Special -> OnlineAction(KIND_SPECIAL, tera = tera)
-            BattleAction.Guard -> OnlineAction(KIND_GUARD, tera = tera)
+        fun of(action: BattleAction, tera: Boolean = false, guard: Boolean = false): OnlineAction = when (action) {
+            BattleAction.Attack -> OnlineAction(KIND_ATTACK, tera = tera, guard = guard)
+            BattleAction.Special -> OnlineAction(KIND_SPECIAL, tera = tera, guard = guard)
             is BattleAction.Switch -> OnlineAction(KIND_SWITCH, action.index)
         }
 
         fun replacement(index: Int) = OnlineAction(KIND_SWITCH, index)
 
-        val KINDS = setOf(KIND_ATTACK, KIND_SPECIAL, KIND_GUARD, KIND_SWITCH)
+        val KINDS = setOf(KIND_ATTACK, KIND_SPECIAL, KIND_SWITCH)
     }
 }
 
@@ -153,6 +155,8 @@ object OnlineBattleRules {
                 state, host, guest, BattleEngine.turnRandom(matchSeed, step), botReplaces = false,
                 playerTera = actions[Seat.HOST]?.tera == true,
                 foeTera = actions[Seat.GUEST]?.tera == true,
+                playerGuard = actions[Seat.HOST]?.guard == true,
+                foeGuard = actions[Seat.GUEST]?.guard == true,
             )
         }
 
@@ -216,16 +220,36 @@ object OnlineBattleRules {
         return OnlineOutcome(gone.other, byLeaving = true)
     }
 
+    /**
+     * Whether a finished battle goes on the player's record. A battle someone walked out of before it was
+     * really fought is not a win for the other side: nothing was decided, so neither a win nor a played
+     * battle is counted. Anything played to its end, or left after a few turns, still counts.
+     */
+    fun countsForRecord(byLeaving: Boolean, turns: Int): Boolean = !byLeaving || turns >= MIN_TURNS_FOR_REWARD
+
     /** Whether a finished battle pays: it must have been fought, and not be one rival farmed over and over. */
     fun paysRewards(turns: Int, paidWithThisRivalToday: Int): Boolean =
         turns >= MIN_TURNS_FOR_REWARD && paidWithThisRivalToday < REWARDED_PER_RIVAL_PER_DAY
 
     /**
-     * Online battles are always even: both players bring the same number of Pokémon. A quick match is the
-     * standard [QUICK_TEAM_SIZE] versus [QUICK_TEAM_SIZE]; a friend's room uses whatever size its host chose, and
-     * the guest has to match it. Without this, someone with six Pokémon could be matched with someone who has three.
+     * Online battles are always even: both players bring the same number of Pokémon. A quick match is one of
+     * the online [com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat]s, 3 vs 3 or 6 vs 6, and rooms
+     * only pair teams of the same size, so the two formats are separate pools; a friend's room uses whatever
+     * size its host chose, and the guest has to match it. Without this, someone with six Pokémon could be
+     * matched with someone who has three.
+     *
+     * Each format caps Legendaries on a player's OWN team before they queue (one in 3 vs 3, two in 6 vs 6): in a
+     * small team the general limit of three means "no limit at all". An opponent's team is still judged by the
+     * looser [validTeam], so a player on an older version, who can still bring more, is not rejected mid-match.
      */
-    const val QUICK_TEAM_SIZE = 3
+    fun quickFormatOf(team: List<Int>): com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat? =
+        com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat.quick(team.size)
+
+    /** Whether [team] is a legal quick-match team: exactly a format's size, with no more legends than it allows. */
+    fun quickTeamOk(team: List<Int>): Boolean {
+        val format = quickFormatOf(team) ?: return false
+        return com.aditya1875.pokeverse.feature.game.battle.domain.TeamRules.legendaryCount(team) <= format.maxLegendaries
+    }
 
     fun evenTeams(host: List<Int>?, guest: List<Int>?): Boolean =
         host != null && guest != null && host.size == guest.size

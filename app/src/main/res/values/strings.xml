@@ -521,6 +521,7 @@
     <string name="clash_quick_match_desc">Get matched with a random online player</string>
     <string name="clash_searching">Searching for a player…</string>
     <string name="clash_queue_hint">You\'re in the queue, invite friends to grow the player pool!</string>
+    <string name="clash_match_cancelled">Your opponent left before the match began. Try again whenever you like.</string>
     <string name="clash_invite_friends">Invite Friends</string>
     <string name="clash_waiting_friend">Waiting for your friend…</string>
     <string name="clash_room_code">Room Code</string>
@@ -1698,6 +1699,13 @@
     <string name="battle_online_clock">%1$ds</string>
     <string name="battle_online_victory_body">You beat %1$s in %2$d turns!</string>
     <string name="battle_online_won_left">%1$s left the battle. The win is yours.</string>
+    <string name="battle_online_void_title">Match cancelled</string>
+    <string name="battle_online_void_body">%1$s left before the battle began, so it doesn\'t count for either of you.</string>
+    <plurals name="mp_pool_waiting">
+        <item quantity="one">%d player is looking for a match right now</item>
+        <item quantity="other">%d players are looking for a match right now</item>
+    </plurals>
+    <string name="mp_pool_empty">No one is waiting right now. Start a search and others can find you.</string>
     <string name="battle_online_defeat_body">%1$s took this one. Ready for a rematch?</string>
     <string name="battle_online_again">Find another match</string>
     <string name="battle_online_xp">+%1$d XP</string>
@@ -1710,6 +1718,8 @@
     <string name="battle_special_charging">Charging %1$d%%</string>
     <string name="battle_hint_guard_left">Half damage · %1$d left</string>
     <string name="battle_guard_none">No Guards left</string>
+    <string name="battle_guard_hint">Add to your move · %1$d left</string>
+    <string name="battle_guard_armed">On: you take 40%% less this turn</string>
     <string name="battle_guards_left">Guards left: %1$d</string>
     <string name="tip_label">Tip</string>
     <string name="tip_catch_categories">Pokémon come in Common, Uncommon, Rare, Ultra Rare and Legendary. The rarer they are, the harder they are to catch.</string>
@@ -1847,6 +1857,11 @@
     <string name="battle_online_err_size">That room needs %1$d Pokémon. Change your team to match.</string>
     <string name="battle_online_format_ready">Quick match is %1$d vs %1$d, so both sides bring the same number.</string>
     <string name="battle_online_format_need">Quick match is %1$d vs %1$d. Pick exactly %1$d Pokémon (%2$d picked).</string>
+    <string name="battle_online_quick_legend_limit">A quick match team can bring at most %1$d Legendary or Mythical Pokémon. Swap one out to continue.</string>
+    <string name="battle_format_label">%1$d vs %1$d</string>
+    <string name="battle_search_hint">Search by name or number</string>
+    <string name="battle_filter_all">All</string>
+    <string name="battle_no_match">No Pokémon match. Try another name or type.</string>
     <string name="challenge_cat_pokedex">Pokédex</string>
     <string name="challenge_cat_collection">Rarity collections</string>
     <string name="challenge_cat_regions">Regions</string>

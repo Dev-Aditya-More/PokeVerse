@@ -517,6 +517,7 @@
     <string name="clash_quick_match_desc">Entre em uma partida com um jogador aleatório</string>
     <string name="clash_searching">Procurando jogadores…</string>
     <string name="clash_queue_hint">Você está na fila, convide amigos para aumentar o pool de jogadores!</string>
+    <string name="clash_match_cancelled">Seu oponente saiu antes de a partida começar. Tente de novo quando quiser.</string>
     <string name="clash_invite_friends">Convidar Amigos</string>
     <string name="clash_waiting_friend">Aguardando seu amigo…</string>
     <string name="clash_room_code">Código da Sala</string>
@@ -1698,6 +1699,14 @@
     <string name="battle_online_clock">%1$ds</string>
     <string name="battle_online_victory_body">Você venceu %1$s em %2$d turnos!</string>
     <string name="battle_online_won_left">%1$s saiu da batalha. A vitória é sua.</string>
+    <string name="battle_online_void_title">Partida cancelada</string>
+    <string name="battle_online_void_body">%1$s saiu antes de a batalha começar, então ela não conta para nenhum dos dois.</string>
+    <plurals name="mp_pool_waiting">
+        <item quantity="one">%d jogador está procurando uma partida agora</item>
+        <item quantity="many">%d jogadores estão procurando uma partida agora</item>
+        <item quantity="other">%d jogadores estão procurando uma partida agora</item>
+    </plurals>
+    <string name="mp_pool_empty">Ninguém está esperando agora. Inicie uma busca e outros poderão encontrar você.</string>
     <string name="battle_online_defeat_body">%1$s levou essa. Quer a revanche?</string>
     <string name="battle_online_again">Encontrar outra partida</string>
     <string name="battle_online_xp">+%1$d XP</string>
@@ -1710,6 +1719,8 @@
     <string name="battle_special_charging">Carregando %1$d%%</string>
     <string name="battle_hint_guard_left">Metade do dano · restam %1$d</string>
     <string name="battle_guard_none">Sem Defesas restantes</string>
+    <string name="battle_guard_hint">Soma-se à sua jogada · %1$d restante(s)</string>
+    <string name="battle_guard_armed">Ativa: você sofre 40%% menos neste turno</string>
     <string name="battle_guards_left">Defesas restantes: %1$d</string>
     <string name="tip_label">Dica</string>
     <string name="tip_catch_categories">Os Pokémon são Comuns, Incomuns, Raros, Ultra raros ou Lendários. Quanto mais raros, mais difíceis de capturar.</string>
@@ -1847,6 +1858,11 @@
     <string name="battle_online_err_size">Essa sala exige %1$d Pokémon. Ajuste seu time.</string>
     <string name="battle_online_format_ready">A partida rápida é %1$d contra %1$d: os dois lados levam o mesmo número.</string>
     <string name="battle_online_format_need">A partida rápida é %1$d contra %1$d. Escolha exatamente %1$d Pokémon (%2$d escolhidos).</string>
+    <string name="battle_online_quick_legend_limit">Um time de partida rápida pode levar no máximo %1$d Pokémon lendário ou místico. Troque um para continuar.</string>
+    <string name="battle_format_label">%1$d contra %1$d</string>
+    <string name="battle_search_hint">Buscar por nome ou número</string>
+    <string name="battle_filter_all">Todos</string>
+    <string name="battle_no_match">Nenhum Pokémon encontrado. Tente outro nome ou tipo.</string>
     <string name="challenge_cat_pokedex">Pokédex</string>
     <string name="challenge_cat_collection">Coleções por raridade</string>
     <string name="challenge_cat_regions">Regiões</string>

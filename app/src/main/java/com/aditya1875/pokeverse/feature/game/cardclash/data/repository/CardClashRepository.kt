@@ -2,15 +2,34 @@ package com.aditya1875.pokeverse.feature.game.cardclash.data.repository
 
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashMatchState
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPokemon
+import com.aditya1875.pokeverse.feature.game.core.domain.YieldResult
 import kotlinx.coroutines.flow.Flow
 
 interface CardClashRepository {
 
-    /** Creates a new match and returns its Firestore ID. */
+    /** Creates a room for a friend (joined by its code, never matched into by strangers) and returns its ID. */
     suspend fun createMatch(myId: String, myName: String): String
 
-    /** Finds the first open match in the queue and joins it. Returns matchId or null if none found. */
+    /** Creates a room in the random queue, open to anyone searching, and returns its ID. */
+    suspend fun createQuickMatch(myId: String, myName: String): String
+
+    /**
+     * Joins an open random-queue room. Tries every candidate, not only the newest, so losing a race for one
+     * room moves on to the next. Returns the matchId, or null if there is nothing open.
+     */
     suspend fun joinRandomMatch(myId: String, myName: String): String?
+
+    /** How many OTHER players are waiting in the random queue right now, kept live. Never throws. */
+    fun observeQuickPool(myId: String): Flow<Int>
+
+    /**
+     * Another waiting player this one should go and join, or null to keep waiting. Two players who tapped
+     * "play" together each opened a room and cannot see the other's; this is how they find each other.
+     */
+    suspend fun findRoomToYieldTo(mine: String, myId: String): String?
+
+    /** Gives up [mine] and takes the seat in [other], in that order so nobody ends up in two rooms. */
+    suspend fun yieldToRoom(mine: String, other: String, myId: String, myName: String): YieldResult
 
     /** Joins a match by 6-char room code. Returns matchId or null if code is invalid/full. */
     suspend fun joinMatchByCode(roomCode: String, myId: String, myName: String): String?

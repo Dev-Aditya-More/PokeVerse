@@ -6,6 +6,10 @@ import com.aditya1875.pokeverse.feature.game.battle.domain.online.Seat
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Source
+import com.aditya1875.pokeverse.feature.game.core.domain.Matchmaking
+import com.aditya1875.pokeverse.feature.game.core.domain.YieldResult
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -60,6 +64,19 @@ interface OnlineBattleRepository {
     /** Joins a friend's room by its code, or returns null when the code is wrong or the room is taken. */
     suspend fun joinByCode(code: String, uid: String, name: String, team: List<Int>): String?
 
+    /** How many OTHER players are waiting for a quick match right now, kept live. Never throws. */
+    fun observeQuickPool(uid: String, teamSize: Int): Flow<Int>
+
+    /**
+     * Another waiting player this one should go and join, or null to keep waiting. Two players who tapped
+     * "play" together each opened a room and never saw the other's; this is how they find each other
+     * (see [com.aditya1875.pokeverse.feature.game.core.domain.Matchmaking]).
+     */
+    suspend fun findRoomToYieldTo(mine: String, uid: String, teamSize: Int): String?
+
+    /** Gives up [mine] and takes the seat in [other], in that order so nobody ends up in two rooms. */
+    suspend fun yieldToRoom(mine: String, other: String, uid: String, name: String, team: List<Int>): YieldResult
+
     /** Records this seat's choice for [step]. A second write for the same step is ignored: choices are final. */
     suspend fun submitAction(matchId: String, uid: String, seat: Seat, step: Int, action: OnlineAction)
 
@@ -89,6 +106,7 @@ interface OnlineBattleRepository {
 /** A friend's room needs [required] Pokémon, and the joiner brought a different number. */
 class TeamSizeMismatch(val required: Int) : Exception("room needs $required Pokémon")
 
+
 class FirestoreOnlineBattleRepository : OnlineBattleRepository {
 
     private val firestore get() = FirebaseFirestore.getInstance()
@@ -98,6 +116,16 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
         const val COLLECTION = "team_battles"
         /** A quick room older than this was abandoned; never match into it. Above the 30s queue wait on purpose. */
         private const val STALE_ROOM_MS = 40_000L
+
+        /**
+         * The battle-rules version this build plays. Both phones replay the same log through the engine, so they must
+         * be on the SAME rules: 2 adds Guards that ride along with a move. A room carries the version it was opened
+         * under, a phone only matches rooms on its own, and the server refuses a join across versions (firestore.rules),
+         * so an older app and this one can never be paired into a battle they would compute differently.
+         */
+        const val RULES_VERSION = 2
+        /** Most open rooms read at once: plenty for matching and for the "players waiting" count. */
+        private const val POOL_LIMIT = 50
         private const val CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         const val KIND_READY = "ready"
     }
@@ -117,6 +145,7 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
                 "mode" to mode,
                 // How many Pokémon each side brings. The joiner must match it (see the rules and joinByCode).
                 "teamSize" to team.size,
+                "rules" to RULES_VERSION,
                 "seed" to seed,
                 "heartbeatHostAt" to FieldValue.serverTimestamp(),
                 "heartbeatGuestAt" to FieldValue.serverTimestamp(),
@@ -128,32 +157,64 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
         return OnlineMatch(doc.id, uid, "", name, "", OnlineMatch.STATUS_WAITING, code, mode, seed, 0L, 0L, null, null)
     }
 
+    /** Open quick rooms for [teamSize]: equality-only filters, so no composite index is needed (same as Card Clash). */
+    private fun openQuickQuery(teamSize: Int) = matches
+        .whereEqualTo("status", OnlineMatch.STATUS_WAITING)
+        .whereEqualTo("mode", OnlineMatch.MODE_QUICK)
+        .whereEqualTo("guestId", "")
+        // Quick matches only pair teams of the same size, so nobody faces more Pokémon than they brought.
+        .whereEqualTo("teamSize", teamSize)
+        // Only rooms on this build's battle rules: a room from an older version could never be played correctly.
+        .whereEqualTo("rules", RULES_VERSION)
+        .limit(POOL_LIMIT.toLong())
+
+    private fun rooms(docs: List<com.google.firebase.firestore.DocumentSnapshot>): List<Matchmaking.OpenRoom> =
+        docs.map {
+            Matchmaking.OpenRoom(
+                id = it.id,
+                hostId = it.getString("hostId").orEmpty(),
+                createdAtMs = it.getTimestamp("createdAt")?.toDate()?.time ?: 0L,
+            )
+        }
+
     override suspend fun joinQuick(uid: String, name: String, team: List<Int>): String? {
-        // Equality-only filters, so no composite index is needed (same approach as Card Clash).
-        val open = matches
-            .whereEqualTo("status", OnlineMatch.STATUS_WAITING)
-            .whereEqualTo("mode", OnlineMatch.MODE_QUICK)
-            .whereEqualTo("guestId", "")
-            // Quick matches only pair teams of the same size, so nobody faces more Pokémon than they brought.
-            .whereEqualTo("teamSize", team.size)
-            .limit(10)
-            .get()
-            .await()
+        val open = openQuickQuery(team.size).get().await()
 
-        val now = System.currentTimeMillis()
-        val candidates = open.documents
-            .filter { it.getString("hostId") != uid }
-            // A host that backgrounded or crashed leaves a room nobody will ever answer in.
-            .filter { now - (it.getTimestamp("createdAt")?.toDate()?.time ?: 0L) < STALE_ROOM_MS }
-            .sortedByDescending { it.getTimestamp("createdAt")?.toDate()?.time ?: 0L }
-
-        for (candidate in candidates) {
+        // A host that backgrounded or crashed leaves a room nobody will ever answer in: those are skipped.
+        val live = Matchmaking.live(rooms(open.documents), uid, System.currentTimeMillis(), STALE_ROOM_MS)
+        // Newest first, as before; every candidate is tried, so losing one race still finds the next room.
+        for (candidate in live.sortedByDescending { it.createdAtMs }) {
             if (claimSeat(candidate.id, uid, name)) {
                 saveTeam(candidate.id, uid, team)
                 return candidate.id
             }
         }
         return null
+    }
+
+    override fun observeQuickPool(uid: String, teamSize: Int): Flow<Int> = callbackFlow {
+        val reg = openQuickQuery(teamSize).addSnapshotListener { snap, error ->
+            if (error != null || snap == null) return@addSnapshotListener
+            trySend(Matchmaking.waitingCount(rooms(snap.documents), uid, System.currentTimeMillis(), STALE_ROOM_MS))
+        }
+        awaitClose { reg.remove() }
+    }
+
+    override suspend fun findRoomToYieldTo(mine: String, uid: String, teamSize: Int): String? {
+        val open = runCatching { openQuickQuery(teamSize).get().await() }.getOrNull() ?: return null
+        val live = Matchmaking.live(rooms(open.documents), uid, System.currentTimeMillis(), STALE_ROOM_MS)
+        return Matchmaking.roomToYieldTo(mine, live)
+    }
+
+    override suspend fun yieldToRoom(mine: String, other: String, uid: String, name: String, team: List<Int>): YieldResult {
+        // Close our own room FIRST. If someone joined it in the meantime this returns false, and that real
+        // match wins: we never hold a seat in two rooms.
+        if (!cancelWaitingIfUnjoined(mine)) return YieldResult.STAYED
+        if (claimSeat(other, uid, name)) {
+            saveTeam(other, uid, team)
+            return YieldResult.JOINED
+        }
+        return YieldResult.LOST
     }
 
     override suspend fun joinByCode(code: String, uid: String, name: String, team: List<Int>): String? {
@@ -172,20 +233,34 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
         return found.id
     }
 
-    /** Takes the empty seat if it is still empty. Two people racing for one room: exactly one wins. */
+    /**
+     * Takes the empty seat if it is still empty. Two people racing for one room: exactly one wins.
+     *
+     * Safe to repeat. A commit can reach the server while the reply is lost (a flaky connection), and the SDK
+     * then retries the transaction: the retry finds the seat already taken, by THIS player, and used to
+     * report failure. That left one phone moving on to "find opponent" while the room already counted it as
+     * the guest, so the other phone saw a match and this one saw none. Our own seat now counts as success,
+     * and a transaction that errored is double-checked against the server before being treated as a miss.
+     */
     private suspend fun claimSeat(matchId: String, uid: String, name: String): Boolean {
         val ref = matches.document(matchId)
-        return runCatching {
+        return try {
             firestore.runTransaction { tx ->
                 val snap = tx.get(ref)
-                if (snap.getString("status") != OnlineMatch.STATUS_WAITING || snap.getString("guestId").orEmpty().isNotEmpty()) {
+                val guest = snap.getString("guestId").orEmpty()
+                if (guest == uid && snap.getString("status") == OnlineMatch.STATUS_ACTIVE) return@runTransaction true
+                if (snap.getString("status") != OnlineMatch.STATUS_WAITING || guest.isNotEmpty()) {
                     return@runTransaction false
                 }
+                // A room opened under other battle rules (an older app's, which has no version) is not ours to join.
+                if ((snap.getLong("rules")?.toInt() ?: 1) != RULES_VERSION) return@runTransaction false
                 tx.update(
                     ref,
                     mapOf(
                         "guestId" to uid,
                         "guestName" to name,
+                        // The server checks this against the room's own version before it lets the seat be taken.
+                        "joinerRules" to RULES_VERSION,
                         "status" to OnlineMatch.STATUS_ACTIVE,
                         "heartbeatGuestAt" to FieldValue.serverTimestamp(),
                         "lastUpdated" to Timestamp.now(),
@@ -193,8 +268,19 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
                 )
                 true
             }.await()
-        }.getOrDefault(false)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // The reply may have been lost after the seat WAS taken: ask the server rather than assume.
+            seatIsOurs(ref, uid)
+        }
     }
+
+    private suspend fun seatIsOurs(ref: com.google.firebase.firestore.DocumentReference, uid: String): Boolean =
+        runCatching {
+            val snap = ref.get(Source.SERVER).await()
+            snap.getString("guestId") == uid && snap.getString("status") == OnlineMatch.STATUS_ACTIVE
+        }.getOrDefault(false)
 
     private suspend fun saveTeam(matchId: String, uid: String, team: List<Int>) {
         matches.document(matchId).collection("teams").document(uid).set(mapOf("ids" to team)).await()
@@ -214,6 +300,8 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
                 put("auto", action.auto)
                 // Only written when used, so ordinary turns stay valid against rules that predate Tera.
                 if (action.tera) put("tera", true)
+                // Likewise a Guard, so a plain turn stays valid against rules that predate Guards.
+                if (action.guard) put("guard", true)
             }
         ).await()
     }
@@ -311,7 +399,8 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
                 val index = (doc.get("index") as? Number)?.toInt() ?: 0
                 val auto = doc.getBoolean("auto") ?: false
                 val tera = doc.getBoolean("tera") ?: false
-                log.getOrPut(step) { mutableMapOf() }[seat] = OnlineAction(kind, index, auto, tera)
+                val guard = doc.getBoolean("guard") ?: false
+                log.getOrPut(step) { mutableMapOf() }[seat] = OnlineAction(kind, index, auto, tera, guard)
             }
             actions = log
             push()

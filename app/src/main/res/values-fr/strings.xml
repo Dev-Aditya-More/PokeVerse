@@ -410,6 +410,7 @@
     <string name="clash_quick_match_desc">Soyez mis en relation avec un joueur aléatoire en ligne</string>
     <string name="clash_searching">Recherche d\'un joueur…</string>
     <string name="clash_queue_hint">Vous êtes dans la file, invitez des amis pour agrandir le pool de joueurs !</string>
+    <string name="clash_match_cancelled">Votre adversaire est parti avant le début du match. Réessayez quand vous voulez.</string>
     <string name="clash_invite_friends">Inviter des amis</string>
     <string name="clash_waiting_friend">En attente de votre ami…</string>
     <string name="clash_room_code">Code de salle</string>
@@ -1684,6 +1685,14 @@
     <string name="battle_online_clock">%1$d s</string>
     <string name="battle_online_victory_body">Tu as battu %1$s en %2$d tours !</string>
     <string name="battle_online_won_left">%1$s a quitté le combat. La victoire est à toi.</string>
+    <string name="battle_online_void_title">Match annulé</string>
+    <string name="battle_online_void_body">%1$s est parti avant le début du combat : il ne compte pour aucun de vous deux.</string>
+    <plurals name="mp_pool_waiting">
+        <item quantity="one">%d joueur cherche un match en ce moment</item>
+        <item quantity="many">%d joueurs cherchent un match en ce moment</item>
+        <item quantity="other">%d joueurs cherchent un match en ce moment</item>
+    </plurals>
+    <string name="mp_pool_empty">Personne n\'attend pour le moment. Lance une recherche et d\'autres pourront te trouver.</string>
     <string name="battle_online_defeat_body">%1$s l\'emporte. Une revanche ?</string>
     <string name="battle_online_again">Trouver un autre match</string>
     <string name="battle_online_xp">+%1$d XP</string>
@@ -1696,6 +1705,8 @@
     <string name="battle_special_charging">Charge %1$d %%</string>
     <string name="battle_hint_guard_left">Dégâts réduits de moitié · %1$d restante(s)</string>
     <string name="battle_guard_none">Plus de Gardes</string>
+    <string name="battle_guard_hint">S\'ajoute à ton action · %1$d restant(s)</string>
+    <string name="battle_guard_armed">Activée : tu subis 40%% de moins ce tour</string>
     <string name="battle_guards_left">Gardes restantes : %1$d</string>
     <string name="tip_label">Astuce</string>
     <string name="tip_catch_categories">Les Pokémon sont Communs, Peu communs, Rares, Ultra rares ou Légendaires. Plus ils sont rares, plus ils sont difficiles à capturer.</string>
@@ -1833,6 +1844,11 @@
     <string name="battle_online_err_size">Ce salon demande %1$d Pokémon. Adapte ton équipe.</string>
     <string name="battle_online_format_ready">Le match rapide est du %1$d contre %1$d : les deux camps amènent le même nombre.</string>
     <string name="battle_online_format_need">Le match rapide est du %1$d contre %1$d. Choisis exactement %1$d Pokémon (%2$d choisis).</string>
+    <string name="battle_online_quick_legend_limit">Une équipe de match rapide peut compter au plus %1$d Pokémon légendaire ou fabuleux. Remplace-en un pour continuer.</string>
+    <string name="battle_format_label">%1$d contre %1$d</string>
+    <string name="battle_search_hint">Chercher par nom ou numéro</string>
+    <string name="battle_filter_all">Tous</string>
+    <string name="battle_no_match">Aucun Pokémon ne correspond. Essaie un autre nom ou type.</string>
     <string name="challenge_cat_pokedex">Pokédex</string>
     <string name="challenge_cat_collection">Collections par rareté</string>
     <string name="challenge_cat_regions">Régions</string>

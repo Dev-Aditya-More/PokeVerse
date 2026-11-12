@@ -3,9 +3,15 @@ package com.aditya1875.pokeverse.feature.game.cardclash.data.repository
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashMatchState
 import com.aditya1875.pokeverse.feature.game.cardclash.domain.model.ClashPokemon
 import com.aditya1875.pokeverse.feature.pokemon.detail.data.source.remote.PokemonDetailsApi
+import com.aditya1875.pokeverse.feature.game.core.domain.Matchmaking
+import com.aditya1875.pokeverse.feature.game.core.domain.YieldResult
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.firestore.Source
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -26,6 +32,12 @@ class CardClashRepositoryImpl(
         // legitimately waiting in its final seconds never gets excluded here as "stale"
         // that would just recreate the "matches aren't happening" problem from the other side.
         private const val STALE_MATCH_THRESHOLD_MS = 40_000L
+
+        /** Most open rooms read at once: plenty for matching and for the "players waiting" count. */
+        private const val POOL_LIMIT = 50
+
+        private const val MODE_QUICK = "quick"
+        private const val MODE_FRIEND = "friend"
     }
 
     // IDs of legendary/mythical Pokémon excluded from the random pool (Gen 1-5)
@@ -41,11 +53,18 @@ class CardClashRepositoryImpl(
 
     // ─── Match lifecycle ──────────────────────────────────────────────────────
 
-    override suspend fun createMatch(myId: String, myName: String): String {
+    override suspend fun createMatch(myId: String, myName: String): String = create(myId, myName, MODE_FRIEND)
+
+    override suspend fun createQuickMatch(myId: String, myName: String): String = create(myId, myName, MODE_QUICK)
+
+    private suspend fun create(myId: String, myName: String, mode: String): String {
         val roomCode = generateRoomCode()
         val doc = matches.document()
         doc.set(
             mapOf(
+                // Who may be matched into this room: strangers in the queue, or only someone with the code.
+                // Rooms from older app versions have no mode and are treated as open to the queue.
+                "mode" to mode,
                 "player1Id" to myId,
                 "player2Id" to "",
                 "player1Name" to myName,
@@ -76,43 +95,60 @@ class CardClashRepositoryImpl(
         return doc.id
     }
 
-    override suspend fun joinRandomMatch(myId: String, myName: String): String? {
-        // No orderBy → avoids composite index requirement; equality-only compound queries
-        // use Firestore's automatic collection-group index.
-        val snapshot = matches
-            .whereEqualTo("status", "waiting")
-            .whereEqualTo("player2Id", "")
-            .limit(10)
-            .get()
-            .await()
+    /**
+     * Open rooms: no orderBy, so no composite index is needed; equality-only queries use Firestore's
+     * automatic index. Mode is filtered on the phone, because rooms from older versions have no mode field.
+     */
+    private fun openRoomsQuery() = matches
+        .whereEqualTo("status", "waiting")
+        .whereEqualTo("player2Id", "")
+        .limit(POOL_LIMIT.toLong())
 
-        val now = System.currentTimeMillis()
-
-        // Waiting rooms whose creator bailed (backgrounded, crashed, force-closed) without
-        // going through the cancel/bot-fallback flow linger forever with no fix. Without this
-        // filter, players increasingly match into these ghost rooms whose "opponent" never
-        // shows up, which is what actually made matchmaking feel broken, not just low player
-        // counts. Anything older than the bot-fallback window is almost certainly abandoned;
-        // prefer the freshest candidate among what's left so newer joiners see each other first.
-        val target = snapshot.documents
-            .filter { it.getString("player1Id") != myId }
-            .filter { doc ->
-                val createdAtMs = doc.getTimestamp("createdAt")?.toDate()?.time ?: 0L
-                now - createdAtMs < STALE_MATCH_THRESHOLD_MS
-            }
-            .maxByOrNull { it.getTimestamp("createdAt")?.toDate()?.time ?: 0L }
-            ?: return null
-
-        target.reference.update(
-            mapOf(
-                "player2Id" to myId,
-                "player2Name" to myName,
-                "status" to "dealing",
-                "lastUpdated" to Timestamp.now()
+    /** Rooms open to strangers: a friend's room waits for its code and is never matched into at random. */
+    private fun queueRooms(docs: List<DocumentSnapshot>): List<Matchmaking.OpenRoom> =
+        docs.filter { it.getString("mode") != MODE_FRIEND }.map {
+            Matchmaking.OpenRoom(
+                id = it.id,
+                hostId = it.getString("player1Id").orEmpty(),
+                createdAtMs = it.getTimestamp("createdAt")?.toDate()?.time ?: 0L,
             )
-        ).await()
+        }
 
-        return target.id
+    override suspend fun joinRandomMatch(myId: String, myName: String): String? {
+        val snapshot = openRoomsQuery().get().await()
+
+        // Waiting rooms whose creator bailed (backgrounded, crashed, force-closed) without going through the
+        // cancel/bot-fallback flow linger with no fix; matching into those is what once made matchmaking feel
+        // broken, so anything older than the bot-fallback window is skipped. Freshest first, so newer joiners
+        // see each other first, and EVERY candidate is tried: losing the race for one room used to end the
+        // search with an error instead of simply taking the next.
+        val live = Matchmaking.live(queueRooms(snapshot.documents), myId, System.currentTimeMillis(), STALE_MATCH_THRESHOLD_MS)
+        for (candidate in live.sortedByDescending { it.createdAtMs }) {
+            if (claimSeat(candidate.id, myId, myName)) return candidate.id
+        }
+        return null
+    }
+
+    override fun observeQuickPool(myId: String): Flow<Int> = callbackFlow {
+        val reg = openRoomsQuery().addSnapshotListener { snap, error ->
+            if (error != null || snap == null) return@addSnapshotListener
+            trySend(Matchmaking.waitingCount(queueRooms(snap.documents), myId, System.currentTimeMillis(), STALE_MATCH_THRESHOLD_MS))
+        }
+        awaitClose { reg.remove() }
+    }
+
+    override suspend fun findRoomToYieldTo(mine: String, myId: String): String? {
+        val snapshot = runCatching { openRoomsQuery().get().await() }.getOrNull() ?: return null
+        val live = Matchmaking.live(queueRooms(snapshot.documents), myId, System.currentTimeMillis(), STALE_MATCH_THRESHOLD_MS)
+        return Matchmaking.roomToYieldTo(mine, live)
+    }
+
+    override suspend fun yieldToRoom(mine: String, other: String, myId: String, myName: String): YieldResult {
+        // Close our own room FIRST. If someone joined it meanwhile this returns false and that real match
+        // wins, so we never hold a seat in two rooms.
+        val closed = runCatching { cancelWaitingMatchIfUnjoined(mine) }.getOrDefault(false)
+        if (!closed) return YieldResult.STAYED
+        return if (claimSeat(other, myId, myName)) YieldResult.JOINED else YieldResult.LOST
     }
 
     override suspend fun joinMatchByCode(roomCode: String, myId: String, myName: String): String? {
@@ -124,18 +160,50 @@ class CardClashRepositoryImpl(
             .await()
 
         val target = snapshot.documents.firstOrNull() ?: return null
-
-        target.reference.update(
-            mapOf(
-                "player2Id" to myId,
-                "player2Name" to myName,
-                "status" to "dealing",
-                "lastUpdated" to Timestamp.now()
-            )
-        ).await()
-
-        return target.id
+        if (target.getString("player1Id") == myId) return null
+        return if (claimSeat(target.id, myId, myName)) target.id else null
     }
+
+    /**
+     * Takes the empty seat if it is still empty: a transaction, so two players racing for one room cannot
+     * both get it (the old read-then-update could). Repeating it is safe: a commit that reached the server
+     * while the reply was lost is retried, finds the seat already ours, and counts as success; a transaction
+     * that errored is double-checked against the server before being treated as a miss. Otherwise one phone
+     * moves on to "searching" while the room already counts it as the guest.
+     */
+    private suspend fun claimSeat(matchId: String, myId: String, myName: String): Boolean {
+        val ref = matches.document(matchId)
+        return try {
+            firestore.runTransaction { tx ->
+                val snap = tx.get(ref)
+                val status = snap.getString("status")
+                val player2 = snap.getString("player2Id").orEmpty()
+                if (player2 == myId && (status == "dealing" || status == "active")) return@runTransaction true
+                if (status != "waiting" || player2.isNotEmpty()) return@runTransaction false
+                tx.update(
+                    ref,
+                    mapOf(
+                        "player2Id" to myId,
+                        "player2Name" to myName,
+                        "status" to "dealing",
+                        "lastUpdated" to Timestamp.now()
+                    )
+                )
+                true
+            }.await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            seatIsOurs(ref, myId)
+        }
+    }
+
+    private suspend fun seatIsOurs(ref: DocumentReference, myId: String): Boolean =
+        runCatching {
+            val snap = ref.get(Source.SERVER).await()
+            val status = snap.getString("status")
+            snap.getString("player2Id") == myId && (status == "dealing" || status == "active")
+        }.getOrDefault(false)
 
     // ─── Hand management ──────────────────────────────────────────────────────
 

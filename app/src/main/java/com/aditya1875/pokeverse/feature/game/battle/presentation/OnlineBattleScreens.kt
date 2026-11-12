@@ -61,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -140,9 +141,53 @@ private fun ModeOption(
     }
 }
 
+/**
+ * Which online format to play: 3 vs 3 or 6 vs 6. Each one is its own matchmaking pool, with its own Legendary
+ * limit and its own saved teams, so the choice is made before building a team.
+ */
+@Composable
+internal fun FormatSwitch(
+    selected: com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat,
+    onSelect: (com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val formats = com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat.entries.filter { it.isOnline }
+    Row(
+        modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color.White.copy(alpha = 0.06f))
+            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.14f)), RoundedCornerShape(14.dp))
+            .padding(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(3.dp),
+    ) {
+        formats.forEach { format ->
+            val on = format == selected
+            val label = stringResource(R.string.battle_format_label, format.size ?: 0)
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(38.dp)
+                    .clip(RoundedCornerShape(11.dp))
+                    .background(if (on) Gold else Color.Transparent)
+                    .semantics { this.selected = on; role = Role.Tab; contentDescription = label }
+                    .clickable { onSelect(format) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    label,
+                    color = if (on) Color.Black else Color.White.copy(alpha = 0.85f),
+                    fontWeight = FontWeight.ExtraBold,
+                    style = MaterialTheme.typography.titleSmall,
+                )
+            }
+        }
+    }
+}
+
 /** What Online mode is, and what it pays, shown where the bot difficulty cards are in Practice. */
 @Composable
-internal fun OnlineIntroCard(modifier: Modifier = Modifier) {
+internal fun OnlineIntroCard(modifier: Modifier = Modifier, waiting: Int? = null) {
     Column(
         modifier
             .fillMaxWidth()
@@ -154,6 +199,7 @@ internal fun OnlineIntroCard(modifier: Modifier = Modifier) {
     ) {
         Text(stringResource(R.string.battle_online_title), color = Gold, fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.battle_online_desc), color = Color.White.copy(alpha = 0.85f), style = MaterialTheme.typography.bodyMedium)
+        PoolLine(waiting)
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             RewardPill(stringResource(R.string.battle_online_pill_shards)) { ShardGem(12.dp, Gold) }
             RewardPill(stringResource(R.string.battle_online_pill_xp)) {
@@ -164,6 +210,26 @@ internal fun OnlineIntroCard(modifier: Modifier = Modifier) {
             stringResource(R.string.battle_online_bot_note, OnlineBattleRules.QUEUE_SECONDS),
             color = Color.White.copy(alpha = 0.65f),
             style = MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+/**
+ * How many other players are waiting for a match right now, so people know someone is out there (or that
+ * starting a search is how others will find them). Shows nothing until the first count arrives.
+ */
+@Composable
+internal fun PoolLine(waiting: Int?, modifier: Modifier = Modifier) {
+    if (waiting == null) return
+    Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        // A small live dot: green when someone is waiting, dim when the pool is empty.
+        Box(Modifier.size(8.dp).clip(CircleShape).background(if (waiting > 0) Mint else Color.White.copy(alpha = 0.35f)))
+        Text(
+            if (waiting > 0) pluralStringResource(R.plurals.mp_pool_waiting, waiting, waiting)
+            else stringResource(R.string.mp_pool_empty),
+            color = if (waiting > 0) Mint else Color.White.copy(alpha = 0.7f),
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
         )
     }
 }
@@ -187,7 +253,7 @@ private fun RewardPill(text: String, icon: @Composable () -> Unit) {
 
 /** Searching for a trainer (quick match) or waiting for a friend (room code). */
 @Composable
-internal fun OnlineSearching(lobby: OnlineBattleViewModel.Lobby, onCancel: () -> Unit) {
+internal fun OnlineSearching(lobby: OnlineBattleViewModel.Lobby, onCancel: () -> Unit, waiting: Int? = null) {
     val context = LocalContext.current
     Column(
         Modifier
@@ -239,6 +305,7 @@ internal fun OnlineSearching(lobby: OnlineBattleViewModel.Lobby, onCancel: () ->
                     color = Color.White.copy(alpha = 0.72f), textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyMedium,
                 )
+                PoolLine(waiting)
                 if (lobby.secondsLeft > 0) BotCountdown(lobby.secondsLeft)
             }
         }
