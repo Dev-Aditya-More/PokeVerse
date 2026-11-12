@@ -164,14 +164,15 @@ fun LazyListScope.teamContentItems(
                     modifier = Modifier.weight(1f),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
+                        // The main action takes the app's primary colour; running out of free uses still warns in red.
                         containerColor = if (analysisUsesLeft == 0)
                             MaterialTheme.colorScheme.error
                         else
-                            MaterialTheme.colorScheme.tertiary,
+                            MaterialTheme.colorScheme.primary,
                         contentColor = if (analysisUsesLeft == 0)
                             MaterialTheme.colorScheme.onError
                         else
-                            MaterialTheme.colorScheme.onTertiary,
+                            MaterialTheme.colorScheme.onPrimary,
                         disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                         disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     ),
@@ -211,8 +212,9 @@ fun LazyListScope.teamContentItems(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary,
+                            // Quieter than Analyze: a tint of the primary colour instead of a second loud colour.
+                            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.16f),
+                            contentColor = MaterialTheme.colorScheme.primary,
                             disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                             disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         ),

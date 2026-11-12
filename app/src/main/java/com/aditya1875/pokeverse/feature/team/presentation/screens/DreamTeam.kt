@@ -204,7 +204,7 @@ fun DreamTeam(
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.primary
                             ),
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(18.dp),
                             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                         ) {
                             Column(

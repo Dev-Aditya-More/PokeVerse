@@ -162,23 +162,7 @@ fun ImprovedTeamCard(
                     fontSize = 20.sp
                 )
 
-                Spacer(Modifier.height(4.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(R.string.team_member_badge),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 12.sp
-                    )
-                }
+                // (A "+ Team Member" tag used to repeat under every name; every row here is a team member.)
             }
 
             // Delete Button
@@ -189,8 +173,9 @@ fun ImprovedTeamCard(
                 Icon(
                     imageVector = Icons.Default.Delete,
                     contentDescription = stringResource(R.string.a11y_remove),
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(24.dp)
+                    // Quiet until it matters: a solid red bin on every row pulled the eye away from the Pokémon.
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                    modifier = Modifier.size(22.dp)
                 )
             }
         }
