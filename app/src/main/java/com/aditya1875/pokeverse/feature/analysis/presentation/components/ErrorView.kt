@@ -35,7 +35,6 @@ fun ErrorView(message: String, navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("⚠️", fontSize = 56.sp)
             Text(stringResource(R.string.analysis_failed_title), style = MaterialTheme.typography.headlineSmall,
                 color = Color.White, fontWeight = FontWeight.Bold)
             Text(message, style = MaterialTheme.typography.bodyMedium,

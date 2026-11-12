@@ -80,7 +80,7 @@ fun DefensiveAnalysisCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "🛡️",
+                        text = "D",
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -191,7 +191,7 @@ fun DefensiveTypeRow(
                 .padding(horizontal = 12.dp, vertical = 4.dp)
         ) {
             Text(
-                text = if (isWeakness) "⚠️ ${if (total > 0) count * 100 / total else 0}%" else "✓ ${if (total > 0) count * 100 / total else 0}%",
+                text = if (isWeakness) "${if (total > 0) count * 100 / total else 0}%" else "${if (total > 0) count * 100 / total else 0}%",
                 color = if (isWeakness) Color(0xFFFF6B6B) else Color(0xFF00E676),
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.Bold
@@ -210,13 +210,14 @@ fun DefenseSection(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CARD),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.07f))
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
-            Text("🛡️ ${stringResource(R.string.analysis_defensive_profile)}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold, color = Color.White)
+            Text(stringResource(R.string.analysis_defensive_profile).uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold, letterSpacing = 2.sp, color = Color.White.copy(alpha = 0.9f))
             HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
 
             if (weaknesses.isNotEmpty()) {

@@ -61,12 +61,12 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 /** Fun labels for what a team is good (or risky) at, shown as chips under the rank. */
-enum class SquadTrait(val emoji: String, @StringRes val label: Int) {
-    IRON_WALL("🛡️", R.string.an_trait_wall),
-    COVERAGE_KING("⚔️", R.string.an_trait_king),
-    RAINBOW("🌈", R.string.an_trait_rainbow),
-    GLASS_CANNON("💥", R.string.an_trait_glass),
-    TYPE_TWINS("👯", R.string.an_trait_twins),
+enum class SquadTrait(@StringRes val label: Int) {
+    IRON_WALL(R.string.an_trait_wall),
+    COVERAGE_KING(R.string.an_trait_king),
+    RAINBOW(R.string.an_trait_rainbow),
+    GLASS_CANNON(R.string.an_trait_glass),
+    TYPE_TWINS(R.string.an_trait_twins),
 }
 
 fun squadTraits(analysis: TeamAnalysis, teamSize: Int): List<SquadTrait> {
@@ -99,12 +99,12 @@ fun RankHero(analysis: TeamAnalysis, teamSize: Int) {
         score >= 40 -> AnalysisColors.AMBER
         else -> AnalysisColors.RED
     }
-    val (emoji, rank) = when {
-        score >= 85 -> "👑" to R.string.an_rank_champion
-        score >= 70 -> "🏆" to R.string.an_rank_elite
-        score >= 55 -> "💪" to R.string.an_rank_gym
-        score >= 40 -> "⚡" to R.string.an_rank_rookie
-        else -> "🌱" to R.string.an_rank_pep
+    val rank = when {
+        score >= 85 -> R.string.an_rank_champion
+        score >= 70 -> R.string.an_rank_elite
+        score >= 55 -> R.string.an_rank_gym
+        score >= 40 -> R.string.an_rank_rookie
+        else -> R.string.an_rank_pep
     }
     val verdict = when {
         score >= 80 -> R.string.analysis_verdict_excellent
@@ -124,35 +124,26 @@ fun RankHero(analysis: TeamAnalysis, teamSize: Int) {
         animationSpec = infiniteRepeatable(tween(1500, easing = FastOutSlowInEasing), RepeatMode.Reverse),
         label = "pulse",
     )
-    val bounce by transition.animateFloat(
-        initialValue = 1f, targetValue = 1.16f,
-        animationSpec = infiniteRepeatable(tween(900, easing = FastOutSlowInEasing), RepeatMode.Reverse),
-        label = "bounce",
-    )
 
     // Fanfare + confetti once the gauge lands, for teams worth celebrating.
     val sound: SoundManager = koinInject()
-    var celebrate by remember { mutableStateOf(false) }
     LaunchedEffect(score) {
         delay(1300)
-        if (score >= 70) {
-            celebrate = true
-            sound.play(SoundManager.Sound.LEVEL_UP, 0.7f)
-        }
+        if (score >= 70) sound.play(SoundManager.Sound.LEVEL_UP, 0.5f)
     }
 
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(24.dp)
     Box(
         Modifier
             .fillMaxWidth()
             .clip(shape)
             .background(AnalysisColors.CARD)
-            .border(BorderStroke(1.dp, color.copy(alpha = 0.35f)), shape)
+            .border(BorderStroke(1.dp, color.copy(alpha = 0.22f)), shape)
     ) {
         Box(
             Modifier
                 .matchParentSize()
-                .background(Brush.radialGradient(listOf(color.copy(alpha = 0.16f), Color.Transparent), radius = 900f))
+                .background(Brush.radialGradient(listOf(color.copy(alpha = 0.10f), Color.Transparent), radius = 800f))
         )
         Column(
             Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 26.dp),
@@ -169,48 +160,34 @@ fun RankHero(analysis: TeamAnalysis, teamSize: Int) {
 
             Box(Modifier.size(190.dp), contentAlignment = Alignment.Center) {
                 Canvas(Modifier.fillMaxSize()) {
-                    val stroke = 16.dp.toPx()
+                    val stroke = 8.dp.toPx()
                     val inset = stroke
                     val arcSize = androidx.compose.ui.geometry.Size(size.width - inset * 2, size.height - inset * 2)
                     val topLeft = Offset(inset, inset)
                     val start = -220f
                     val total = 260f
-                    drawArc(Color.White.copy(alpha = 0.07f), start, total, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
-                    // Soft halo, then the arc itself.
-                    drawArc(color.copy(alpha = 0.22f * pulse), start, total * sweep, false, topLeft, arcSize, style = Stroke(stroke * 2f, cap = StrokeCap.Round))
+                    drawArc(Color.White.copy(alpha = 0.06f), start, total, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
+                    drawArc(color.copy(alpha = 0.12f * pulse), start, total * sweep, false, topLeft, arcSize, style = Stroke(stroke * 2.2f, cap = StrokeCap.Round))
                     drawArc(color, start, total * sweep, false, topLeft, arcSize, style = Stroke(stroke, cap = StrokeCap.Round))
-                    // A bright dot riding the end of the arc.
-                    if (sweep > 0.01f) {
-                        val a = (start + total * sweep) * (PI.toFloat() / 180f)
-                        val r = arcSize.width / 2f
-                        val c = Offset(size.width / 2f + cos(a) * r, size.height / 2f + sin(a) * r)
-                        drawCircle(Color.White.copy(alpha = 0.9f), stroke * 0.42f, c)
-                        drawCircle(color.copy(alpha = 0.5f * pulse), stroke * 0.9f, c)
-                    }
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        emoji,
-                        fontSize = 30.sp,
-                        modifier = Modifier.graphicsLayer { scaleX = bounce; scaleY = bounce },
-                    )
-                    Text(
                         "$shown",
-                        style = MaterialTheme.typography.displayMedium,
-                        fontWeight = FontWeight.Black,
+                        style = MaterialTheme.typography.displayLarge,
+                        fontWeight = FontWeight.Light,
                         color = Color.White,
                     )
-                    Text("/100", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.4f))
+                    Text("/ 100", style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.38f), letterSpacing = 2.sp)
                 }
             }
 
             Spacer(Modifier.height(12.dp))
             Text(
                 stringResource(rank).uppercase(),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
                 color = color,
-                letterSpacing = 1.5.sp,
+                letterSpacing = 3.sp,
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(6.dp))
@@ -234,37 +211,26 @@ fun RankHero(analysis: TeamAnalysis, teamSize: Int) {
                 }
             }
         }
-        Confetti(fire = celebrate, modifier = Modifier.matchParentSize())
     }
 }
 
 @Composable
 private fun TraitChip(trait: SquadTrait, delayMs: Long, color: Color) {
-    val pop = remember { Animatable(0f) }
+    val fade = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         delay(delayMs)
-        pop.animateTo(1f, spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium))
+        fade.animateTo(1f, tween(450))
     }
-    Row(
+    Text(
+        stringResource(trait.label).uppercase(),
         modifier = Modifier
-            .graphicsLayer {
-                scaleX = pop.value
-                scaleY = pop.value
-                alpha = pop.value.coerceIn(0f, 1f)
-            }
+            .graphicsLayer { alpha = fade.value }
             .clip(RoundedCornerShape(50))
-            .background(color.copy(alpha = 0.16f))
-            .border(BorderStroke(1.dp, color.copy(alpha = 0.55f)), RoundedCornerShape(50))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(trait.emoji, fontSize = 14.sp)
-        Spacer(Modifier.size(6.dp))
-        Text(
-            stringResource(trait.label),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = Color.White,
-        )
-    }
+            .border(BorderStroke(1.dp, color.copy(alpha = 0.4f)), RoundedCornerShape(50))
+            .padding(horizontal = 14.dp, vertical = 7.dp),
+        style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.Medium,
+        letterSpacing = 1.4.sp,
+        color = color.copy(alpha = 0.95f),
+    )
 }

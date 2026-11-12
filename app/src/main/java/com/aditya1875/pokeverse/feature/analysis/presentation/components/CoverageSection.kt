@@ -33,12 +33,13 @@ fun CoverageSection(coverage: Map<String, Int>, teamSize: Int) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CARD),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.07f))
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-            Text(stringResource(R.string.analysis_offensive_coverage_header),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold, color = Color.White)
+            Text(stringResource(R.string.analysis_offensive_coverage_header).uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold, letterSpacing = 2.sp, color = Color.White.copy(alpha = 0.9f))
             Text(
                 stringResource(R.string.analysis_offensive_coverage_desc),
                 style = MaterialTheme.typography.bodySmall,

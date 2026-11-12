@@ -116,19 +116,20 @@ fun RecommendationsCard(recommendations: List<String>) {
 
 
 @Composable
-fun InsightCard(title: String, icon: String, accentColor: Color, items: List<String>) {
+fun InsightCard(title: String, accentColor: Color, items: List<String>) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = CARD),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(0.dp),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.07f))
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(icon, fontSize = 22.sp)
-                Text(title, style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold, color = Color.White)
+                Box(Modifier.width(3.dp).height(16.dp).background(accentColor, RoundedCornerShape(2.dp)))
+                Text(title.uppercase(), style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold, letterSpacing = 2.sp, color = Color.White.copy(alpha = 0.9f))
             }
             HorizontalDivider(color = Color.White.copy(alpha = 0.07f))
             items.forEach { item ->
@@ -138,8 +139,8 @@ fun InsightCard(title: String, icon: String, accentColor: Color, items: List<Str
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Box(
-                        Modifier.size(6.dp).offset(y = 7.dp)
-                            .background(accentColor, CircleShape)
+                        Modifier.size(4.dp).offset(y = 8.dp)
+                            .background(accentColor.copy(alpha = 0.8f), CircleShape)
                     )
                     Text(item, style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.85f), lineHeight = 20.sp)

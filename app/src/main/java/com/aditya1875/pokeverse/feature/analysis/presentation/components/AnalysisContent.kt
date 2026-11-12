@@ -71,7 +71,6 @@ fun AnalysisContent(
                     Reveal(4, seen) {
                         InsightCard(
                             title = stringResource(R.string.analysis_strengths),
-                            icon = "✅",
                             accentColor = GREEN,
                             items = analysis.strengths.map { it.text() }
                         )
@@ -83,7 +82,6 @@ fun AnalysisContent(
                 Reveal(5, seen) {
                     InsightCard(
                         title = stringResource(R.string.analysis_suggestions),
-                        icon = "💡",
                         accentColor = AMBER,
                         items = analysis.recommendations.map { it.text() }
                     )

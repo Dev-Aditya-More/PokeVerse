@@ -382,7 +382,6 @@ fun EmptyAnalysisView(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("📋", fontSize = 56.sp)
             Text(stringResource(R.string.analysis_empty_title), style = MaterialTheme.typography.headlineSmall,
                 color = Color.White, fontWeight = FontWeight.Bold)
             Text(stringResource(R.string.analysis_empty_subtitle),

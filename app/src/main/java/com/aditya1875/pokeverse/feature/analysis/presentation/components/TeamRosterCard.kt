@@ -135,7 +135,7 @@ fun TeamRosterCard(team: List<TeamMemberWithTypes>, assetsEnabled: Boolean, caug
             val member = index?.let { team.getOrNull(it) }
             if (member == null) {
                 Text(
-                    "👆  " + stringResource(R.string.an_spotlight_hint),
+                    stringResource(R.string.an_spotlight_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.White.copy(alpha = 0.5f),
                     textAlign = TextAlign.Center,
