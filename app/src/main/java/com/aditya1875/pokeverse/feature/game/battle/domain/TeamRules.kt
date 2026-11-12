@@ -17,15 +17,22 @@ object TeamRules {
     fun legendaryCount(ids: Collection<Int>): Int = ids.count { isLegendary(it) }
 
     /** Whether [id] can join [current] without breaking the size or Legendary limit. */
-    fun canAdd(current: List<Int>, id: Int): Boolean =
-        id !in current && current.size < MAX_TEAM && (!isLegendary(id) || legendaryCount(current) < MAX_LEGENDARIES)
+    fun canAdd(current: List<Int>, id: Int, maxTeam: Int = MAX_TEAM, maxLegendaries: Int = MAX_LEGENDARIES): Boolean =
+        id !in current && current.size < maxTeam && (!isLegendary(id) || legendaryCount(current) < maxLegendaries)
 
-    /** [ids] in order, dropping repeats and any Legendary past the limit, capped at [MAX_TEAM]. */
-    fun trim(ids: List<Int>): List<Int> {
+    /** [canAdd] with the limits of a [TeamFormat]. */
+    fun canAdd(current: List<Int>, id: Int, format: TeamFormat): Boolean =
+        canAdd(current, id, format.maxTeam, format.maxLegendaries)
+
+    /** [ids] in order, dropping repeats and any Legendary past the limit, capped at [maxTeam]. */
+    fun trim(ids: List<Int>, maxTeam: Int = MAX_TEAM, maxLegendaries: Int = MAX_LEGENDARIES): List<Int> {
         val kept = mutableListOf<Int>()
-        for (id in ids) if (canAdd(kept, id)) kept += id
+        for (id in ids) if (canAdd(kept, id, maxTeam, maxLegendaries)) kept += id
         return kept
     }
+
+    /** [trim] with the limits of a [TeamFormat]. */
+    fun trim(ids: List<Int>, format: TeamFormat): List<Int> = trim(ids, format.maxTeam, format.maxLegendaries)
 
     /** A full team picked at random from [roster] that respects every limit. */
     fun quickFill(roster: Collection<Int>, random: Random): List<Int> = trim(roster.toList().shuffled(random))

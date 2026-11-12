@@ -219,6 +219,22 @@ class TeamRulesTest {
     }
 
     @Test
+    fun `a quick match team is three with at most one legendary`() {
+        assertTrue(OnlineBattleRules.quickTeamOk(listOf(25, 6, 9)))
+        assertTrue("one legend is fine", OnlineBattleRules.quickTeamOk(listOf(150, 6, 9)))
+        assertFalse("two legends is too many", OnlineBattleRules.quickTeamOk(listOf(150, 151, 9)))
+        assertFalse("three legends is too many", OnlineBattleRules.quickTeamOk(listOf(150, 151, 249)))
+        assertFalse("wrong size", OnlineBattleRules.quickTeamOk(listOf(25, 6)))
+        assertFalse("wrong size", OnlineBattleRules.quickTeamOk(listOf(25, 6, 9, 3)))
+    }
+
+    @Test
+    fun `the quick match cap does not tighten what an opponent may bring`() {
+        // An older app can still queue three legends; the receiving side only applies the looser limit.
+        assertTrue(OnlineBattleRules.validTeam(listOf(150, 151, 249), 1025))
+    }
+
+    @Test
     fun `the collection holds twenty teams`() {
         assertEquals(20, SavedTeamsRepository.MAX_TEAMS)
     }

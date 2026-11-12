@@ -1,6 +1,12 @@
 package com.aditya1875.pokeverse.feature.game.battle.presentation
 
+import com.aditya1875.pokeverse.feature.game.battle.domain.PickerFilter
+import com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat
 import com.aditya1875.pokeverse.feature.game.battle.domain.TeamRules
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -132,6 +138,16 @@ fun BattleScreen(
     val lobby by online.lobby.collectAsStateWithLifecycle()
     val onlineBattle by online.battle.collectAsStateWithLifecycle()
     var mode by rememberSaveable { mutableStateOf(BattleMode.PRACTICE) }
+    // "N players waiting": only listened to while Online mode or a search is on screen, so Practice costs nothing.
+    // 3 vs 3 and 6 vs 6 are separate: each has its own pool, its own legend limit and its own saved teams.
+    var onlineFormat by rememberSaveable { mutableStateOf(TeamFormat.QUICK_6) }
+    val format = if (mode == BattleMode.ONLINE) onlineFormat else TeamFormat.PRACTICE
+    LaunchedEffect(format) { viewModel.setFormat(format) }
+    val watchPool = mode == BattleMode.ONLINE || lobby.stage == OnlineBattleViewModel.Stage.SEARCHING
+    val poolFlow = remember(watchPool, onlineFormat) {
+        if (watchPool) online.poolFlow(onlineFormat.size ?: 6) else kotlinx.coroutines.flow.emptyFlow()
+    }
+    val pool: Int? by poolFlow.collectAsStateWithLifecycle(initialValue = null)
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
     var showExit by remember { mutableStateOf(false) }
     var showFriend by remember { mutableStateOf(false) }
@@ -187,14 +203,14 @@ fun BattleScreen(
         ) { padding ->
             Box(Modifier.fillMaxSize().padding(padding)) {
                 when (stage) {
-                    OnlineBattleViewModel.Stage.SEARCHING -> OnlineSearching(lobby, onCancel = online::cancelSearch)
+                    OnlineBattleViewModel.Stage.SEARCHING -> OnlineSearching(lobby, onCancel = online::cancelSearch, waiting = pool)
                     OnlineBattleViewModel.Stage.PREPARING -> OnlinePreparing(lobby)
                     OnlineBattleViewModel.Stage.FAILED -> OnlineFailed(lobby, onBack = online::reset)
                     OnlineBattleViewModel.Stage.BATTLING -> onlineBattle?.let { state ->
                         BattleArena(
                             state = state,
                             host = online,
-                            onRematch = { online.reset(); if (picker.selected.size == com.aditya1875.pokeverse.feature.game.battle.domain.online.OnlineBattleRules.QUICK_TEAM_SIZE) online.quickMatch(picker.selected) },
+                            onRematch = { online.reset(); if (com.aditya1875.pokeverse.feature.game.battle.domain.online.OnlineBattleRules.quickTeamOk(picker.selected)) online.quickMatch(picker.selected) },
                             onChangeTeam = { online.reset(); mode = BattleMode.ONLINE },
                             onBack = { online.reset(); onBack() },
                         )
@@ -210,13 +226,16 @@ fun BattleScreen(
                             onTier = viewModel::setTier,
                             onStart = viewModel::start,
                             onPlayWildCatch = onPlayWildCatch,
-                            onFindMatch = { online.quickMatch(picker.selected) },
+                            onFindMatch = { if (picker.selected.size == onlineFormat.size) online.quickMatch(picker.selected) },
                             onFriend = { showFriend = true },
                             onLoadTeam = viewModel::loadTeam,
                             onSaveTeam = viewModel::saveCurrentTeam,
                             onDeleteTeam = viewModel::deleteTeam,
-                            onQuickFill = viewModel::quickFill,
+                            onSuggest = viewModel::suggestTeam,
                             onClearTeam = viewModel::clearTeam,
+                            waiting = pool,
+                            onlineFormat = onlineFormat,
+                            onFormat = { onlineFormat = it },
                         )
 
                         BattleViewModel.Phase.Preparing -> Column(
@@ -309,9 +328,27 @@ private fun PickerContent(
     onLoadTeam: (com.aditya1875.pokeverse.feature.game.battle.data.SavedTeam) -> Unit,
     onSaveTeam: (String) -> Unit,
     onDeleteTeam: (com.aditya1875.pokeverse.feature.game.battle.data.SavedTeam) -> Unit,
-    onQuickFill: () -> Unit,
+    onSuggest: (size: Int, maxLegendaries: Int, index: Map<Int, com.aditya1875.pokeverse.utils.PokemonIndex.Entry>) -> Unit,
     onClearTeam: () -> Unit,
+    waiting: Int? = null,
+    onlineFormat: TeamFormat = TeamFormat.QUICK_6,
+    onFormat: (TeamFormat) -> Unit = {},
 ) {
+    // Finding someone in a big collection: search by name or number, and narrow by type. The index is
+    // bundled, so this is instant and needs no network.
+    val context = LocalContext.current
+    val index = remember { com.aditya1875.pokeverse.utils.PokemonIndex.get(context) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var typeFilter by rememberSaveable { mutableStateOf<String?>(null) }
+    val typeOptions = remember(picker.caught, index) {
+        PickerFilter.typesPresent(picker.caught, index, com.aditya1875.pokeverse.feature.analysis.presentation.components.PokemonTypeData.allTypes)
+    }
+    // A type the roster no longer has (evolved away) would leave an empty grid with no way back.
+    val activeType = typeFilter?.takeIf { it in typeOptions }
+    val visible = remember(picker.caught, query, activeType, index) {
+        PickerFilter.apply(picker.caught, query, activeType, index)
+    }
+
     Column(Modifier.fillMaxSize()) {
         LazyVerticalGrid(
             columns = GridCells.Adaptive(104.dp),
@@ -323,6 +360,8 @@ private fun PickerContent(
             item(span = { GridItemSpan(maxLineSpan) }) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     ModeSwitch(mode = mode, onMode = onMode)
+                    // Online: 3 vs 3 or 6 vs 6. Each is its own pool, with its own limit and its own saved teams.
+                    if (mode == BattleMode.ONLINE) FormatSwitch(selected = onlineFormat, onSelect = onFormat)
                     Text(
                         stringResource(R.string.battle_pick_title),
                         style = MaterialTheme.typography.headlineSmall,
@@ -344,14 +383,53 @@ private fun PickerContent(
                         onLoad = onLoadTeam,
                         onSave = onSaveTeam,
                         onDelete = onDeleteTeam,
-                        onQuickFill = onQuickFill,
+                        format = picker.format,
+                        // The suggestion follows the format: the right size, and no more legends than it allows.
+                        onQuickFill = { onSuggest(picker.format.suggestSize, picker.format.suggestLegendaries, index) },
                         onClear = onClearTeam,
                     )
+                    if (picker.caught.size > 6) {
+                        androidx.compose.material3.OutlinedTextField(
+                            value = query,
+                            onValueChange = { query = it.take(24) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            placeholder = { Text(stringResource(R.string.battle_search_hint)) },
+                            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                            trailingIcon = {
+                                if (query.isNotEmpty()) {
+                                    IconButton(onClick = { query = "" }) {
+                                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.cancel))
+                                    }
+                                }
+                            },
+                            shape = RoundedCornerShape(14.dp),
+                        )
+                        if (typeOptions.size > 1) {
+                            Row(
+                                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                FilterChip(
+                                    selected = activeType == null,
+                                    onClick = { typeFilter = null },
+                                    label = { Text(stringResource(R.string.battle_filter_all)) },
+                                )
+                                typeOptions.forEach { type ->
+                                    FilterChip(
+                                        selected = activeType == type,
+                                        onClick = { typeFilter = if (activeType == type) null else type },
+                                        label = { Text(com.aditya1875.pokeverse.utils.localizedTypeName(type)) },
+                                    )
+                                }
+                            }
+                        }
+                    }
                     // How many Legendaries are on the team, and why a tap was refused.
                     if (picker.legendaries > 0 || picker.legendaryNotice) {
                         Text(
-                            if (picker.legendaryNotice) stringResource(R.string.battle_legendary_limit, TeamRules.MAX_LEGENDARIES)
-                            else stringResource(R.string.battle_legendary_count, picker.legendaries, TeamRules.MAX_LEGENDARIES),
+                            if (picker.legendaryNotice) stringResource(R.string.battle_legendary_limit, picker.format.maxLegendaries)
+                            else stringResource(R.string.battle_legendary_count, picker.legendaries, picker.format.maxLegendaries),
                             color = if (picker.legendaryNotice) Color(0xFFFFB74D) else Gold.copy(alpha = 0.85f),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold
@@ -369,14 +447,25 @@ private fun PickerContent(
                             TierCard(tier = tier, selected = picker.tier == tier, onClick = { onTier(tier) })
                         }
                     } else {
-                        OnlineIntroCard()
+                        OnlineIntroCard(waiting = waiting)
                         lobby.errorRes?.let {
                             Text(lobbyErrorText(it, lobby.errorArg), color = Color(0xFFFF8A80), style = MaterialTheme.typography.bodySmall)
                         }
                     }
                 }
             }
-            items(picker.caught, key = { it }) { id ->
+            if (visible.isEmpty() && picker.caught.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        stringResource(R.string.battle_no_match),
+                        color = Color.White.copy(alpha = 0.7f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                    )
+                }
+            }
+            items(visible, key = { it }) { id ->
                 val order = picker.selected.indexOf(id)
                 val legendary = TeamRules.isLegendary(id)
                 PokemonTile(
@@ -384,7 +473,7 @@ private fun PickerContent(
                     order = if (order >= 0) order + 1 else null,
                     legendary = legendary,
                     // Out of Legendary spots: those tiles dim, the rest stay normal.
-                    locked = legendary && order < 0 && picker.legendaries >= TeamRules.MAX_LEGENDARIES,
+                    locked = legendary && order < 0 && picker.legendaries >= picker.format.maxLegendaries,
                     onClick = { onToggle(id) }
                 )
             }
@@ -418,12 +507,21 @@ private fun PickerContent(
             }
         } else {
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Online is always even: a quick match is exactly 3 against 3, a friend's room is whatever you pick.
-                val quickSize = com.aditya1875.pokeverse.feature.game.battle.domain.online.OnlineBattleRules.QUICK_TEAM_SIZE
-                val quickReady = picker.selected.size == quickSize
+                // Online is always even: a quick match is exactly the chosen format (3 or 6) against the same,
+                // a friend's room is whatever you pick. The size must be the CHOSEN format's: three picked
+                // while 6 vs 6 is selected must not quietly queue a 3 vs 3.
+                val quickSize = onlineFormat.size ?: 3
+                val quickReady = picker.selected.size == quickSize &&
+                    com.aditya1875.pokeverse.feature.game.battle.domain.online.OnlineBattleRules.quickTeamOk(picker.selected)
+                val quickMaxLegends = onlineFormat.maxLegendaries
+                // Right size but too many legends is its own message: "pick exactly N" would be wrong here.
+                val tooManyLegends = picker.selected.size == quickSize && !quickReady
                 Text(
-                    if (quickReady) stringResource(R.string.battle_online_format_ready, quickSize)
-                    else stringResource(R.string.battle_online_format_need, quickSize, picker.selected.size),
+                    when {
+                        quickReady -> stringResource(R.string.battle_online_format_ready, quickSize)
+                        tooManyLegends -> stringResource(R.string.battle_online_quick_legend_limit, quickMaxLegends)
+                        else -> stringResource(R.string.battle_online_format_need, quickSize, picker.selected.size)
+                    },
                     color = Color.White.copy(alpha = 0.7f),
                     style = MaterialTheme.typography.bodySmall,
                     textAlign = TextAlign.Center,
@@ -551,13 +649,20 @@ internal fun ResultCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Text(
-                    stringResource(if (won) R.string.battle_victory else R.string.battle_defeat),
+                    stringResource(
+                        when {
+                            hud.notCounted -> R.string.battle_online_void_title
+                            won -> R.string.battle_victory
+                            else -> R.string.battle_defeat
+                        }
+                    ),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Black,
-                    color = if (won) Gold else MaterialTheme.colorScheme.onSurface
+                    color = if (won && !hud.notCounted) Gold else MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     when {
+                        hud.notCounted -> stringResource(R.string.battle_online_void_body, rivalName)
                         hud.iWasDisqualified -> stringResource(R.string.battle_online_dq_you, OnlineBattleRules.MAX_MISSED_TURNS)
                         hud.opponentDisqualified -> stringResource(R.string.battle_online_dq_rival, rivalName, OnlineBattleRules.MAX_MISSED_TURNS)
                         hud.online && won && hud.opponentLeft -> stringResource(R.string.battle_online_won_left, rivalName)

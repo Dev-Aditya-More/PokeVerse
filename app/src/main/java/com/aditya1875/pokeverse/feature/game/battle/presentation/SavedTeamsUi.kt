@@ -48,6 +48,7 @@ import coil.compose.AsyncImage
 import com.aditya1875.pokeverse.R
 import com.aditya1875.pokeverse.feature.game.battle.data.SavedTeam
 import com.aditya1875.pokeverse.feature.game.battle.data.SavedTeamsRepository
+import com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat
 
 private val Gold = Color(0xFFFFC24B)
 
@@ -71,14 +72,19 @@ internal fun SavedTeamsSection(
     onQuickFill: () -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
+    format: TeamFormat = TeamFormat.PRACTICE,
 ) {
     var naming by remember { mutableStateOf(false) }
     val full = saved.size >= SavedTeamsRepository.MAX_TEAMS
+    // An online format only keeps complete teams (3 or 6), since a half-built one could never be used there.
+    val complete = format.size == null || selected.size == format.size
 
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                stringResource(R.string.battle_teams_title),
+                // "My teams · 6 vs 6": each format keeps its own collection, so say which one this is.
+                stringResource(R.string.battle_teams_title) +
+                    (format.size?.let { " · " + stringResource(R.string.battle_format_label, it) } ?: ""),
                 color = Color.White, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall,
                 modifier = Modifier.weight(1f),
             )
@@ -92,10 +98,10 @@ internal fun SavedTeamsSection(
             TeamAction(Icons.Default.Shuffle, stringResource(R.string.battle_team_quickfill), enabled = true, onClick = onQuickFill)
             TeamAction(Icons.Default.Clear, stringResource(R.string.battle_team_clear), enabled = selected.isNotEmpty(), onClick = onClear)
             val activeTeam = saved.firstOrNull { it.name == activeName }
-            if (activeTeam != null && selected.isNotEmpty() && activeTeam.ids != selected) {
+            if (activeTeam != null && selected.isNotEmpty() && complete && activeTeam.ids != selected) {
                 TeamAction(Icons.Default.Save, stringResource(R.string.battle_team_update, activeTeam.name), enabled = true) { onSave(activeTeam.name) }
             }
-            TeamAction(Icons.Default.Save, stringResource(R.string.battle_team_save), enabled = selected.isNotEmpty() && !full) { naming = true }
+            TeamAction(Icons.Default.Save, stringResource(R.string.battle_team_save), enabled = selected.isNotEmpty() && complete && !full) { naming = true }
         }
         if (saved.isEmpty()) {
             Text(
