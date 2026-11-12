@@ -25,6 +25,13 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -38,36 +45,40 @@ import androidx.compose.ui.unit.sp
 import com.aditya1875.pokeverse.feature.badges.domain.GymBadge
 import com.aditya1875.pokeverse.utils.pokemonTypeColor
 
-private val typeEmojis = mapOf(
-    "rock" to "🪨", "water" to "💧", "electric" to "⚡", "grass" to "🌿",
-    "poison" to "☠️", "psychic" to "🔮", "fire" to "🔥", "ground" to "⛰️",
-    "flying" to "🪶", "bug" to "🐛", "normal" to "⭐", "ghost" to "👻",
-    "fighting" to "🥊", "steel" to "⚙️", "ice" to "❄️", "dragon" to "🐉",
-    "dark" to "🌙", "fairy" to "✨"
-)
-
-fun badgeTypeEmoji(type: String): String = typeEmojis[type.lowercase()] ?: "🏅"
-
 @Composable
 private fun BadgeMedallion(badge: GymBadge, size: Dp) {
     val accent = pokemonTypeColor(badge.type)
+    var loaded by remember(badge.spriteUrl) { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .size(size)
             .background(
                 brush = Brush.radialGradient(
-                    colors = listOf(accent.copy(alpha = 0.45f), accent.copy(alpha = 0.08f))
+                    colors = listOf(accent.copy(alpha = 0.30f), Color.Transparent)
                 ),
-                shape = CircleShape
-            )
-            .padding(3.dp)
-            .background(
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
                 shape = CircleShape
             ),
         contentAlignment = Alignment.Center
     ) {
-        Text(badgeTypeEmoji(badge.type), fontSize = (size.value * 0.42f).sp)
+        // Type code shows while the artwork loads or if it can't (offline, missing).
+        if (!loaded) {
+            Text(
+                badge.type.take(3).uppercase(),
+                fontSize = (size.value * 0.24f).sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.5.sp,
+                color = accent,
+            )
+        }
+        if (badge.spriteUrl.isNotBlank()) {
+            AsyncImage(
+                model = badge.spriteUrl,
+                contentDescription = badge.name,
+                contentScale = ContentScale.Fit,
+                onState = { loaded = it is AsyncImagePainter.State.Success },
+                modifier = Modifier.size(size * 0.82f)
+            )
+        }
     }
 }
 
@@ -82,8 +93,8 @@ fun BadgeGridCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.10f)),
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.30f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.25f)),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
@@ -92,12 +103,12 @@ fun BadgeGridCard(
                 .padding(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            BadgeMedallion(badge = badge, size = 64.dp)
-            Spacer(Modifier.height(10.dp))
+            BadgeMedallion(badge = badge, size = 72.dp)
+            Spacer(Modifier.height(12.dp))
             Text(
                 badge.name,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
@@ -109,19 +120,15 @@ fun BadgeGridCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(8.dp))
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = accent.copy(alpha = 0.16f)
-            ) {
-                Text(
-                    badge.region,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = accent
-                )
-            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                badge.region.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 10.sp,
+                letterSpacing = 1.4.sp,
+                color = accent.copy(alpha = 0.9f),
+                maxLines = 1
+            )
         }
     }
 }

@@ -80,7 +80,12 @@ private fun CharacterAvatar(character: PokeCharacter, size: Dp) {
         // Emoji is the loading/error fallback (sprites are transparent PNGs,
         // so it must be hidden once the real portrait is on screen)
         if (showEmoji) {
-            Text(character.emoji, fontSize = (size.value * 0.42f).sp)
+            Text(
+                character.name.take(1).uppercase(),
+                fontSize = (size.value * 0.36f).sp,
+                fontWeight = FontWeight.Light,
+                color = accent,
+            )
         }
         if (character.imageUrl.isNotBlank()) {
             AsyncImage(
@@ -109,8 +114,8 @@ fun CharacterGridCard(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = accent.copy(alpha = 0.10f)),
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.30f)),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)),
+        border = BorderStroke(1.dp, accent.copy(alpha = 0.25f)),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Column(
@@ -119,12 +124,12 @@ fun CharacterGridCard(
                 .padding(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            CharacterAvatar(character = character, size = 64.dp)
-            Spacer(Modifier.height(10.dp))
+            CharacterAvatar(character = character, size = 72.dp)
+            Spacer(Modifier.height(12.dp))
             Text(
                 character.name,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
@@ -136,19 +141,15 @@ fun CharacterGridCard(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            Spacer(Modifier.height(8.dp))
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = accent.copy(alpha = 0.16f)
-            ) {
-                Text(
-                    character.role,
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = accent
-                )
-            }
+            Spacer(Modifier.height(10.dp))
+            Text(
+                character.role.uppercase(),
+                style = MaterialTheme.typography.labelSmall,
+                fontSize = 10.sp,
+                letterSpacing = 1.4.sp,
+                color = accent.copy(alpha = 0.9f),
+                maxLines = 1
+            )
         }
     }
 }
