@@ -2,7 +2,9 @@ package com.aditya1875.pokeverse.feature.game.battle.presentation
 
 import com.aditya1875.pokeverse.feature.game.battle.domain.BattleAction
 import com.aditya1875.pokeverse.feature.game.battle.domain.BattleEvent
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -22,6 +24,15 @@ interface BattleHost {
 
     /** Extras that only an online battle has; a practice battle leaves everything at its default. */
     val hud: StateFlow<ArenaHud>
+
+    /**
+     * Reactions ([com.aditya1875.pokeverse.feature.game.battle.domain.Reactions] indexes) a real rival sent.
+     * Empty for a battle against the bot, whose reactions the arena makes up itself.
+     */
+    val rivalReactions: Flow<Int> get() = emptyFlow()
+
+    /** Sends one of your reactions to the rival; a battle against the bot has nobody to send it to. */
+    fun react(index: Int) {}
 
     /**
      * [tera] also Terastallizes this turn; only an online battle honours it. [guard] adds a Guard to an Attack or

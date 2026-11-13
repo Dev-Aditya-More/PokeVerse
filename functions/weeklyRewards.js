@@ -57,4 +57,14 @@ function weekKey(nowMs) {
   return new Date(nowMs + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
 }
 
-module.exports = { COINS, MIN_ACTIVE_XP, coinsForRank, planWeeklyRewards, weekKey };
+// The first Monday that pays out (IST date, same format as weekKey). The update shipped on Friday
+// 13 Nov 2026, so the week of 9-15 Nov was mostly played before anyone knew about coins; the first payout
+// is for 16-22 Nov, the first full week with the update, paid on Monday 23 Nov.
+const FIRST_PAYOUT_WEEK = "2026-11-23";
+
+/** Whether the Monday run at [nowMs] pays coins (false before FIRST_PAYOUT_WEEK). */
+function payoutsStarted(nowMs) {
+  return weekKey(nowMs) >= FIRST_PAYOUT_WEEK;
+}
+
+module.exports = { COINS, MIN_ACTIVE_XP, FIRST_PAYOUT_WEEK, coinsForRank, planWeeklyRewards, weekKey, payoutsStarted };

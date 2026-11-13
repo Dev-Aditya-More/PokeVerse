@@ -54,7 +54,7 @@ data class ClashUiState(
     val isBotMatch: Boolean = false,
 
     // Countdown seconds remaining before bot match kicks in (only relevant during random wait)
-    val matchmakingSecondsLeft: Int = 30,
+    val matchmakingSecondsLeft: Int = 20,
 
     // The other player backed out just as this one joined, before any card was dealt: shown in the lobby
     val matchCancelled: Boolean = false

@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStore
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.LevelConfig
 import com.aditya1875.pokeverse.feature.pokemon.profile.data.source.remote.model.UserProfile
+import com.aditya1875.pokeverse.feature.pokemon.profile.domain.progressMergedWith
 import com.aditya1875.pokeverse.utils.WeeklyReset
 import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
@@ -172,10 +173,32 @@ class UserProfileRepository(private val context: Context) {
         }
     }
 
-    suspend fun loadFromFirestore(uid: String): UserProfile? {
-        return try {
-            val doc = firestore.collection("users").document(uid).get().await()
-            if (!doc.exists()) return null
+    /** What reading the account's cloud profile found. */
+    sealed interface CloudProfile {
+        data class Found(val profile: UserProfile) : CloudProfile
+        /** The account has no cloud profile yet (a brand-new account). */
+        data object Missing : CloudProfile
+        /** The read failed (offline, timeout, permission): nothing is known about the cloud copy. */
+        data object Unavailable : CloudProfile
+    }
+
+    /**
+     * Reads the account's cloud profile. Unlike a plain nullable read, "the account is new" and "the read failed"
+     * are different answers: treating a failed read as a new account used to publish a guest's empty profile
+     * over the player's real one.
+     */
+    suspend fun fetchCloudProfile(uid: String): CloudProfile = try {
+        val doc = com.aditya1875.pokeverse.utils.UserDocCache.read(uid)
+        if (doc.exists()) CloudProfile.Found(parse(uid, doc)) else CloudProfile.Missing
+    } catch (e: Exception) {
+        CloudProfile.Unavailable
+    }
+
+    suspend fun loadFromFirestore(uid: String): UserProfile? =
+        (fetchCloudProfile(uid) as? CloudProfile.Found)?.profile
+
+    private fun parse(uid: String, doc: com.google.firebase.firestore.DocumentSnapshot): UserProfile {
+        return run {
             val totalXp = (doc.getLong("totalXp") ?: 0L).toInt()
             val (level, currentXp, nextLevelXp) = LevelConfig.computeLevel(totalXp)
             // Cloud Function writes Timestamps; the app writes Longs, handle both
@@ -233,25 +256,69 @@ class UserProfileRepository(private val context: Context) {
                 duelStreak = (doc.getLong("duelStreak") ?: 0L).toInt(),
                 lastDuelDate = doc.getString("lastDuelDate") ?: "",
             )
-        } catch (e: Exception) {
-            null
         }
     }
 
-    suspend fun syncToFirestore(profile: UserProfile) {
-        val uid = auth.currentUser?.uid ?: return
+    /**
+     * Publishes [profile] merged with the cloud copy (see [progressMergedWith]) and returns what the account now
+     * holds, or null when the write could not be made (offline: the next sync carries it).
+     */
+    suspend fun syncToFirestore(profile: UserProfile): UserProfile? {
+        val uid = auth.currentUser?.uid ?: return null
         // Never upload weekly XP from before the Monday boundary, it would
         // overwrite the Cloud Function's weekly reset with last week's value.
-        val p = if (WeeklyReset.isStale(profile.lastWeeklyReset)) {
+        val local = if (WeeklyReset.isStale(profile.lastWeeklyReset)) {
             profile.copy(weeklyXp = 0, lastWeeklyReset = WeeklyReset.startOfCurrentWeekMillis())
         } else profile
         // Only a real uploaded/Google photo URL may go public. Older versions could store a local
         // content:// path here, which nobody else can load and which the leaderboard rules reject
         // (failing the whole write).
-        val photoUrl = p.photoUrl.takeIf { it.startsWith("https://") } ?: ""
+        val localPhoto = local.photoUrl.takeIf { it.startsWith("https://") } ?: ""
         try {
-            firestore.collection("users").document(uid).set(
+            val userRef = firestore.collection("users").document(uid)
+            var txSnapshot: com.google.firebase.firestore.DocumentSnapshot? = null
+            // Read and write in one transaction, merging with what the cloud already has: progress only goes up,
+            // so a phone that is behind (old backup, offline start, second device) can never roll the account back.
+            val p = firestore.runTransaction { tx ->
+                val snap = tx.get(userRef)
+                txSnapshot = snap
+                val merged = if (snap.exists()) local.copy(photoUrl = localPhoto).progressMergedWith(parse(uid, snap))
+                             else local.copy(photoUrl = localPhoto)
+                tx.set(userRef, cloudFields(uid, merged), SetOptions.merge())
+                merged
+            }.await()
+            txSnapshot?.let { com.aditya1875.pokeverse.utils.UserDocCache.remember(uid, it) }
+            val photoUrl = p.photoUrl.takeIf { it.startsWith("https://") } ?: ""
+
+            firestore.collection("leaderboard").document(uid).set(
                 mapOf(
+                    "uid" to uid,
+                    "displayName" to p.username,
+                    // lowercase copy for case-insensitive friend search (prefix queries)
+                    "displayNameLower" to p.username.lowercase(),
+                    "bio" to p.bio.take(60),
+                    "photoUrl" to photoUrl,
+                    "totalXp" to p.totalXp,
+                    "weeklyXp" to p.weeklyXp,
+                    "lastWeeklyReset" to p.lastWeeklyReset,
+                    "level" to p.level,
+                    "updatedAt" to Timestamp.now(),
+                    "weeklyActive" to (p.weeklyXp > 0),
+                    // Shown on this trainer's row: partner Pokémon and favorite type.
+                    "starter" to p.starter,
+                    "favoriteType" to p.favoriteType,
+                ),
+                SetOptions.merge()
+            ).await()
+            return p
+        } catch (_: Exception) {
+            return null
+        }
+    }
+
+    private fun cloudFields(uid: String, p: UserProfile): Map<String, Any> {
+        val photoUrl = p.photoUrl.takeIf { it.startsWith("https://") } ?: ""
+        return mapOf(
                     "uid" to uid,
                     "username" to p.username,
                     "bio" to p.bio.take(60),
@@ -294,32 +361,7 @@ class UserProfileRepository(private val context: Context) {
                     "duelStreak" to p.duelStreak,
                     "lastDuelDate" to p.lastDuelDate,
                     "updatedAt" to Timestamp.now()
-                ),
-                SetOptions.merge()
-            ).await()
-
-            firestore.collection("leaderboard").document(uid).set(
-                mapOf(
-                    "uid" to uid,
-                    "displayName" to p.username,
-                    // lowercase copy for case-insensitive friend search (prefix queries)
-                    "displayNameLower" to p.username.lowercase(),
-                    "bio" to p.bio.take(60),
-                    "photoUrl" to photoUrl,
-                    "totalXp" to p.totalXp,
-                    "weeklyXp" to p.weeklyXp,
-                    "lastWeeklyReset" to p.lastWeeklyReset,
-                    "level" to p.level,
-                    "updatedAt" to Timestamp.now(),
-                    "weeklyActive" to (p.weeklyXp > 0),
-                    // Shown on this trainer's row: partner Pokémon and favorite type.
-                    "starter" to p.starter,
-                    "favoriteType" to p.favoriteType,
-                ),
-                SetOptions.merge()
-            ).await()
-        } catch (_: Exception) {
-        }
+        )
     }
 
     /**

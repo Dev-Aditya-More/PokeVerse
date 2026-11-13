@@ -1,5 +1,9 @@
 package com.aditya1875.pokeverse.feature.game.battle.presentation
 
+import com.aditya1875.pokeverse.feature.game.battle.domain.Reactions as R_
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.material.icons.outlined.EmojiEmotions
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -217,6 +221,32 @@ private fun ArenaBody(
     var unit by remember { mutableStateOf(1f) } // px per dp
 
     fun posOf(who: Who) = if (who == Who.PLAYER) playerPos else foePos
+
+    // ── Reactions: an emoji bubble over each side. (index, nonce) so the same emoji twice still pops again.
+    var foeReact by remember { mutableStateOf<Pair<Int, Long>?>(null) }
+    var myReact by remember { mutableStateOf<Pair<Int, Long>?>(null) }
+    var trayOpen by remember { mutableStateOf(false) }
+    var lastAutoReact by remember { mutableLongStateOf(0L) }
+    // Where the two name plates sit, so the bubbles can keep clear of them on any screen.
+    var foePlateBottom by remember { mutableStateOf(0f) }
+    var myPlateTop by remember { mutableStateOf(Float.MAX_VALUE) }
+    LaunchedEffect(host) { host.rivalReactions.collect { foeReact = it to System.nanoTime() } }
+    LaunchedEffect(foeReact) { if (foeReact != null) { delay(R_.SHOW_MS); foeReact = null } }
+    LaunchedEffect(myReact) { if (myReact != null) { delay(R_.SHOW_MS); myReact = null } }
+    /** The bot (or stand-in rival) reacts to the fight by itself, now and then; a real rival sends their own. */
+    fun autoReact(moment: R_.Moment, force: Boolean = false) {
+        if (hud.online) return
+        val now = System.currentTimeMillis()
+        if (!force && now - lastAutoReact < R_.AUTO_GAP_MS) return
+        R_.auto(moment)?.let { lastAutoReact = now; foeReact = it to System.nanoTime() }
+    }
+    val sendReaction: (Int) -> Unit = { index ->
+        trayOpen = false
+        myReact = index to System.nanoTime()
+        haptics.play(Haptics.Haptic.TICK)
+        host.react(index)
+        if (!hud.online) scope.launch { delay(1_100); autoReact(R_.Moment.YOU_REACTED, force = true) }
+    }
     fun lunge(who: Who) = if (who == Who.PLAYER) pLunge else fLunge
     fun shake(who: Who) = if (who == Who.PLAYER) pShake else fShake
     fun flash(who: Who) = if (who == Who.PLAYER) pFlash else fFlash
@@ -318,6 +348,7 @@ private fun ArenaBody(
         delay(700)
         logLine = null
         playing = false
+        autoReact(R_.Moment.START, force = true)
         // The arena is idle: an online battle starts the first turn clock now.
         host.playbackFinished()
 
@@ -325,7 +356,12 @@ private fun ArenaBody(
             playing = true
             for (e in events) {
                 when (e) {
-                    is BattleEvent.Hit -> playHit(e)
+                    is BattleEvent.Hit -> {
+                        playHit(e)
+                        if (e.effectiveness > 1f || e.critical) {
+                            autoReact(if (e.by == Who.FOE) R_.Moment.RIVAL_HIT_HARD else R_.Moment.RIVAL_TOOK_HARD)
+                        }
+                    }
                     is BattleEvent.Guarded -> {
                         logLine = context.getString(R.string.battle_log_guard, e.name)
                         haptics.play(Haptics.Haptic.TICK)
@@ -378,6 +414,12 @@ private fun ArenaBody(
                         sound.play(if (e.who == Who.FOE) SoundManager.Sound.CORRECT_ANSWER else SoundManager.Sound.WRONG_ANSWER, 0.8f, haptic = false)
                         haptics.play(if (e.who == Who.FOE) Haptics.Haptic.CONFIRM else Haptics.Haptic.REJECT)
                         faint(e.who).animateTo(1f, tween(620, easing = FastOutSlowInEasing))
+                        when {
+                            e.who == Who.FOE && latest.over && latest.winner == Who.PLAYER ->
+                                autoReact(R_.Moment.RIVAL_LOSING_LAST, force = true)
+                            e.who == Who.FOE -> autoReact(R_.Moment.RIVAL_LOST_ONE)
+                            else -> autoReact(R_.Moment.RIVAL_KO_ONE)
+                        }
                         delay(250)
                     }
 
@@ -540,12 +582,36 @@ private fun ArenaBody(
             // Info plates.
             NamePlate(
                 fighter = shownFoe, team = state.foe.team, guardsLeft = state.foe.guardsLeft, label = rivalName,
-                modifier = Modifier.align(Alignment.TopStart).padding(10.dp).fillMaxWidth(0.5f).widthIn(max = 280.dp),
+                modifier = Modifier.align(Alignment.TopStart).padding(10.dp).fillMaxWidth(0.5f).widthIn(max = 280.dp)
+                    .onGloballyPositioned { foePlateBottom = it.positionInParent().y + it.size.height },
             )
             NamePlate(
                 fighter = shownPlayer, team = state.player.team, guardsLeft = state.player.guardsLeft, label = null,
-                modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp).fillMaxWidth(0.5f).widthIn(max = 280.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(10.dp).fillMaxWidth(0.5f).widthIn(max = 280.dp)
+                    .onGloballyPositioned { myPlateTop = it.positionInParent().y },
             )
+
+            // Reaction bubbles. The rival's sits to the LEFT of their Pokémon, below their name plate, pointing at
+            // it; yours sits to the RIGHT of yours, above your plate. Those two areas are otherwise empty.
+            val bw = 56f * unit; val bh = 48f * unit; val gap = 6f * unit
+            foeReact?.let { (i, nonce) ->
+                val x = (foePos.x - foeSize.value * unit * 0.42f - bw).coerceAtLeast(gap)
+                val y = maxOf(foePos.y - bh * 0.6f, foePlateBottom + gap).coerceAtMost(h - bh - gap)
+                key(nonce) { ReactionBubble(i, pointsRight = true, Modifier.offset { IntOffset(x.toInt(), y.toInt()) }) }
+            }
+            myReact?.let { (i, nonce) ->
+                val x = (playerPos.x + playerSize.value * unit * 0.42f).coerceAtMost(w - bw - gap)
+                val y = minOf(playerPos.y - playerSize.value * unit * 0.45f, myPlateTop - bh - gap).coerceAtLeast(gap)
+                key(nonce) { ReactionBubble(i, pointsRight = false, Modifier.offset { IntOffset(x.toInt(), y.toInt()) }) }
+            }
+
+            // Your reactions: a tray over the bottom of the scene while open; it closes as soon as you pick.
+            androidx.compose.animation.AnimatedVisibility(
+                visible = trayOpen,
+                enter = fadeIn(tween(120)) + scaleIn(tween(160), initialScale = 0.9f),
+                exit = fadeOut(tween(100)),
+                modifier = Modifier.align(Alignment.BottomCenter).padding(horizontal = 10.dp, vertical = 8.dp),
+            ) { ReactionTray(onPick = sendReaction) }
 
             // Help.
             IconButton(onClick = { showHelp = true }, modifier = Modifier.align(Alignment.TopEnd).padding(2.dp)) {
@@ -595,9 +661,22 @@ private fun ArenaBody(
             AnimatedContent(
                 targetState = logLine ?: idleLine,
                 transitionSpec = { fadeIn(tween(120)) togetherWith fadeOut(tween(80)) },
-                label = "log"
+                label = "log",
+                modifier = Modifier.padding(end = 40.dp),
             ) { line ->
                 Text(line, color = Color.White, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, maxLines = 2)
+            }
+            // Opens the reaction tray; at the end of the narration so it never covers the fight or the buttons.
+            IconButton(
+                onClick = { trayOpen = !trayOpen },
+                enabled = !state.over && !showIntro,
+                modifier = Modifier.align(Alignment.CenterEnd).size(36.dp),
+            ) {
+                Icon(
+                    Icons.Outlined.EmojiEmotions,
+                    contentDescription = stringResource(R.string.battle_react),
+                    tint = if (trayOpen) Gold else Color.White.copy(alpha = if (!state.over && !showIntro) 0.85f else 0.3f),
+                )
             }
         }
 
@@ -647,6 +726,63 @@ private fun ArenaBody(
     }
 
     if (showHelp) BattleHelpDialog(onDismiss = { showHelp = false })
+}
+
+// ── Reactions ──────────────────────────────────────────────────────────────────────────────────────
+
+/** A speech bubble with one emoji; it pops in, and its tail points at the Pokémon it belongs to. */
+@Composable
+private fun ReactionBubble(index: Int, pointsRight: Boolean, modifier: Modifier = Modifier) {
+    val emoji = R_.emoji(index) ?: return
+    val pop = remember { Animatable(0f) }
+    LaunchedEffect(Unit) { pop.animateTo(1f, spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium)) }
+    Box(
+        modifier
+            .size(width = 56.dp, height = 48.dp)
+            .graphicsLayer {
+                scaleX = pop.value; scaleY = pop.value
+                transformOrigin = androidx.compose.ui.graphics.TransformOrigin(if (pointsRight) 1f else 0f, 0.5f)
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(Modifier.fillMaxSize()) {
+            val tail = 7.dp.toPx()
+            val left = if (pointsRight) 0f else tail
+            val bodyW = size.width - tail
+            drawRoundRect(Color.White, Offset(left, 0f), Size(bodyW, size.height), androidx.compose.ui.geometry.CornerRadius(16.dp.toPx()))
+            val cy = size.height / 2f
+            val path = androidx.compose.ui.graphics.Path().apply {
+                if (pointsRight) { moveTo(bodyW - 1f, cy - tail); lineTo(size.width, cy); lineTo(bodyW - 1f, cy + tail) }
+                else { moveTo(tail + 1f, cy - tail); lineTo(0f, cy); lineTo(tail + 1f, cy + tail) }
+                close()
+            }
+            drawPath(path, Color.White)
+        }
+        Text(
+            emoji, fontSize = 24.sp,
+            modifier = Modifier.padding(start = if (pointsRight) 0.dp else 7.dp, end = if (pointsRight) 7.dp else 0.dp),
+        )
+    }
+}
+
+/** The emoji to pick from, in one compact row. */
+@Composable
+private fun ReactionTray(onPick: (Int) -> Unit) {
+    Row(
+        Modifier
+            .clip(RoundedCornerShape(28.dp))
+            .background(Color(0xF0161C2E))
+            .border(BorderStroke(1.dp, Color.White.copy(alpha = 0.18f)), RoundedCornerShape(28.dp))
+            .padding(horizontal = 6.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        R_.ALL.forEachIndexed { i, e ->
+            Box(
+                Modifier.size(38.dp).clip(CircleShape).clickable { onPick(i) },
+                contentAlignment = Alignment.Center,
+            ) { Text(e, fontSize = 22.sp) }
+        }
+    }
 }
 
 // ── Online status ───────────────────────────────────────────────────────────────────────────────────

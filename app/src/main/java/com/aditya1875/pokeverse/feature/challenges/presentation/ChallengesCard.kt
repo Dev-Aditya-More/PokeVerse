@@ -1,5 +1,8 @@
 package com.aditya1875.pokeverse.feature.challenges.presentation
 
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -134,15 +137,27 @@ fun ChallengesFab(waiting: Int, onClick: () -> Unit, modifier: Modifier = Modifi
             Icon(Icons.Filled.EmojiEvents, contentDescription = stringResource(R.string.challenges_title))
         }
         if (waiting > 0) {
+            // A badge that straddles the button's corner (like a launcher badge) instead of sitting on top of the
+            // icon, ringed in the page colour so it reads as cut out of the button. Two digits widen it into a pill.
             Box(
                 Modifier
                     .align(Alignment.TopEnd)
-                    .size(20.dp)
+                    .offset(x = 7.dp, y = (-7).dp)
+                    .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
+                    .padding(2.dp)
+                    .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
                     .clip(CircleShape)
-                    .background(Gold),
+                    .background(Gold)
+                    .padding(horizontal = 5.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("$waiting", fontSize = 11.sp, fontWeight = FontWeight.ExtraBold, color = Color(0xFF3A2A00))
+                Text(
+                    if (waiting > 9) "9+" else "$waiting",
+                    fontSize = 11.sp,
+                    lineHeight = 11.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF3A2A00),
+                )
             }
         }
     }

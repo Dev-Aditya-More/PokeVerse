@@ -110,7 +110,7 @@ class CardClashViewModel(
         // when the bot took over. Keep in sync with
         // CardClashRepositoryImpl.STALE_MATCH_THRESHOLD_MS, which must stay comfortably above
         // this so a room is never treated as abandoned while it's still legitimately waiting.
-        private const val BOT_MATCHMAKING_TIMEOUT = 30
+        private const val BOT_MATCHMAKING_TIMEOUT = 20
     }
 
     // ─── Lobby ───────────────────────────────────────────────────────────────
@@ -292,7 +292,7 @@ class CardClashViewModel(
             it.copy(
                 phase = ClashPhase.DEALING,
                 isBotMatch = true,
-                opponentName = "CPU",
+                opponentName = com.aditya1875.pokeverse.feature.game.core.domain.RivalNames.pick(),
                 isLoading = true,
                 matchId = null
             )

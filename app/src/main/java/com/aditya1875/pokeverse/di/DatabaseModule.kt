@@ -136,6 +136,8 @@ val databaseModule = module {
     single { get<TeamDatabase>().teamDao() }
     single { get<TeamDatabase>().favoritesDao() }
     single { get<TeamDatabase>().gameScoreDao() }
+    // Teams and favourites on the account; created with the profile so it watches Room from launch.
+    single { com.aditya1875.pokeverse.feature.team.data.sync.CollectionSync(get(), get(), get(), get(), get()) }
 
     single {
         Room.databaseBuilder(

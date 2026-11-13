@@ -45,6 +45,16 @@ class SavedTeamsRepository(context: Context) {
     fun delete(format: TeamFormat, name: String) =
         write(format, collections.getValue(format).value.filterNot { it.name == name })
 
+    /** Puts the account's copy of [format]'s collection in place (used by the account sync). */
+    fun replaceAll(format: TeamFormat, teams: List<SavedTeam>) {
+        val clean = teams.mapNotNull { t ->
+            val name = cleanName(t.name).takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            val ids = t.ids.filter { it > 0 }.distinct().take(MAX_TEAM_SIZE).takeIf { it.isNotEmpty() } ?: return@mapNotNull null
+            SavedTeam(name, ids)
+        }.distinctBy { it.name.lowercase() }.take(MAX_TEAMS)
+        if (clean != collections.getValue(format).value) write(format, clean)
+    }
+
     private fun write(format: TeamFormat, teams: List<SavedTeam>) {
         collections.getValue(format).value = teams
         prefs.edit().putString(keyOf(format), encode(teams)).apply()

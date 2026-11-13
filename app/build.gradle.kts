@@ -4,9 +4,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.aboutlibraries)
     alias(libs.plugins.ksp.android)
-    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
 }
@@ -30,8 +28,8 @@ android {
         minSdk = 25
         targetSdk = 36
 
-        versionCode = 100
-        versionName = "2.5.0"
+        versionCode = 102
+        versionName = "2.7.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -169,7 +167,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
-    implementation(libs.bottombar)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.coil.svg)
@@ -182,18 +179,14 @@ dependencies {
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.compose.animation.core)
-//    implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.animation)
     implementation(libs.googleid)
     implementation(libs.androidx.animation)
-    implementation(libs.volley)
     ksp(libs.androidx.room.compiler)
     implementation(libs.lottie.compose)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.converter.moshi)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.datastore.preferences)
-    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.foundation)
 
     // On-device face detection for the "which Pokémon do you look like" feature, bundles its
@@ -203,10 +196,7 @@ dependencies {
 
     // Koin Core
     implementation(libs.koin.core)
-    implementation(libs.material3.window.size.class1)
 
-    implementation(libs.accompanist.pager)
-    implementation(libs.accompanist.pager.indicators)
 
     // Koin for Android
     implementation(libs.koin.android)
@@ -216,14 +206,9 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
 
-    // haze
-    implementation(libs.haze.jetpack.compose)
 
     implementation(libs.ui)
     implementation(libs.androidx.ui.text.google.fonts)
-    implementation(libs.accompanist.placeholder.material)
-    implementation(libs.accompanist.systemuicontroller)
-    implementation(libs.accompanist.navigation.animation.v0340)
 
     add("playImplementation", platform(libs.firebase.bom))
     add("playImplementation", libs.firebase.firestore)
@@ -232,7 +217,6 @@ dependencies {
     add("playImplementation", libs.firebase.messaging)
 
     add("playImplementation", libs.firebase.auth)
-    add("playImplementation", libs.firebase.database)
     add("playImplementation", libs.firebase.functions)
     add("playImplementation", libs.firebase.storage)
     // Gemini Flash via Firebase AI Logic, powers the team "Coach's Read" (no API key in the app)
@@ -253,13 +237,9 @@ dependencies {
     // Glance Widget
     implementation (libs.androidx.glance.appwidget)
     implementation (libs.androidx.work.runtime.ktx)
-    implementation(libs.colorpicker.compose)
 
     implementation(libs.androidx.material.icons.core)
-    // AboutLibraries
-    implementation(libs.aboutlibraries.compose.m3)
 
-    implementation(libs.liquid)
     // ui tests
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

@@ -444,6 +444,15 @@ class ProgressionRepository(private val context: Context) {
 
     private suspend fun pushToFirestore() {
         val uid = auth.currentUser?.uid ?: return
+        // Merge what the account already holds before writing: this map replaces the cloud's, so a phone that
+        // never pulled (new install, offline start) would otherwise wipe coins, cosmetics and items bought
+        // elsewhere. If the cloud can't be read, don't write; the next change or launch tries again.
+        val cloud = try {
+            com.aditya1875.pokeverse.utils.UserDocCache.read(uid).get("progression") as? Map<*, *>
+        } catch (_: Exception) {
+            return
+        }
+        if (cloud != null) mergeCloud(cloud)
         val s = current()
         try {
             firestore.collection("users").document(uid).set(
@@ -481,7 +490,7 @@ class ProgressionRepository(private val context: Context) {
      */
     suspend fun pullAndMerge(uid: String) {
         val snapshot = try {
-            firestore.collection("users").document(uid).get().await()
+            com.aditya1875.pokeverse.utils.UserDocCache.read(uid)
         } catch (_: Exception) {
             return
         }
@@ -501,7 +510,12 @@ class ProgressionRepository(private val context: Context) {
             scheduleSync()
             return
         }
+        mergeCloud(cloud)
+        scheduleSync()
+    }
 
+    /** Folds the cloud wallet into this device: counters keep the larger value, owned sets are unions. */
+    private suspend fun mergeCloud(cloud: Map<*, *>) {
         fun int(key: String) = (cloud[key] as? Number)?.toInt() ?: 0
         fun str(key: String) = cloud[key] as? String ?: ""
         fun cloudCounts(key: String): Map<String, Int> =
@@ -539,7 +553,6 @@ class ProgressionRepository(private val context: Context) {
             fill(K.BACKDROP, str("backdrop"))
             fill(K.WIDGET, str("widget"))
         }
-        scheduleSync()
     }
 
     suspend fun clearLocal() {

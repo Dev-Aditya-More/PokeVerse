@@ -98,8 +98,8 @@ data class OnlineOutcome(val winner: Seat, val byLeaving: Boolean, val disqualif
 object OnlineBattleRules {
 
     const val TURN_SECONDS = 30
-    /** How long a quick match looks for a real trainer before a bot takes the other seat. */
-    const val QUEUE_SECONDS = 30
+    /** How long a quick match looks for a real trainer before a stand-in rival takes the other seat. */
+    const val QUEUE_SECONDS = 20
     /** A friend room waits this long for someone to join before it is abandoned. */
     const val FRIEND_ROOM_SECONDS = 600
     /** A rival counts as gone after this long without a heartbeat (the server rule uses [CLAIM_AFTER_MS]). */

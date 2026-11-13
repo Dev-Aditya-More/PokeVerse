@@ -393,7 +393,6 @@
 
     <!-- Game dialogs -->
     <string name="match_preparing">Preparing Pokémon...</string>
-    <string name="match_memorize_prompt">Memorize the board! %1$d</string>
     <string name="match_paused">Paused</string>
     <string name="match_resume">Resume</string>
     <string name="match_restart">Restart</string>
@@ -553,7 +552,6 @@
     <string name="clash_guide_step5_body">Once you play a Pokémon it\'s removed from your hand, choose wisely, especially in the later rounds.</string>
 
     <!-- Card Clash matchmaking & bot -->
-    <string name="clash_matchmaking_soon">No trainers nearby · AI match in %1$ds</string>
     <string name="clash_searching_msg1">Scouting the region…</string>
     <string name="clash_searching_msg2">Checking nearby gyms…</string>
     <string name="clash_searching_msg3">Looking for a rival…</string>
@@ -561,8 +559,6 @@
     <string name="clash_loading_team">Preparing your team…</string>
     <string name="clash_loading_dealing">Shuffling the cards…</string>
     <string name="clash_loading_gathering">Gathering Pokémon…</string>
-    <string name="clash_loading_bot">Setting up AI opponent…</string>
-    <string name="clash_bot_opponent">CPU</string>
 
     <!-- Analysis ad gate -->
     <string name="analysis_ad_title">Analyse Your Team</string>
@@ -1663,7 +1659,6 @@
     <string name="battle_online_desc">Pick your team and face another trainer live. Every turn is played at the same time, so think fast.</string>
     <string name="battle_online_pill_shards">Evo Shards</string>
     <string name="battle_online_pill_xp">Bonus XP</string>
-    <string name="battle_online_bot_note">No one around? After %1$d seconds a bot steps in, so you are never stuck waiting.</string>
     <string name="battle_online_find">Find a match</string>
     <string name="battle_online_friend">Play a friend</string>
     <string name="battle_online_friend_title">Play with a friend</string>
@@ -1674,7 +1669,6 @@
     <string name="battle_online_join">Join</string>
     <string name="battle_online_searching">Looking for a trainer…</string>
     <string name="battle_online_searching_sub">Matching you with someone online right now.</string>
-    <string name="battle_online_bot_in">A bot steps in in %1$ds</string>
     <string name="battle_online_connecting">Connecting…</string>
     <string name="battle_online_waiting_friend">Waiting for your friend</string>
     <string name="battle_online_waiting_friend_sub">Share the code below. The battle starts the moment they join.</string>
@@ -1691,7 +1685,6 @@
     <string name="battle_online_err_room">Room not found, or it is already full.</string>
     <string name="battle_online_err_generic">Couldn\'t reach the battle server. Check your connection and try again.</string>
     <string name="battle_online_err_prep">Your rival didn\'t make it to the battlefield. Try another match.</string>
-    <string name="battle_online_bot_notice">No trainers online right now, so here is a practice battle instead.</string>
     <string name="battle_online_exit_title">Leave the battle?</string>
     <string name="battle_online_exit_body">Leaving counts as a forfeit and your rival wins.</string>
     <string name="battle_online_waiting">Waiting for %1$s…</string>
@@ -1876,4 +1869,6 @@
     <string name="challenge_diff_easy">Easy</string>
     <string name="challenge_diff_medium">Medium</string>
     <string name="challenge_diff_hard">Hard</string>
+    <string name="battle_react">React</string>
+    <string name="weekly_payout_starts">First payout: Monday 23 November, for the week of 16 to 22 November.</string>
 </resources>

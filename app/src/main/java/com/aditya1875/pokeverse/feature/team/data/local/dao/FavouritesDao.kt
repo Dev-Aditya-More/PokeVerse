@@ -28,4 +28,10 @@ interface FavouritesDao {
 
     @Query("DELETE FROM favorites")
     suspend fun clearAllFavorites()
+
+    @Query("SELECT * FROM favorites ORDER BY addedAt DESC")
+    suspend fun getAllFavoritesOnce(): List<FavouriteEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFavorites(favorites: List<FavouriteEntity>)
 }

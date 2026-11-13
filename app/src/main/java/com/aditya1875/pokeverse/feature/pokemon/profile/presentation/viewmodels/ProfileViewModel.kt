@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.pokemon.profile.presentation.viewmodels
 
+import com.aditya1875.pokeverse.feature.pokemon.profile.domain.progressMergedWith
 import android.app.Activity
 import android.content.Context
 import android.net.Uri
@@ -52,6 +53,7 @@ class ProfileViewModel(
     private val challenges: com.aditya1875.pokeverse.feature.challenges.data.ChallengeRepository,
     private val progression: ProgressionRepository,
     private val dexDaily: DexDailyRepository,
+    private val collection: com.aditya1875.pokeverse.feature.team.data.sync.CollectionSync,
 ) : ViewModel() {
 
     val userProfile: StateFlow<UserProfile> =
@@ -108,9 +110,12 @@ class ProfileViewModel(
         if (hasSyncedThisSession) return@withLock
         val uid = authManager.currentUser.value?.uid ?: return@withLock
         hasSyncedThisSession = true
-        syncFromCloud(uid)
+        // A failed read leaves the session unsynced so the next caller tries again, instead of letting this
+        // phone publish what it has without ever having seen the cloud copy.
+        if (!syncFromCloud(uid)) { hasSyncedThisSession = false; return@withLock }
         pokedex.pullAndMerge(uid, replaceLocal = false)
         dexDaily.sync(replaceLocal = false)
+        collection.sync()
     }
 
     fun onAppLaunch() {
@@ -151,30 +156,29 @@ class ProfileViewModel(
     private fun String.isCustomUsername() =
         isNotBlank() && this != "Trainer" && this != "Guest Trainer"
 
-    private suspend fun syncFromCloud(uid: String) {
-        val cloudProfile = repository.loadFromFirestore(uid) ?: return
+    /**
+     * Merges the account's cloud copy into this phone and publishes the result, so whichever side is ahead on
+     * anything (XP, a best score, a "paid today" mark) keeps it. Returns false when the cloud could not be read.
+     */
+    private suspend fun syncFromCloud(uid: String): Boolean {
         val local = userProfile.value
-
-        if (cloudProfile.totalXp >= local.totalXp) {
-            repository.saveProfile(
-                cloudProfile.copy(
-                    username = if (local.username.isNotBlank() && local.username != "Trainer")
-                        local.username
-                    else
-                        cloudProfile.username,
-                    photoUrl = local.photoUrl.ifEmpty { cloudProfile.photoUrl },
-                    favoriteType = cloudProfile.favoriteType.ifEmpty { local.favoriteType },
-                    playStyle = cloudProfile.playStyle.ifEmpty { local.playStyle },
-                    starter = cloudProfile.starter.ifEmpty { local.starter },
-                ).withPaidGatesFrom(local)
-            )
-        } else {
-            // This phone is ahead, but it may still be behind on "already paid today" marks another
-            // device set; adopt those before publishing so they can't be rolled back.
-            val merged = local.withPaidGatesFrom(cloudProfile)
-            repository.saveProfile(merged)
-            repository.syncToFirestore(merged)
+        val merged = when (val cloud = repository.fetchCloudProfile(uid)) {
+            UserProfileRepository.CloudProfile.Unavailable -> return false
+            UserProfileRepository.CloudProfile.Missing -> local
+            is UserProfileRepository.CloudProfile.Found -> {
+                val c = cloud.profile
+                // A name typed on this phone wins; otherwise the account's. The Trainer Card fills gaps from the cloud.
+                local.copy(uid = uid).progressMergedWith(c).copy(
+                    username = if (local.username.isNotBlank() && local.username != "Trainer") local.username else c.username,
+                    bio = local.bio.ifEmpty { c.bio },
+                    favoriteType = c.favoriteType.ifEmpty { local.favoriteType },
+                    playStyle = c.playStyle.ifEmpty { local.playStyle },
+                )
+            }
         }
+        repository.saveProfile(merged)
+        if (!merged.isGuest) repository.syncToFirestore(merged)
+        return true
     }
 
     // ── Username update, explicit user action, always wins ───────────────────
@@ -267,7 +271,8 @@ class ProfileViewModel(
         if (result is AuthResult.Success) {
             viewModelScope.launch {
                 val uid = result.user.uid
-                val cloudProfile = repository.loadFromFirestore(uid)
+                val cloudRead = repository.fetchCloudProfile(uid)
+                val cloudProfile = (cloudRead as? UserProfileRepository.CloudProfile.Found)?.profile
                 val local = userProfile.value
 
                 // An account that already exists in the cloud always comes back exactly as the player left it.
@@ -283,6 +288,9 @@ class ProfileViewModel(
                         starter = cloudProfile.starter.ifEmpty { "pikachu" }
                     )
                 } else {
+                    // A brand-new account adopts the guest's progress. If the read failed we cannot tell, so the
+                    // guest's progress is kept too: the merge-only upload can add to an existing account but
+                    // never lower it, and the session stays unsynced so the real copy is pulled on the next try.
                     local.copy(
                         uid = uid,
                         username = result.user.displayName ?: local.username,
@@ -291,12 +299,14 @@ class ProfileViewModel(
                     )
                 }
                 repository.saveProfile(merged)
-                repository.syncToFirestore(merged)
+                repository.syncToFirestore(merged)?.let { repository.saveProfile(it) }
                 syncProgression()
                 // Existing account: it comes back with its own Pokédex and puzzle history, not the guest's.
                 // New account: it adopts what this phone built and publishes it.
                 pokedex.pullAndMerge(uid, replaceLocal = cloudProfile != null)
                 dexDaily.sync(replaceLocal = cloudProfile != null)
+                // Teams and favourites combine: the account's come back and the guest's are kept alongside.
+                collection.sync()
                 if (cloudProfile != null) {
                     Starter.fromId(merged.starter)?.let { pokedex.chooseStarter(it.dexId) }
                 }
@@ -309,7 +319,7 @@ class ProfileViewModel(
                             .update("fcmToken", token)
                     }
 
-                hasSyncedThisSession = true
+                hasSyncedThisSession = cloudRead != UserProfileRepository.CloudProfile.Unavailable
             }
         }
         return result
@@ -318,12 +328,15 @@ class ProfileViewModel(
     fun signOut() {
         hasSyncedThisSession = false
         viewModelScope.launch {
+            // Publish teams/favourites before the session ends, then clear them for the next account.
+            collection.flushAndClear()
             authManager.signOut()
             repository.clearLocal()
             progression.clearLocal()
             pokedex.clearLocal()
             challenges.clearLocal()
             dexDaily.clearLocal()
+            com.aditya1875.pokeverse.utils.UserDocCache.clear()
         }
     }
 
@@ -353,32 +366,4 @@ class ProfileViewModel(
 
 private const val SESSION_WAIT_MS = 4_000L
 
-/**
- * Keeps every "already paid" mark at its most recent value across two copies of the same account.
- * Dates are yyyy-MM-dd, so string order is date order. A rolled-back mark would let a reward be
- * claimed a second time, which is the one thing this merge must never allow.
- */
-private fun UserProfile.withPaidGatesFrom(o: UserProfile): UserProfile {
-    fun later(a: String, b: String) = if (a >= b) a else b
-    val otherDailyIsNewer = o.lastDailyXpDate > lastDailyXpDate
-    // Same day on both sides: keep the larger tally so a game's daily rate tier can't reset either.
-    val gameXpDate = later(dailyGameXpDate, o.dailyGameXpDate)
-    val gameXp = when {
-        dailyGameXpDate == o.dailyGameXpDate -> maxOf(dailyGameXp, o.dailyGameXp)
-        dailyGameXpDate > o.dailyGameXpDate -> dailyGameXp
-        else -> o.dailyGameXp
-    }
-    return copy(
-        lastDailyXpDate = later(lastDailyXpDate, o.lastDailyXpDate),
-        dailyStreak = if (otherDailyIsNewer) o.dailyStreak else dailyStreak,
-        lastFirstGameXpDate = later(lastFirstGameXpDate, o.lastFirstGameXpDate),
-        lastExplorationXpDate = later(lastExplorationXpDate, o.lastExplorationXpDate),
-        lastEasterEggXpDate = later(lastEasterEggXpDate, o.lastEasterEggXpDate),
-        lastDailyFactXpDate = later(lastDailyFactXpDate, o.lastDailyFactXpDate),
-        lastDexDailyXpDate = later(lastDexDailyXpDate, o.lastDexDailyXpDate),
-        feedbackThanksClaimed = feedbackThanksClaimed || o.feedbackThanksClaimed,
-        dailyGameXpDate = gameXpDate,
-        dailyGameXp = gameXp,
-    )
-}
 

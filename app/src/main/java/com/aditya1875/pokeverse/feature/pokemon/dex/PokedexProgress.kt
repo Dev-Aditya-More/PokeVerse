@@ -370,7 +370,7 @@ class PokedexRepository(context: Context) {
      */
     suspend fun pullAndMerge(uid: String, replaceLocal: Boolean) {
         val snap = try {
-            FirebaseFirestore.getInstance().collection("users").document(uid).get().await()
+            com.aditya1875.pokeverse.utils.UserDocCache.read(uid)
         } catch (e: CancellationException) {
             throw e
         } catch (_: Exception) {

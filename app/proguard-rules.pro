@@ -83,3 +83,6 @@
     public static int d(...);
     public static int i(...);
 }
+
+# CollectionSync stores its snapshot as Gson JSON: field names must stay the same across app updates.
+-keep class com.aditya1875.pokeverse.feature.team.data.sync.** { *; }

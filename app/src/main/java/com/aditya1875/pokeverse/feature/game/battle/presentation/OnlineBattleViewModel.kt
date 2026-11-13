@@ -126,6 +126,23 @@ class OnlineBattleViewModel(
     private val _hud = MutableStateFlow(ArenaHud(online = true))
     override val hud: StateFlow<ArenaHud> = _hud.asStateFlow()
 
+    private val _rivalReactions = MutableSharedFlow<Int>(extraBufferCapacity = 4)
+    override val rivalReactions: kotlinx.coroutines.flow.Flow<Int> = _rivalReactions.asSharedFlow()
+
+    /** Counter of the rival's last reaction already shown; null until the room's first snapshot sets it. */
+    private var rivalReactSeen: Long? = null
+    private var lastReactSentAt = 0L
+
+    override fun react(index: Int) {
+        val id = matchId ?: return
+        if (index !in com.aditya1875.pokeverse.feature.game.battle.domain.Reactions.ALL.indices) return
+        val now = System.currentTimeMillis()
+        if (now - lastReactSentAt < com.aditya1875.pokeverse.feature.game.battle.domain.Reactions.SEND_GAP_MS) return
+        lastReactSentAt = now
+        val mySeat = seat
+        viewModelScope.launch { repo.react(id, mySeat, index, now) }
+    }
+
     private val _xp = MutableSharedFlow<XPResult>(extraBufferCapacity = 8)
     val xpResult: SharedFlow<XPResult> = _xp.asSharedFlow()
 
@@ -323,6 +340,7 @@ class OnlineBattleViewModel(
         seat = mySeat
         ended = false; preparing = false; prepared = false
         nextStep = 1; submittedStep = -1; timerStep = -1
+        rivalReactSeen = null
         latest = null; initial = null; canonical = null
         observeJob?.cancel()
         observeJob = viewModelScope.launch {
@@ -405,6 +423,14 @@ class OnlineBattleViewModel(
     private fun onSnapshot(s: OnlineSnapshot) {
         latest = s
         val m = s.match
+        // A rival's reaction: show only ones made after we arrived, once each.
+        val rivalReact = m.reactionOf(seat.other)
+        val seen = rivalReactSeen
+        if (seen == null) rivalReactSeen = rivalReact?.second ?: 0L
+        else if (rivalReact != null && rivalReact.second != seen) {
+            rivalReactSeen = rivalReact.second
+            if (_lobby.value.stage == Stage.BATTLING) _rivalReactions.tryEmit(rivalReact.first)
+        }
         val stage = _lobby.value.stage
 
         if (stage == Stage.SEARCHING && m.hasGuest) {

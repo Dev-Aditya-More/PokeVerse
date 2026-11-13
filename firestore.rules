@@ -93,6 +93,17 @@ service cloud.firestore {
         && d.get('dexEvoSpent', 0) <= d.get('dexEvoEarned', 0);
     }
 
+    // Teams and favourites (CollectionSync): a map of bounded lists, owner-only like the rest of the doc.
+    function collectionOk(d) {
+      return !('collection' in d) || (
+        d.collection is map
+        && d.collection.get('teams', []) is list && d.collection.get('teams', []).size() <= 100
+        && d.collection.get('favourites', []) is list && d.collection.get('favourites', []).size() <= 1100
+        && d.collection.get('battleTeams', []) is list && d.collection.get('battleTeams', []).size() <= 60
+        && d.collection.get('deleted', {}) is map && d.collection.get('deleted', {}).size() <= 2000
+      );
+    }
+
     // Only the player's Google photo or their own uploaded photo may appear publicly.
     // Anything else could be a tracking pixel logging every viewer's IP, or a local path.
     function photoOk(url, uid) {
@@ -111,12 +122,14 @@ service cloud.firestore {
                     && userXpOk(request.resource.data)
                     && progressionOk(request.resource.data)
                     && dexSyncOk(request.resource.data)
+                    && collectionOk(request.resource.data)
                     && request.resource.data.get('totalXp', 0) <= 100000;
       allow update: if isOwner(uid)
                     && !changed().hasAny(['premiumState'])
                     && userXpOk(request.resource.data)
                     && progressionOk(request.resource.data)
                     && dexSyncOk(request.resource.data)
+                    && collectionOk(request.resource.data)
                     && progressionStepOk(request.resource.data, resource.data)
                     && totalXpStepOk(request.resource.data, resource.data);
     }
@@ -218,6 +231,9 @@ service cloud.firestore {
       function isPlayer(d) { return isHost(d) || isGuest(d); }
       function seatOf(d) { return isHost(d) ? 'h' : 'g'; }
       function theRoom() { return get(/databases/$(database)/documents/team_battles/$(matchId)).data; }
+      function reactionOk(r) {
+        return r is map && r.keys().hasOnly(['e', 'n']) && r.e is int && r.e >= 0 && r.e < 8 && r.n is int;
+      }
 
       // Open rooms are discoverable (quick match); a started battle is private to its two players.
       allow read: if signedIn() && (resource.data.status == 'waiting' || isPlayer(resource.data));
@@ -261,6 +277,9 @@ service cloud.firestore {
           || (isGuest(resource.data)
             && request.resource.data.heartbeatGuestAt == request.time
             && changed().hasOnly(['heartbeatGuestAt']))
+          // A quick reaction on your own seat: an emoji index and a counter, nothing else.
+          || (isHost(resource.data) && changed().hasOnly(['reactH']) && reactionOk(request.resource.data.reactH))
+          || (isGuest(resource.data) && changed().hasOnly(['reactG']) && reactionOk(request.resource.data.reactG))
           // Closing the room (battle over, or a waiting room cancelled).
           || (isPlayer(resource.data)
             && request.resource.data.status == 'finished'

@@ -142,19 +142,11 @@ fun CardClashLobbyScreen(
             ) {
                 when {
                     state.isLoading || state.phase == ClashPhase.DEALING -> {
-                        val messages = if (state.isBotMatch) {
-                            listOf(
-                                stringResource(R.string.clash_loading_bot),
-                                stringResource(R.string.clash_loading_dealing),
-                                stringResource(R.string.clash_loading_gathering)
-                            )
-                        } else {
-                            listOf(
-                                stringResource(R.string.clash_loading_team),
-                                stringResource(R.string.clash_loading_dealing),
-                                stringResource(R.string.clash_loading_gathering)
-                            )
-                        }
+                        val messages = listOf(
+                            stringResource(R.string.clash_loading_team),
+                            stringResource(R.string.clash_loading_dealing),
+                            stringResource(R.string.clash_loading_gathering)
+                        )
                         LoadingView(messages)
                     }
 
@@ -162,7 +154,6 @@ fun CardClashLobbyScreen(
                         WaitingView(
                             roomCode = if (state.isRandomWait) null else state.roomCode,
                             isRandom = state.isRandomWait,
-                            matchmakingSecondsLeft = state.matchmakingSecondsLeft,
                             waiting = waiting,
                             onCancel = onCancelWait
                         )
@@ -434,7 +425,6 @@ private fun FriendRoomCard(
 private fun WaitingView(
     roomCode: String?,
     isRandom: Boolean,
-    matchmakingSecondsLeft: Int,
     waiting: Int? = null,
     onCancel: () -> Unit
 ) {
@@ -455,7 +445,6 @@ private fun WaitingView(
         }
     }
 
-    val showBotWarning = isRandom && matchmakingSecondsLeft in 1..10
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -477,32 +466,24 @@ private fun WaitingView(
         ) {
             if (isRandom) {
                 AnimatedContent(
-                    targetState = if (showBotWarning) "bot_warn" else searchMessages[searchMsgIdx],
+                    targetState = searchMessages[searchMsgIdx],
                     transitionSpec = { fadeIn() togetherWith fadeOut() },
                     label = "search_msg"
                 ) { msg ->
                     Text(
-                        text = if (showBotWarning)
-                            stringResource(R.string.clash_matchmaking_soon, matchmakingSecondsLeft)
-                        else
-                            msg,
+                        text = msg,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
-                        color = if (showBotWarning)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
-                if (!showBotWarning) {
-                    Text(
-                        text = stringResource(R.string.clash_queue_hint),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.clash_queue_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
                 ClashPoolLine(waiting)
                 Spacer(Modifier.height(4.dp))
                 FilledTonalButton(

@@ -161,9 +161,11 @@ fun DexProgressStrip(
 }
 
 /**
- * How many different species of each category are in the Pokédex, rarest first: one tile per category with a
- * glowing gem in its colour, the count, and the name. The tiles share the row, so they scale with the screen.
+ * How many different species of each category are in the Pokédex, rarest first. One stacked bar shows the mix at a
+ * glance; under it, a legend of chips (dot, count, name) wraps onto a second line instead of squeezing five labels
+ * into one row, so long names and translations never spill out of their block.
  */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun RarityBreakdown(counts: Map<CatchTier, Int>, modifier: Modifier = Modifier) {
     val entries = listOf(
@@ -173,39 +175,50 @@ fun RarityBreakdown(counts: Map<CatchTier, Int>, modifier: Modifier = Modifier) 
         Triple(CatchTier.UNCOMMON, R.string.wildcatch_tier_uncommon, Color(0xFF66BB6A)),
         Triple(CatchTier.COMMON, R.string.wildcatch_tier_common, Color(0xFF9E9E9E)),
     )
-    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        entries.forEach { (tier, label, color) ->
-            val count = counts[tier] ?: 0
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = if (count > 0) 0.55f else 0.2f)),
-                modifier = Modifier.weight(1f),
-            ) {
-                Column(
-                    Modifier.padding(vertical = 8.dp, horizontal = 2.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(3.dp),
+    val total = entries.sumOf { counts[it.first] ?: 0 }
+    val track = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // The mix as one segmented bar; empty until something with a recorded tier is caught.
+        Row(
+            Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(track),
+            horizontalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            if (total > 0) entries.forEach { (tier, _, color) ->
+                val c = counts[tier] ?: 0
+                if (c > 0) Box(Modifier.weight(c.toFloat()).fillMaxSize().background(color))
+            }
+        }
+        androidx.compose.foundation.layout.FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            entries.forEach { (tier, label, color) ->
+                val count = counts[tier] ?: 0
+                val on = count > 0
+                Surface(
+                    shape = RoundedCornerShape(50),
+                    color = color.copy(alpha = if (on) 0.14f else 0.05f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, color.copy(alpha = if (on) 0.45f else 0.15f)),
                 ) {
-                    // A small gem: a soft halo under a solid dot.
-                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(18.dp)) {
-                        Box(Modifier.size(18.dp).clip(CircleShape).background(color.copy(alpha = if (count > 0) 0.28f else 0.1f)))
-                        Box(Modifier.size(9.dp).clip(CircleShape).background(color.copy(alpha = if (count > 0) 1f else 0.4f)))
+                    Row(
+                        Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(color.copy(alpha = if (on) 1f else 0.35f)))
+                        Text(
+                            NumberFormat.getIntegerInstance().format(count),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (on) 1f else 0.4f),
+                        )
+                        Text(
+                            stringResource(label),
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (on) 1f else 0.6f),
+                        )
                     }
-                    Text(
-                        NumberFormat.getIntegerInstance().format(count),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (count > 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                    )
-                    Text(
-                        stringResource(label),
-                        fontSize = 10.sp,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
                 }
             }
         }

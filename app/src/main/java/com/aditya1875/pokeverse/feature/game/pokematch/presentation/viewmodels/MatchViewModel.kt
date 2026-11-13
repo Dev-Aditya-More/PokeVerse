@@ -67,7 +67,6 @@ class MatchViewModel(
     private var gameCompleted = false
 
     private var timerJob: Job? = null
-    private var previewJob: Job? = null
     private var currentDifficulty = Difficulty.EASY
 
     private var firstGameOfDayAwarded = false
@@ -109,15 +108,14 @@ class MatchViewModel(
 
                 preloadSprites(urls)
 
+                // Every card starts face down and the clock runs from the first frame: no peek at the board.
                 _gameState.value = GameState.Playing(
-                    cards = cards.map { it.copy(isFlipped = true) },
+                    cards = cards,
                     timeRemaining = difficulty.timeSeconds,
                     difficulty = difficulty,
-                    isPreviewing = true,
-                    previewSecondsRemaining = difficulty.previewSeconds
                 )
 
-                startPreview()
+                startTimer()
 
             } catch (e: Exception) {
                 Log.e("MatchVM", "Failed to start game", e)
@@ -175,7 +173,6 @@ class MatchViewModel(
 
     fun onCardFlipped(cardIndex: Int) {
         val currentState = _gameState.value as? GameState.Playing ?: return
-        if (currentState.isPreviewing) return
         val card = currentState.cards[cardIndex]
 
         if (card.isFlipped || card.isMatched) return
@@ -360,26 +357,6 @@ class MatchViewModel(
         )
     }
 
-    private fun startPreview() {
-        previewJob?.cancel()
-        previewJob = viewModelScope.launch {
-            val startState = _gameState.value as? GameState.Playing ?: return@launch
-            for (remaining in startState.difficulty.previewSeconds - 1 downTo 0) {
-                delay(1000L)
-                val current = _gameState.value as? GameState.Playing ?: return@launch
-                _gameState.value = current.copy(previewSecondsRemaining = remaining)
-            }
-
-            val finalState = _gameState.value as? GameState.Playing ?: return@launch
-            _gameState.value = finalState.copy(
-                cards = finalState.cards.map { it.copy(isFlipped = false) },
-                isPreviewing = false,
-                previewSecondsRemaining = 0
-            )
-            startTimer()
-        }
-    }
-
     private fun startTimer() {
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
@@ -404,9 +381,6 @@ class MatchViewModel(
 
     fun pauseGame() {
         val current = _gameState.value as? GameState.Playing ?: return
-        // Pausing mid-preview would strand the preview coroutine (it can no longer see a
-        // Playing state to update) with cards stuck face-up, just ignore the tap instead.
-        if (current.isPreviewing) return
         timerJob?.cancel()
         _gameState.value = GameState.Paused(current)
     }
@@ -419,19 +393,16 @@ class MatchViewModel(
 
     fun restartGame() {
         timerJob?.cancel()
-        previewJob?.cancel()
         startGame(currentDifficulty)
     }
 
     fun returnToMenu() {
         timerJob?.cancel()
-        previewJob?.cancel()
         _gameState.value = GameState.Idle
     }
 
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
-        previewJob?.cancel()
     }
 }

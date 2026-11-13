@@ -3,6 +3,7 @@ const { onCall, HttpsError } = require("firebase-functions/v2/https");
 const admin = require("firebase-admin");
 const { google } = require("googleapis");
 const { payWeeklyRewards } = require("./weeklyPayout");
+const { payoutsStarted, FIRST_PAYOUT_WEEK } = require("./weeklyRewards");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -189,7 +190,11 @@ exports.resetWeeklyXp = onSchedule(
       // ── 1b. Placement coins. Best-effort: a failure here must never block the reset below. ──
       let payouts = new Map();
       try {
-        payouts = (await payWeeklyRewards(db, admin.firestore.FieldValue, docs, now)).byUid;
+        if (payoutsStarted(now)) {
+          payouts = (await payWeeklyRewards(db, admin.firestore.FieldValue, docs, now)).byUid;
+        } else {
+          console.log(`🪙 Weekly coins: not paid yet, the first payout is on ${FIRST_PAYOUT_WEEK}.`);
+        }
       } catch (e) {
         console.error("❌ Weekly coin payout failed (reset continues):", e);
       }
@@ -216,7 +221,7 @@ exports.resetWeeklyXp = onSchedule(
           emoji = "⭐";
         }
         const won = payouts.get(entry.uid);
-        if (won) body = `${body} +${won.coins} Poké Coins.`;
+        if (won) body = `${body} +${won.coins} Dex Coins.`;
         const msgRef = db
           .collection("user_messages")
           .doc(entry.uid)

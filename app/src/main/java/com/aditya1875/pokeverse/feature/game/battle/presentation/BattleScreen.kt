@@ -1,5 +1,6 @@
 package com.aditya1875.pokeverse.feature.game.battle.presentation
 
+import com.aditya1875.pokeverse.feature.game.core.domain.RivalNames
 import com.aditya1875.pokeverse.feature.game.battle.domain.PickerFilter
 import com.aditya1875.pokeverse.feature.game.battle.domain.TeamFormat
 import com.aditya1875.pokeverse.feature.game.battle.domain.TeamRules
@@ -151,7 +152,6 @@ fun BattleScreen(
     var pendingXp by remember { mutableStateOf<XPResult?>(null) }
     var showExit by remember { mutableStateOf(false) }
     var showFriend by remember { mutableStateOf(false) }
-    var botNotice by remember { mutableStateOf(false) }
 
     val stage = lobby.stage
     val practiceFighting = phase is BattleViewModel.Phase.Battling && battle?.over == false
@@ -161,17 +161,13 @@ fun BattleScreen(
 
     LaunchedEffect(Unit) { viewModel.xpResult.collect { pendingXp = it } }
     LaunchedEffect(Unit) { online.xpResult.collect { pendingXp = it } }
-    // Nobody online in time: the same team goes into a practice battle, and the player is told why.
+    // Nobody online in time: the same team faces a stand-in rival with a trainer's name, without a notice.
     LaunchedEffect(Unit) {
         online.fallbackToBot.collect {
             showFriend = false
             viewModel.setTier(BotTier.TRAINER)
-            botNotice = true
-            viewModel.start()
+            viewModel.startVsStandIn(RivalNames.pick())
         }
-    }
-    LaunchedEffect(botNotice) {
-        if (botNotice) { delay(5_000); botNotice = false }
     }
     // Close the friend sheet as soon as the room is open or joined.
     LaunchedEffect(stage) { if (stage != OnlineBattleViewModel.Stage.IDLE) showFriend = false }
@@ -267,13 +263,6 @@ fun BattleScreen(
                         }
                     }
                 }
-
-                AnimatedVisibility(
-                    visible = botNotice,
-                    enter = fadeIn(tween(200)),
-                    exit = fadeOut(tween(300)),
-                    modifier = Modifier.align(Alignment.TopCenter).padding(12.dp),
-                ) { BotNotice() }
             }
         }
     }

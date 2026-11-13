@@ -337,7 +337,6 @@
 
     <!-- Game dialogs -->
     <string name="match_preparing">Préparation des Pokémon...</string>
-    <string name="match_memorize_prompt">Mémorisez le plateau ! %1$d</string>
     <string name="match_paused">En pause</string>
     <string name="match_resume">Reprendre</string>
     <string name="match_restart">Recommencer</string>
@@ -563,7 +562,6 @@
     <string name="go_guide_appraisal_body">Cette app ne peut pas lire vos données de jeu, elle ne peut donc qu’estimer. Pour voir les IV exacts d’un Pokémon capturé, utilisez l’Évaluation en jeu, touchez le Pokémon, ouvrez le menu ⋮, puis Évaluer.</string>
     <string name="go_guide_raid_heading">IV minimum des Raids, Œufs et Études</string>
     <string name="go_guide_raid_body">Les Pokémon capturés en Raid, éclos d’un Œuf ou obtenus par Étude de terrain ont un IV minimum garanti dans chaque stat (souvent 10/15 ou plus), ils sont donc en moyenne plus forts qu’une capture sauvage au hasard.</string>
-    <string name="clash_matchmaking_soon">Aucun dresseur à proximité · match contre l’IA dans %1$d s</string>
     <string name="clash_searching_msg1">Exploration de la région…</string>
     <string name="clash_searching_msg2">Vérification des arènes voisines…</string>
     <string name="clash_searching_msg3">Recherche d’un rival…</string>
@@ -571,8 +569,6 @@
     <string name="clash_loading_team">Préparation de votre équipe…</string>
     <string name="clash_loading_dealing">Mélange des cartes…</string>
     <string name="clash_loading_gathering">Rassemblement des Pokémon…</string>
-    <string name="clash_loading_bot">Préparation de l’adversaire IA…</string>
-    <string name="clash_bot_opponent">CPU</string>
     <string name="profile_bio_label">Bio</string>
     <string name="profile_bio_placeholder">Écrivez quelque chose que les autres verront</string>
     <string name="profile_bio_empty_hint">Touchez pour écrire une bio</string>
@@ -1649,7 +1645,6 @@
     <string name="battle_online_desc">Choisis ton équipe et affronte un autre dresseur en direct. Chaque tour se joue en même temps, réfléchis vite.</string>
     <string name="battle_online_pill_shards">Éclats d\'évolution</string>
     <string name="battle_online_pill_xp">XP bonus</string>
-    <string name="battle_online_bot_note">Personne en vue ? Au bout de %1$d secondes, un bot prend le relais pour que tu n\'attendes jamais.</string>
     <string name="battle_online_find">Trouver un match</string>
     <string name="battle_online_friend">Jouer avec un ami</string>
     <string name="battle_online_friend_title">Jouer avec un ami</string>
@@ -1660,7 +1655,6 @@
     <string name="battle_online_join">Rejoindre</string>
     <string name="battle_online_searching">Recherche d\'un dresseur…</string>
     <string name="battle_online_searching_sub">On te met en relation avec quelqu\'un en ligne.</string>
-    <string name="battle_online_bot_in">Un bot arrive dans %1$d s</string>
     <string name="battle_online_connecting">Connexion…</string>
     <string name="battle_online_waiting_friend">En attente de ton ami</string>
     <string name="battle_online_waiting_friend_sub">Partage le code ci-dessous. Le combat commence dès qu\'il rejoint.</string>
@@ -1677,7 +1671,6 @@
     <string name="battle_online_err_room">Salle introuvable, ou déjà pleine.</string>
     <string name="battle_online_err_generic">Impossible de joindre le serveur de combat. Vérifie ta connexion et réessaie.</string>
     <string name="battle_online_err_prep">Ton rival n\'est pas arrivé sur le terrain. Essaie un autre match.</string>
-    <string name="battle_online_bot_notice">Aucun dresseur en ligne pour le moment, voici donc un combat d\'entraînement.</string>
     <string name="battle_online_exit_title">Quitter le combat ?</string>
     <string name="battle_online_exit_body">Quitter compte comme un forfait et ton rival gagne.</string>
     <string name="battle_online_waiting">En attente de %1$s…</string>
@@ -1863,4 +1856,6 @@
     <string name="challenge_diff_easy">Facile</string>
     <string name="challenge_diff_medium">Moyen</string>
     <string name="challenge_diff_hard">Difficile</string>
+    <string name="battle_react">Réagir</string>
+    <string name="weekly_payout_starts">Premier versement : lundi 23 novembre, pour la semaine du 16 au 22 novembre.</string>
 </resources>

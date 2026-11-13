@@ -337,7 +337,6 @@
 
     <!-- Game dialogs -->
     <string name="match_preparing">Pokémon तैयार हो रहे हैं…</string>
-    <string name="match_memorize_prompt">बोर्ड याद रखें! %1$d</string>
     <string name="match_paused">Paused</string>
     <string name="match_resume">Resume करें</string>
     <string name="match_restart">Restart करें</string>
@@ -563,7 +562,6 @@
     <string name="go_guide_appraisal_body">यह app तुम्हारा save data नहीं पढ़ सकता, इसलिए सिर्फ अंदाज़ा लगा सकता है। पकड़े गए Pokémon के exact IVs देखने के लिए in-game Appraisal use करो. Pokémon पर tap करो, ⋮ menu खोलो, फिर Appraise करो।</string>
     <string name="go_guide_raid_heading">Raid, Egg और Research IV floors</string>
     <string name="go_guide_raid_body">Raids से पकड़े, Eggs से hatch हुए या Field Research से मिले Pokémon में हर stat में कम से कम एक तय IV मिलता है (आमतौर पर 10/15 या ज़्यादा), इसलिए ये औसतन random wild catch से ज़्यादा strong होते हैं।</string>
-    <string name="clash_matchmaking_soon">पास में कोई trainer नहीं · %1$ds में AI match</string>
     <string name="clash_searching_msg1">इलाके की खोज हो रही है…</string>
     <string name="clash_searching_msg2">पास के gyms check हो रहे हैं…</string>
     <string name="clash_searching_msg3">Rival ढूँढा जा रहा है…</string>
@@ -571,8 +569,6 @@
     <string name="clash_loading_team">तुम्हारी team तैयार हो रही है…</string>
     <string name="clash_loading_dealing">Cards shuffle हो रहे हैं…</string>
     <string name="clash_loading_gathering">Pokémon इकट्ठा हो रहे हैं…</string>
-    <string name="clash_loading_bot">AI opponent तैयार हो रहा है…</string>
-    <string name="clash_bot_opponent">CPU</string>
     <string name="profile_bio_label">Bio</string>
     <string name="profile_bio_placeholder">कुछ ऐसा लिखो जो लोग देखेंगे</string>
     <string name="profile_bio_empty_hint">Bio लिखने के लिए tap करो</string>
@@ -1649,7 +1645,6 @@
     <string name="battle_online_desc">अपनी टीम चुनें और किसी दूसरे ट्रेनर से लाइव भिड़ें। हर टर्न एक साथ खेला जाता है, इसलिए जल्दी सोचें।</string>
     <string name="battle_online_pill_shards">इवो शार्ड</string>
     <string name="battle_online_pill_xp">बोनस XP</string>
-    <string name="battle_online_bot_note">कोई नहीं मिला? %1$d सेकंड बाद एक बॉट आ जाता है, ताकि आपको इंतज़ार न करना पड़े।</string>
     <string name="battle_online_find">मैच ढूँढें</string>
     <string name="battle_online_friend">दोस्त के साथ खेलें</string>
     <string name="battle_online_friend_title">दोस्त के साथ खेलें</string>
@@ -1660,7 +1655,6 @@
     <string name="battle_online_join">जुड़ें</string>
     <string name="battle_online_searching">ट्रेनर ढूँढ रहे हैं…</string>
     <string name="battle_online_searching_sub">अभी ऑनलाइन किसी से मिलाया जा रहा है।</string>
-    <string name="battle_online_bot_in">%1$d सेकंड में बॉट आएगा</string>
     <string name="battle_online_connecting">कनेक्ट हो रहा है…</string>
     <string name="battle_online_waiting_friend">दोस्त का इंतज़ार</string>
     <string name="battle_online_waiting_friend_sub">नीचे दिया कोड शेयर करें। उनके जुड़ते ही बैटल शुरू हो जाएगा।</string>
@@ -1677,7 +1671,6 @@
     <string name="battle_online_err_room">रूम नहीं मिला, या पहले से भरा है।</string>
     <string name="battle_online_err_generic">बैटल सर्वर तक नहीं पहुँच सके। कनेक्शन जाँचें और फिर कोशिश करें।</string>
     <string name="battle_online_err_prep">आपका प्रतिद्वंदी बैटलफील्ड तक नहीं पहुँचा। कोई दूसरा मैच आज़माएँ।</string>
-    <string name="battle_online_bot_notice">अभी कोई ट्रेनर ऑनलाइन नहीं है, इसलिए यह प्रैक्टिस बैटल है।</string>
     <string name="battle_online_exit_title">बैटल छोड़ें?</string>
     <string name="battle_online_exit_body">छोड़ना हार माना जाएगा और आपका प्रतिद्वंदी जीत जाएगा।</string>
     <string name="battle_online_waiting">%1$s का इंतज़ार…</string>
@@ -1862,4 +1855,6 @@
     <string name="challenge_diff_easy">आसान</string>
     <string name="challenge_diff_medium">मध्यम</string>
     <string name="challenge_diff_hard">कठिन</string>
+    <string name="battle_react">प्रतिक्रिया दें</string>
+    <string name="weekly_payout_starts">पहला भुगतान: सोमवार 23 नवंबर, 16 से 22 नवंबर वाले हफ़्ते के लिए।</string>
 </resources>

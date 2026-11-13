@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
@@ -196,7 +194,6 @@ fun GameScreen(
                                     }
 
                                     IconButton(
-                                        enabled = !playing.isPreviewing,
                                         onClick = {
                                             if (isPaused) viewModel.resumeGame()
                                             else viewModel.pauseGame()
@@ -209,22 +206,12 @@ fun GameScreen(
                                     }
                                 }
 
-                                // Progress text, swapped for a memorize prompt during the preview window
                                 Text(
-                                    text = if (playing.isPreviewing)
-                                        stringResource(R.string.match_memorize_prompt, playing.previewSecondsRemaining)
-                                    else
-                                        "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
+                                    text = "${playing.matchedPairs.size}/${playing.difficulty.pairs} pairs found",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = if (playing.isPreviewing)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                                    fontWeight = if (playing.isPreviewing) FontWeight.Bold else FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                                     modifier = Modifier.padding(vertical = 8.dp)
                                 )
-
-                                Spacer(modifier = Modifier.height(8.dp))
 
                                 Box(
                                     modifier = Modifier
@@ -241,29 +228,40 @@ fun GameScreen(
                                             )
                                         )
                                     ) {
-                                        LazyVerticalGrid(
-                                            columns = GridCells.Fixed(playing.difficulty.gridColumns),
+                                        // The whole board on one screen: each card takes the largest 3:4 size that lets
+                                        // every row and column fit the space left, so nothing ever scrolls.
+                                        val cols = playing.difficulty.gridColumns
+                                        val rows = (playing.cards.size + cols - 1) / cols
+                                        val gap = 8.dp
+                                        BoxWithConstraints(
                                             modifier = Modifier
                                                 .fillMaxSize()
                                                 .padding(12.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                                            userScrollEnabled = true
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            itemsIndexed(playing.cards) { index, card ->
-                                                PokemonCard(
-                                                    card = card,
-                                                    onClick = {
-                                                        if (!isPaused && !playing.isPreviewing) {
-                                                            soundManager.play(SoundManager.Sound.CARD_FLIP)
-
-                                                            viewModel.onCardFlipped(index)
+                                            val byWidth = (maxWidth - gap * (cols - 1)) / cols
+                                            val byHeight = ((maxHeight - gap * (rows - 1)) / rows) * 0.75f
+                                            val cardWidth = minOf(byWidth, byHeight)
+                                            Column(verticalArrangement = Arrangement.spacedBy(gap)) {
+                                                playing.cards.chunked(cols).forEachIndexed { r, rowCards ->
+                                                    Row(horizontalArrangement = Arrangement.spacedBy(gap)) {
+                                                        rowCards.forEachIndexed { c, card ->
+                                                            val index = r * cols + c
+                                                            PokemonCard(
+                                                                card = card,
+                                                                onClick = {
+                                                                    if (!isPaused) {
+                                                                        soundManager.play(SoundManager.Sound.CARD_FLIP)
+                                                                        viewModel.onCardFlipped(index)
+                                                                    }
+                                                                },
+                                                                modifier = Modifier
+                                                                    .width(cardWidth)
+                                                                    .aspectRatio(0.75f)
+                                                            )
                                                         }
-                                                    },
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .aspectRatio(0.75f) // use 1f for square cards
-                                                )
+                                                    }
+                                                }
                                             }
                                         }
                                     }

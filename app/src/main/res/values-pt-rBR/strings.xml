@@ -389,7 +389,6 @@
 
     <!-- Game dialogs -->
     <string name="match_preparing">Preparando Pokémon...</string>
-    <string name="match_memorize_prompt">Memorize o tabuleiro! %1$d</string>
     <string name="match_paused">Pausado</string>
     <string name="match_resume">Retomar</string>
     <string name="match_restart">Reiniciar</string>
@@ -533,7 +532,6 @@
     <string name="clash_defeated">Derrotado</string>
     <string name="clash_timer_seconds">%1$ds</string>
     <string name="clash_card_number">Carta %1$d</string>
-    <string name="clash_matchmaking_soon">Nenhum treinador por perto · Partida contra IA em %1$ds</string>
     <string name="clash_searching_msg1">Explorando a região…</string>
     <string name="clash_searching_msg2">Verificando ginásios próximos…</string>
     <string name="clash_searching_msg3">Procurando um rival…</string>
@@ -541,8 +539,6 @@
     <string name="clash_loading_team">Preparando seu time…</string>
     <string name="clash_loading_dealing">Embaralhando as cartas…</string>
     <string name="clash_loading_gathering">Reunindo Pokémon…</string>
-    <string name="clash_loading_bot">Configurando oponente de IA…</string>
-    <string name="clash_bot_opponent">CPU</string>
     <!-- Guide dialog -->
     <string name="clash_guide_title">Como funciona</string>
     <string name="clash_guide_step_count">%1$d de %2$d</string>
@@ -1663,7 +1659,6 @@
     <string name="battle_online_desc">Escolha seu time e enfrente outro treinador ao vivo. Cada turno acontece ao mesmo tempo, então pense rápido.</string>
     <string name="battle_online_pill_shards">Fragmentos de Evolução</string>
     <string name="battle_online_pill_xp">XP bônus</string>
-    <string name="battle_online_bot_note">Ninguém por perto? Depois de %1$d segundos um bot entra em campo, para você nunca ficar esperando.</string>
     <string name="battle_online_find">Encontrar partida</string>
     <string name="battle_online_friend">Jogar com um amigo</string>
     <string name="battle_online_friend_title">Jogar com um amigo</string>
@@ -1674,7 +1669,6 @@
     <string name="battle_online_join">Entrar</string>
     <string name="battle_online_searching">Procurando um treinador…</string>
     <string name="battle_online_searching_sub">Conectando você a alguém que está online agora.</string>
-    <string name="battle_online_bot_in">Um bot entra em %1$ds</string>
     <string name="battle_online_connecting">Conectando…</string>
     <string name="battle_online_waiting_friend">Esperando seu amigo</string>
     <string name="battle_online_waiting_friend_sub">Compartilhe o código abaixo. A batalha começa assim que ele entrar.</string>
@@ -1691,7 +1685,6 @@
     <string name="battle_online_err_room">Sala não encontrada, ou já está cheia.</string>
     <string name="battle_online_err_generic">Não foi possível acessar o servidor de batalha. Verifique sua conexão e tente de novo.</string>
     <string name="battle_online_err_prep">Seu rival não chegou ao campo de batalha. Tente outra partida.</string>
-    <string name="battle_online_bot_notice">Nenhum treinador online agora, então aqui vai uma batalha de treino.</string>
     <string name="battle_online_exit_title">Sair da batalha?</string>
     <string name="battle_online_exit_body">Sair conta como desistência e seu rival vence.</string>
     <string name="battle_online_waiting">Esperando %1$s…</string>
@@ -1877,4 +1870,6 @@
     <string name="challenge_diff_easy">Fácil</string>
     <string name="challenge_diff_medium">Médio</string>
     <string name="challenge_diff_hard">Difícil</string>
+    <string name="battle_react">Reagir</string>
+    <string name="weekly_payout_starts">Primeiro pagamento: segunda-feira, 23 de novembro, pela semana de 16 a 22 de novembro.</string>
 </resources>

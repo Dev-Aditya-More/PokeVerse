@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -118,7 +120,8 @@ private fun CardBack(modifier: Modifier = Modifier) {
             contentAlignment = Alignment.Center
         ) {
             // Pokeball design
-            Canvas(modifier = Modifier.size(40.dp)) {
+            // Scales with the card so small boards (Hard on a short phone) keep a clean margin.
+            Canvas(modifier = Modifier.fillMaxWidth(0.5f).aspectRatio(1f)) {
                 val strokeWidth = 3.dp.toPx()
                 val radius = size.minDimension / 2
 

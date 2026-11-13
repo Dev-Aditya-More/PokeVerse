@@ -63,3 +63,11 @@ test("week key is the IST date, so a run at Monday 00:00 IST keys to that Monday
   assert.equal(weekKey(Date.UTC(2026, 10, 15, 18, 30)), "2026-11-16");
   assert.equal(weekKey(Date.UTC(2026, 10, 15, 18, 29)), "2026-11-15");
 });
+
+test("no coins are paid before the first payout Monday", () => {
+  const { payoutsStarted } = require("./weeklyRewards");
+  // Mondays 00:00 IST are Sundays 18:30 UTC.
+  assert.equal(payoutsStarted(Date.parse("2026-11-15T18:30:00Z")), false); // Mon 16 Nov IST
+  assert.equal(payoutsStarted(Date.parse("2026-11-22T18:30:00Z")), true); // Mon 23 Nov IST
+  assert.equal(payoutsStarted(Date.parse("2026-11-29T18:30:00Z")), true);
+});

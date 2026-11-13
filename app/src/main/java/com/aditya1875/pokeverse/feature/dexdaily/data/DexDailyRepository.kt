@@ -87,7 +87,7 @@ class DexDailyRepository(
         val uid = FirebaseAuth.getInstance().currentUser?.uid ?: return
         try {
             val ref = FirebaseFirestore.getInstance().collection("users").document(uid)
-            val cloud = DexDailyCodec.decode(ref.get().await().getString(CLOUD_FIELD))
+            val cloud = DexDailyCodec.decode(com.aditya1875.pokeverse.utils.UserDocCache.read(uid).getString(CLOUD_FIELD))
             var merged: Map<String, DexDailyRecord> = emptyMap()
             context.dexDailyStore.edit { prefs ->
                 val local = if (replaceLocal) emptyMap() else DexDailyCodec.decode(prefs[recordsKey])

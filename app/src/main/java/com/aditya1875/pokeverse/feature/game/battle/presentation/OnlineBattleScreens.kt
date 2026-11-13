@@ -206,11 +206,6 @@ internal fun OnlineIntroCard(modifier: Modifier = Modifier, waiting: Int? = null
                 Icon(Icons.Default.Star, contentDescription = null, tint = Gold, modifier = Modifier.size(13.dp))
             }
         }
-        Text(
-            stringResource(R.string.battle_online_bot_note, OnlineBattleRules.QUEUE_SECONDS),
-            color = Color.White.copy(alpha = 0.65f),
-            style = MaterialTheme.typography.bodySmall,
-        )
     }
 }
 
@@ -306,7 +301,6 @@ internal fun OnlineSearching(lobby: OnlineBattleViewModel.Lobby, onCancel: () ->
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 PoolLine(waiting)
-                if (lobby.secondsLeft > 0) BotCountdown(lobby.secondsLeft)
             }
         }
 
@@ -347,24 +341,6 @@ private fun Radar(partnerId: Int?) {
         ) {
             if (partnerId != null) AsyncImage(art(partnerId), contentDescription = null, modifier = Modifier.size(84.dp))
         }
-    }
-}
-
-@Composable
-private fun BotCountdown(secondsLeft: Int) {
-    val urgent = secondsLeft <= 10
-    val color = if (urgent) Gold else Color.White.copy(alpha = 0.7f)
-    Row(
-        Modifier
-            .clip(CircleShape)
-            .background(color.copy(alpha = 0.12f))
-            .border(BorderStroke(1.dp, color.copy(alpha = 0.4f)), CircleShape)
-            .padding(horizontal = 14.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Icon(Icons.Default.SmartToy, contentDescription = null, tint = color, modifier = Modifier.size(16.dp))
-        Text(stringResource(R.string.battle_online_bot_in, secondsLeft), color = color, fontWeight = FontWeight.Bold)
     }
 }
 
@@ -554,19 +530,3 @@ internal fun FriendRoomSheet(
     }
 }
 
-/** A short-lived note on top of the screen, e.g. when a quick match found nobody and a bot stepped in. */
-@Composable
-internal fun BotNotice(modifier: Modifier = Modifier) {
-    Row(
-        modifier
-            .clip(RoundedCornerShape(16.dp))
-            .background(Ink.copy(alpha = 0.96f))
-            .border(BorderStroke(1.dp, Gold.copy(alpha = 0.6f)), RoundedCornerShape(16.dp))
-            .padding(horizontal = 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        Icon(Icons.Default.SmartToy, contentDescription = null, tint = Gold, modifier = Modifier.size(20.dp))
-        Text(stringResource(R.string.battle_online_bot_notice), color = Color.White, style = MaterialTheme.typography.bodyMedium)
-    }
-}

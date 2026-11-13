@@ -77,6 +77,26 @@ interface TeamDao {
     @Query("SELECT * FROM teams ORDER BY isDefault DESC, createdAt ASC")
     fun getAllTeamsWithMembers(): Flow<List<TeamWithMembers>>
 
+    // ========== ACCOUNT SYNC ==========
+
+    @Query("SELECT * FROM teams ORDER BY isDefault DESC, createdAt ASC")
+    suspend fun getAllTeamsOnce(): List<TeamEntity>
+
+    @Query("SELECT * FROM team_members ORDER BY addedAt ASC")
+    suspend fun getAllMembersOnce(): List<TeamMemberEntity>
+
+    @Query("DELETE FROM team_members")
+    suspend fun deleteAllMembers()
+
+    @Query("DELETE FROM teams")
+    suspend fun deleteAllTeams()
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTeams(teams: List<TeamEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMembers(members: List<TeamMemberEntity>)
+
     // ========== UTILITY ==========
 
     @Query("SELECT teamId FROM teams WHERE (SELECT COUNT(*) FROM team_members WHERE team_members.teamId = teams.teamId) < 6 ORDER BY isDefault DESC, createdAt ASC LIMIT 1")

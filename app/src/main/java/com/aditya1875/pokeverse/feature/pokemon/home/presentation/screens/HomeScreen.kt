@@ -51,7 +51,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CameraAlt
@@ -63,9 +62,9 @@ import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -187,7 +186,7 @@ import com.aditya1875.pokeverse.feature.feedback.presentation.FeedbackSheet
 @Suppress("EffectKeys")
 @OptIn(
     ExperimentalSharedTransitionApi::class,
-    ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class
+    ExperimentalMaterial3Api::class
 )
 @Composable
 fun SharedTransitionScope.HomeScreen(
@@ -234,10 +233,8 @@ fun SharedTransitionScope.HomeScreen(
     val soundManager: SoundManager = koinInject()
     val reviewManager: IReviewManager = koinInject()
 
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing = isLoading && pokemonList.isNotEmpty(),
-        onRefresh = { viewModel.refreshList() }
-    )
+    val pullRefreshState = rememberPullToRefreshState()
+    val pullRefreshing = isLoading && pokemonList.isNotEmpty()
 
     val originalAssetsEnabled = true
     val mysteryMode by settingsViewModel.mysterySilhouettes.collectAsStateWithLifecycle()
@@ -482,7 +479,11 @@ fun SharedTransitionScope.HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pullRefresh(pullRefreshState)
+            .pullToRefresh(
+                isRefreshing = pullRefreshing,
+                state = pullRefreshState,
+                onRefresh = { viewModel.refreshList() }
+            )
     ) {
         Scaffold(
             containerColor = MaterialTheme.colorScheme.background,
@@ -1103,8 +1104,8 @@ fun SharedTransitionScope.HomeScreen(
                                     }
                                 }
 
-                                PullRefreshIndicator(
-                                    refreshing = when (contentMode) {
+                                PullToRefreshDefaults.Indicator(
+                                    isRefreshing = when (contentMode) {
                                         HomeContentMode.POKEMON -> isLoading
                                         HomeContentMode.ITEMS -> itemListState is ItemListState.Loading
                                         HomeContentMode.BERRIES -> berryListState is BerryListState.Loading

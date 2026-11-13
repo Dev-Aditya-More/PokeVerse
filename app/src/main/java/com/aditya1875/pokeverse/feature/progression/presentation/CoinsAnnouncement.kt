@@ -97,6 +97,15 @@ fun CoinsIntroDialog(isGuest: Boolean, onSeeRewards: () -> Unit, onLater: () -> 
                         WeeklyPrizes.PLAYED, WeeklyPrizes.TOP_10, WeeklyPrizes.THIRD, WeeklyPrizes.FIRST
                     )
                 )
+                if (WeeklyPrizes.beforeFirstPayout()) {
+                    Text(
+                        stringResource(R.string.weekly_payout_starts),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 32.dp)
+                    )
+                }
                 IntroLine(Icons.Default.Star, stringResource(R.string.coins_intro_levels))
                 IntroLine(Icons.Default.ShoppingBag, stringResource(R.string.coins_intro_spend))
                 if (isGuest) {

@@ -26,7 +26,7 @@ class CardClashRepositoryImpl(
 
     companion object {
         // A legit waiting room converts to a bot match (or gets cancelled) well before this
-        // see CardClashViewModel.BOT_MATCHMAKING_TIMEOUT (30s). Anything still "waiting" past
+        // see CardClashViewModel.BOT_MATCHMAKING_TIMEOUT (20s). Anything still "waiting" past
         // this age was abandoned without cleanup and should never be matched into. Kept
         // comfortably above the bot-fallback timeout (not equal to it) so a room that's still
         // legitimately waiting in its final seconds never gets excluded here as "stale"

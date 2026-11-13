@@ -31,7 +31,12 @@ data class OnlineMatch(
     val heartbeatGuestMs: Long,
     val quitSeat: Seat?,
     val abandonedSeat: Seat?,
+    /** Each seat's latest reaction as (emoji index, counter); the counter changing is what shows a new one. */
+    val reactHost: Pair<Int, Long>? = null,
+    val reactGuest: Pair<Int, Long>? = null,
 ) {
+    fun reactionOf(seat: Seat) = if (seat == Seat.HOST) reactHost else reactGuest
+
     val hasGuest: Boolean get() = guestId.isNotEmpty()
     val finished: Boolean get() = status == STATUS_FINISHED
 
@@ -81,6 +86,9 @@ interface OnlineBattleRepository {
     suspend fun submitAction(matchId: String, uid: String, seat: Seat, step: Int, action: OnlineAction)
 
     suspend fun heartbeat(matchId: String, seat: Seat)
+
+    /** Shows reaction [index] on the rival's screen; [counter] grows with each one so repeats still show. */
+    suspend fun react(matchId: String, seat: Seat, index: Int, counter: Long) {}
 
     /**
      * Closes a room nobody joined. Returns false (and changes nothing) if someone joined in the meantime,
@@ -306,6 +314,12 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
         ).await()
     }
 
+    override suspend fun react(matchId: String, seat: Seat, index: Int, counter: Long) {
+        val field = if (seat == Seat.HOST) "reactH" else "reactG"
+        // Cosmetic: a rejected write (rules not deployed yet, offline) just means the rival doesn't see it.
+        runCatching { matches.document(matchId).update(field, mapOf("e" to index, "n" to counter)).await() }
+    }
+
     override suspend fun heartbeat(matchId: String, seat: Seat) {
         val field = if (seat == Seat.HOST) "heartbeatHostAt" else "heartbeatGuestAt"
         runCatching { matches.document(matchId).update(field, FieldValue.serverTimestamp()).await() }
@@ -346,6 +360,13 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
         }
     }
 
+    private fun reaction(raw: Any?): Pair<Int, Long>? {
+        val m = raw as? Map<*, *> ?: return null
+        val e = (m["e"] as? Number)?.toInt() ?: return null
+        val n = (m["n"] as? Number)?.toLong() ?: return null
+        return e to n
+    }
+
     override fun observe(matchId: String): Flow<OnlineSnapshot> = callbackFlow {
         val ref = matches.document(matchId)
         var match: OnlineMatch? = null
@@ -377,6 +398,8 @@ class FirestoreOnlineBattleRepository : OnlineBattleRepository {
                 heartbeatGuestMs = (d["heartbeatGuestAt"] as? Timestamp)?.toDate()?.time ?: 0L,
                 quitSeat = Seat.fromCode(d["quitSeat"] as? String),
                 abandonedSeat = Seat.fromCode(d["abandonedSeat"] as? String),
+                reactHost = reaction(d["reactH"]),
+                reactGuest = reaction(d["reactG"]),
             )
             push()
         }

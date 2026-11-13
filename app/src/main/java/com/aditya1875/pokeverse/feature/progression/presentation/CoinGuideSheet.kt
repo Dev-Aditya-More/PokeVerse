@@ -94,6 +94,14 @@ fun CoinGuideSheet(onDismiss: () -> Unit) {
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            if (com.aditya1875.pokeverse.feature.progression.domain.WeeklyPrizes.beforeFirstPayout()) {
+                Text(
+                    stringResource(R.string.weekly_payout_starts),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
 
             GuideSection(stringResource(R.string.guide_section_levels))
             Text(

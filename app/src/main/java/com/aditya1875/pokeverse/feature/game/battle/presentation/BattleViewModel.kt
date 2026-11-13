@@ -122,8 +122,12 @@ class BattleViewModel(
     private val _shardsCapped = MutableStateFlow(false)
     override val shardsCapped: StateFlow<Boolean> = _shardsCapped.asStateFlow()
 
-    /** A practice battle has no online extras. */
-    override val hud: StateFlow<ArenaHud> = MutableStateFlow(ArenaHud()).asStateFlow()
+    /**
+     * A practice battle has no online extras. The one exception is the rival's name: when a quick match found
+     * nobody, the stand-in opponent carries a trainer name, set by [startVsStandIn] and kept for rematches.
+     */
+    private val _hud = MutableStateFlow(ArenaHud())
+    override val hud: StateFlow<ArenaHud> = _hud.asStateFlow()
 
     private val rng: Random = Random.Default
     private var rewarded = false
@@ -220,11 +224,18 @@ class BattleViewModel(
     fun deleteTeam(team: SavedTeam) = savedTeams.delete(_picker.value.format, team.name)
 
     fun backToPicker() {
+        _hud.value = ArenaHud()
         _battle.value = null
         _phase.value = Phase.Picking
     }
 
     // ── Starting a battle ───────────────────────────────────────────────────
+
+    /** A quick match found nobody: the same team fights a stand-in rival who goes by [rivalName]. */
+    fun startVsStandIn(rivalName: String) {
+        _hud.value = ArenaHud(opponentName = rivalName)
+        start()
+    }
 
     fun start() {
         val cur = _picker.value
